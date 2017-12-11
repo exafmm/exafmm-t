@@ -1,0 +1,15 @@
+1UL<<3 to 8
+
+Vector -> std::vector
+ - dev_buffer
+ - rm ReInit
+ - Resize -> resize
+ - Dim -> size
+ - Vector -> std::vector
+Matrix -> std::vector(std::vector) for non-Real_t
+vec.h <- kernel, fmm_tree
+template -> Real_t
+Real_t -> real_t
+size_t -> int
+Remove unnecessary "{}"
+"){" -> ") {", "}else{" -> "} else {"
