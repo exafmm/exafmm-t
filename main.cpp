@@ -37,6 +37,7 @@
 #include <vector.hpp>
 #include <matrix.hpp>
 #include <precomp_mat.hpp>
+#include <integration.hpp>
 #include <kernel.hpp>
 #include <mortonid.hpp>
 #include <sort.hpp>
