@@ -175,7 +175,7 @@ namespace pvfmm{
   }
 
   template<typename T>
-  int SortIndex(const std::vector<T>& key, Vector<size_t>& index, const T* split_key_){
+  int SortIndex(const std::vector<T>& key, std::vector<size_t>& index, const T* split_key_){
     typedef SortPair<T,size_t> Pair_t;
     std::vector<Pair_t> parray(key.size());
     long long loc_size=key.size();
@@ -186,7 +186,7 @@ namespace pvfmm{
     }
     std::vector<Pair_t> psorted;
     HyperQuickSort(parray, psorted);
-    index.Resize(psorted.size());
+    index.resize(psorted.size());
 #pragma omp parallel for
     for(size_t i=0;i<psorted.size();i++){
       index[i]=psorted[i].data;
@@ -195,9 +195,9 @@ namespace pvfmm{
   }
 
   template<typename T>
-  int Forward(Vector<T>& data_, const Vector<size_t>& index){
+  int Forward(Vector<T>& data_, const std::vector<size_t>& index){
     typedef SortPair<size_t,size_t> Pair_t;
-    long long data_size=index.Dim();
+    long long data_size=index.size();
     long long loc_size[2]={(long long)(data_.Dim()*sizeof(T)), data_size};
     if(loc_size[0]==0 || loc_size[1]==0) return 0;
     size_t data_dim=loc_size[0]/loc_size[1];

@@ -1171,7 +1171,7 @@ public:
       root_node->NodeDataVec(coord_lst, value_lst, scatter_lst);
       assert(coord_lst.size()==value_lst.size());
 
-      Vector<size_t> scatter_index;
+      std::vector<size_t> scatter_index;
       for(size_t i=0;i<coord_lst.size();i++){
         if(!coord_lst[i]) continue;
         Vector<Real_t>& pt_c=*coord_lst[i];
@@ -1189,7 +1189,8 @@ public:
         }
         if(scatter_lst[i]!=NULL){
           Vector<size_t>& pt_s=*scatter_lst[i];
-          pt_s=scatter_index;
+          //pt_s=scatter_index;
+          memcpy(pt_s.data_ptr, &scatter_index[0], pt_s.Dim()*sizeof(size_t));
         }
       }
       Profile::Toc();
