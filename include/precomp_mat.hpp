@@ -98,14 +98,14 @@ class PrecompMat{
     return ((ptr+ALIGN_MINUS_ONE) & NOT_ALIGN_MINUS_ONE);
   }
 
-  size_t CompactData(int level, Mat_Type type, Vector<char>& comp_data, size_t offset=0){
+  size_t CompactData(int level, Mat_Type type, std::vector<char>& comp_data, size_t offset=0){
     struct HeaderData{
       size_t total_size;
       size_t      level;
       size_t   mat_cnt ;
       size_t  max_depth;
     };
-    if(comp_data.Dim()>offset){
+    if(comp_data.size()>offset){
       char* indx_ptr=&comp_data[0]+offset;
       HeaderData& header=*(HeaderData*)indx_ptr; indx_ptr+=sizeof(HeaderData);
       if(level==header.level){
@@ -145,10 +145,10 @@ class PrecompMat{
 	}
       }
     }
-    if(comp_data.Dim()<offset+indx_size+mem_size){
-      Vector<char> old_data;
+    if(comp_data.size()<offset+indx_size+mem_size){
+      std::vector<char> old_data;
       if(offset>0) old_data=comp_data;
-      comp_data.Resize(offset+indx_size+mem_size);
+      comp_data.resize(offset+indx_size+mem_size);
       if(offset>0){
 #pragma omp parallel for
 	for(int tid=0;tid<omp_p;tid++){

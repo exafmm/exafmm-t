@@ -79,7 +79,8 @@ namespace pvfmm{
 
     ptSetupData pt_setup_data;
     VListData vlist_data;
-    Vector<char>* precomp_data;
+    //Vector<char>* precomp_data;
+    std::vector<char>* precomp_data;
     Matrix<Real_t>* coord_data;
     Matrix<Real_t>* input_data;
     Matrix<Real_t>* output_data;
@@ -292,7 +293,8 @@ private:
 
   std::vector<Matrix<Real_t> > node_data_buff;
   InteracList interacList;
-  std::vector<Vector<char> > precomp_lst;
+  //std::vector<Vector<char> > precomp_lst;
+  std::vector<std::vector<char> > precomp_lst;
   std::vector<SetupData > setup_data;
   std::vector<Vector<Real_t> > upwd_check_surf;
   std::vector<Vector<Real_t> > upwd_equiv_surf;
@@ -1836,7 +1838,7 @@ public:
     {
       size_t precomp_offset=0;
       int level=setup_data.level;
-      Vector<char>& precomp_data=*setup_data.precomp_data;
+      std::vector<char>& precomp_data=*setup_data.precomp_data;
       std::vector<Mat_Type>& interac_type_lst=setup_data.interac_type;
       for(size_t type_indx=0; type_indx<interac_type_lst.size(); type_indx++){
         Mat_Type& interac_type=interac_type_lst[type_indx];
@@ -1858,7 +1860,7 @@ public:
     std::vector<Vector<Real_t>*>& output_vector=setup_data.output_vector;
     size_t n_in =nodes_in .size();
     size_t n_out=nodes_out.size();
-    if(setup_data.precomp_data->Dim()==0) SetupPrecomp(setup_data);
+    if(setup_data.precomp_data->size()==0) SetupPrecomp(setup_data);
     Profile::Tic("Interac-Data",true,25);
     {
       std::vector<size_t> interac_mat;
@@ -1880,7 +1882,7 @@ public:
             size_t   mat_cnt ;
             size_t  max_depth;
           };
-          Vector<char>& precomp_data=*setup_data.precomp_data;
+          std::vector<char>& precomp_data=*setup_data.precomp_data;
           char* indx_ptr=&precomp_data[0]+precomp_offset;
           HeaderData& header=*(HeaderData*)indx_ptr;indx_ptr+=sizeof(HeaderData);
           precomp_data_offset.ReInit(header.mat_cnt,(1+(2+2)*header.max_depth), (size_t*)indx_ptr, false);
@@ -2035,7 +2037,7 @@ public:
     }
     Profile::Tic("Host2Device",false,25);
     char* buff = dev_buffer.data_ptr;
-    char* precomp_data = setup_data.precomp_data->data_ptr;
+    char* precomp_data = &(*setup_data.precomp_data)[0];
     Real_t* input_data = setup_data.input_data->data_ptr;
     Real_t* output_data = setup_data.output_data->data_ptr;
     Profile::Toc();

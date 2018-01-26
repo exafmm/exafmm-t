@@ -201,7 +201,7 @@ namespace pvfmm{
     long long loc_size[2]={(long long)(data_.Dim()*sizeof(T)), data_size};
     if(loc_size[0]==0 || loc_size[1]==0) return 0;
     size_t data_dim=loc_size[0]/loc_size[1];
-    Vector<char> buffer(data_size*data_dim);
+    std::vector<char> buffer(data_size*data_dim);
     std::vector<Pair_t> psorted(data_size);
     {
 #pragma omp parallel for
