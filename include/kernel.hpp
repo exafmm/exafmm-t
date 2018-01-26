@@ -184,8 +184,10 @@ struct Kernel{
     k_l2l=NULL;
     k_l2t=NULL;
     scale_invar=true;
-    src_scal.Resize(ker_dim[0]); src_scal.SetZero();
-    trg_scal.Resize(ker_dim[1]); trg_scal.SetZero();
+    src_scal.resize(ker_dim[0]); 
+    std::fill(src_scal.begin(), src_scal.end(), 0.);
+    trg_scal.resize(ker_dim[1]); 
+    std::fill(trg_scal.begin(), trg_scal.end(), 0.);
     perm_vec.resize(Perm_Count);
     for(size_t p_type=0;p_type<C_Perm;p_type++){
       perm_vec[p_type       ]=Permutation<Real_t>(ker_dim[0]);
@@ -279,8 +281,10 @@ struct Kernel{
 	  M_scal[0][i]=-1;
 	}
       }
-      src_scal.Resize(ker_dim[0]); src_scal.SetZero();
-      trg_scal.Resize(ker_dim[1]); trg_scal.SetZero();
+      src_scal.resize(ker_dim[0]); 
+      std::fill(src_scal.begin(), src_scal.end(), 0.);
+      trg_scal.resize(ker_dim[1]); 
+      std::fill(trg_scal.begin(), trg_scal.end(), 0.);
       if(scale_invar){
 	Matrix<Real_t> b(ker_dim[0]*ker_dim[1]+1,1); b.SetZero();
 	memcpy(&b[0][0],&M_scal[0][0],ker_dim[0]*ker_dim[1]*sizeof(Real_t));
@@ -311,8 +315,8 @@ struct Kernel{
 	  }
       }
       if(!scale_invar){
-	src_scal.SetZero();
-	trg_scal.SetZero();
+        std::fill(src_scal.begin(), src_scal.end(), 0.);
+        std::fill(trg_scal.begin(), trg_scal.end(), 0.);
       }
     }
     if(ker_dim[0]*ker_dim[1]>0){
@@ -714,8 +718,8 @@ struct Kernel{
 
   mutable bool init;
   mutable bool scale_invar;
-  mutable Vector<Real_t> src_scal;
-  mutable Vector<Real_t> trg_scal;
+  mutable std::vector<Real_t> src_scal;
+  mutable std::vector<Real_t> trg_scal;
   mutable std::vector<Permutation<Real_t> > perm_vec;
 
   mutable const Kernel* k_s2m;

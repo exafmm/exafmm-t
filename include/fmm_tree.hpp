@@ -2293,16 +2293,16 @@ public:
       const Kernel* ker=kernel->k_m2m;
       for(size_t l=0;l<MAX_DEPTH;l++){
         Vector<Real_t>& scal=data.pt_interac_data.scal[l*4+2];
-        Vector<Real_t>& scal_exp=ker->trg_scal;
-        scal.Resize(scal_exp.Dim());
+        std::vector<Real_t>& scal_exp=ker->trg_scal;
+        scal.Resize(scal_exp.size());
         for(size_t i=0;i<scal.Dim();i++){
           scal[i]=powf(2.0,-scal_exp[i]*l);
         }
       }
       for(size_t l=0;l<MAX_DEPTH;l++){
         Vector<Real_t>& scal=data.pt_interac_data.scal[l*4+3];
-        Vector<Real_t>& scal_exp=ker->src_scal;
-        scal.Resize(scal_exp.Dim());
+        std::vector<Real_t>& scal_exp=ker->src_scal;
+        scal.Resize(scal_exp.size());
         for(size_t i=0;i<scal.Dim();i++){
           scal[i]=powf(2.0,-scal_exp[i]*l);
         }
@@ -2818,8 +2818,8 @@ public:
         Matrix<Real_t>& output_data=*setup_data.output_data;
         std::vector<std::vector<FMM_Node*> > nodes_blk_in (n_blk0);
         std::vector<std::vector<FMM_Node*> > nodes_blk_out(n_blk0);
-        Vector<Real_t> src_scal=kernel->k_m2l->src_scal;
-        Vector<Real_t> trg_scal=kernel->k_m2l->trg_scal;
+        std::vector<Real_t> src_scal=kernel->k_m2l->src_scal;
+        std::vector<Real_t> trg_scal=kernel->k_m2l->trg_scal;
 
         for(size_t i=0;i<n_in;i++) nodes_in[i]->node_id=i;
         for(size_t blk0=0;blk0<n_blk0;blk0++){
@@ -2846,8 +2846,8 @@ public:
           {
             for(size_t i=0;i<nodes_in_ .size();i++) fft_vec[blk0].push_back((size_t)(& input_vector[nodes_in_[i]->node_id][0][0]- input_data[0]));
             for(size_t i=0;i<nodes_out_.size();i++)ifft_vec[blk0].push_back((size_t)(&output_vector[blk0_start   +     i ][0][0]-output_data[0]));
-            size_t scal_dim0=src_scal.Dim();
-            size_t scal_dim1=trg_scal.Dim();
+            size_t scal_dim0=src_scal.size();
+            size_t scal_dim1=trg_scal.size();
             fft_scl [blk0].resize(nodes_in_ .size()*scal_dim0);
             ifft_scl[blk0].resize(nodes_out_.size()*scal_dim1);
             for(size_t i=0;i<nodes_in_ .size();i++){
@@ -3899,16 +3899,16 @@ public:
       const Kernel* ker=kernel->k_l2l;
       for(size_t l=0;l<MAX_DEPTH;l++){
         Vector<Real_t>& scal=data.pt_interac_data.scal[l*4+0];
-        Vector<Real_t>& scal_exp=ker->trg_scal;
-        scal.Resize(scal_exp.Dim());
+        std::vector<Real_t>& scal_exp=ker->trg_scal;
+        scal.Resize(scal_exp.size());
         for(size_t i=0;i<scal.Dim();i++){
           scal[i]=powf(2.0,-scal_exp[i]*l);
         }
       }
       for(size_t l=0;l<MAX_DEPTH;l++){
         Vector<Real_t>& scal=data.pt_interac_data.scal[l*4+1];
-        Vector<Real_t>& scal_exp=ker->src_scal;
-        scal.Resize(scal_exp.Dim());
+        std::vector<Real_t>& scal_exp=ker->src_scal;
+        scal.Resize(scal_exp.size());
         for(size_t i=0;i<scal.Dim();i++){
           scal[i]=powf(2.0,-scal_exp[i]*l);
         }
