@@ -41,14 +41,14 @@ inline void cheb_poly(int d, const Real_t* in, int n, Real_t* out){
 }
 
 void quad_rule(int n, Real_t* x, Real_t* w){
-  static std::vector<Vector<Real_t> > x_lst(10000);
-  static std::vector<Vector<Real_t> > w_lst(10000);
+  static std::vector<std::vector<Real_t> > x_lst(10000);
+  static std::vector<std::vector<Real_t> > w_lst(10000);
   assert(n<10000);
   bool done=false;
 #pragma omp critical (QUAD_RULE)
-  if(x_lst[n].Dim()>0){
-    Vector<Real_t>& x_=x_lst[n];
-    Vector<Real_t>& w_=w_lst[n];
+  if(x_lst[n].size()>0){
+    std::vector<Real_t>& x_=x_lst[n];
+    std::vector<Real_t>& w_=w_lst[n];
     for(int i=0;i<n;i++){
       x[i]=x_[i];
       w[i]=w_[i];
@@ -56,8 +56,8 @@ void quad_rule(int n, Real_t* x, Real_t* w){
     done=true;
   }
   if(done) return;
-  Vector<Real_t> x_(n);
-  Vector<Real_t> w_(n);
+  std::vector<Real_t> x_(n);
+  std::vector<Real_t> w_(n);
   {
     for(int i=0;i<n;i++){
       x_[i]=-cos((Real_t)(2.0*i+1.0)/(2.0*n)*M_PI);
