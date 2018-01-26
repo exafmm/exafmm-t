@@ -731,18 +731,16 @@ template <class T>
 class Permutation{
 
 public:
-  Vector<size_t> perm;
-  Vector<T> scal;
+  std::vector<size_t> perm;
+  std::vector<T> scal;
 
   Permutation(){}
 
   Permutation(size_t size){
-    perm.Resize(size);
-    scal.Resize(size);
-    for(size_t i=0;i<size;i++){
-      perm[i]=i;
-      scal[i]=1.0;
-    }
+    perm.resize(size);
+    scal.resize(size);
+    std::iota(perm.begin(), perm.end(), 0.);
+    std::fill(scal.begin(), scal.end(), 1.);
   }
 
   static Permutation<T> RandPerm(size_t size){
@@ -757,7 +755,7 @@ public:
   }
 
   Matrix<T> GetMatrix() const{
-    size_t size=perm.Dim();
+    size_t size=perm.size();
     Matrix<T> M_r(size,size,NULL);
     for(size_t i=0;i<size;i++)
       for(size_t j=0;j<size;j++)
@@ -766,14 +764,14 @@ public:
   }
 
   size_t Dim() const{
-    return perm.Dim();
+    return perm.size();
   }
 
   Permutation<T> Transpose(){
-    size_t size=perm.Dim();
+    size_t size=perm.size();
     Permutation<T> P_r(size);
-    Vector<size_t>& perm_r=P_r.perm;
-    Vector<T>& scal_r=P_r.scal;
+    std::vector<size_t>& perm_r=P_r.perm;
+    std::vector<T>& scal_r=P_r.scal;
     for(size_t i=0;i<size;i++){
       perm_r[perm[i]]=i;
       scal_r[perm[i]]=scal[i];
@@ -782,11 +780,11 @@ public:
   }
 
   Permutation<T> operator*(const Permutation<T>& P){
-    size_t size=perm.Dim();
+    size_t size=perm.size();
     assert(P.Dim()==size);
     Permutation<T> P_r(size);
-    Vector<size_t>& perm_r=P_r.perm;
-    Vector<T>& scal_r=P_r.scal;
+    std::vector<size_t>& perm_r=P_r.perm;
+    std::vector<T>& scal_r=P_r.scal;
     for(size_t i=0;i<size;i++){
       perm_r[i]=perm[P.perm[i]];
       scal_r[i]=scal[P.perm[i]]*P.scal[i];

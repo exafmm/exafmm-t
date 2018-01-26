@@ -492,8 +492,9 @@ struct Kernel{
 	  Matrix<long long>& Pmat=P1;
 	  std::vector<Permutation<long long> >& Pvec=P1vec;
 	  Permutation<long long> P(Pmat.Dim(0));
-	  Vector<size_t>& perm=P.perm;
-	  perm.SetZero();
+	  std::vector<size_t>& perm=P.perm;
+	  //perm.SetZero();
+          std::fill(perm.begin(), perm.end(), 0);
 	  for(size_t i=0;i<P.Dim();i++)
 	    for(size_t j=0;j<P.Dim();j++){
 	      if(Pmat[i][j]){
@@ -501,13 +502,13 @@ struct Kernel{
 		break;
 	      }
 	    }
-	  Vector<size_t> perm_tmp;
+	  std::vector<size_t> perm_tmp;
 	  while(true){
 	    perm_tmp=perm;
-	    std::sort(&perm_tmp[0],&perm_tmp[0]+perm_tmp.Dim());
-	    for(size_t i=0;i<perm_tmp.Dim();i++){
+	    std::sort(&perm_tmp[0],&perm_tmp[0]+perm_tmp.size());
+	    for(size_t i=0;i<perm_tmp.size();i++){
 	      if(perm_tmp[i]!=i) break;
-	      if(i==perm_tmp.Dim()-1){
+	      if(i==perm_tmp.size()-1){
 		Pvec.push_back(P);
 	      }
 	    }
@@ -536,8 +537,9 @@ struct Kernel{
 	  Matrix<long long>& Pmat=P2;
 	  std::vector<Permutation<long long> >& Pvec=P2vec;
 	  Permutation<long long> P(Pmat.Dim(0));
-	  Vector<size_t>& perm=P.perm;
-	  perm.SetZero();
+	  std::vector<size_t>& perm=P.perm;
+	  //perm.SetZero();
+          std::fill(perm.begin(), perm.end(), 0);
 	  for(size_t i=0;i<P.Dim();i++)
 	    for(size_t j=0;j<P.Dim();j++){
 	      if(Pmat[i][j]){
@@ -545,13 +547,13 @@ struct Kernel{
 		break;
 	      }
 	    }
-	  Vector<size_t> perm_tmp;
+	  std::vector<size_t> perm_tmp;
 	  while(true){
 	    perm_tmp=perm;
-	    std::sort(&perm_tmp[0],&perm_tmp[0]+perm_tmp.Dim());
-	    for(size_t i=0;i<perm_tmp.Dim();i++){
+	    std::sort(&perm_tmp[0],&perm_tmp[0]+perm_tmp.size());
+	    for(size_t i=0;i<perm_tmp.size();i++){
 	      if(perm_tmp[i]!=i) break;
-	      if(i==perm_tmp.Dim()-1){
+	      if(i==perm_tmp.size()-1){
 		Pvec.push_back(P);
 	      }
 	    }
