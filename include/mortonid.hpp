@@ -17,7 +17,7 @@ class MortonId{
     z=z & mask;
   }
 
-  inline MortonId(Real_t x_f,Real_t y_f, Real_t z_f, uint8_t depth_=MAX_DEPTH) : depth(depth_) {
+  inline MortonId(real_t x_f,real_t y_f, real_t z_f, uint8_t depth_=MAX_DEPTH) : depth(depth_) {
     static uint64_t max_int=((uint64_t)1)<<(MAX_DEPTH);
     x=(uint64_t)floor(x_f*max_int);
     y=(uint64_t)floor(y_f*max_int);
@@ -29,7 +29,7 @@ class MortonId{
     z=z & mask;
   }
 
-  inline MortonId(Real_t* coord, uint8_t depth_=MAX_DEPTH) : depth(depth_){
+  inline MortonId(real_t* coord, uint8_t depth_=MAX_DEPTH) : depth(depth_){
     static uint64_t max_int=((uint64_t)1)<<(MAX_DEPTH);
     x=(uint64_t)floor(coord[0]*max_int);
     y=(uint64_t)floor(coord[1]*max_int);
@@ -45,9 +45,9 @@ class MortonId{
     return depth;
   }
 
-  inline void GetCoord(Real_t* coord) {
+  inline void GetCoord(real_t* coord) {
     static uint64_t max_int=((uint64_t)1)<<(MAX_DEPTH);
-    static Real_t s=1.0/((Real_t)max_int);
+    static real_t s=1.0/((real_t)max_int);
     coord[0]=x*s;
     coord[1]=y*s;
     coord[2]=z*s;

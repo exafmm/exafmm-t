@@ -59,7 +59,7 @@ class PrecompMat{
     }
   }
 
-  Matrix<Real_t>& Mat(int l, Mat_Type type, size_t indx){
+  Matrix<real_t>& Mat(int l, Mat_Type type, size_t indx){
     int level=(scale_invar?0:l+128);
     assert(level*Type_Count+type<mat.size());
     if(indx>=mat[level*Type_Count+type].size()){
@@ -68,7 +68,7 @@ class PrecompMat{
     return mat[level*Type_Count+type][indx];
   }
 
-  Permutation<Real_t>& Perm_R(int l, Mat_Type type, size_t indx){
+  Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
     int level=l+128;
     assert(level*Type_Count+type<perm_r.size());
     if(indx>=perm_r[level*Type_Count+type].size()){
@@ -77,7 +77,7 @@ class PrecompMat{
     return perm_r[level*Type_Count+type][indx];
   }
 
-  Permutation<Real_t>& Perm_C(int l, Mat_Type type, size_t indx){
+  Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx){
     int level=l+128;
     assert(level*Type_Count+type<perm_c.size());
     if(indx>=perm_c[level*Type_Count+type].size()){
@@ -86,7 +86,7 @@ class PrecompMat{
     return perm_c[level*Type_Count+type][indx];
   }
 
-  Permutation<Real_t>& Perm(Mat_Type type, size_t indx){
+  Permutation<real_t>& Perm(Mat_Type type, size_t indx){
     assert(indx<Perm_Count);
     return perm[type][indx];
   }
@@ -113,7 +113,7 @@ class PrecompMat{
 	return offset;
       }
     }
-    std::vector<Matrix<Real_t> >& mat_=mat[(scale_invar?0:level+128)*Type_Count+type];
+    std::vector<Matrix<real_t> >& mat_=mat[(scale_invar?0:level+128)*Type_Count+type];
     size_t mat_cnt=mat_.size();
     size_t indx_size=0;
     size_t mem_size=0;
@@ -126,21 +126,21 @@ class PrecompMat{
       indx_size=align_ptr(indx_size);
 
       for(size_t j=0;j<mat_cnt;j++){
-	Matrix     <Real_t>& M =Mat   (level,type,j);
+	Matrix     <real_t>& M =Mat   (level,type,j);
 	if(M.Dim(0)>0 && M.Dim(1)>0){
-	  mem_size+=M.Dim(0)*M.Dim(1)*sizeof(Real_t); mem_size=align_ptr(mem_size);
+	  mem_size+=M.Dim(0)*M.Dim(1)*sizeof(real_t); mem_size=align_ptr(mem_size);
 	}
 
 	for(size_t l=l0;l<l1;l++){
-	  Permutation<Real_t>& Pr=Perm_R(l,type,j);
-	  Permutation<Real_t>& Pc=Perm_C(l,type,j);
+	  Permutation<real_t>& Pr=Perm_R(l,type,j);
+	  Permutation<real_t>& Pc=Perm_C(l,type,j);
 	  if(Pr.Dim()>0){
 	    mem_size+=Pr.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
-	    mem_size+=Pr.Dim()*sizeof(Real_t); mem_size=align_ptr(mem_size);
+	    mem_size+=Pr.Dim()*sizeof(real_t); mem_size=align_ptr(mem_size);
 	  }
 	  if(Pc.Dim()>0){
 	    mem_size+=Pc.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
-	    mem_size+=Pc.Dim()*sizeof(Real_t); mem_size=align_ptr(mem_size);
+	    mem_size+=Pc.Dim()*sizeof(real_t); mem_size=align_ptr(mem_size);
 	  }
 	}
       }
@@ -168,20 +168,20 @@ class PrecompMat{
       header. max_depth=l1-l0             ;
       size_t data_offset=offset+indx_size;
       for(size_t j=0;j<mat_cnt;j++){
-	Matrix     <Real_t>& M =Mat   (level,type,j);
+	Matrix     <real_t>& M =Mat   (level,type,j);
 	offset_indx[j][0]=data_offset; indx_ptr+=sizeof(size_t);
-	data_offset+=M.Dim(0)*M.Dim(1)*sizeof(Real_t); mem_size=align_ptr(mem_size);
+	data_offset+=M.Dim(0)*M.Dim(1)*sizeof(real_t); mem_size=align_ptr(mem_size);
 	for(size_t l=l0;l<l1;l++){
-	  Permutation<Real_t>& Pr=Perm_R(l,type,j);
+	  Permutation<real_t>& Pr=Perm_R(l,type,j);
 	  offset_indx[j][1+4*(l-l0)+0]=data_offset;
 	  data_offset+=Pr.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
 	  offset_indx[j][1+4*(l-l0)+1]=data_offset;
-	  data_offset+=Pr.Dim()*sizeof(Real_t); mem_size=align_ptr(mem_size);
-	  Permutation<Real_t>& Pc=Perm_C(l,type,j);
+	  data_offset+=Pr.Dim()*sizeof(real_t); mem_size=align_ptr(mem_size);
+	  Permutation<real_t>& Pc=Perm_C(l,type,j);
 	  offset_indx[j][1+4*(l-l0)+2]=data_offset;
 	  data_offset+=Pc.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
 	  offset_indx[j][1+4*(l-l0)+3]=data_offset;
-	  data_offset+=Pc.Dim()*sizeof(Real_t); mem_size=align_ptr(mem_size);
+	  data_offset+=Pc.Dim()*sizeof(real_t); mem_size=align_ptr(mem_size);
 	}
       }
     }
@@ -191,26 +191,26 @@ class PrecompMat{
       indx_ptr+=sizeof(HeaderData);
       Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
       for(size_t j=0;j<mat_cnt;j++){
-	Matrix     <Real_t>& M =Mat   (level,type,j);
+	Matrix     <real_t>& M =Mat   (level,type,j);
 	if(M.Dim(0)>0 && M.Dim(1)>0){
 	  size_t a=(M.Dim(0)*M.Dim(1)* tid   )/omp_p;
 	  size_t b=(M.Dim(0)*M.Dim(1)*(tid+1))/omp_p;
-	  memcpy(&comp_data[0]+offset_indx[j][0]+a*sizeof(Real_t), &M[0][a], (b-a)*sizeof(Real_t));
+	  memcpy(&comp_data[0]+offset_indx[j][0]+a*sizeof(real_t), &M[0][a], (b-a)*sizeof(real_t));
 	}
 	for(size_t l=l0;l<l1;l++){
-	  Permutation<Real_t>& Pr=Perm_R(l,type,j);
-	  Permutation<Real_t>& Pc=Perm_C(l,type,j);
+	  Permutation<real_t>& Pr=Perm_R(l,type,j);
+	  Permutation<real_t>& Pc=Perm_C(l,type,j);
 	  if(Pr.Dim()>0){
 	    size_t a=(Pr.Dim()* tid   )/omp_p;
 	    size_t b=(Pr.Dim()*(tid+1))/omp_p;
 	    memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+0]+a*sizeof(size_t), &Pr.perm[a], (b-a)*sizeof(size_t));
-	    memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+1]+a*sizeof(Real_t), &Pr.scal[a], (b-a)*sizeof(Real_t));
+	    memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+1]+a*sizeof(real_t), &Pr.scal[a], (b-a)*sizeof(real_t));
 	  }
 	  if(Pc.Dim()>0){
 	    size_t a=(Pc.Dim()* tid   )/omp_p;
 	    size_t b=(Pc.Dim()*(tid+1))/omp_p;
 	    memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+2]+a*sizeof(size_t), &Pc.perm[a], (b-a)*sizeof(size_t));
-	    memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+3]+a*sizeof(Real_t), &Pc.scal[a], (b-a)*sizeof(Real_t));
+	    memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+3]+a*sizeof(real_t), &Pc.scal[a], (b-a)*sizeof(real_t));
 	  }
 	}
       }
@@ -227,7 +227,7 @@ class PrecompMat{
     f=fopen(fname,"wb");
     if(f==NULL) return;
     int tmp;
-    tmp=sizeof(Real_t);
+    tmp=sizeof(real_t);
     fwrite(&tmp,sizeof(int),1,f);
     tmp=(scale_invar?1:0);
     fwrite(&tmp,sizeof(int),1,f);
@@ -235,13 +235,13 @@ class PrecompMat{
       int n=mat[i].size();
       fwrite(&n,sizeof(int),1,f);
       for(int j=0;j<n;j++){
-	Matrix<Real_t>& M=mat[i][j];
+	Matrix<real_t>& M=mat[i][j];
 	int n1=M.Dim(0);
 	fwrite(&n1,sizeof(int),1,f);
 	int n2=M.Dim(1);
 	fwrite(&n2,sizeof(int),1,f);
 	if(n1*n2>0)
-	  fwrite(&M[0][0],sizeof(Real_t),n1*n2,f);
+	  fwrite(&M[0][0],sizeof(real_t),n1*n2,f);
       }
     }
     fclose(f);
@@ -298,7 +298,7 @@ class PrecompMat{
     {
       int tmp;
       tmp=*(int*)f_ptr; f_ptr+=sizeof(int);
-      assert(tmp==sizeof(Real_t));
+      assert(tmp==sizeof(real_t));
       tmp=*(int*)f_ptr; f_ptr+=sizeof(int);
       scale_invar=tmp;
       size_t mat_size=(size_t)Type_Count*(scale_invar?1:256);
@@ -311,14 +311,14 @@ class PrecompMat{
 	if(mat[i].size()<(size_t)n)
 	  mat[i].resize(n);
 	for(int j=0;j<n;j++){
-	  Matrix<Real_t>& M=mat[i][j];
+	  Matrix<real_t>& M=mat[i][j];
 	  int n1;
 	  n1=*(int*)f_ptr; f_ptr+=sizeof(int);
 	  int n2;
 	  n2=*(int*)f_ptr; f_ptr+=sizeof(int);
 	  if(n1*n2>0){
 	    M.Resize(n1,n2);
-	    memcpy(&M[0][0], f_ptr, sizeof(Real_t)*n1*n2); f_ptr+=sizeof(Real_t)*n1*n2;
+	    memcpy(&M[0][0], f_ptr, sizeof(real_t)*n1*n2); f_ptr+=sizeof(real_t)*n1*n2;
 	  }
 	}
       }
@@ -336,7 +336,7 @@ class PrecompMat{
 
 #undef MY_FREAD
 
-  std::vector<Real_t>& RelativeTrgCoord(){
+  std::vector<real_t>& RelativeTrgCoord(){
     return rel_trg_coord;
   }
 
@@ -346,11 +346,11 @@ class PrecompMat{
 
  private:
 
-  std::vector<std::vector<Matrix     <Real_t> > > mat;
-  std::vector<std::vector<Permutation<Real_t> > > perm;
-  std::vector<std::vector<Permutation<Real_t> > > perm_r;
-  std::vector<std::vector<Permutation<Real_t> > > perm_c;
-  std::vector<Real_t> rel_trg_coord;
+  std::vector<std::vector<Matrix     <real_t> > > mat;
+  std::vector<std::vector<Permutation<real_t> > > perm;
+  std::vector<std::vector<Permutation<real_t> > > perm_r;
+  std::vector<std::vector<Permutation<real_t> > > perm_c;
+  std::vector<real_t> rel_trg_coord;
 
 };
 

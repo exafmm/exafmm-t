@@ -63,7 +63,7 @@ int main(int argc, char **argv){
   typename FMM_Node::NodeData init_data;
   init_data.max_depth=depth;
   init_data.max_pts=M;
-  std::vector<Real_t> src_coord, src_value;
+  std::vector<real_t> src_coord, src_value;
   srand48(0);
   for(size_t i=0;i<N;i++){
     src_coord.push_back(drand48());
@@ -75,7 +75,7 @@ int main(int argc, char **argv){
   init_data.value=src_value;
   FMM_Tree tree;
   tree.Initialize(mult_order,&grad_ker);
-  Vector<Real_t> trg_value;
+  Vector<real_t> trg_value;
   for(size_t it=0;it<2;it++){
     Profile::Tic("TotalTime",true);
     tree.Initialize(&init_data);

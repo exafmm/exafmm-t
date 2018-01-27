@@ -53,7 +53,7 @@ namespace pvfmm{
       }
     }
     char TransA = 'T', TransB = 'T';
-    Real_t zero = 0, one = 1;
+    real_t zero = 0, one = 1;
 #if FLOAT
     sgemm_(&TransA,&TransB,&n,&m,&k,&one,&tVT[0],&k,&tU[0],&m,&zero,M_,&n);
 #else

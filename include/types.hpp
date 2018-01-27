@@ -14,22 +14,22 @@
 #define CACHE_SIZE 512
 
 #if FLOAT
-typedef float Real_t;
+typedef float real_t;
 #if defined __AVX__
 typedef __m256 Vec_t;
 #elif defined __SSE3__
 typedef __m128 Vec_t;
 #else
-typedef Real_t Vec_t;
+typedef real_t Vec_t;
 #endif
 #else
-typedef double Real_t;
+typedef double real_t;
 #if defined __AVX__
 typedef __m256d Vec_t;
 #elif defined __SSE3__
 typedef __m128d Vec_t;
 #else
-typedef Real_t Vec_t;
+typedef real_t Vec_t;
 #endif
 #endif
 

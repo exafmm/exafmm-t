@@ -6,8 +6,8 @@ namespace pvfmm{
 class FMM_Data{
  public:
   ~FMM_Data(){}
-  Vector<Real_t> upward_equiv;
-  Vector<Real_t> dnward_equiv;
+  Vector<real_t> upward_equiv;
+  Vector<real_t> dnward_equiv;
 };
 
 class FMM_Node {
@@ -23,19 +23,19 @@ class FMM_Node {
   size_t max_pts;
   size_t node_id;
   long long weight;
-  Real_t coord[3];
+  real_t coord[3];
   FMM_Node * colleague[27];
-  Vector<Real_t> pt_coord;
-  Vector<Real_t> pt_value;
+  Vector<real_t> pt_coord;
+  Vector<real_t> pt_value;
   Vector<size_t> pt_scatter;
-  Vector<Real_t> src_coord;
-  Vector<Real_t> src_value;
+  Vector<real_t> src_coord;
+  Vector<real_t> src_value;
   Vector<size_t> src_scatter;
-  Vector<Real_t> surf_coord;
-  Vector<Real_t> surf_value;
+  Vector<real_t> surf_coord;
+  Vector<real_t> surf_value;
   Vector<size_t> surf_scatter;
-  Vector<Real_t> trg_coord;
-  Vector<Real_t> trg_value;
+  Vector<real_t> trg_coord;
+  Vector<real_t> trg_value;
   Vector<size_t> trg_scatter;
   size_t pt_cnt[2];
   std::vector<FMM_Node*> interac_list[Type_Count];
@@ -48,14 +48,14 @@ class FMM_Node {
      void Clear(){}
      int max_depth;
      size_t max_pts;
-     Vector<Real_t> coord;
-     Vector<Real_t> value;
-     Vector<Real_t> src_coord;
-     Vector<Real_t> src_value;
-     Vector<Real_t> surf_coord;
-     Vector<Real_t> surf_value;
-     Vector<Real_t> trg_coord;
-     Vector<Real_t> trg_value;
+     Vector<real_t> coord;
+     Vector<real_t> value;
+     Vector<real_t> src_coord;
+     Vector<real_t> src_value;
+     Vector<real_t> surf_coord;
+     Vector<real_t> surf_value;
+     Vector<real_t> trg_coord;
+     Vector<real_t> trg_value;
   };
 
   FMM_Node() : depth(0), max_depth(MAX_DEPTH), parent(NULL), child(NULL), status(1),
@@ -87,7 +87,7 @@ class FMM_Node {
     }
     assert(path2node_>=0 && path2node_<(int)(1U<<3));
     path2node=path2node_;
-    Real_t coord_offset=((Real_t)1.0)/((Real_t)(((uint64_t)1)<<depth));
+    real_t coord_offset=((real_t)1.0)/((real_t)(((uint64_t)1)<<depth));
     if(!parent_){
       for(int j=0;j<3;j++) coord[j]=0;
     }else if(parent_){
@@ -117,8 +117,8 @@ class FMM_Node {
     }
   }
 
-  void NodeDataVec(std::vector<Vector<Real_t>*>& coord,
-                   std::vector<Vector<Real_t>*>& value,
+  void NodeDataVec(std::vector<Vector<real_t>*>& coord,
+                   std::vector<Vector<real_t>*>& value,
                    std::vector<Vector<size_t>*>& scatter){
     coord  .push_back(&pt_coord  );
     value  .push_back(&pt_value  );
@@ -171,23 +171,23 @@ class FMM_Node {
     }
     int nchld=(1UL<<3);
     if(!IsGhost()){
-      std::vector<Vector<Real_t>*> pt_c;
-      std::vector<Vector<Real_t>*> pt_v;
+      std::vector<Vector<real_t>*> pt_c;
+      std::vector<Vector<real_t>*> pt_v;
       std::vector<Vector<size_t>*> pt_s;
       NodeDataVec(pt_c, pt_v, pt_s);
 
-      std::vector<std::vector<Vector<Real_t>*> > chld_pt_c(nchld);
-      std::vector<std::vector<Vector<Real_t>*> > chld_pt_v(nchld);
+      std::vector<std::vector<Vector<real_t>*> > chld_pt_c(nchld);
+      std::vector<std::vector<Vector<real_t>*> > chld_pt_v(nchld);
       std::vector<std::vector<Vector<size_t>*> > chld_pt_s(nchld);
       for(size_t i=0;i<nchld;i++){
 	Child(i)->NodeDataVec(chld_pt_c[i], chld_pt_v[i], chld_pt_s[i]);
       }
 
-      Real_t* c=Coord();
-      Real_t s=powf(0.5,depth+1);
+      real_t* c=Coord();
+      real_t s=powf(0.5,depth+1);
       for(size_t j=0;j<pt_c.size();j++){
 	if(!pt_c[j] || !pt_c[j]->Dim()) continue;
-	Vector<Real_t>& coord=*pt_c[j];
+	Vector<real_t>& coord=*pt_c[j];
 	size_t npts=coord.Dim()/3;
 
 	Vector<size_t> cdata(nchld+1);
@@ -207,11 +207,11 @@ class FMM_Node {
 	}
 
 	if(pt_c[j]){
-	  Vector<Real_t>& vec=*pt_c[j];
+	  Vector<real_t>& vec=*pt_c[j];
 	  size_t dof=vec.Dim()/npts;
           assert(dof>0);
           for(size_t i=0;i<nchld;i++){
-            Vector<Real_t>& chld_vec=*chld_pt_c[i][j];
+            Vector<real_t>& chld_vec=*chld_pt_c[i][j];
             chld_vec.Resize((cdata[i+1]-cdata[i])*dof);
             for (int k=cdata[i]*dof; k<cdata[i+1]*dof; k++) {
               chld_vec[k-cdata[i]*dof] = vec[k];
@@ -220,10 +220,10 @@ class FMM_Node {
 	  vec.Resize(0);
 	}
 	if(pt_v[j]){
-	  Vector<Real_t>& vec=*pt_v[j];
+	  Vector<real_t>& vec=*pt_v[j];
 	  size_t dof=vec.Dim()/npts;
           for(size_t i=0;i<nchld;i++){
-            Vector<Real_t>& chld_vec=*chld_pt_v[i][j];
+            Vector<real_t>& chld_vec=*chld_pt_v[i][j];
             chld_vec.Resize((cdata[i+1]-cdata[i])*dof);
             for (int k=cdata[i]*dof; k<cdata[i+1]*dof; k++) {
               chld_vec[k-cdata[i]*dof] = vec[k];
@@ -282,7 +282,7 @@ class FMM_Node {
 
   inline MortonId GetMortonId() {
     assert(coord);
-    Real_t s=0.25/(1UL<<MAX_DEPTH);
+    real_t s=0.25/(1UL<<MAX_DEPTH);
     return MortonId(coord[0]+s,coord[1]+s,coord[2]+s, depth);
   }
 
@@ -319,7 +319,7 @@ class FMM_Node {
     colleague[index]=node_;
   }
 
-  Real_t* Coord() {
+  real_t* Coord() {
     assert(coord!=NULL);
     return coord;
   }

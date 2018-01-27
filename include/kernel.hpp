@@ -159,16 +159,16 @@ namespace pvfmm{
 
   inline Vec_t rsqrt_intrin2(Vec_t r2){
     Vec_t rinv=rsqrt_approx_intrin(r2);
-    rsqrt_newton_intrin(rinv,r2,Real_t(3));
-    rsqrt_newton_intrin(rinv,r2,Real_t(12));
+    rsqrt_newton_intrin(rinv,r2,real_t(3));
+    rsqrt_newton_intrin(rinv,r2,real_t(12));
     return rinv;
   }
 
 struct Kernel{
   public:
 
-  typedef void (*Ker_t)(Real_t* r_src, int src_cnt, Real_t* v_src, int dof,
-                        Real_t* r_trg, int trg_cnt, Real_t* k_out);
+  typedef void (*Ker_t)(real_t* r_src, int src_cnt, real_t* v_src, int dof,
+                        real_t* r_trg, int trg_cnt, real_t* k_out);
 
   Kernel(Ker_t poten, const char* name, std::pair<int,int> k_dim) {
     ker_dim[0]=k_dim.first;
@@ -190,8 +190,8 @@ struct Kernel{
     std::fill(trg_scal.begin(), trg_scal.end(), 0.);
     perm_vec.resize(Perm_Count);
     for(size_t p_type=0;p_type<C_Perm;p_type++){
-      perm_vec[p_type       ]=Permutation<Real_t>(ker_dim[0]);
-      perm_vec[p_type+C_Perm]=Permutation<Real_t>(ker_dim[1]);
+      perm_vec[p_type       ]=Permutation<real_t>(ker_dim[0]);
+      perm_vec[p_type+C_Perm]=Permutation<real_t>(ker_dim[1]);
     }
     init=false;
   }
@@ -199,20 +199,20 @@ struct Kernel{
   void Initialize(bool verbose=false) const{
     if(init) return;
     init=true;
-    Real_t eps=1.0;
-    while(eps+(Real_t)1.0>1.0) eps*=0.5;
-    Real_t scal=1.0;
+    real_t eps=1.0;
+    while(eps+(real_t)1.0>1.0) eps*=0.5;
+    real_t scal=1.0;
     if(ker_dim[0]*ker_dim[1]>0){
-      Matrix<Real_t> M_scal(ker_dim[0],ker_dim[1]);
+      Matrix<real_t> M_scal(ker_dim[0],ker_dim[1]);
       size_t N=1024;
-      Real_t eps_=N*eps;
-      Real_t src_coord[3]={0,0,0};
-      std::vector<Real_t> trg_coord1(N*3);
-      Matrix<Real_t> M1(N,ker_dim[0]*ker_dim[1]);
+      real_t eps_=N*eps;
+      real_t src_coord[3]={0,0,0};
+      std::vector<real_t> trg_coord1(N*3);
+      Matrix<real_t> M1(N,ker_dim[0]*ker_dim[1]);
       while(true){
-	Real_t abs_sum=0;
+	real_t abs_sum=0;
 	for(size_t i=0;i<N/2;i++){
-	  Real_t x,y,z,r;
+	  real_t x,y,z,r;
 	  do{
 	    x=(drand48()-0.5);
 	    y=(drand48()-0.5);
@@ -224,7 +224,7 @@ struct Kernel{
 	  trg_coord1[i*3+2]=z*scal;
 	}
 	for(size_t i=N/2;i<N;i++){
-	  Real_t x,y,z,r;
+	  real_t x,y,z,r;
 	  do{
 	    x=(drand48()-0.5);
 	    y=(drand48()-0.5);
@@ -246,8 +246,8 @@ struct Kernel{
 	scal=scal*0.5;
       }
 
-      std::vector<Real_t> trg_coord2(N*3);
-      Matrix<Real_t> M2(N,ker_dim[0]*ker_dim[1]);
+      std::vector<real_t> trg_coord2(N*3);
+      Matrix<real_t> M2(N,ker_dim[0]*ker_dim[1]);
       for(size_t i=0;i<N*3;i++){
 	trg_coord2[i]=trg_coord1[i]*0.5;
       }
@@ -257,18 +257,18 @@ struct Kernel{
       }
 
       for(size_t i=0;i<ker_dim[0]*ker_dim[1];i++){
-	Real_t dot11=0, dot12=0, dot22=0;
+	real_t dot11=0, dot12=0, dot22=0;
 	for(size_t j=0;j<N;j++){
 	  dot11+=M1[j][i]*M1[j][i];
 	  dot12+=M1[j][i]*M2[j][i];
 	  dot22+=M2[j][i]*M2[j][i];
 	}
-	Real_t max_val=std::max<Real_t>(dot11,dot22);
+	real_t max_val=std::max<real_t>(dot11,dot22);
 	if(dot11>max_val*eps &&
 	   dot22>max_val*eps ){
-	  Real_t s=dot12/dot11;
+	  real_t s=dot12/dot11;
 	  M_scal[0][i]=log(s)/log(2.0);
-	  Real_t err=sqrtf(0.5*(dot22/dot11)/(s*s)-0.5);
+	  real_t err=sqrtf(0.5*(dot22/dot11)/(s*s)-0.5);
 	  if(err>eps_){
 	    scale_invar=false;
 	    M_scal[0][i]=0.0;
@@ -286,9 +286,9 @@ struct Kernel{
       trg_scal.resize(ker_dim[1]); 
       std::fill(trg_scal.begin(), trg_scal.end(), 0.);
       if(scale_invar){
-	Matrix<Real_t> b(ker_dim[0]*ker_dim[1]+1,1); b.SetZero();
-	memcpy(&b[0][0],&M_scal[0][0],ker_dim[0]*ker_dim[1]*sizeof(Real_t));
-	Matrix<Real_t> M(ker_dim[0]*ker_dim[1]+1,ker_dim[0]+ker_dim[1]); M.SetZero();
+	Matrix<real_t> b(ker_dim[0]*ker_dim[1]+1,1); b.SetZero();
+	memcpy(&b[0][0],&M_scal[0][0],ker_dim[0]*ker_dim[1]*sizeof(real_t));
+	Matrix<real_t> M(ker_dim[0]*ker_dim[1]+1,ker_dim[0]+ker_dim[1]); M.SetZero();
 	M[ker_dim[0]*ker_dim[1]][0]=1;
 	for(size_t i0=0;i0<ker_dim[0];i0++)
 	  for(size_t i1=0;i1<ker_dim[1];i1++){
@@ -298,7 +298,7 @@ struct Kernel{
 	      M[j][i1+ker_dim[0]]=1;
 	    }
 	  }
-	Matrix<Real_t> x=M.pinv()*b;
+	Matrix<real_t> x=M.pinv()*b;
 	for(size_t i=0;i<ker_dim[0];i++){
 	  src_scal[i]=x[i][0];
 	}
@@ -321,12 +321,12 @@ struct Kernel{
     }
     if(ker_dim[0]*ker_dim[1]>0){
       size_t N=1024;
-      Real_t eps_=N*eps;
-      Real_t src_coord[3]={0,0,0};
-      std::vector<Real_t> trg_coord1(N*3);
-      std::vector<Real_t> trg_coord2(N*3);
+      real_t eps_=N*eps;
+      real_t src_coord[3]={0,0,0};
+      std::vector<real_t> trg_coord1(N*3);
+      std::vector<real_t> trg_coord2(N*3);
       for(size_t i=0;i<N/2;i++){
-	Real_t x,y,z,r;
+	real_t x,y,z,r;
 	do{
 	  x=(drand48()-0.5);
 	  y=(drand48()-0.5);
@@ -338,7 +338,7 @@ struct Kernel{
 	trg_coord1[i*3+2]=z*scal;
       }
       for(size_t i=N/2;i<N;i++){
-	Real_t x,y,z,r;
+	real_t x,y,z,r;
 	do{
 	  x=(drand48()-0.5);
 	  y=(drand48()-0.5);
@@ -395,19 +395,19 @@ struct Kernel{
 	}
 	Matrix<long long> M11, M22;
 	{
-	  Matrix<Real_t> M1(N,ker_dim[0]*ker_dim[1]); M1.SetZero();
-	  Matrix<Real_t> M2(N,ker_dim[0]*ker_dim[1]); M2.SetZero();
+	  Matrix<real_t> M1(N,ker_dim[0]*ker_dim[1]); M1.SetZero();
+	  Matrix<real_t> M2(N,ker_dim[0]*ker_dim[1]); M2.SetZero();
 	  for(size_t i=0;i<N;i++){
 	    BuildMatrix(&src_coord [          0], 1,
 			&trg_coord1[i*3], 1, &(M1[i][0]));
 	    BuildMatrix(&src_coord [          0], 1,
 			&trg_coord2[i*3], 1, &(M2[i][0]));
 	  }
-	  Matrix<Real_t> dot11(ker_dim[0]*ker_dim[1],ker_dim[0]*ker_dim[1]);dot11.SetZero();
-	  Matrix<Real_t> dot12(ker_dim[0]*ker_dim[1],ker_dim[0]*ker_dim[1]);dot12.SetZero();
-	  Matrix<Real_t> dot22(ker_dim[0]*ker_dim[1],ker_dim[0]*ker_dim[1]);dot22.SetZero();
-	  std::vector<Real_t> norm1(ker_dim[0]*ker_dim[1]);
-	  std::vector<Real_t> norm2(ker_dim[0]*ker_dim[1]);
+	  Matrix<real_t> dot11(ker_dim[0]*ker_dim[1],ker_dim[0]*ker_dim[1]);dot11.SetZero();
+	  Matrix<real_t> dot12(ker_dim[0]*ker_dim[1],ker_dim[0]*ker_dim[1]);dot12.SetZero();
+	  Matrix<real_t> dot22(ker_dim[0]*ker_dim[1],ker_dim[0]*ker_dim[1]);dot22.SetZero();
+	  std::vector<real_t> norm1(ker_dim[0]*ker_dim[1]);
+	  std::vector<real_t> norm2(ker_dim[0]*ker_dim[1]);
 	  {
 	    for(size_t k=0;k<N;k++)
 	      for(size_t i=0;i<ker_dim[0]*ker_dim[1];i++)
@@ -497,7 +497,6 @@ struct Kernel{
 	  std::vector<Permutation<long long> >& Pvec=P1vec;
 	  Permutation<long long> P(Pmat.Dim(0));
 	  std::vector<size_t>& perm=P.perm;
-	  //perm.SetZero();
           std::fill(perm.begin(), perm.end(), 0);
 	  for(size_t i=0;i<P.Dim();i++)
 	    for(size_t j=0;j<P.Dim();j++){
@@ -542,7 +541,6 @@ struct Kernel{
 	  std::vector<Permutation<long long> >& Pvec=P2vec;
 	  Permutation<long long> P(Pmat.Dim(0));
 	  std::vector<size_t>& perm=P.perm;
-	  //perm.SetZero();
           std::fill(perm.begin(), perm.end(), 0);
 	  for(size_t i=0;i<P.Dim();i++)
 	    for(size_t j=0;j<P.Dim();j++){
@@ -607,14 +605,14 @@ struct Kernel{
 	  P1vec=P1vec_;
 	  P2vec=P2vec_;
 	}
-	Permutation<Real_t> P1_, P2_;
+	Permutation<real_t> P1_, P2_;
 	{
 	  for(size_t k=0;k<P1vec.size();k++){
 	    Permutation<long long> P1=P1vec[k];
 	    Permutation<long long> P2=P2vec[k];
 	    Matrix<long long>  M1=   M11   ;
 	    Matrix<long long>  M2=P1*M22*P2;
-	    Matrix<Real_t> M(M1.Dim(0)*M1.Dim(1)+1,M1.Dim(0)+M1.Dim(1));
+	    Matrix<real_t> M(M1.Dim(0)*M1.Dim(1)+1,M1.Dim(0)+M1.Dim(1));
 	    M.SetZero(); M[M1.Dim(0)*M1.Dim(1)][0]=1.0;
 	    for(size_t i=0;i<M1.Dim(0);i++)
 	      for(size_t j=0;j<M1.Dim(1);j++){
@@ -644,8 +642,8 @@ struct Kernel{
 	      }
 	    }
 	    if(done){
-	      P1_=Permutation<Real_t>(P1.Dim());
-	      P2_=Permutation<Real_t>(P2.Dim());
+	      P1_=Permutation<real_t>(P1.Dim());
+	      P2_=Permutation<real_t>(P2.Dim());
 	      for(size_t i=0;i<P1.Dim();i++){
 		P1_.perm[i]=P1.perm[i];
 		P1_.scal[i]=P1.scal[i];
@@ -701,11 +699,11 @@ struct Kernel{
     }
   }
 
-  void BuildMatrix(Real_t* r_src, int src_cnt, Real_t* r_trg, int trg_cnt, Real_t* k_out) const{
-    memset(k_out, 0, src_cnt*ker_dim[0]*trg_cnt*ker_dim[1]*sizeof(Real_t));
+  void BuildMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) const{
+    memset(k_out, 0, src_cnt*ker_dim[0]*trg_cnt*ker_dim[1]*sizeof(real_t));
     for(int i=0;i<src_cnt;i++)
       for(int j=0;j<ker_dim[0];j++){
-	std::vector<Real_t> v_src(ker_dim[0],0);
+	std::vector<real_t> v_src(ker_dim[0],0);
 	v_src[j]=1.0;
 	ker_poten(&r_src[i*3], 1, &v_src[0], 1, r_trg, trg_cnt,
 		  &k_out[(i*ker_dim[0]+j)*trg_cnt*ker_dim[1]]);
@@ -718,9 +716,9 @@ struct Kernel{
 
   mutable bool init;
   mutable bool scale_invar;
-  mutable std::vector<Real_t> src_scal;
-  mutable std::vector<Real_t> trg_scal;
-  mutable std::vector<Permutation<Real_t> > perm_vec;
+  mutable std::vector<real_t> src_scal;
+  mutable std::vector<real_t> trg_scal;
+  mutable std::vector<Permutation<real_t> > perm_vec;
 
   mutable const Kernel* k_s2m;
   mutable const Kernel* k_s2l;
@@ -733,7 +731,7 @@ struct Kernel{
 
 };
 
-template<void (*A)(Real_t*, int, Real_t*, int, Real_t*, int, Real_t*)>
+template<void (*A)(real_t*, int, real_t*, int, real_t*, int, real_t*)>
 Kernel BuildKernel(const char* name, std::pair<int,int> k_dim,
     const Kernel* k_s2m=NULL, const Kernel* k_s2l=NULL, const Kernel* k_s2t=NULL,
     const Kernel* k_m2m=NULL, const Kernel* k_m2l=NULL, const Kernel* k_m2t=NULL,
@@ -750,8 +748,8 @@ Kernel BuildKernel(const char* name, std::pair<int,int> k_dim,
   return K;
 }
 
-template <class Real_t, int SRC_DIM, int TRG_DIM, void (*uKernel)(Matrix<Real_t>&, Matrix<Real_t>&, Matrix<Real_t>&, Matrix<Real_t>&)>
-void generic_kernel(Real_t* r_src, int src_cnt, Real_t* v_src, int dof, Real_t* r_trg, int trg_cnt, Real_t* v_trg){
+template <class real_t, int SRC_DIM, int TRG_DIM, void (*uKernel)(Matrix<real_t>&, Matrix<real_t>&, Matrix<real_t>&, Matrix<real_t>&)>
+void generic_kernel(real_t* r_src, int src_cnt, real_t* v_src, int dof, real_t* r_trg, int trg_cnt, real_t* v_trg){
   assert(dof==1);
 #if FLOAT
   int VecLen=8;
@@ -759,12 +757,12 @@ void generic_kernel(Real_t* r_src, int src_cnt, Real_t* v_src, int dof, Real_t* 
   int VecLen=4;
 #endif
 #define STACK_BUFF_SIZE 4096
-  Real_t stack_buff[STACK_BUFF_SIZE+MEM_ALIGN];
-  Real_t* buff=NULL;
-  Matrix<Real_t> src_coord;
-  Matrix<Real_t> src_value;
-  Matrix<Real_t> trg_coord;
-  Matrix<Real_t> trg_value;
+  real_t stack_buff[STACK_BUFF_SIZE+MEM_ALIGN];
+  real_t* buff=NULL;
+  Matrix<real_t> src_coord;
+  Matrix<real_t> src_value;
+  Matrix<real_t> trg_coord;
+  Matrix<real_t> trg_value;
   {
     size_t src_cnt_, trg_cnt_;
     src_cnt_=((src_cnt+VecLen-1)/VecLen)*VecLen;
@@ -772,15 +770,15 @@ void generic_kernel(Real_t* r_src, int src_cnt, Real_t* v_src, int dof, Real_t* 
     size_t buff_size=src_cnt_*(3+SRC_DIM)+
                      trg_cnt_*(3+TRG_DIM);
     if(buff_size>STACK_BUFF_SIZE){
-      int err = posix_memalign((void**)&buff, MEM_ALIGN, buff_size*sizeof(Real_t));
+      int err = posix_memalign((void**)&buff, MEM_ALIGN, buff_size*sizeof(real_t));
     }
-    Real_t* buff_ptr=buff;
+    real_t* buff_ptr=buff;
     if(!buff_ptr){
       uintptr_t ptr=(uintptr_t)stack_buff;
       static uintptr_t     ALIGN_MINUS_ONE=MEM_ALIGN-1;
       static uintptr_t NOT_ALIGN_MINUS_ONE=~ALIGN_MINUS_ONE;
       ptr=((ptr+ALIGN_MINUS_ONE) & NOT_ALIGN_MINUS_ONE);
-      buff_ptr=(Real_t*)ptr;
+      buff_ptr=(real_t*)ptr;
     }
     src_coord.ReInit(3, src_cnt_,buff_ptr,false);  buff_ptr+=3*src_cnt_;
     src_value.ReInit(  SRC_DIM, src_cnt_,buff_ptr,false);  buff_ptr+=  SRC_DIM*src_cnt_;
@@ -847,15 +845,15 @@ void generic_kernel(Real_t* r_src, int src_cnt, Real_t* v_src, int dof, Real_t* 
   }
 }
 
-void laplace_poten_uKernel(Matrix<Real_t>& src_coord, Matrix<Real_t>& src_value, Matrix<Real_t>& trg_coord, Matrix<Real_t>& trg_value){
+void laplace_poten_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
 #define SRC_BLK 1000
-  size_t VecLen=sizeof(Vec_t)/sizeof(Real_t);
-  Real_t nwtn_scal=1;
+  size_t VecLen=sizeof(Vec_t)/sizeof(real_t);
+  real_t nwtn_scal=1;
   for(int i=0;i<2;i++){
     nwtn_scal=2*nwtn_scal*nwtn_scal*nwtn_scal;
   }
-  const Real_t zero = 0;
-  const Real_t OOFP = 1.0/(4*nwtn_scal*M_PI);
+  const real_t zero = 0;
+  const real_t OOFP = 1.0/(4*nwtn_scal*M_PI);
   size_t src_cnt_=src_coord.Dim(1);
   size_t trg_cnt_=trg_coord.Dim(1);
   for(size_t sblk=0;sblk<src_cnt_;sblk+=SRC_BLK){
@@ -888,19 +886,19 @@ void laplace_poten_uKernel(Matrix<Real_t>& src_coord, Matrix<Real_t>& src_value,
 #undef SRC_BLK
 }
 
-void laplace_poten(Real_t* r_src, int src_cnt, Real_t* v_src, int dof, Real_t* r_trg, int trg_cnt, Real_t* v_trg){
-  generic_kernel<Real_t, 1, 1, laplace_poten_uKernel>(r_src, src_cnt, v_src, dof, r_trg, trg_cnt, v_trg);
+void laplace_poten(real_t* r_src, int src_cnt, real_t* v_src, int dof, real_t* r_trg, int trg_cnt, real_t* v_trg){
+  generic_kernel<real_t, 1, 1, laplace_poten_uKernel>(r_src, src_cnt, v_src, dof, r_trg, trg_cnt, v_trg);
 }
 
-void laplace_grad_uKernel(Matrix<Real_t>& src_coord, Matrix<Real_t>& src_value, Matrix<Real_t>& trg_coord, Matrix<Real_t>& trg_value){
+void laplace_grad_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
 #define SRC_BLK 500
-  size_t VecLen=sizeof(Vec_t)/sizeof(Real_t);
-  Real_t nwtn_scal=1;
+  size_t VecLen=sizeof(Vec_t)/sizeof(real_t);
+  real_t nwtn_scal=1;
   for(int i=0;i<2;i++){
     nwtn_scal=2*nwtn_scal*nwtn_scal*nwtn_scal;
   }
-  const Real_t zero = 0;
-  const Real_t OOFP = -1.0/(4*nwtn_scal*nwtn_scal*nwtn_scal*M_PI);
+  const real_t zero = 0;
+  const real_t OOFP = -1.0/(4*nwtn_scal*nwtn_scal*nwtn_scal*M_PI);
   size_t src_cnt_=src_coord.Dim(1);
   size_t trg_cnt_=trg_coord.Dim(1);
   for(size_t sblk=0;sblk<src_cnt_;sblk+=SRC_BLK){
@@ -943,8 +941,8 @@ void laplace_grad_uKernel(Matrix<Real_t>& src_coord, Matrix<Real_t>& src_value, 
 #undef SRC_BLK
 }
 
-void laplace_grad(Real_t* r_src, int src_cnt, Real_t* v_src, int dof, Real_t* r_trg, int trg_cnt, Real_t* v_trg){
-  generic_kernel<Real_t, 1, 3, laplace_grad_uKernel>(r_src, src_cnt, v_src, dof, r_trg, trg_cnt, v_trg);
+void laplace_grad(real_t* r_src, int src_cnt, real_t* v_src, int dof, real_t* r_trg, int trg_cnt, real_t* v_trg){
+  generic_kernel<real_t, 1, 3, laplace_grad_uKernel>(r_src, src_cnt, v_src, dof, r_trg, trg_cnt, v_trg);
 }
 
 }//end namespace
