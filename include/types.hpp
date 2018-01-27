@@ -16,20 +16,20 @@
 #if FLOAT
 typedef float real_t;
 #if defined __AVX__
-typedef __m256 Vec_t;
+typedef __m256 vec_t;
 #elif defined __SSE3__
-typedef __m128 Vec_t;
+typedef __m128 vec_t;
 #else
-typedef real_t Vec_t;
+typedef real_t vec_t;
 #endif
 #else
 typedef double real_t;
 #if defined __AVX__
-typedef __m256d Vec_t;
+typedef __m256d vec_t;
 #elif defined __SSE3__
-typedef __m128d Vec_t;
+typedef __m128d vec_t;
 #else
-typedef real_t Vec_t;
+typedef real_t vec_t;
 #endif
 #endif
 

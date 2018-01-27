@@ -157,8 +157,8 @@ namespace pvfmm{
 #endif //__SSE3__
 #endif //__AVX__
 
-  inline Vec_t rsqrt_intrin2(Vec_t r2){
-    Vec_t rinv=rsqrt_approx_intrin(r2);
+  inline vec_t rsqrt_intrin2(vec_t r2){
+    vec_t rinv=rsqrt_approx_intrin(r2);
     rsqrt_newton_intrin(rinv,r2,real_t(3));
     rsqrt_newton_intrin(rinv,r2,real_t(12));
     return rinv;
@@ -166,9 +166,27 @@ namespace pvfmm{
 
 struct Kernel{
   public:
-
   typedef void (*Ker_t)(real_t* r_src, int src_cnt, real_t* v_src, int dof,
                         real_t* r_trg, int trg_cnt, real_t* k_out);
+
+  int ker_dim[2];
+  std::string ker_name;
+  Ker_t ker_poten;
+
+  mutable bool init;
+  mutable bool scale_invar;
+  mutable std::vector<real_t> src_scal;
+  mutable std::vector<real_t> trg_scal;
+  mutable std::vector<Permutation<real_t> > perm_vec;
+
+  mutable const Kernel* k_s2m;
+  mutable const Kernel* k_s2l;
+  mutable const Kernel* k_s2t;
+  mutable const Kernel* k_m2m;
+  mutable const Kernel* k_m2l;
+  mutable const Kernel* k_m2t;
+  mutable const Kernel* k_l2l;
+  mutable const Kernel* k_l2t;
 
   Kernel(Ker_t poten, const char* name, std::pair<int,int> k_dim) {
     ker_dim[0]=k_dim.first;
@@ -709,26 +727,6 @@ struct Kernel{
 		  &k_out[(i*ker_dim[0]+j)*trg_cnt*ker_dim[1]]);
       }
   }
-
-  int ker_dim[2];
-  std::string ker_name;
-  Ker_t ker_poten;
-
-  mutable bool init;
-  mutable bool scale_invar;
-  mutable std::vector<real_t> src_scal;
-  mutable std::vector<real_t> trg_scal;
-  mutable std::vector<Permutation<real_t> > perm_vec;
-
-  mutable const Kernel* k_s2m;
-  mutable const Kernel* k_s2l;
-  mutable const Kernel* k_s2t;
-  mutable const Kernel* k_m2m;
-  mutable const Kernel* k_m2l;
-  mutable const Kernel* k_m2t;
-  mutable const Kernel* k_l2l;
-  mutable const Kernel* k_l2t;
-
 };
 
 template<void (*A)(real_t*, int, real_t*, int, real_t*, int, real_t*)>
@@ -847,7 +845,7 @@ void generic_kernel(real_t* r_src, int src_cnt, real_t* v_src, int dof, real_t* 
 
 void laplace_poten_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
 #define SRC_BLK 1000
-  size_t VecLen=sizeof(Vec_t)/sizeof(real_t);
+  size_t VecLen=sizeof(vec_t)/sizeof(real_t);
   real_t nwtn_scal=1;
   for(int i=0;i<2;i++){
     nwtn_scal=2*nwtn_scal*nwtn_scal*nwtn_scal;
@@ -860,22 +858,22 @@ void laplace_poten_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value,
     size_t src_cnt=src_cnt_-sblk;
     if(src_cnt>SRC_BLK) src_cnt=SRC_BLK;
     for(size_t t=0;t<trg_cnt_;t+=VecLen){
-      Vec_t tx=load_intrin(&trg_coord[0][t]);
-      Vec_t ty=load_intrin(&trg_coord[1][t]);
-      Vec_t tz=load_intrin(&trg_coord[2][t]);
-      Vec_t tv=zero_intrin(zero);
+      vec_t tx=load_intrin(&trg_coord[0][t]);
+      vec_t ty=load_intrin(&trg_coord[1][t]);
+      vec_t tz=load_intrin(&trg_coord[2][t]);
+      vec_t tv=zero_intrin(zero);
       for(size_t s=sblk;s<sblk+src_cnt;s++){
-        Vec_t dx=sub_intrin(tx,set_intrin(src_coord[0][s]));
-        Vec_t dy=sub_intrin(ty,set_intrin(src_coord[1][s]));
-        Vec_t dz=sub_intrin(tz,set_intrin(src_coord[2][s]));
-        Vec_t sv=              set_intrin(src_value[0][s]) ;
-        Vec_t r2=        mul_intrin(dx,dx) ;
+        vec_t dx=sub_intrin(tx,set_intrin(src_coord[0][s]));
+        vec_t dy=sub_intrin(ty,set_intrin(src_coord[1][s]));
+        vec_t dz=sub_intrin(tz,set_intrin(src_coord[2][s]));
+        vec_t sv=              set_intrin(src_value[0][s]) ;
+        vec_t r2=        mul_intrin(dx,dx) ;
         r2=add_intrin(r2,mul_intrin(dy,dy));
         r2=add_intrin(r2,mul_intrin(dz,dz));
-        Vec_t rinv=rsqrt_intrin2(r2);
+        vec_t rinv=rsqrt_intrin2(r2);
         tv=add_intrin(tv,mul_intrin(rinv,sv));
       }
-      Vec_t oofp=set_intrin(OOFP);
+      vec_t oofp=set_intrin(OOFP);
       tv=add_intrin(mul_intrin(tv,oofp),load_intrin(&trg_value[0][t]));
       store_intrin(&trg_value[0][t],tv);
     }
@@ -892,7 +890,7 @@ void laplace_poten(real_t* r_src, int src_cnt, real_t* v_src, int dof, real_t* r
 
 void laplace_grad_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
 #define SRC_BLK 500
-  size_t VecLen=sizeof(Vec_t)/sizeof(real_t);
+  size_t VecLen=sizeof(vec_t)/sizeof(real_t);
   real_t nwtn_scal=1;
   for(int i=0;i<2;i++){
     nwtn_scal=2*nwtn_scal*nwtn_scal*nwtn_scal;
@@ -905,28 +903,28 @@ void laplace_grad_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, 
     size_t src_cnt=src_cnt_-sblk;
     if(src_cnt>SRC_BLK) src_cnt=SRC_BLK;
     for(size_t t=0;t<trg_cnt_;t+=VecLen){
-      Vec_t tx=load_intrin(&trg_coord[0][t]);
-      Vec_t ty=load_intrin(&trg_coord[1][t]);
-      Vec_t tz=load_intrin(&trg_coord[2][t]);
-      Vec_t tv0=zero_intrin(zero);
-      Vec_t tv1=zero_intrin(zero);
-      Vec_t tv2=zero_intrin(zero);
+      vec_t tx=load_intrin(&trg_coord[0][t]);
+      vec_t ty=load_intrin(&trg_coord[1][t]);
+      vec_t tz=load_intrin(&trg_coord[2][t]);
+      vec_t tv0=zero_intrin(zero);
+      vec_t tv1=zero_intrin(zero);
+      vec_t tv2=zero_intrin(zero);
       for(size_t s=sblk;s<sblk+src_cnt;s++){
-        Vec_t dx=sub_intrin(tx,set_intrin(src_coord[0][s]));
-        Vec_t dy=sub_intrin(ty,set_intrin(src_coord[1][s]));
-        Vec_t dz=sub_intrin(tz,set_intrin(src_coord[2][s]));
-        Vec_t sv=              set_intrin(src_value[0][s]) ;
-        Vec_t r2=        mul_intrin(dx,dx) ;
+        vec_t dx=sub_intrin(tx,set_intrin(src_coord[0][s]));
+        vec_t dy=sub_intrin(ty,set_intrin(src_coord[1][s]));
+        vec_t dz=sub_intrin(tz,set_intrin(src_coord[2][s]));
+        vec_t sv=              set_intrin(src_value[0][s]) ;
+        vec_t r2=        mul_intrin(dx,dx) ;
         r2=add_intrin(r2,mul_intrin(dy,dy));
         r2=add_intrin(r2,mul_intrin(dz,dz));
-        Vec_t rinv=rsqrt_intrin2(r2);
-        Vec_t r3inv=mul_intrin(mul_intrin(rinv,rinv),rinv);
+        vec_t rinv=rsqrt_intrin2(r2);
+        vec_t r3inv=mul_intrin(mul_intrin(rinv,rinv),rinv);
         sv=mul_intrin(sv,r3inv);
         tv0=add_intrin(tv0,mul_intrin(sv,dx));
         tv1=add_intrin(tv1,mul_intrin(sv,dy));
         tv2=add_intrin(tv2,mul_intrin(sv,dz));
       }
-      Vec_t oofp=set_intrin(OOFP);
+      vec_t oofp=set_intrin(OOFP);
       tv0=add_intrin(mul_intrin(tv0,oofp),load_intrin(&trg_value[0][t]));
       tv1=add_intrin(mul_intrin(tv1,oofp),load_intrin(&trg_value[1][t]));
       tv2=add_intrin(mul_intrin(tv2,oofp),load_intrin(&trg_value[2][t]));
