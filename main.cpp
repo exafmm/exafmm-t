@@ -31,7 +31,7 @@
 #endif
 
 //#include <vec.h>
-#include <types.hpp>
+#include <pvfmm.h>
 #include <args.h>
 #include <profile.hpp>
 #include <vector.hpp>
