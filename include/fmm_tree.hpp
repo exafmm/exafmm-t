@@ -2470,7 +2470,7 @@ public:
                         src_coord.ReInit(1, vdim, &new_coord[0], false);
                       }
                     }
-                    setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, vbuff2_ptr, 1,
+                    setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, vbuff2_ptr,
                                                  trg_coord[0], trg_coord.Dim(1)/3, vbuff3_ptr);
                   }
                   if(srf_coord.Dim(1)){
@@ -3869,7 +3869,7 @@ public:
     for(int i=0;i<np;i++){
       size_t a=(i*trg_cnt)/np;
       size_t b=((i+1)*trg_cnt)/np;
-      kernel->ker_poten(&src_coord[0], src_cnt, &src_value[0], dof, &trg_coord[a*3], b-a, &trg_poten_dir[a*trg_dof  ]);
+      kernel->ker_poten(&src_coord[0], src_cnt, &src_value[0], &trg_coord[a*3], b-a, &trg_poten_dir[a*trg_dof  ]);
     }
     pvfmm::Profile::Toc();
     {

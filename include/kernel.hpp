@@ -5,7 +5,7 @@
 namespace pvfmm {
 struct Kernel{
   public:
-  typedef void (*Ker_t)(real_t* r_src, int src_cnt, real_t* v_src, int dof,
+  typedef void (*Ker_t)(real_t* r_src, int src_cnt, real_t* v_src,
                         real_t* r_trg, int trg_cnt, real_t* k_out);
 
   int ker_dim[2];
@@ -30,8 +30,17 @@ struct Kernel{
   Kernel(Ker_t poten, const char* name, std::pair<int,int> k_dim) {
     ker_dim[0]=k_dim.first;
     ker_dim[1]=k_dim.second;
-    ker_poten=poten;
     ker_name=std::string(name);
+    ker_poten=poten;
+ 
+    init=false;
+    scale_invar=true;
+    src_scal.resize(ker_dim[0], 0.); 
+    trg_scal.resize(ker_dim[1], 0.); 
+    perm_vec.resize(Perm_Count);
+    std::fill(perm_vec.begin(), perm_vec.begin()+C_Perm, Permutation<real_t>(ker_dim[0]));
+    std::fill(perm_vec.begin()+C_Perm, perm_vec.end(), Permutation<real_t>(ker_dim[1]));
+
     k_s2m=NULL;
     k_s2l=NULL;
     k_s2t=NULL;
@@ -40,17 +49,6 @@ struct Kernel{
     k_m2t=NULL;
     k_l2l=NULL;
     k_l2t=NULL;
-    scale_invar=true;
-    src_scal.resize(ker_dim[0]); 
-    std::fill(src_scal.begin(), src_scal.end(), 0.);
-    trg_scal.resize(ker_dim[1]); 
-    std::fill(trg_scal.begin(), trg_scal.end(), 0.);
-    perm_vec.resize(Perm_Count);
-    for(size_t p_type=0;p_type<C_Perm;p_type++){
-      perm_vec[p_type       ]=Permutation<real_t>(ker_dim[0]);
-      perm_vec[p_type+C_Perm]=Permutation<real_t>(ker_dim[1]);
-    }
-    init=false;
   }
 
   void Initialize(bool verbose=false) const{
@@ -562,17 +560,16 @@ struct Kernel{
       for(int j=0;j<ker_dim[0];j++){
 	std::vector<real_t> v_src(ker_dim[0],0);
 	v_src[j]=1.0;
-	ker_poten(&r_src[i*3], 1, &v_src[0], 1, r_trg, trg_cnt,
+	ker_poten(&r_src[i*3], 1, &v_src[0], r_trg, trg_cnt,
 		  &k_out[(i*ker_dim[0]+j)*trg_cnt*ker_dim[1]]);
       }
   }
 };
 
-template<void (*A)(real_t*, int, real_t*, int, real_t*, int, real_t*)>
-Kernel BuildKernel(const char* name, std::pair<int,int> k_dim,
-    const Kernel* k_s2m=NULL, const Kernel* k_s2l=NULL, const Kernel* k_s2t=NULL,
-    const Kernel* k_m2m=NULL, const Kernel* k_m2l=NULL, const Kernel* k_m2t=NULL,
-		      const Kernel* k_l2l=NULL, const Kernel* k_l2t=NULL) {
+template<void (*A)(real_t*, int, real_t*, real_t*, int, real_t*)>
+Kernel BuildKernel(const char* name, std::pair<int,int> k_dim, 
+                   const Kernel* k_s2m=NULL, const Kernel* k_s2l=NULL, const Kernel* k_s2t=NULL, const Kernel* k_m2m=NULL, 
+                   const Kernel* k_m2l=NULL, const Kernel* k_m2t=NULL, const Kernel* k_l2l=NULL, const Kernel* k_l2t=NULL) {
   Kernel K(A, name, k_dim);
   K.k_s2m=k_s2m;
   K.k_s2l=k_s2l;
@@ -586,8 +583,7 @@ Kernel BuildKernel(const char* name, std::pair<int,int> k_dim,
 }
 
 template <class real_t, int SRC_DIM, int TRG_DIM, void (*uKernel)(Matrix<real_t>&, Matrix<real_t>&, Matrix<real_t>&, Matrix<real_t>&)>
-void generic_kernel(real_t* r_src, int src_cnt, real_t* v_src, int dof, real_t* r_trg, int trg_cnt, real_t* v_trg){
-  assert(dof==1);
+void generic_kernel(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt, real_t* v_trg){
 #if FLOAT
   int VecLen=8;
 #else
@@ -723,8 +719,8 @@ void laplace_poten_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value,
 #undef SRC_BLK
 }
 
-void laplace_poten(real_t* r_src, int src_cnt, real_t* v_src, int dof, real_t* r_trg, int trg_cnt, real_t* v_trg){
-  generic_kernel<real_t, 1, 1, laplace_poten_uKernel>(r_src, src_cnt, v_src, dof, r_trg, trg_cnt, v_trg);
+void laplace_poten(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt, real_t* v_trg){
+  generic_kernel<real_t, 1, 1, laplace_poten_uKernel>(r_src, src_cnt, v_src,  r_trg, trg_cnt, v_trg);
 }
 
 void laplace_grad_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
@@ -778,8 +774,8 @@ void laplace_grad_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, 
 #undef SRC_BLK
 }
 
-void laplace_grad(real_t* r_src, int src_cnt, real_t* v_src, int dof, real_t* r_trg, int trg_cnt, real_t* v_trg){
-  generic_kernel<real_t, 1, 3, laplace_grad_uKernel>(r_src, src_cnt, v_src, dof, r_trg, trg_cnt, v_trg);
+void laplace_grad(real_t* r_src, int src_cnt, real_t* v_src,  real_t* r_trg, int trg_cnt, real_t* v_trg){
+  generic_kernel<real_t, 1, 3, laplace_grad_uKernel>(r_src, src_cnt, v_src, r_trg, trg_cnt, v_trg);
 }
 
 }//end namespace
