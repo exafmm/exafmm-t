@@ -582,8 +582,105 @@ Kernel BuildKernel(const char* name, std::pair<int,int> k_dim,
   return K;
 }
 
-template <class real_t, int SRC_DIM, int TRG_DIM, void (*uKernel)(Matrix<real_t>&, Matrix<real_t>&, Matrix<real_t>&, Matrix<real_t>&)>
-void generic_kernel(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt, real_t* v_trg){
+//! Laplace potential P2P with matrix interface, potentials saved in trg_value matrix
+void potentialP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
+#define SRC_BLK 1000
+  size_t VecLen=sizeof(vec_t)/sizeof(real_t);
+  real_t nwtn_scal=1;
+  for(int i=0;i<2;i++){
+    nwtn_scal=2*nwtn_scal*nwtn_scal*nwtn_scal;
+  }
+  const real_t zero = 0;
+  const real_t OOFP = 1.0/(4*nwtn_scal*M_PI);
+  size_t src_cnt_=src_coord.Dim(1);
+  size_t trg_cnt_=trg_coord.Dim(1);
+  for(size_t sblk=0;sblk<src_cnt_;sblk+=SRC_BLK){
+    size_t src_cnt=src_cnt_-sblk;
+    if(src_cnt>SRC_BLK) src_cnt=SRC_BLK;
+    for(size_t t=0;t<trg_cnt_;t+=VecLen){
+      vec_t tx=load_intrin(&trg_coord[0][t]);
+      vec_t ty=load_intrin(&trg_coord[1][t]);
+      vec_t tz=load_intrin(&trg_coord[2][t]);
+      vec_t tv=zero_intrin(zero);
+      for(size_t s=sblk;s<sblk+src_cnt;s++){
+        vec_t dx=sub_intrin(tx,set_intrin(src_coord[0][s]));
+        vec_t dy=sub_intrin(ty,set_intrin(src_coord[1][s]));
+        vec_t dz=sub_intrin(tz,set_intrin(src_coord[2][s]));
+        vec_t sv=              set_intrin(src_value[0][s]) ;
+        vec_t r2=        mul_intrin(dx,dx) ;
+        r2=add_intrin(r2,mul_intrin(dy,dy));
+        r2=add_intrin(r2,mul_intrin(dz,dz));
+        vec_t rinv=rsqrt_intrin2(r2);
+        tv=add_intrin(tv,mul_intrin(rinv,sv));
+      }
+      vec_t oofp=set_intrin(OOFP);
+      tv=add_intrin(mul_intrin(tv,oofp),load_intrin(&trg_value[0][t]));
+      store_intrin(&trg_value[0][t],tv);
+    }
+  }
+  {
+    Profile::Add_FLOP((long long)trg_cnt_*(long long)src_cnt_*20);
+  }
+#undef SRC_BLK
+}
+
+//! Laplace gradient P2P with matrix interface, gradients saved in trg_value matrix
+void gradientP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
+#define SRC_BLK 500
+  size_t VecLen=sizeof(vec_t)/sizeof(real_t);
+  real_t nwtn_scal=1;
+  for(int i=0;i<2;i++){
+    nwtn_scal=2*nwtn_scal*nwtn_scal*nwtn_scal;
+  }
+  const real_t zero = 0;
+  const real_t OOFP = -1.0/(4*nwtn_scal*nwtn_scal*nwtn_scal*M_PI);
+  size_t src_cnt_=src_coord.Dim(1);
+  size_t trg_cnt_=trg_coord.Dim(1);
+  for(size_t sblk=0;sblk<src_cnt_;sblk+=SRC_BLK){
+    size_t src_cnt=src_cnt_-sblk;
+    if(src_cnt>SRC_BLK) src_cnt=SRC_BLK;
+    for(size_t t=0;t<trg_cnt_;t+=VecLen){
+      vec_t tx=load_intrin(&trg_coord[0][t]);
+      vec_t ty=load_intrin(&trg_coord[1][t]);
+      vec_t tz=load_intrin(&trg_coord[2][t]);
+      vec_t tv0=zero_intrin(zero);
+      vec_t tv1=zero_intrin(zero);
+      vec_t tv2=zero_intrin(zero);
+      for(size_t s=sblk;s<sblk+src_cnt;s++){
+        vec_t dx=sub_intrin(tx,set_intrin(src_coord[0][s]));
+        vec_t dy=sub_intrin(ty,set_intrin(src_coord[1][s]));
+        vec_t dz=sub_intrin(tz,set_intrin(src_coord[2][s]));
+        vec_t sv=              set_intrin(src_value[0][s]) ;
+        vec_t r2=        mul_intrin(dx,dx) ;
+        r2=add_intrin(r2,mul_intrin(dy,dy));
+        r2=add_intrin(r2,mul_intrin(dz,dz));
+        vec_t rinv=rsqrt_intrin2(r2);
+        vec_t r3inv=mul_intrin(mul_intrin(rinv,rinv),rinv);
+        sv=mul_intrin(sv,r3inv);
+        tv0=add_intrin(tv0,mul_intrin(sv,dx));
+        tv1=add_intrin(tv1,mul_intrin(sv,dy));
+        tv2=add_intrin(tv2,mul_intrin(sv,dz));
+      }
+      vec_t oofp=set_intrin(OOFP);
+      tv0=add_intrin(mul_intrin(tv0,oofp),load_intrin(&trg_value[0][t]));
+      tv1=add_intrin(mul_intrin(tv1,oofp),load_intrin(&trg_value[1][t]));
+      tv2=add_intrin(mul_intrin(tv2,oofp),load_intrin(&trg_value[2][t]));
+      store_intrin(&trg_value[0][t],tv0);
+      store_intrin(&trg_value[1][t],tv1);
+      store_intrin(&trg_value[2][t],tv2);
+    }
+  }
+  {
+    Profile::Add_FLOP((long long)trg_cnt_*(long long)src_cnt_*27);
+  }
+#undef SRC_BLK
+}
+
+//! Wrap around the above P2P functions with matrix interface to provide array interface
+//! Evaluate potential / gradient based on the argument grad
+void laplaceP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt, real_t* v_trg, bool grad=false){
+int SRC_DIM = 1;
+int TRG_DIM = (grad) ? 3 : 1;
 #if FLOAT
   int VecLen=8;
 #else
@@ -665,7 +762,8 @@ void generic_kernel(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, in
       }
     }
   }
-  uKernel(src_coord,src_value,trg_coord,trg_value);
+  if (grad) gradientP2P(src_coord,src_value,trg_coord,trg_value);
+  else potentialP2P(src_coord,src_value,trg_coord,trg_value);
   {
     for(size_t i=0;i<trg_cnt ;i++){
       for(size_t j=0;j<TRG_DIM;j++){
@@ -678,104 +776,13 @@ void generic_kernel(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, in
   }
 }
 
-void laplace_poten_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
-#define SRC_BLK 1000
-  size_t VecLen=sizeof(vec_t)/sizeof(real_t);
-  real_t nwtn_scal=1;
-  for(int i=0;i<2;i++){
-    nwtn_scal=2*nwtn_scal*nwtn_scal*nwtn_scal;
-  }
-  const real_t zero = 0;
-  const real_t OOFP = 1.0/(4*nwtn_scal*M_PI);
-  size_t src_cnt_=src_coord.Dim(1);
-  size_t trg_cnt_=trg_coord.Dim(1);
-  for(size_t sblk=0;sblk<src_cnt_;sblk+=SRC_BLK){
-    size_t src_cnt=src_cnt_-sblk;
-    if(src_cnt>SRC_BLK) src_cnt=SRC_BLK;
-    for(size_t t=0;t<trg_cnt_;t+=VecLen){
-      vec_t tx=load_intrin(&trg_coord[0][t]);
-      vec_t ty=load_intrin(&trg_coord[1][t]);
-      vec_t tz=load_intrin(&trg_coord[2][t]);
-      vec_t tv=zero_intrin(zero);
-      for(size_t s=sblk;s<sblk+src_cnt;s++){
-        vec_t dx=sub_intrin(tx,set_intrin(src_coord[0][s]));
-        vec_t dy=sub_intrin(ty,set_intrin(src_coord[1][s]));
-        vec_t dz=sub_intrin(tz,set_intrin(src_coord[2][s]));
-        vec_t sv=              set_intrin(src_value[0][s]) ;
-        vec_t r2=        mul_intrin(dx,dx) ;
-        r2=add_intrin(r2,mul_intrin(dy,dy));
-        r2=add_intrin(r2,mul_intrin(dz,dz));
-        vec_t rinv=rsqrt_intrin2(r2);
-        tv=add_intrin(tv,mul_intrin(rinv,sv));
-      }
-      vec_t oofp=set_intrin(OOFP);
-      tv=add_intrin(mul_intrin(tv,oofp),load_intrin(&trg_value[0][t]));
-      store_intrin(&trg_value[0][t],tv);
-    }
-  }
-  {
-    Profile::Add_FLOP((long long)trg_cnt_*(long long)src_cnt_*20);
-  }
-#undef SRC_BLK
+//! Laplace potential P2P with array interface
+void potentialP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt, real_t* v_trg){
+  laplaceP2P(r_src, src_cnt, v_src,  r_trg, trg_cnt, v_trg, false);
 }
-
-void laplace_poten(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt, real_t* v_trg){
-  generic_kernel<real_t, 1, 1, laplace_poten_uKernel>(r_src, src_cnt, v_src,  r_trg, trg_cnt, v_trg);
-}
-
-void laplace_grad_uKernel(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
-#define SRC_BLK 500
-  size_t VecLen=sizeof(vec_t)/sizeof(real_t);
-  real_t nwtn_scal=1;
-  for(int i=0;i<2;i++){
-    nwtn_scal=2*nwtn_scal*nwtn_scal*nwtn_scal;
-  }
-  const real_t zero = 0;
-  const real_t OOFP = -1.0/(4*nwtn_scal*nwtn_scal*nwtn_scal*M_PI);
-  size_t src_cnt_=src_coord.Dim(1);
-  size_t trg_cnt_=trg_coord.Dim(1);
-  for(size_t sblk=0;sblk<src_cnt_;sblk+=SRC_BLK){
-    size_t src_cnt=src_cnt_-sblk;
-    if(src_cnt>SRC_BLK) src_cnt=SRC_BLK;
-    for(size_t t=0;t<trg_cnt_;t+=VecLen){
-      vec_t tx=load_intrin(&trg_coord[0][t]);
-      vec_t ty=load_intrin(&trg_coord[1][t]);
-      vec_t tz=load_intrin(&trg_coord[2][t]);
-      vec_t tv0=zero_intrin(zero);
-      vec_t tv1=zero_intrin(zero);
-      vec_t tv2=zero_intrin(zero);
-      for(size_t s=sblk;s<sblk+src_cnt;s++){
-        vec_t dx=sub_intrin(tx,set_intrin(src_coord[0][s]));
-        vec_t dy=sub_intrin(ty,set_intrin(src_coord[1][s]));
-        vec_t dz=sub_intrin(tz,set_intrin(src_coord[2][s]));
-        vec_t sv=              set_intrin(src_value[0][s]) ;
-        vec_t r2=        mul_intrin(dx,dx) ;
-        r2=add_intrin(r2,mul_intrin(dy,dy));
-        r2=add_intrin(r2,mul_intrin(dz,dz));
-        vec_t rinv=rsqrt_intrin2(r2);
-        vec_t r3inv=mul_intrin(mul_intrin(rinv,rinv),rinv);
-        sv=mul_intrin(sv,r3inv);
-        tv0=add_intrin(tv0,mul_intrin(sv,dx));
-        tv1=add_intrin(tv1,mul_intrin(sv,dy));
-        tv2=add_intrin(tv2,mul_intrin(sv,dz));
-      }
-      vec_t oofp=set_intrin(OOFP);
-      tv0=add_intrin(mul_intrin(tv0,oofp),load_intrin(&trg_value[0][t]));
-      tv1=add_intrin(mul_intrin(tv1,oofp),load_intrin(&trg_value[1][t]));
-      tv2=add_intrin(mul_intrin(tv2,oofp),load_intrin(&trg_value[2][t]));
-      store_intrin(&trg_value[0][t],tv0);
-      store_intrin(&trg_value[1][t],tv1);
-      store_intrin(&trg_value[2][t],tv2);
-    }
-  }
-  {
-    Profile::Add_FLOP((long long)trg_cnt_*(long long)src_cnt_*27);
-  }
-#undef SRC_BLK
-}
-
-void laplace_grad(real_t* r_src, int src_cnt, real_t* v_src,  real_t* r_trg, int trg_cnt, real_t* v_trg){
-  generic_kernel<real_t, 1, 3, laplace_grad_uKernel>(r_src, src_cnt, v_src, r_trg, trg_cnt, v_trg);
+//! Laplace gradient P2P with array interface
+void gradientP2P(real_t* r_src, int src_cnt, real_t* v_src,  real_t* r_trg, int trg_cnt, real_t* v_trg){
+  laplaceP2P(r_src, src_cnt, v_src, r_trg, trg_cnt, v_trg, true);
 }
 
 }//end namespace

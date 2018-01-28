@@ -57,8 +57,8 @@ int main(int argc, char **argv){
   int depth = 15;
   Profile::Enable(true);
   Profile::Tic("FMM_Test",true);
-  Kernel potn_ker=BuildKernel<laplace_poten >("laplace"    , std::pair<int,int>(1,1));
-  Kernel grad_ker=BuildKernel<laplace_grad >("laplace_grad", std::pair<int,int>(1,3),
+  Kernel potn_ker=BuildKernel<potentialP2P>("laplace"    , std::pair<int,int>(1,1));
+  Kernel grad_ker=BuildKernel<gradientP2P >("laplace_grad", std::pair<int,int>(1,3),
 					     &potn_ker, &potn_ker, NULL, &potn_ker, &potn_ker, NULL, &potn_ker, NULL);
   typename FMM_Node::NodeData init_data;
   init_data.max_depth=depth;
