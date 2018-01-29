@@ -53,14 +53,14 @@ struct Kernel{
 
   void Initialize(bool verbose=false) const{
     if(init) return;
-    init=true;
-    real_t eps=1.0;
-    while(eps+(real_t)1.0>1.0) eps*=0.5;
-    real_t scal=1.0;
+    init = true;
+    real_t eps = 1.0;
+    while(eps+(real_t)1.0>1.0) eps *= 0.5;
+    real_t scal = 1.0;
     if(ker_dim[0]*ker_dim[1]>0){
       Matrix<real_t> M_scal(ker_dim[0],ker_dim[1]);
-      size_t N=1024;
-      real_t eps_=N*eps;
+      size_t N = 1024;
+      real_t eps_ = N * eps;
       real_t src_coord[3]={0,0,0};
       std::vector<real_t> trg_coord1(N*3);
       Matrix<real_t> M1(N,ker_dim[0]*ker_dim[1]);
@@ -68,24 +68,24 @@ struct Kernel{
 	real_t abs_sum=0;
 	for(size_t i=0;i<N/2;i++){
 	  real_t x,y,z,r;
-	  do{
-	    x=(drand48()-0.5);
-	    y=(drand48()-0.5);
-	    z=(drand48()-0.5);
-	    r=sqrtf(x*x+y*y+z*z);
-	  }while(r<0.25);
+	  do {
+	    x = (drand48()-0.5);
+	    y = (drand48()-0.5);
+	    z = (drand48()-0.5);
+	    r = sqrtf(x*x+y*y+z*z);
+	  } while (r<0.25);
 	  trg_coord1[i*3+0]=x*scal;
 	  trg_coord1[i*3+1]=y*scal;
 	  trg_coord1[i*3+2]=z*scal;
 	}
 	for(size_t i=N/2;i<N;i++){
 	  real_t x,y,z,r;
-	  do{
-	    x=(drand48()-0.5);
-	    y=(drand48()-0.5);
-	    z=(drand48()-0.5);
-	    r=sqrtf(x*x+y*y+z*z);
-	  }while(r<0.25);
+	  do {
+	    x = (drand48()-0.5);
+	    y = (drand48()-0.5);
+	    z = (drand48()-0.5);
+	    r = sqrtf(x*x+y*y+z*z);
+	  } while(r<0.25);
 	  trg_coord1[i*3+0]=x*1.0/scal;
 	  trg_coord1[i*3+1]=y*1.0/scal;
 	  trg_coord1[i*3+2]=z*1.0/scal;
@@ -174,6 +174,7 @@ struct Kernel{
         std::fill(trg_scal.begin(), trg_scal.end(), 0.);
       }
     }
+
     if(ker_dim[0]*ker_dim[1]>0){
       size_t N=1024;
       real_t eps_=N*eps;
@@ -582,13 +583,13 @@ Kernel BuildKernel(const char* name, std::pair<int,int> k_dim,
   return K;
 }
 
-//! Laplace potential P2P with matrix interface, potentials saved in trg_value matrix
+//! Laplace potential P2P 1/(4*pi*|r|) with matrix interface, potentials saved in trg_value matrix
 void potentialP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
 #define SRC_BLK 1000
   size_t VecLen=sizeof(vec_t)/sizeof(real_t);
   real_t nwtn_scal=1;
   for(int i=0;i<2;i++){
-    nwtn_scal=2*nwtn_scal*nwtn_scal*nwtn_scal;
+    nwtn_scal = 2*nwtn_scal*nwtn_scal*nwtn_scal;
   }
   const real_t zero = 0;
   const real_t OOFP = 1.0/(4*nwtn_scal*M_PI);
@@ -624,7 +625,8 @@ void potentialP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<r
 #undef SRC_BLK
 }
 
-//! Laplace gradient P2P with matrix interface, gradients saved in trg_value matrix
+//! Laplace gradient P2P -r/(4*pi*|r|^3) with matrix interface, gradients saved in trg_value matrix
+// source & target matrix size: 3 by N
 void gradientP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
 #define SRC_BLK 500
   size_t VecLen=sizeof(vec_t)/sizeof(real_t);
@@ -678,6 +680,7 @@ void gradientP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<re
 
 //! Wrap around the above P2P functions with matrix interface to provide array interface
 //! Evaluate potential / gradient based on the argument grad
+// source & target coordinate array: [x1, y1, z1, x2, y2, z2, ...]
 void laplaceP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt, real_t* v_trg, bool grad=false){
 int SRC_DIM = 1;
 int TRG_DIM = (grad) ? 3 : 1;
