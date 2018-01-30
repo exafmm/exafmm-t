@@ -1432,6 +1432,7 @@ public:
     for(size_t i=0;i<node_lst.size();i++){
       FMM_Node* node=node_lst[i];
       Vector<real_t>& data_vec=node->FMMData()->upward_equiv;
+//std::cout << "CollectNodeData upward: " << data_vec.Dim() << std::endl;
       data_vec.Resize(vec_sz);
       vec_lst.push_back(&data_vec);
     }
@@ -1475,6 +1476,7 @@ public:
     for(size_t i=0;i<node_lst.size();i++){
       FMM_Node* node=node_lst[i];
       Vector<real_t>& data_vec=node->FMMData()->dnward_equiv;
+//std::cout << "CollectNodeData downward: " << data_vec.Dim() << std::endl;
       data_vec.Resize(vec_sz);
       vec_lst1.push_back(&data_vec);
     }
@@ -2069,6 +2071,8 @@ public:
       for(size_t i=0;i<nodes.size();i++){
         Vector<real_t>& coord_vec=upwd_check_surf[nodes[i]->depth];
         Vector<real_t>& value_vec=(nodes[i]->FMMData())->upward_equiv;
+
+//std::cout << value_vec.Dim() << std::endl;
         if(coord_vec.Dim()){
           coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
           assert(coord.dsp[i]<coord.len);
@@ -2211,19 +2215,6 @@ public:
   void Up2Up(SetupData& setup_data){
     if(!multipole_order) return;
     EvalList(setup_data);
-  }
-
-  void PeriodicBC(FMM_Node* node){
-    if(!multipole_order) return;
-    Matrix<real_t>& M = Precomp(0, BC_Type, 0);
-    assert(node->FMMData()->upward_equiv.Dim()>0);
-    Vector<real_t>& upward_equiv=node->FMMData()->upward_equiv;
-    Vector<real_t>& dnward_equiv=node->FMMData()->dnward_equiv;
-    assert(upward_equiv.Dim()==M.Dim(0));
-    assert(dnward_equiv.Dim()==M.Dim(1));
-    Matrix<real_t> d_equiv(1,M.Dim(1),&dnward_equiv[0],false);
-    Matrix<real_t> u_equiv(1,M.Dim(0),&upward_equiv[0],false);
-    Matrix<real_t>::GEMM(d_equiv,u_equiv,M);
   }
 
   void UpwardPass() {
