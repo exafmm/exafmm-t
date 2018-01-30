@@ -57,464 +57,138 @@ struct Kernel{
     real_t eps = 1.0;
     while(eps+(real_t)1.0>1.0) eps *= 0.5;
     real_t scal = 1.0;
-    if(ker_dim[0]*ker_dim[1]>0){
-      Matrix<real_t> M_scal(ker_dim[0],ker_dim[1]);
-      size_t N = 1024;
-      real_t eps_ = N * eps;
-      real_t src_coord[3]={0,0,0};
-      std::vector<real_t> trg_coord1(N*3);
-      Matrix<real_t> M1(N,ker_dim[0]*ker_dim[1]);
-      while(true){
-	real_t abs_sum=0;
-	for(size_t i=0;i<N/2;i++){
-	  real_t x,y,z,r;
-	  do {
-	    x = (drand48()-0.5);
-	    y = (drand48()-0.5);
-	    z = (drand48()-0.5);
-	    r = sqrtf(x*x+y*y+z*z);
-	  } while (r<0.25);
-	  trg_coord1[i*3+0]=x*scal;
-	  trg_coord1[i*3+1]=y*scal;
-	  trg_coord1[i*3+2]=z*scal;
-	}
-	for(size_t i=N/2;i<N;i++){
-	  real_t x,y,z,r;
-	  do {
-	    x = (drand48()-0.5);
-	    y = (drand48()-0.5);
-	    z = (drand48()-0.5);
-	    r = sqrtf(x*x+y*y+z*z);
-	  } while(r<0.25);
-	  trg_coord1[i*3+0]=x*1.0/scal;
-	  trg_coord1[i*3+1]=y*1.0/scal;
-	  trg_coord1[i*3+2]=z*1.0/scal;
-	}
-	for(size_t i=0;i<N;i++){
-	  BuildMatrix(&src_coord [          0], 1,
-		      &trg_coord1[i*3], 1, &(M1[i][0]));
-	  for(size_t j=0;j<ker_dim[0]*ker_dim[1];j++){
-	    abs_sum+=fabs(M1[i][j]);
-	  }
-	}
-	if(abs_sum>sqrtf(eps) || scal<eps) break;
-	scal=scal*0.5;
-      }
 
-      std::vector<real_t> trg_coord2(N*3);
-      Matrix<real_t> M2(N,ker_dim[0]*ker_dim[1]);
-      for(size_t i=0;i<N*3;i++){
-	trg_coord2[i]=trg_coord1[i]*0.5;
-      }
-      for(size_t i=0;i<N;i++){
-	BuildMatrix(&src_coord [          0], 1,
-		    &trg_coord2[i*3], 1, &(M2[i][0]));
-      }
-
-      for(size_t i=0;i<ker_dim[0]*ker_dim[1];i++){
-	real_t dot11=0, dot12=0, dot22=0;
-	for(size_t j=0;j<N;j++){
-	  dot11+=M1[j][i]*M1[j][i];
-	  dot12+=M1[j][i]*M2[j][i];
-	  dot22+=M2[j][i]*M2[j][i];
-	}
-	real_t max_val=std::max<real_t>(dot11,dot22);
-	if(dot11>max_val*eps &&
-	   dot22>max_val*eps ){
-	  real_t s=dot12/dot11;
-	  M_scal[0][i]=log(s)/log(2.0);
-	  real_t err=sqrtf(0.5*(dot22/dot11)/(s*s)-0.5);
-	  if(err>eps_){
-	    scale_invar=false;
-	    M_scal[0][i]=0.0;
-	  }
-	}else if(dot11>max_val*eps ||
-		 dot22>max_val*eps ){
-	  scale_invar=false;
-	  M_scal[0][i]=0.0;
-	}else{
-	  M_scal[0][i]=-1;
-	}
-      }
-      src_scal.resize(ker_dim[0]); 
-      std::fill(src_scal.begin(), src_scal.end(), 0.);
-      trg_scal.resize(ker_dim[1]); 
-      std::fill(trg_scal.begin(), trg_scal.end(), 0.);
-      if(scale_invar){
-	Matrix<real_t> b(ker_dim[0]*ker_dim[1]+1,1); b.SetZero();
-	memcpy(&b[0][0],&M_scal[0][0],ker_dim[0]*ker_dim[1]*sizeof(real_t));
-	Matrix<real_t> M(ker_dim[0]*ker_dim[1]+1,ker_dim[0]+ker_dim[1]); M.SetZero();
-	M[ker_dim[0]*ker_dim[1]][0]=1;
-	for(size_t i0=0;i0<ker_dim[0];i0++)
-	  for(size_t i1=0;i1<ker_dim[1];i1++){
-	    size_t j=i0*ker_dim[1]+i1;
-	    if(fabs(b[j][0])>=0){
-	      M[j][ 0+        i0]=1;
-	      M[j][i1+ker_dim[0]]=1;
-	    }
-	  }
-	Matrix<real_t> x=M.pinv()*b;
-	for(size_t i=0;i<ker_dim[0];i++){
-	  src_scal[i]=x[i][0];
-	}
-	for(size_t i=0;i<ker_dim[1];i++){
-	  trg_scal[i]=x[ker_dim[0]+i][0];
-	}
-	for(size_t i0=0;i0<ker_dim[0];i0++)
-	  for(size_t i1=0;i1<ker_dim[1];i1++){
-	    if(M_scal[i0][i1]>=0){
-	      if(fabs(src_scal[i0]+trg_scal[i1]-M_scal[i0][i1])>eps_){
-		scale_invar=false;
-	      }
-	    }
-	  }
-      }
-      if(!scale_invar){
-        std::fill(src_scal.begin(), src_scal.end(), 0.);
-        std::fill(trg_scal.begin(), trg_scal.end(), 0.);
-      }
-    }
-
-    if(ker_dim[0]*ker_dim[1]>0){
-      size_t N=1024;
-      real_t eps_=N*eps;
-      real_t src_coord[3]={0,0,0};
-      std::vector<real_t> trg_coord1(N*3);
-      std::vector<real_t> trg_coord2(N*3);
+    Matrix<real_t> M_scal(ker_dim[0],ker_dim[1]);
+    size_t N = 1024;
+    real_t eps_ = N * eps;
+    real_t src_coord[3]={0,0,0};
+    std::vector<real_t> trg_coord1(N*3);
+    Matrix<real_t> M1(N,ker_dim[0]*ker_dim[1]);
+    // generate trg_coord1 randomly r>0.25, a unit charge source at origin
+    // save potential/field in M1, for potential kernel: M1[i][0] = 1/(4*pi*|r|)
+    //                             for gradient          M1[i] = -r/(4*pi*|r|^3)
+    while(true){
+      real_t abs_sum=0;
       for(size_t i=0;i<N/2;i++){
-	real_t x,y,z,r;
-	do{
-	  x=(drand48()-0.5);
-	  y=(drand48()-0.5);
-	  z=(drand48()-0.5);
-	  r=sqrtf(x*x+y*y+z*z);
-	}while(r<0.25);
-	trg_coord1[i*3+0]=x*scal;
-	trg_coord1[i*3+1]=y*scal;
-	trg_coord1[i*3+2]=z*scal;
+        real_t x,y,z,r;
+        do {
+          x = (drand48()-0.5);
+          y = (drand48()-0.5);
+          z = (drand48()-0.5);
+          r = sqrtf(x*x+y*y+z*z);
+        } while (r<0.25);
+        trg_coord1[i*3+0]=x*scal;
+        trg_coord1[i*3+1]=y*scal;
+        trg_coord1[i*3+2]=z*scal;
       }
       for(size_t i=N/2;i<N;i++){
-	real_t x,y,z,r;
-	do{
-	  x=(drand48()-0.5);
-	  y=(drand48()-0.5);
-	  z=(drand48()-0.5);
-	  r=sqrtf(x*x+y*y+z*z);
-	}while(r<0.25);
-	trg_coord1[i*3+0]=x*1.0/scal;
-	trg_coord1[i*3+1]=y*1.0/scal;
-	trg_coord1[i*3+2]=z*1.0/scal;
+        real_t x,y,z,r;
+        do {
+          x = (drand48()-0.5);
+          y = (drand48()-0.5);
+          z = (drand48()-0.5);
+          r = sqrtf(x*x+y*y+z*z);
+        } while(r<0.25);
+        trg_coord1[i*3+0]=x*1.0/scal;
+        trg_coord1[i*3+1]=y*1.0/scal;
+        trg_coord1[i*3+2]=z*1.0/scal;
       }
-      for(size_t p_type=0;p_type<C_Perm;p_type++){
-	switch(p_type){
-        case ReflecX:
-          for(size_t i=0;i<N;i++){
-            trg_coord2[i*3+0]=-trg_coord1[i*3+0];
-            trg_coord2[i*3+1]= trg_coord1[i*3+1];
-            trg_coord2[i*3+2]= trg_coord1[i*3+2];
-          }
-          break;
-        case ReflecY:
-          for(size_t i=0;i<N;i++){
-            trg_coord2[i*3+0]= trg_coord1[i*3+0];
-            trg_coord2[i*3+1]=-trg_coord1[i*3+1];
-            trg_coord2[i*3+2]= trg_coord1[i*3+2];
-          }
-          break;
-        case ReflecZ:
-          for(size_t i=0;i<N;i++){
-            trg_coord2[i*3+0]= trg_coord1[i*3+0];
-            trg_coord2[i*3+1]= trg_coord1[i*3+1];
-            trg_coord2[i*3+2]=-trg_coord1[i*3+2];
-          }
-          break;
-        case SwapXY:
-          for(size_t i=0;i<N;i++){
-            trg_coord2[i*3+0]= trg_coord1[i*3+1];
-            trg_coord2[i*3+1]= trg_coord1[i*3+0];
-            trg_coord2[i*3+2]= trg_coord1[i*3+2];
-          }
-          break;
-        case SwapXZ:
-          for(size_t i=0;i<N;i++){
-            trg_coord2[i*3+0]= trg_coord1[i*3+2];
-            trg_coord2[i*3+1]= trg_coord1[i*3+1];
-            trg_coord2[i*3+2]= trg_coord1[i*3+0];
-          }
-          break;
-        default:
-          for(size_t i=0;i<N;i++){
-            trg_coord2[i*3+0]= trg_coord1[i*3+0];
-            trg_coord2[i*3+1]= trg_coord1[i*3+1];
-            trg_coord2[i*3+2]= trg_coord1[i*3+2];
-          }
-	}
-	Matrix<long long> M11, M22;
-	{
-	  Matrix<real_t> M1(N,ker_dim[0]*ker_dim[1]); M1.SetZero();
-	  Matrix<real_t> M2(N,ker_dim[0]*ker_dim[1]); M2.SetZero();
-	  for(size_t i=0;i<N;i++){
-	    BuildMatrix(&src_coord [          0], 1,
-			&trg_coord1[i*3], 1, &(M1[i][0]));
-	    BuildMatrix(&src_coord [          0], 1,
-			&trg_coord2[i*3], 1, &(M2[i][0]));
-	  }
-	  Matrix<real_t> dot11(ker_dim[0]*ker_dim[1],ker_dim[0]*ker_dim[1]);dot11.SetZero();
-	  Matrix<real_t> dot12(ker_dim[0]*ker_dim[1],ker_dim[0]*ker_dim[1]);dot12.SetZero();
-	  Matrix<real_t> dot22(ker_dim[0]*ker_dim[1],ker_dim[0]*ker_dim[1]);dot22.SetZero();
-	  std::vector<real_t> norm1(ker_dim[0]*ker_dim[1]);
-	  std::vector<real_t> norm2(ker_dim[0]*ker_dim[1]);
-	  {
-	    for(size_t k=0;k<N;k++)
-	      for(size_t i=0;i<ker_dim[0]*ker_dim[1];i++)
-		for(size_t j=0;j<ker_dim[0]*ker_dim[1];j++){
-		  dot11[i][j]+=M1[k][i]*M1[k][j];
-		  dot12[i][j]+=M1[k][i]*M2[k][j];
-		  dot22[i][j]+=M2[k][i]*M2[k][j];
-		}
-	    for(size_t i=0;i<ker_dim[0]*ker_dim[1];i++){
-	      norm1[i]=sqrtf(dot11[i][i]);
-	      norm2[i]=sqrtf(dot22[i][i]);
-	    }
-	    for(size_t i=0;i<ker_dim[0]*ker_dim[1];i++)
-	      for(size_t j=0;j<ker_dim[0]*ker_dim[1];j++){
-		dot11[i][j]/=(norm1[i]*norm1[j]);
-		dot12[i][j]/=(norm1[i]*norm2[j]);
-		dot22[i][j]/=(norm2[i]*norm2[j]);
-	      }
-	  }
-	  long long flag=1;
-	  M11.Resize(ker_dim[0],ker_dim[1]); M11.SetZero();
-	  M22.Resize(ker_dim[0],ker_dim[1]); M22.SetZero();
-	  for(size_t i=0;i<ker_dim[0]*ker_dim[1];i++){
-	    if(norm1[i]>eps_ && M11[0][i]==0){
-	      for(size_t j=0;j<ker_dim[0]*ker_dim[1];j++){
-		if(fabs(norm1[i]-norm1[j])<eps_ && fabs(fabs(dot11[i][j])-1.0)<eps_){
-		  M11[0][j]=(dot11[i][j]>0?flag:-flag);
-		}
-		if(fabs(norm1[i]-norm2[j])<eps_ && fabs(fabs(dot12[i][j])-1.0)<eps_){
-		  M22[0][j]=(dot12[i][j]>0?flag:-flag);
-		}
-	      }
-	      flag++;
-	    }
-	  }
-	}
-	Matrix<long long> P1, P2;
-	{
-	  Matrix<long long>& P=P1;
-	  Matrix<long long>  M1=M11;
-	  Matrix<long long>  M2=M22;
-	  for(size_t i=0;i<M1.Dim(0);i++){
-	    for(size_t j=0;j<M1.Dim(1);j++){
-	      if(M1[i][j]<0) M1[i][j]=-M1[i][j];
-	      if(M2[i][j]<0) M2[i][j]=-M2[i][j];
-	    }
-	    std::sort(&M1[i][0],&M1[i][M1.Dim(1)]);
-	    std::sort(&M2[i][0],&M2[i][M2.Dim(1)]);
-	  }
-	  P.Resize(M1.Dim(0),M1.Dim(0));
-	  for(size_t i=0;i<M1.Dim(0);i++)
-	    for(size_t j=0;j<M1.Dim(0);j++){
-	      P[i][j]=1;
-	      for(size_t k=0;k<M1.Dim(1);k++)
-		if(M1[i][k]!=M2[j][k]){
-		  P[i][j]=0;
-		  break;
-		}
-	    }
-	}
-	{
-	  Matrix<long long>& P=P2;
-	  Matrix<long long>  M1=M11.Transpose();
-	  Matrix<long long>  M2=M22.Transpose();
-	  for(size_t i=0;i<M1.Dim(0);i++){
-	    for(size_t j=0;j<M1.Dim(1);j++){
-	      if(M1[i][j]<0) M1[i][j]=-M1[i][j];
-	      if(M2[i][j]<0) M2[i][j]=-M2[i][j];
-	    }
-	    std::sort(&M1[i][0],&M1[i][M1.Dim(1)]);
-	    std::sort(&M2[i][0],&M2[i][M2.Dim(1)]);
-	  }
-	  P.Resize(M1.Dim(0),M1.Dim(0));
-	  for(size_t i=0;i<M1.Dim(0);i++)
-	    for(size_t j=0;j<M1.Dim(0);j++){
-	      P[i][j]=1;
-	      for(size_t k=0;k<M1.Dim(1);k++)
-		if(M1[i][k]!=M2[j][k]){
-		  P[i][j]=0;
-		  break;
-		}
-	    }
-	}
-	std::vector<Permutation<long long> > P1vec, P2vec;
-	{
-	  Matrix<long long>& Pmat=P1;
-	  std::vector<Permutation<long long> >& Pvec=P1vec;
-	  Permutation<long long> P(Pmat.Dim(0));
-	  std::vector<size_t>& perm=P.perm;
-          std::fill(perm.begin(), perm.end(), 0);
-	  for(size_t i=0;i<P.Dim();i++)
-	    for(size_t j=0;j<P.Dim();j++){
-	      if(Pmat[i][j]){
-		perm[i]=j;
-		break;
-	      }
-	    }
-	  std::vector<size_t> perm_tmp;
-	  while(true){
-	    perm_tmp=perm;
-	    std::sort(&perm_tmp[0],&perm_tmp[0]+perm_tmp.size());
-	    for(size_t i=0;i<perm_tmp.size();i++){
-	      if(perm_tmp[i]!=i) break;
-	      if(i==perm_tmp.size()-1){
-		Pvec.push_back(P);
-	      }
-	    }
-	    bool last=false;
-	    for(size_t i=0;i<P.Dim();i++){
-	      size_t tmp=perm[i];
-	      for(size_t j=perm[i]+1;j<P.Dim();j++){
-		if(Pmat[i][j]){
-		  perm[i]=j;
-		  break;
-		}
-	      }
-	      if(perm[i]>tmp) break;
-	      for(size_t j=0;j<P.Dim();j++){
-		if(Pmat[i][j]){
-		  perm[i]=j;
-		  break;
-		}
-	      }
-	      if(i==P.Dim()-1) last=true;
-	    }
-	    if(last) break;
-	  }
-	}
-	{
-	  Matrix<long long>& Pmat=P2;
-	  std::vector<Permutation<long long> >& Pvec=P2vec;
-	  Permutation<long long> P(Pmat.Dim(0));
-	  std::vector<size_t>& perm=P.perm;
-          std::fill(perm.begin(), perm.end(), 0);
-	  for(size_t i=0;i<P.Dim();i++)
-	    for(size_t j=0;j<P.Dim();j++){
-	      if(Pmat[i][j]){
-		perm[i]=j;
-		break;
-	      }
-	    }
-	  std::vector<size_t> perm_tmp;
-	  while(true){
-	    perm_tmp=perm;
-	    std::sort(&perm_tmp[0],&perm_tmp[0]+perm_tmp.size());
-	    for(size_t i=0;i<perm_tmp.size();i++){
-	      if(perm_tmp[i]!=i) break;
-	      if(i==perm_tmp.size()-1){
-		Pvec.push_back(P);
-	      }
-	    }
-	    bool last=false;
-	    for(size_t i=0;i<P.Dim();i++){
-	      size_t tmp=perm[i];
-	      for(size_t j=perm[i]+1;j<P.Dim();j++){
-		if(Pmat[i][j]){
-		  perm[i]=j;
-		  break;
-		}
-	      }
-	      if(perm[i]>tmp) break;
-	      for(size_t j=0;j<P.Dim();j++){
-		if(Pmat[i][j]){
-		  perm[i]=j;
-		  break;
-		}
-	      }
-	      if(i==P.Dim()-1) last=true;
-	    }
-	    if(last) break;
-	  }
-	}
-	{
-	  std::vector<Permutation<long long> > P1vec_, P2vec_;
-	  Matrix<long long>  M1=M11;
-	  Matrix<long long>  M2=M22;
-	  for(size_t i=0;i<M1.Dim(0);i++){
-	    for(size_t j=0;j<M1.Dim(1);j++){
-	      if(M1[i][j]<0) M1[i][j]=-M1[i][j];
-	      if(M2[i][j]<0) M2[i][j]=-M2[i][j];
-	    }
-	  }
-	  Matrix<long long> M;
-	  for(size_t i=0;i<P1vec.size();i++)
-	    for(size_t j=0;j<P2vec.size();j++){
-	      M=P1vec[i]*M2*P2vec[j];
-	      for(size_t k=0;k<M.Dim(0)*M.Dim(1);k++){
-		if(M[0][k]!=M1[0][k]) break;
-		if(k==M.Dim(0)*M.Dim(1)-1){
-		  P1vec_.push_back(P1vec[i]);
-		  P2vec_.push_back(P2vec[j]);
-		}
-	      }
-	    }
-	  P1vec=P1vec_;
-	  P2vec=P2vec_;
-	}
-	Permutation<real_t> P1_, P2_;
-	{
-	  for(size_t k=0;k<P1vec.size();k++){
-	    Permutation<long long> P1=P1vec[k];
-	    Permutation<long long> P2=P2vec[k];
-	    Matrix<long long>  M1=   M11   ;
-	    Matrix<long long>  M2=P1*M22*P2;
-	    Matrix<real_t> M(M1.Dim(0)*M1.Dim(1)+1,M1.Dim(0)+M1.Dim(1));
-	    M.SetZero(); M[M1.Dim(0)*M1.Dim(1)][0]=1.0;
-	    for(size_t i=0;i<M1.Dim(0);i++)
-	      for(size_t j=0;j<M1.Dim(1);j++){
-		size_t k=i*M1.Dim(1)+j;
-		M[k][          i]= M1[i][j];
-		M[k][M1.Dim(0)+j]=-M2[i][j];
-	      }
-	    M=M.pinv();
-	    {
-	      Permutation<long long> P1_(M1.Dim(0));
-	      Permutation<long long> P2_(M1.Dim(1));
-	      for(size_t i=0;i<M1.Dim(0);i++){
-		P1_.scal[i]=(M[i][M1.Dim(0)*M1.Dim(1)]>0?1:-1);
-	      }
-	      for(size_t i=0;i<M1.Dim(1);i++){
-		P2_.scal[i]=(M[M1.Dim(0)+i][M1.Dim(0)*M1.Dim(1)]>0?1:-1);
-	      }
-	      P1=P1_*P1 ;
-	      P2=P2 *P2_;
-	    }
-	    bool done=true;
-	    Matrix<long long> Merr=P1*M22*P2-M11;
-	    for(size_t i=0;i<Merr.Dim(0)*Merr.Dim(1);i++){
-	      if(Merr[0][i]){
-		done=false;
-		break;
-	      }
-	    }
-	    if(done){
-	      P1_=Permutation<real_t>(P1.Dim());
-	      P2_=Permutation<real_t>(P2.Dim());
-	      for(size_t i=0;i<P1.Dim();i++){
-		P1_.perm[i]=P1.perm[i];
-		P1_.scal[i]=P1.scal[i];
-	      }
-	      for(size_t i=0;i<P2.Dim();i++){
-		P2_.perm[i]=P2.perm[i];
-		P2_.scal[i]=P2.scal[i];
-	      }
-	      break;
-	    }
-	  }
-	}
-	perm_vec[p_type       ]=P1_.Transpose();
-	perm_vec[p_type+C_Perm]=P2_;
+      for(size_t i=0;i<N;i++){
+        BuildMatrix(&src_coord [          0], 1,
+                    &trg_coord1[i*3], 1, &(M1[i][0]));
+        for(size_t j=0;j<ker_dim[0]*ker_dim[1];j++){
+          abs_sum+=fabs(M1[i][j]);
+        }
       }
+      // always break at the first iteration, scal = 1
+      if(abs_sum>sqrtf(eps) || scal<eps) { 
+#if DEBUG
+        std::cout << ker_name << " scal loop break at scal = " << scal << std::endl; 
+#endif
+        break;
+      }
+      scal=scal*0.5;
+    }
+
+    // half the trg_coord1 to get trg_coord2
+    // interact with unit charge source at origin to generate M2
+    std::vector<real_t> trg_coord2(N*3);
+    Matrix<real_t> M2(N,ker_dim[0]*ker_dim[1]);
+    for(size_t i=0;i<N*3;i++){
+      trg_coord2[i]=trg_coord1[i]*0.5;
+    }
+    for(size_t i=0;i<N;i++){
+      BuildMatrix(&src_coord [          0], 1,
+                  &trg_coord2[i*3], 1, &(M2[i][0]));
+    }
+
+    // Calculate M_scal (scal of current kernel) 
+    for(size_t i=0;i<ker_dim[0]*ker_dim[1];i++){
+      real_t dot11=0, dot12=0, dot22=0;
+      for(size_t j=0;j<N;j++){
+        dot11+=M1[j][i]*M1[j][i];  // sum of squared potential/force
+        dot12+=M1[j][i]*M2[j][i];
+        dot22+=M2[j][i]*M2[j][i];
+      }
+      real_t max_val=std::max<real_t>(dot11,dot22);
+      if(dot11>max_val*eps &&      // always goes to this branch since eps is tiny
+         dot22>max_val*eps ){
+        real_t s=dot12/dot11;      // due to the form of Laplace kernel: s=2 for potential s=4 for force
+        M_scal[0][i]=log(s)/log(2.0);     // scal=1 for potential and 2 for force
+        real_t err=sqrtf(0.5*(dot22/dot11)/(s*s)-0.5); // always 0 for Laplace
+        if(err>eps_){
+          scale_invar=false;
+          M_scal[0][i]=0.0;
+        }
+      }else if(dot11>max_val*eps ||
+               dot22>max_val*eps ){
+        scale_invar=false;
+        M_scal[0][i]=0.0;
+      }else{
+        M_scal[0][i]=-1;
+      }
+    }
+#if DEBUG
+    for(int a=0; a<ker_dim[1]; a++) {std::cout << ker_name << " " << a << " M_scal: " << M_scal[0][a] << std::endl;}
+    std::cout << ker_name << " "  << " scale_invar: " << scale_invar << std::endl;
+#endif
+    // Calculate src_scal & trg_scal: Mx=b solve for x
+    if(scale_invar){    // always true for Laplace
+      Matrix<real_t> b(ker_dim[0]*ker_dim[1]+1,1); b.SetZero();
+      memcpy(&b[0][0],&M_scal[0][0],ker_dim[0]*ker_dim[1]*sizeof(real_t)); // the last elem in b is still zero
+      Matrix<real_t> M(ker_dim[0]*ker_dim[1]+1,ker_dim[0]+ker_dim[1]); M.SetZero();
+      M[ker_dim[0]*ker_dim[1]][0]=1;
+      for(size_t i0=0;i0<ker_dim[0];i0++)
+        for(size_t i1=0;i1<ker_dim[1];i1++){
+          size_t j=i0*ker_dim[1]+i1;
+          if(fabs(b[j][0])>=0){
+            M[j][ 0+        i0]=1;
+            M[j][i1+ker_dim[0]]=1;
+          }
+        }
+
+      Matrix<real_t> x=M.pinv()*b;   // x = [0,1] for potential and [0,2,2,2] for gradient
+      for(size_t i=0;i<ker_dim[0];i++){
+        src_scal[i]=x[i][0];
+      }
+      for(size_t i=0;i<ker_dim[1];i++){
+        trg_scal[i]=x[ker_dim[0]+i][0];
+      }
+      for(size_t i0=0;i0<ker_dim[0];i0++)
+        for(size_t i1=0;i1<ker_dim[1];i1++){
+          if(M_scal[i0][i1]>=0){
+            if(fabs(src_scal[i0]+trg_scal[i1]-M_scal[i0][i1])>eps_){
+              scale_invar=false;
+            }
+          }
+        }
+    }
+    if(!scale_invar){
+      std::fill(src_scal.begin(), src_scal.end(), 0.);
+      std::fill(trg_scal.begin(), trg_scal.end(), 0.);
+    }
+
+
       for(size_t i=0;i<2*C_Perm;i++){
 	if(perm_vec[i].Dim()==0){
 	  perm_vec.resize(0);
@@ -522,45 +196,51 @@ struct Kernel{
 	  break;
 	}
       }
-    }
-    {
-      if(!k_s2m) k_s2m=this;
-      if(!k_s2l) k_s2l=this;
-      if(!k_s2t) k_s2t=this;
-      if(!k_m2m) k_m2m=this;
-      if(!k_m2l) k_m2l=this;
-      if(!k_m2t) k_m2t=this;
-      if(!k_l2l) k_l2l=this;
-      if(!k_l2t) k_l2t=this;
-      assert(k_s2t->ker_dim[0]==ker_dim[0]);
-      assert(k_s2m->ker_dim[0]==k_s2l->ker_dim[0]);
-      assert(k_s2m->ker_dim[0]==k_s2t->ker_dim[0]);
-      assert(k_m2m->ker_dim[0]==k_m2l->ker_dim[0]);
-      assert(k_m2m->ker_dim[0]==k_m2t->ker_dim[0]);
-      assert(k_l2l->ker_dim[0]==k_l2t->ker_dim[0]);
-      assert(k_s2t->ker_dim[1]==ker_dim[1]);
-      assert(k_s2m->ker_dim[1]==k_m2m->ker_dim[1]);
-      assert(k_s2l->ker_dim[1]==k_l2l->ker_dim[1]);
-      assert(k_m2l->ker_dim[1]==k_l2l->ker_dim[1]);
-      assert(k_s2t->ker_dim[1]==k_m2t->ker_dim[1]);
-      assert(k_s2t->ker_dim[1]==k_l2t->ker_dim[1]);
-      k_s2m->Initialize(verbose);
-      k_s2l->Initialize(verbose);
-      k_s2t->Initialize(verbose);
-      k_m2m->Initialize(verbose);
-      k_m2l->Initialize(verbose);
-      k_m2t->Initialize(verbose);
-      k_l2l->Initialize(verbose);
-      k_l2t->Initialize(verbose);
-    }
+
+    if(!k_s2m) k_s2m=this;
+    if(!k_s2l) k_s2l=this;
+    if(!k_s2t) k_s2t=this;
+    if(!k_m2m) k_m2m=this;
+    if(!k_m2l) k_m2l=this;
+    if(!k_m2t) k_m2t=this;
+    if(!k_l2l) k_l2l=this;
+    if(!k_l2t) k_l2t=this;
+    assert(k_s2t->ker_dim[0]==ker_dim[0]);
+    assert(k_s2m->ker_dim[0]==k_s2l->ker_dim[0]);
+    assert(k_s2m->ker_dim[0]==k_s2t->ker_dim[0]);
+    assert(k_m2m->ker_dim[0]==k_m2l->ker_dim[0]);
+    assert(k_m2m->ker_dim[0]==k_m2t->ker_dim[0]);
+    assert(k_l2l->ker_dim[0]==k_l2t->ker_dim[0]);
+    assert(k_s2t->ker_dim[1]==ker_dim[1]);
+    assert(k_s2m->ker_dim[1]==k_m2m->ker_dim[1]);
+    assert(k_s2l->ker_dim[1]==k_l2l->ker_dim[1]);
+    assert(k_m2l->ker_dim[1]==k_l2l->ker_dim[1]);
+    assert(k_s2t->ker_dim[1]==k_m2t->ker_dim[1]);
+    assert(k_s2t->ker_dim[1]==k_l2t->ker_dim[1]);
+    k_s2m->Initialize(verbose);
+    k_s2l->Initialize(verbose);
+    k_s2t->Initialize(verbose);
+    k_m2m->Initialize(verbose);
+    k_m2l->Initialize(verbose);
+    k_m2t->Initialize(verbose);
+    k_l2l->Initialize(verbose);
+    k_l2t->Initialize(verbose);
   }
 
+  //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)
+  // For Laplace: ker_dim[0] = 1, j = 0; Force a unit charge (q=1)
+  // r_src layout: [x1, y1, z1, x2, y2, z2, ...] 
+  // k_out layout (potential): [p11, p12, p13, ..., p21, p22, ...]  (1st digit: src_idx; 2nd: trg_idx)
+  // k_out layout (gradient) : [Fx11, Fy11, Fz11, Fx12, Fy12, Fz13, ... Fx1n, Fy1n, Fz1n, ...
+  //                            Fx21, Fy21, Fz21, Fx22, Fy22, Fz22, ... Fx2n, Fy2n, Fz2n, ...
+  //                            ...]
   void BuildMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) const{
     memset(k_out, 0, src_cnt*ker_dim[0]*trg_cnt*ker_dim[1]*sizeof(real_t));
     for(int i=0;i<src_cnt;i++)
       for(int j=0;j<ker_dim[0];j++){
 	std::vector<real_t> v_src(ker_dim[0],0);
 	v_src[j]=1.0;
+        // do P2P: i-th source
 	ker_poten(&r_src[i*3], 1, &v_src[0], r_trg, trg_cnt,
 		  &k_out[(i*ker_dim[0]+j)*trg_cnt*ker_dim[1]]);
       }
@@ -584,6 +264,7 @@ Kernel BuildKernel(const char* name, std::pair<int,int> k_dim,
 }
 
 //! Laplace potential P2P 1/(4*pi*|r|) with matrix interface, potentials saved in trg_value matrix
+// source & target coord matrix size: 3 by N
 void potentialP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
 #define SRC_BLK 1000
   size_t VecLen=sizeof(vec_t)/sizeof(real_t);
@@ -626,7 +307,7 @@ void potentialP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<r
 }
 
 //! Laplace gradient P2P -r/(4*pi*|r|^3) with matrix interface, gradients saved in trg_value matrix
-// source & target matrix size: 3 by N
+// source & target coord matrix size: 3 by N
 void gradientP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
 #define SRC_BLK 500
   size_t VecLen=sizeof(vec_t)/sizeof(real_t);
@@ -680,7 +361,7 @@ void gradientP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<re
 
 //! Wrap around the above P2P functions with matrix interface to provide array interface
 //! Evaluate potential / gradient based on the argument grad
-// source & target coordinate array: [x1, y1, z1, x2, y2, z2, ...]
+// r_src & r_trg coordinate array: [x1, y1, z1, x2, y2, z2, ...]
 void laplaceP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt, real_t* v_trg, bool grad=false){
 int SRC_DIM = 1;
 int TRG_DIM = (grad) ? 3 : 1;
