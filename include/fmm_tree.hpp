@@ -1,6 +1,7 @@
 #ifndef _PVFMM_FMM_TREE_HPP_
 #define _PVFMM_FMM_TREE_HPP_
 #include "intrinsics.h"
+#include "pvfmm.h"
 #if FLOAT
 typedef fftwf_complex fft_complex;
 typedef fftwf_plan fft_plan;
@@ -946,7 +947,7 @@ public:
 
   }
 
-  void Initialize(typename FMM_Node::NodeData* init_data) {
+  void Initialize(InitData* init_data) {
     Profile::Tic("InitTree",true);{
       Profile::Tic("InitRoot",false,5);
       int max_depth=init_data->max_depth;

@@ -1,6 +1,8 @@
-#ifndef _PVFMM_COMMON_HPP_
-#define _PVFMM_COMMON_HPP_
+#ifndef pvfmm_h
+#define pvfmm_h
+#include "vector.hpp"
 
+namespace pvfmm{
 #ifndef NULL
 #define NULL 0
 #endif
@@ -33,4 +35,16 @@ typedef real_t vec_t;
 #endif
 #endif
 
+struct FMM_Data{
+  Vector<real_t> upward_equiv;
+  Vector<real_t> dnward_equiv;
+};
+
+struct InitData {
+  int max_depth;
+  size_t max_pts;
+  Vector<real_t> coord;
+  Vector<real_t> value;
+};
+}
 #endif //_PVFMM_COMMON_HPP_

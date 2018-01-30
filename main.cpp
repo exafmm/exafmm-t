@@ -60,22 +60,19 @@ int main(int argc, char **argv){
   Kernel potn_ker=BuildKernel<potentialP2P>("laplace"    , std::pair<int,int>(1,1));
   Kernel grad_ker=BuildKernel<gradientP2P >("laplace_grad", std::pair<int,int>(1,3),
 					     &potn_ker, &potn_ker, NULL, &potn_ker, &potn_ker, NULL, &potn_ker, NULL);
-  typename FMM_Node::NodeData init_data;
+
+  InitData init_data;
   init_data.max_depth=depth;
   init_data.max_pts=M;
   std::vector<real_t> src_coord, src_value;
   srand48(0);
-  for(size_t i=0;i<N;i++){
-    src_coord.push_back(drand48());
-    src_coord.push_back(drand48());
-    src_coord.push_back(drand48());
-  }
-  for(size_t i=0;i<src_coord.size()/3;i++) src_value.push_back(drand48()-0.5);
+  for(size_t i=0; i<3*N; i++) src_coord.push_back(drand48());
+  for(size_t i=0; i<N; i++) src_value.push_back(drand48()-0.5);
   init_data.coord=src_coord;
   init_data.value=src_value;
+
   FMM_Tree tree;
   tree.Initialize(mult_order,&grad_ker);
-  Vector<real_t> trg_value;
   for(size_t it=0;it<2;it++){
     Profile::Tic("TotalTime",true);
     tree.Initialize(&init_data);

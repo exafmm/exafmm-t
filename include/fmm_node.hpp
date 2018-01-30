@@ -1,17 +1,9 @@
 #ifndef _PVFMM_FMM_NODE_HPP_
 #define _PVFMM_FMM_NODE_HPP_
-
+#include "pvfmm.h"
 namespace pvfmm{
 
-class FMM_Data{
- public:
-  ~FMM_Data(){}
-  Vector<real_t> upward_equiv;
-  Vector<real_t> dnward_equiv;
-};
-
 class FMM_Node {
-
  public:
   int depth;
   int max_depth;
@@ -39,24 +31,7 @@ class FMM_Node {
   Vector<size_t> trg_scatter;
   size_t pt_cnt[2];
   std::vector<FMM_Node*> interac_list[Type_Count];
-
   FMM_Data* fmm_data;
-
-  class NodeData {
-    public:
-     ~NodeData(){};
-     void Clear(){}
-     int max_depth;
-     size_t max_pts;
-     Vector<real_t> coord;
-     Vector<real_t> value;
-     Vector<real_t> src_coord;
-     Vector<real_t> src_value;
-     Vector<real_t> surf_coord;
-     Vector<real_t> surf_value;
-     Vector<real_t> trg_coord;
-     Vector<real_t> trg_value;
-  };
 
   FMM_Node() : depth(0), max_depth(MAX_DEPTH), parent(NULL), child(NULL), status(1),
 	       ghost(false), weight(1) {
@@ -76,7 +51,7 @@ class FMM_Node {
     child=NULL;
   }
 
-  void Initialize(FMM_Node* parent_, int path2node_, FMM_Node::NodeData* data_){
+  void Initialize(FMM_Node* parent_, int path2node_, InitData* data_){
     parent=parent_;
     depth=(parent==NULL?0:parent->depth+1);
     if(data_!=NULL){
@@ -100,17 +75,11 @@ class FMM_Node {
     }
     int n=27;
     for(int i=0;i<n;i++) colleague[i]=NULL;
-    NodeData* data=dynamic_cast<NodeData*>(data_);
+    InitData* data=dynamic_cast<InitData*>(data_);
     if(data_){
       max_pts=data->max_pts;
       pt_coord=data->coord;
       pt_value=data->value;
-      src_coord=data->src_coord;
-      src_value=data->src_value;
-      surf_coord=data->surf_coord;
-      surf_value=data->surf_value;
-      trg_coord=data->trg_coord;
-      trg_value=data->trg_value;
     }else if(parent){
       max_pts =parent->max_pts;
       SetGhost(parent->IsGhost());
@@ -162,14 +131,14 @@ class FMM_Node {
     if(!IsLeaf()) return;
     if(child) return;
     SetStatus(1);
-    int n=(1UL<<3);
+    int n = 8;
     child=new FMM_Node* [n];
     for(int i=0;i<n;i++){
       child[i]=NewNode();
       child[i]->parent=this;
       child[i]->Initialize(this,i,NULL);
     }
-    int nchld=(1UL<<3);
+    int nchld = 8;
     if(!IsGhost()){
       std::vector<Vector<real_t>*> pt_c;
       std::vector<Vector<real_t>*> pt_v;

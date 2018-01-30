@@ -3,6 +3,7 @@
 
 namespace pvfmm{
 
+#define MEM_ALIGN 64
 template <class T>
 class Vector{
 
