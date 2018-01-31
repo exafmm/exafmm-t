@@ -259,23 +259,23 @@ class PrecompMat{
     Profile::Tic("ReadFile",true,4);
     size_t f_size=0;
     char* f_data=NULL;
-    int np=1, myrank=0;
-    if(myrank==0){
-      FILE* f=fopen(fname,"rb");
-      if(f==NULL){
-	f_size=0;
-      }else{
-	struct stat fileStat;
-	if(stat(fname,&fileStat) < 0) f_size=0;
-	else f_size=fileStat.st_size;
-      }
-      if(f_size>0){
-	f_data= new char [f_size];
-	fseek (f, 0, SEEK_SET);
-	MY_FREAD(f_data,sizeof(char),f_size,f);
-	fclose(f);
-      }
+
+    FILE* f=fopen(fname,"rb");
+    if(f==NULL){
+      f_size=0;
+      std::cout << "No existing precomputation matrix file" << std::endl;
+    }else{
+      struct stat fileStat;
+      if(stat(fname,&fileStat) < 0) f_size=0;
+      else f_size=fileStat.st_size;
     }
+    if(f_size>0){
+      f_data= new char [f_size];
+      fseek (f, 0, SEEK_SET);
+      MY_FREAD(f_data,sizeof(char),f_size,f);
+      fclose(f);
+    }
+
     Profile::Toc();
     Profile::Tic("Broadcast",true,4);
     if(f_size==0){

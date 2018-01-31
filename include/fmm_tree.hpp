@@ -212,7 +212,7 @@ private:
   }
 
   void PrecompAll(Mat_Type type, int level=-1) {
-    if(level==-1) {
+    if(level==-1) {  // Run PrecompAll at all levels
       for(int l=0;l<MAX_DEPTH;l++) {
         PrecompAll(type, l);
       }
@@ -221,8 +221,9 @@ private:
     for(size_t i=0;i<Perm_Count;i++) {
       PrecompPerm(type, (Perm_Type) i);
     }
-    size_t mat_cnt=interacList.ListCount(type);
-    mat->Mat(level, type, mat_cnt-1);
+    size_t mat_cnt=interacList.ListCount(type); // num of relative pts (rel_coord) w.r.t this type
+    // std::cout << "Type: " << type << " num rel pts: " << mat_cnt << std::endl;
+    mat->Mat(level, type, mat_cnt-1);  // this line doesn't do anything, can be removed
     std::vector<size_t> indx_lst;
     for(size_t i=0; i<mat_cnt; i++) {
       if(interacList.InteracClass(type,i)==i) {
@@ -241,6 +242,7 @@ private:
   }
 
   Permutation<real_t>& PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
+    // since we never save values in mat->perm vector, P_ is always an empty Permutation instance
     Permutation<real_t>& P_ = mat->Perm(type, perm_indx);
     if(P_.Dim()!=0) return P_;
     size_t m=multipole_order;
@@ -280,7 +282,7 @@ private:
     }
 #pragma omp critical (PRECOMP_MATRIX_PTS)
     {
-      if(P_.Dim()==0) P_=P;
+      if(P_.Dim()==0) P_=P; // Dim is always 0
     }
     return P_;
   }
@@ -838,30 +840,30 @@ public:
     bool save_precomp=false;
     mat=new PrecompMat(true);
     std::string mat_fname;
-    if(mat_fname.size()==0){
-      std::stringstream st;
-      if(!st.str().size()){
-        char* pvfmm_dir = getenv ("PVFMM_DIR");
-        if(pvfmm_dir) st<<pvfmm_dir;
-      }
-#ifndef STAT_MACROS_BROKEN
-      if(st.str().size()){
-        struct stat stat_buff;
-        if(stat(st.str().c_str(), &stat_buff) || !S_ISDIR(stat_buff.st_mode)){
-          std::cout<<"error: path not found: "<<st.str()<<'\n';
-          exit(0);
-        }
-      }
-#endif
-      if(st.str().size()) st<<'/';
-      st<<"Precomp_"<<kernel->ker_name.c_str()<<"_m"<<mult_order;
-      if(sizeof(real_t)==8) st<<"";
-      else if(sizeof(real_t)==4) st<<"_f";
-      else st<<"_t"<<sizeof(real_t);
-      st<<".data";
-      mat_fname=st.str();
-      save_precomp=true;
+
+    std::stringstream st;
+    if(!st.str().size()){
+      char* pvfmm_dir = getenv ("PVFMM_DIR");
+      if(pvfmm_dir) st << pvfmm_dir;
     }
+#ifndef STAT_MACROS_BROKEN
+    if(st.str().size()){
+      struct stat stat_buff;
+      if(stat(st.str().c_str(), &stat_buff) || !S_ISDIR(stat_buff.st_mode)){
+        std::cout<<"error: path not found: "<<st.str()<<'\n';
+        exit(0);
+      }
+    }
+#endif
+    if(st.str().size()) st<<'/';
+    st<< "Precomp_" << kernel->ker_name.c_str() << "_m" <<mult_order;
+    if(sizeof(real_t)==8) st<<"";
+    else if(sizeof(real_t)==4) st<<"_f";
+    else st<<"_t"<<sizeof(real_t);
+    st<<".data";
+    mat_fname=st.str();
+    save_precomp=true;
+
     mat->LoadFile(mat_fname.c_str());
     interacList.Initialize(mat);
     Profile::Tic("PrecompUC2UE",false,4);
