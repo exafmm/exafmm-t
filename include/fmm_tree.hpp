@@ -112,66 +112,6 @@ private:
   fft_plan vlist_ifftplan;
   bool vlist_ifft_flag;
 
-  Permutation<real_t> equiv_surf_perm(size_t m, size_t p_indx, const Permutation<real_t>& ker_perm, const Vector<real_t>* scal_exp=NULL){
-    real_t eps=1e-10;
-    int dof=ker_perm.Dim();
-
-    real_t c[3]={-0.5,-0.5,-0.5};
-    std::vector<real_t> trg_coord=d_check_surf(m,c,0);
-    int n_trg=trg_coord.size()/3;
-
-    Permutation<real_t> P=Permutation<real_t>(n_trg*dof);
-    if(p_indx==ReflecX || p_indx==ReflecY || p_indx==ReflecZ) {
-      for(int i=0;i<n_trg;i++)
-      for(int j=0;j<n_trg;j++){
-        if(fabs(trg_coord[i*3+0]-trg_coord[j*3+0]*(p_indx==ReflecX?-1.0:1.0))<eps)
-        if(fabs(trg_coord[i*3+1]-trg_coord[j*3+1]*(p_indx==ReflecY?-1.0:1.0))<eps)
-        if(fabs(trg_coord[i*3+2]-trg_coord[j*3+2]*(p_indx==ReflecZ?-1.0:1.0))<eps){
-          for(int k=0;k<dof;k++){
-            P.perm[j*dof+k]=i*dof+ker_perm.perm[k];
-          }
-        }
-      }
-    }else if(p_indx==SwapXY || p_indx==SwapXZ){
-      for(int i=0;i<n_trg;i++)
-      for(int j=0;j<n_trg;j++){
-        if(fabs(trg_coord[i*3+0]-trg_coord[j*3+(p_indx==SwapXY?1:2)])<eps)
-        if(fabs(trg_coord[i*3+1]-trg_coord[j*3+(p_indx==SwapXY?0:1)])<eps)
-        if(fabs(trg_coord[i*3+2]-trg_coord[j*3+(p_indx==SwapXY?2:0)])<eps){
-          for(int k=0;k<dof;k++){
-            P.perm[j*dof+k]=i*dof+ker_perm.perm[k];
-          }
-        }
-      }
-    }else{
-      for(int j=0;j<n_trg;j++){
-        for(int k=0;k<dof;k++){
-          P.perm[j*dof+k]=j*dof+ker_perm.perm[k];
-        }
-      }
-    }
-
-    if(scal_exp && p_indx==Scaling) {
-      assert(dof==scal_exp->Dim());
-      Vector<real_t> scal(scal_exp->Dim());
-      for(size_t i=0;i<scal.Dim();i++){
-        scal[i]=powf(2.0,(*scal_exp)[i]);
-      }
-      for(int j=0;j<n_trg;j++){
-        for(int i=0;i<dof;i++){
-          P.scal[j*dof+i]*=scal[i];
-        }
-      }
-    }
-    {
-      for(int j=0;j<n_trg;j++){
-        for(int i=0;i<dof;i++){
-          P.scal[j*dof+i]*=ker_perm.scal[i];
-        }
-      }
-    }
-    return P;
-  }
 
   inline int p2oLocal(std::vector<MortonId> & nodes, std::vector<MortonId>& leaves,
 		      unsigned int maxNumPts, unsigned int maxDepth, bool complete) {
@@ -256,82 +196,6 @@ private:
     return 0;
   }
 
-  void VListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp,
-                     std::vector<size_t>& interac_vec, std::vector<real_t*>& precomp_mat, Vector<real_t>& fft_in, Vector<real_t>& fft_out){
-    size_t chld_cnt=1UL<<3;
-    size_t fftsize_in =M_dim*chld_cnt*2;
-    size_t fftsize_out=M_dim*chld_cnt*2;
-    int err;
-    real_t * zero_vec0, * zero_vec1;
-    err = posix_memalign((void**)&zero_vec0, MEM_ALIGN, fftsize_in *sizeof(real_t));
-    err = posix_memalign((void**)&zero_vec1, MEM_ALIGN, fftsize_out*sizeof(real_t));
-    size_t n_out=fft_out.Dim()/fftsize_out;
-#pragma omp parallel for
-    for(size_t k=0;k<n_out;k++){
-      Vector<real_t> dnward_check_fft(fftsize_out, &fft_out[k*fftsize_out], false);
-      dnward_check_fft.SetZero();
-    }
-    size_t mat_cnt=precomp_mat.size();
-    size_t blk1_cnt=interac_dsp.size()/mat_cnt;
-    int BLOCK_SIZE = CACHE_SIZE * 4 / sizeof(real_t);
-    real_t **IN_, **OUT_;
-    err = posix_memalign((void**)&IN_ , MEM_ALIGN, BLOCK_SIZE*blk1_cnt*mat_cnt*sizeof(real_t*));
-    err = posix_memalign((void**)&OUT_, MEM_ALIGN, BLOCK_SIZE*blk1_cnt*mat_cnt*sizeof(real_t*));
-#pragma omp parallel for
-    for(size_t interac_blk1=0; interac_blk1<blk1_cnt*mat_cnt; interac_blk1++){
-      size_t interac_dsp0 = (interac_blk1==0?0:interac_dsp[interac_blk1-1]);
-      size_t interac_dsp1 =                    interac_dsp[interac_blk1  ] ;
-      size_t interac_cnt  = interac_dsp1-interac_dsp0;
-      for(size_t j=0;j<interac_cnt;j++){
-        IN_ [BLOCK_SIZE*interac_blk1 +j]=&fft_in [interac_vec[(interac_dsp0+j)*2+0]];
-        OUT_[BLOCK_SIZE*interac_blk1 +j]=&fft_out[interac_vec[(interac_dsp0+j)*2+1]];
-      }
-      IN_ [BLOCK_SIZE*interac_blk1 +interac_cnt]=zero_vec0;
-      OUT_[BLOCK_SIZE*interac_blk1 +interac_cnt]=zero_vec1;
-    }
-    int omp_p=omp_get_max_threads();
-#pragma omp parallel for
-    for(int pid=0; pid<omp_p; pid++){
-      size_t a=( pid   *M_dim)/omp_p;
-      size_t b=((pid+1)*M_dim)/omp_p;
-      for(size_t     blk1=0;     blk1<blk1_cnt;    blk1++)
-      for(size_t        k=a;        k<       b;       k++)
-      for(size_t mat_indx=0; mat_indx< mat_cnt;mat_indx++){
-        size_t interac_blk1 = blk1*mat_cnt+mat_indx;
-        size_t interac_dsp0 = (interac_blk1==0?0:interac_dsp[interac_blk1-1]);
-        size_t interac_dsp1 =                    interac_dsp[interac_blk1  ] ;
-        size_t interac_cnt  = interac_dsp1-interac_dsp0;
-        real_t** IN = IN_ + BLOCK_SIZE*interac_blk1;
-        real_t** OUT= OUT_+ BLOCK_SIZE*interac_blk1;
-        real_t* M = precomp_mat[mat_indx] + k*chld_cnt*chld_cnt*2;
-        for(size_t j=0;j<interac_cnt;j+=2){
-          real_t* M_   = M;
-          real_t* IN0  = IN [j+0] + k*chld_cnt*2;
-          real_t* IN1  = IN [j+1] + k*chld_cnt*2;
-          real_t* OUT0 = OUT[j+0] + k*chld_cnt*2;
-          real_t* OUT1 = OUT[j+1] + k*chld_cnt*2;
-#ifdef __SSE__
-          if (j+2 < interac_cnt) {
-            _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
-            _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-            _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
-            _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-            _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
-            _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-            _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
-            _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-          }
-#endif
-          matmult_8x8x2(M_, IN0, IN1, OUT0, OUT1);
-        }
-      }
-    }
-    Profile::Add_FLOP(8*8*8*(interac_vec.size()/2)*M_dim);
-    free(IN_ );
-    free(OUT_);
-    free(zero_vec0);
-    free(zero_vec1);
-  }
 
   template<typename ElemType>
   void CopyVec(std::vector<std::vector<ElemType> >& vec_, pvfmm::Vector<ElemType>& vec) {
@@ -2219,133 +2083,6 @@ public:
     Profile::Toc();
   }
 
-  void FFT_UpEquiv(size_t m, std::vector<size_t>& fft_vec, std::vector<real_t>& fft_scal,
-		   Vector<real_t>& input_data, Vector<real_t>& output_data, Vector<real_t>& buffer_) {
-    size_t n1=m*2;
-    size_t n2=n1*n1;
-    size_t n3=n1*n2;
-    size_t n3_=n2*(n1/2+1);
-    size_t chld_cnt=1UL<<3;
-    size_t fftsize_in =2*n3_*chld_cnt;
-    int omp_p=omp_get_max_threads();
-    size_t n=6*(m-1)*(m-1)+2;
-    static Vector<size_t> map;
-    {
-      size_t n_old=map.Dim();
-      if(n_old!=n){
-        real_t c[3]={0,0,0};
-        Vector<real_t> surf=surface(m, c, (real_t)(m-1), 0);
-        map.Resize(surf.Dim()/3);
-        for(size_t i=0;i<map.Dim();i++)
-          map[i]=((size_t)(m-1-surf[i*3]+0.5))+((size_t)(m-1-surf[i*3+1]+0.5))*n1+((size_t)(m-1-surf[i*3+2]+0.5))*n2;
-      }
-    }
-    {
-      if(!vlist_fft_flag){
-        int err, nnn[3]={(int)n1,(int)n1,(int)n1};
-        real_t *fftw_in, *fftw_out;
-        err = posix_memalign((void**)&fftw_in,  MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
-        err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
-        vlist_fftplan = fft_plan_many_dft_r2c(3,nnn,chld_cnt,
-					      (real_t*)fftw_in, NULL, 1, n3,
-					      (fft_complex*)(fftw_out),NULL, 1, n3_,
-					      FFTW_ESTIMATE);
-        free(fftw_in );
-        free(fftw_out);
-        vlist_fft_flag=true;
-      }
-    }
-    {
-      size_t n_in = fft_vec.size();
-#pragma omp parallel for
-      for(int pid=0; pid<omp_p; pid++){
-        size_t node_start=(n_in*(pid  ))/omp_p;
-        size_t node_end  =(n_in*(pid+1))/omp_p;
-        Vector<real_t> buffer(fftsize_in, &buffer_[fftsize_in*pid], false);
-        for(size_t node_idx=node_start; node_idx<node_end; node_idx++){
-          Matrix<real_t>  upward_equiv(chld_cnt,n,&input_data[0] + fft_vec[node_idx],false);
-          Vector<real_t> upward_equiv_fft(fftsize_in, &output_data[fftsize_in *node_idx], false);
-          upward_equiv_fft.SetZero();
-          for(size_t k=0;k<n;k++){
-            size_t idx=map[k];
-            int j1=0;
-            for(int j0=0;j0<(int)chld_cnt;j0++)
-              upward_equiv_fft[idx+j0*n3]=upward_equiv[j0][k]*fft_scal[node_idx];
-          }
-          fft_execute_dft_r2c(vlist_fftplan, (real_t*)&upward_equiv_fft[0], (fft_complex*)&buffer[0]);
-          for(size_t j=0;j<n3_;j++)
-          for(size_t k=0;k<chld_cnt;k++){
-            upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
-            upward_equiv_fft[2*(chld_cnt*j+k)+1]=buffer[2*(n3_*k+j)+1];
-          }
-        }
-      }
-    }
-  }
-
-  void FFT_Check2Equiv(size_t m, std::vector<size_t>& ifft_vec, std::vector<real_t>& ifft_scal,
-		       Vector<real_t>& input_data, Vector<real_t>& output_data, Vector<real_t>& buffer_) {
-    size_t n1=m*2;
-    size_t n2=n1*n1;
-    size_t n3=n1*n2;
-    size_t n3_=n2*(n1/2+1);
-    size_t chld_cnt=1UL<<3;
-    size_t fftsize_out=2*n3_*chld_cnt;
-    int omp_p=omp_get_max_threads();
-    size_t n=6*(m-1)*(m-1)+2;
-    static Vector<size_t> map;
-    {
-      size_t n_old=map.Dim();
-      if(n_old!=n){
-        real_t c[3]={0,0,0};
-        Vector<real_t> surf=surface(m, c, (real_t)(m-1), 0);
-        map.Resize(surf.Dim()/3);
-        for(size_t i=0;i<map.Dim();i++)
-          map[i]=((size_t)(m*2-0.5-surf[i*3]))+((size_t)(m*2-0.5-surf[i*3+1]))*n1+((size_t)(m*2-0.5-surf[i*3+2]))*n2;
-      }
-    }
-    {
-      if(!vlist_ifft_flag){
-        int err, nnn[3]={(int)n1,(int)n1,(int)n1};
-        real_t *fftw_in, *fftw_out;
-        err = posix_memalign((void**)&fftw_in,  MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
-        err = posix_memalign((void**)&fftw_out, MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
-        vlist_ifftplan = fft_plan_many_dft_c2r(3,nnn,chld_cnt,
-					       (fft_complex*)fftw_in, NULL, 1, n3_,
-					       (real_t*)(fftw_out),NULL, 1, n3,
-					       FFTW_ESTIMATE);
-        free(fftw_in);
-        free(fftw_out);
-        vlist_ifft_flag=true;
-      }
-    }
-    {
-      assert(buffer_.Dim()>=2*fftsize_out*omp_p);
-      size_t n_out=ifft_vec.size();
-#pragma omp parallel for
-      for(int pid=0; pid<omp_p; pid++){
-        size_t node_start=(n_out*(pid  ))/omp_p;
-        size_t node_end  =(n_out*(pid+1))/omp_p;
-        Vector<real_t> buffer0(fftsize_out, &buffer_[fftsize_out*(2*pid+0)], false);
-        Vector<real_t> buffer1(fftsize_out, &buffer_[fftsize_out*(2*pid+1)], false);
-        for(size_t node_idx=node_start; node_idx<node_end; node_idx++){
-          Vector<real_t> dnward_check_fft(fftsize_out, &input_data[fftsize_out*node_idx], false);
-          Vector<real_t> dnward_equiv(n*chld_cnt,&output_data[0] + ifft_vec[node_idx],false);
-          for(size_t j=0;j<n3_;j++)
-          for(size_t k=0;k<chld_cnt;k++){
-            buffer0[2*(n3_*k+j)+0]=dnward_check_fft[2*(chld_cnt*j+k)+0];
-            buffer0[2*(n3_*k+j)+1]=dnward_check_fft[2*(chld_cnt*j+k)+1];
-          }
-          fft_execute_dft_c2r(vlist_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
-          for(size_t k=0;k<n;k++){
-            size_t idx=map[k];
-            for(int j0=0;j0<(int)chld_cnt;j0++)
-              dnward_equiv[n*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
-          }
-        }
-      }
-    }
-  }
 
   void Down2DownSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
     if(!multipole_order) return;
@@ -3585,6 +3322,211 @@ private:
       }
     }
     Profile::Toc();
+  }
+
+  void VListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp,
+                     std::vector<size_t>& interac_vec, std::vector<real_t*>& precomp_mat, Vector<real_t>& fft_in, Vector<real_t>& fft_out){
+    size_t chld_cnt=1UL<<3;
+    size_t fftsize_in =M_dim*chld_cnt*2;
+    size_t fftsize_out=M_dim*chld_cnt*2;
+    int err;
+    real_t * zero_vec0, * zero_vec1;
+    err = posix_memalign((void**)&zero_vec0, MEM_ALIGN, fftsize_in *sizeof(real_t));
+    err = posix_memalign((void**)&zero_vec1, MEM_ALIGN, fftsize_out*sizeof(real_t));
+    size_t n_out=fft_out.Dim()/fftsize_out;
+#pragma omp parallel for
+    for(size_t k=0;k<n_out;k++){
+      Vector<real_t> dnward_check_fft(fftsize_out, &fft_out[k*fftsize_out], false);
+      dnward_check_fft.SetZero();
+    }
+    size_t mat_cnt=precomp_mat.size();
+    size_t blk1_cnt=interac_dsp.size()/mat_cnt;
+    int BLOCK_SIZE = CACHE_SIZE * 4 / sizeof(real_t);
+    real_t **IN_, **OUT_;
+    err = posix_memalign((void**)&IN_ , MEM_ALIGN, BLOCK_SIZE*blk1_cnt*mat_cnt*sizeof(real_t*));
+    err = posix_memalign((void**)&OUT_, MEM_ALIGN, BLOCK_SIZE*blk1_cnt*mat_cnt*sizeof(real_t*));
+#pragma omp parallel for
+    for(size_t interac_blk1=0; interac_blk1<blk1_cnt*mat_cnt; interac_blk1++){
+      size_t interac_dsp0 = (interac_blk1==0?0:interac_dsp[interac_blk1-1]);
+      size_t interac_dsp1 =                    interac_dsp[interac_blk1  ] ;
+      size_t interac_cnt  = interac_dsp1-interac_dsp0;
+      for(size_t j=0;j<interac_cnt;j++){
+        IN_ [BLOCK_SIZE*interac_blk1 +j]=&fft_in [interac_vec[(interac_dsp0+j)*2+0]];
+        OUT_[BLOCK_SIZE*interac_blk1 +j]=&fft_out[interac_vec[(interac_dsp0+j)*2+1]];
+      }
+      IN_ [BLOCK_SIZE*interac_blk1 +interac_cnt]=zero_vec0;
+      OUT_[BLOCK_SIZE*interac_blk1 +interac_cnt]=zero_vec1;
+    }
+    int omp_p=omp_get_max_threads();
+#pragma omp parallel for
+    for(int pid=0; pid<omp_p; pid++){
+      size_t a=( pid   *M_dim)/omp_p;
+      size_t b=((pid+1)*M_dim)/omp_p;
+      for(size_t     blk1=0;     blk1<blk1_cnt;    blk1++)
+      for(size_t        k=a;        k<       b;       k++)
+      for(size_t mat_indx=0; mat_indx< mat_cnt;mat_indx++){
+        size_t interac_blk1 = blk1*mat_cnt+mat_indx;
+        size_t interac_dsp0 = (interac_blk1==0?0:interac_dsp[interac_blk1-1]);
+        size_t interac_dsp1 =                    interac_dsp[interac_blk1  ] ;
+        size_t interac_cnt  = interac_dsp1-interac_dsp0;
+        real_t** IN = IN_ + BLOCK_SIZE*interac_blk1;
+        real_t** OUT= OUT_+ BLOCK_SIZE*interac_blk1;
+        real_t* M = precomp_mat[mat_indx] + k*chld_cnt*chld_cnt*2;
+        for(size_t j=0;j<interac_cnt;j+=2){
+          real_t* M_   = M;
+          real_t* IN0  = IN [j+0] + k*chld_cnt*2;
+          real_t* IN1  = IN [j+1] + k*chld_cnt*2;
+          real_t* OUT0 = OUT[j+0] + k*chld_cnt*2;
+          real_t* OUT1 = OUT[j+1] + k*chld_cnt*2;
+#ifdef __SSE__
+          if (j+2 < interac_cnt) {
+            _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
+            _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
+            _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
+            _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
+            _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
+            _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
+            _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
+            _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
+          }
+#endif
+          matmult_8x8x2(M_, IN0, IN1, OUT0, OUT1);
+        }
+      }
+    }
+    Profile::Add_FLOP(8*8*8*(interac_vec.size()/2)*M_dim);
+    free(IN_ );
+    free(OUT_);
+    free(zero_vec0);
+    free(zero_vec1);
+  }
+
+  void FFT_UpEquiv(size_t m, std::vector<size_t>& fft_vec, std::vector<real_t>& fft_scal,
+		   Vector<real_t>& input_data, Vector<real_t>& output_data, Vector<real_t>& buffer_) {
+    size_t n1=m*2;
+    size_t n2=n1*n1;
+    size_t n3=n1*n2;
+    size_t n3_=n2*(n1/2+1);
+    size_t chld_cnt=1UL<<3;
+    size_t fftsize_in =2*n3_*chld_cnt;
+    int omp_p=omp_get_max_threads();
+    size_t n=6*(m-1)*(m-1)+2;
+    static Vector<size_t> map;
+    {
+      size_t n_old=map.Dim();
+      if(n_old!=n){
+        real_t c[3]={0,0,0};
+        Vector<real_t> surf=surface(m, c, (real_t)(m-1), 0);
+        map.Resize(surf.Dim()/3);
+        for(size_t i=0;i<map.Dim();i++)
+          map[i]=((size_t)(m-1-surf[i*3]+0.5))+((size_t)(m-1-surf[i*3+1]+0.5))*n1+((size_t)(m-1-surf[i*3+2]+0.5))*n2;
+      }
+    }
+    {
+      if(!vlist_fft_flag){
+        int err, nnn[3]={(int)n1,(int)n1,(int)n1};
+        real_t *fftw_in, *fftw_out;
+        err = posix_memalign((void**)&fftw_in,  MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
+        err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
+        vlist_fftplan = fft_plan_many_dft_r2c(3,nnn,chld_cnt,
+					      (real_t*)fftw_in, NULL, 1, n3,
+					      (fft_complex*)(fftw_out),NULL, 1, n3_,
+					      FFTW_ESTIMATE);
+        free(fftw_in );
+        free(fftw_out);
+        vlist_fft_flag=true;
+      }
+    }
+    {
+      size_t n_in = fft_vec.size();
+#pragma omp parallel for
+      for(int pid=0; pid<omp_p; pid++){
+        size_t node_start=(n_in*(pid  ))/omp_p;
+        size_t node_end  =(n_in*(pid+1))/omp_p;
+        Vector<real_t> buffer(fftsize_in, &buffer_[fftsize_in*pid], false);
+        for(size_t node_idx=node_start; node_idx<node_end; node_idx++){
+          Matrix<real_t>  upward_equiv(chld_cnt,n,&input_data[0] + fft_vec[node_idx],false);
+          Vector<real_t> upward_equiv_fft(fftsize_in, &output_data[fftsize_in *node_idx], false);
+          upward_equiv_fft.SetZero();
+          for(size_t k=0;k<n;k++){
+            size_t idx=map[k];
+            int j1=0;
+            for(int j0=0;j0<(int)chld_cnt;j0++)
+              upward_equiv_fft[idx+j0*n3]=upward_equiv[j0][k]*fft_scal[node_idx];
+          }
+          fft_execute_dft_r2c(vlist_fftplan, (real_t*)&upward_equiv_fft[0], (fft_complex*)&buffer[0]);
+          for(size_t j=0;j<n3_;j++)
+          for(size_t k=0;k<chld_cnt;k++){
+            upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
+            upward_equiv_fft[2*(chld_cnt*j+k)+1]=buffer[2*(n3_*k+j)+1];
+          }
+        }
+      }
+    }
+  }
+
+  void FFT_Check2Equiv(size_t m, std::vector<size_t>& ifft_vec, std::vector<real_t>& ifft_scal,
+		       Vector<real_t>& input_data, Vector<real_t>& output_data, Vector<real_t>& buffer_) {
+    size_t n1=m*2;
+    size_t n2=n1*n1;
+    size_t n3=n1*n2;
+    size_t n3_=n2*(n1/2+1);
+    size_t chld_cnt=1UL<<3;
+    size_t fftsize_out=2*n3_*chld_cnt;
+    int omp_p=omp_get_max_threads();
+    size_t n=6*(m-1)*(m-1)+2;
+    static Vector<size_t> map;
+    {
+      size_t n_old=map.Dim();
+      if(n_old!=n){
+        real_t c[3]={0,0,0};
+        Vector<real_t> surf=surface(m, c, (real_t)(m-1), 0);
+        map.Resize(surf.Dim()/3);
+        for(size_t i=0;i<map.Dim();i++)
+          map[i]=((size_t)(m*2-0.5-surf[i*3]))+((size_t)(m*2-0.5-surf[i*3+1]))*n1+((size_t)(m*2-0.5-surf[i*3+2]))*n2;
+      }
+    }
+    {
+      if(!vlist_ifft_flag){
+        int err, nnn[3]={(int)n1,(int)n1,(int)n1};
+        real_t *fftw_in, *fftw_out;
+        err = posix_memalign((void**)&fftw_in,  MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
+        err = posix_memalign((void**)&fftw_out, MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
+        vlist_ifftplan = fft_plan_many_dft_c2r(3,nnn,chld_cnt,
+					       (fft_complex*)fftw_in, NULL, 1, n3_,
+					       (real_t*)(fftw_out),NULL, 1, n3,
+					       FFTW_ESTIMATE);
+        free(fftw_in);
+        free(fftw_out);
+        vlist_ifft_flag=true;
+      }
+    }
+    {
+      assert(buffer_.Dim()>=2*fftsize_out*omp_p);
+      size_t n_out=ifft_vec.size();
+#pragma omp parallel for
+      for(int pid=0; pid<omp_p; pid++){
+        size_t node_start=(n_out*(pid  ))/omp_p;
+        size_t node_end  =(n_out*(pid+1))/omp_p;
+        Vector<real_t> buffer0(fftsize_out, &buffer_[fftsize_out*(2*pid+0)], false);
+        Vector<real_t> buffer1(fftsize_out, &buffer_[fftsize_out*(2*pid+1)], false);
+        for(size_t node_idx=node_start; node_idx<node_end; node_idx++){
+          Vector<real_t> dnward_check_fft(fftsize_out, &input_data[fftsize_out*node_idx], false);
+          Vector<real_t> dnward_equiv(n*chld_cnt,&output_data[0] + ifft_vec[node_idx],false);
+          for(size_t j=0;j<n3_;j++)
+          for(size_t k=0;k<chld_cnt;k++){
+            buffer0[2*(n3_*k+j)+0]=dnward_check_fft[2*(chld_cnt*j+k)+0];
+            buffer0[2*(n3_*k+j)+1]=dnward_check_fft[2*(chld_cnt*j+k)+1];
+          }
+          fft_execute_dft_c2r(vlist_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
+          for(size_t k=0;k<n;k++){
+            size_t idx=map[k];
+            for(int j0=0;j0<(int)chld_cnt;j0++)
+              dnward_equiv[n*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
+          }
+        }
+      }
+    }
   }
 
   void Source2Up(SetupData&  setup_data) {
