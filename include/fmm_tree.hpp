@@ -1587,6 +1587,7 @@ public:
         Mat_Type& interac_type=interac_type_lst[type_indx];
         size_t mat_cnt=interacList.ListCount(interac_type);
         Matrix<size_t> precomp_data_offset;
+        // std::vector<std::vector<size_t> precomp_data_offset;
         {
           struct HeaderData{
             size_t total_size;
@@ -1614,47 +1615,41 @@ public:
             trg_interac_list[i][j] = NULL;
           }
         }
-        {
 #pragma omp parallel for
-          for(size_t i=0;i<n_out;i++){
-            if(!nodes_out[i]->IsGhost() && (level==-1 || nodes_out[i]->depth==level)){
-              std::vector<FMM_Node*>& lst=nodes_out[i]->interac_list[interac_type];
-              for (int l=0; l<lst.size(); l++) {
-                trg_interac_list[i][l] = lst[l];
-              }
-              assert(lst.size()==mat_cnt);
+        for(size_t i=0;i<n_out;i++){
+          if(!nodes_out[i]->IsGhost() && (level==-1 || nodes_out[i]->depth==level)){
+            std::vector<FMM_Node*>& lst=nodes_out[i]->interac_list[interac_type];
+            for (int l=0; l<lst.size(); l++) {
+              trg_interac_list[i][l] = lst[l];
             }
+            assert(lst.size()==mat_cnt);
           }
         }
-        {
 #pragma omp parallel for
-          for(size_t i=0;i<n_out;i++){
-            for(size_t j=0;j<mat_cnt;j++)
+        for(size_t i=0;i<n_out;i++){
+          for(size_t j=0;j<mat_cnt;j++)
+          if(trg_interac_list[i][j]!=NULL){
+            trg_interac_list[i][j]->node_id=n_in;
+          }
+        }
+#pragma omp parallel for
+        for(size_t i=0;i<n_in ;i++) nodes_in[i]->node_id=i;
+#pragma omp parallel for
+        for(size_t i=0;i<n_out;i++){
+          for(size_t j=0;j<mat_cnt;j++){
             if(trg_interac_list[i][j]!=NULL){
-              trg_interac_list[i][j]->node_id=n_in;
-            }
-          }
-#pragma omp parallel for
-          for(size_t i=0;i<n_in ;i++) nodes_in[i]->node_id=i;
-#pragma omp parallel for
-          for(size_t i=0;i<n_out;i++){
-            for(size_t j=0;j<mat_cnt;j++){
-              if(trg_interac_list[i][j]!=NULL){
-                if(trg_interac_list[i][j]->node_id==n_in){
-                  trg_interac_list[i][j]=NULL;
-                }else{
-                  src_interac_list[trg_interac_list[i][j]->node_id][j]=nodes_out[i];
-                }
+              if(trg_interac_list[i][j]->node_id==n_in){
+                trg_interac_list[i][j]=NULL;
+              }else{
+                src_interac_list[trg_interac_list[i][j]->node_id][j]=nodes_out[i];
               }
             }
           }
         }
-        Matrix<size_t> interac_dsp(n_out,mat_cnt);
+        std::vector<std::vector<size_t>> interac_dsp(n_out, std::vector<size_t>(mat_cnt));
         std::vector<size_t> interac_blk_dsp(1,0);
-        {
-	  Matrix<real_t>& M0 = interacList.ClassMat(level, interac_type_lst[0], 0);
-          M_dim0=M0.Dim(0); M_dim1=M0.Dim(1);
-        }
+        Matrix<real_t>& M0 = interacList.ClassMat(level, interac_type_lst[0], 0);
+        M_dim0=M0.Dim(0); M_dim1=M0.Dim(1);
         {
           size_t vec_size=(M_dim0+M_dim1)*sizeof(real_t);
           for(size_t j=0;j<mat_cnt;j++){
@@ -1714,7 +1709,7 @@ public:
                   size_t depth=nodes_out[i]->depth;
                   output_perm.push_back(precomp_data_offset[j][1+4*depth+2]);
                   output_perm.push_back(precomp_data_offset[j][1+4*depth+3]);
-                  output_perm.push_back(interac_dsp[               i ][j]*vec_size*sizeof(real_t));
+                  output_perm.push_back(interac_dsp[i][j]*vec_size*sizeof(real_t));
                   output_perm.push_back((size_t)(&output_vector[i][0][0]-output_data[0]));
                 }
               }
@@ -2105,7 +2100,6 @@ public:
       size_t precomp_offset=0;
       Mat_Type& interac_type=setup_data.interac_type[0];
       size_t mat_cnt=interacList.ListCount(interac_type);
-      Matrix<size_t> precomp_data_offset;
       std::vector<real_t*> precomp_mat;
       {
         for(size_t mat_id=0;mat_id<mat_cnt;mat_id++){
