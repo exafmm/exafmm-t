@@ -112,7 +112,29 @@ private:
   fft_plan vlist_ifftplan;
   bool vlist_ifft_flag;
 
+public:
+  FMM_Tree(): root_node(NULL), vprecomp_fft_flag(false), vlist_fft_flag(false),
+	      vlist_ifft_flag(false), mat(NULL), kernel(NULL) { };
 
+  ~FMM_Tree(){
+    if(root_node!=NULL){
+      delete root_node;
+    }
+    if(mat!=NULL){
+      delete mat;
+      mat=NULL;
+    }
+    if(vprecomp_fft_flag) fft_destroy_plan(vprecomp_fftplan);
+    {
+      if(vlist_fft_flag ) fft_destroy_plan(vlist_fftplan );
+      if(vlist_ifft_flag) fft_destroy_plan(vlist_ifftplan);
+      vlist_fft_flag =false;
+      vlist_ifft_flag=false;
+    }
+
+  }
+
+private:
   inline int p2oLocal(std::vector<MortonId> & nodes, std::vector<MortonId>& leaves,
 		      unsigned int maxNumPts, unsigned int maxDepth, bool complete) {
     assert(maxDepth<=MAX_DEPTH);
@@ -231,13 +253,13 @@ private:
       }
     }
     for(size_t i=0; i<indx_lst.size(); i++){
-      Precomp(level, type, indx_lst[i]);
+      Precomp(type, indx_lst[i]);
     }
     for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){
       Matrix<real_t>& M0=interacList.ClassMat(level, type, mat_indx);
       Permutation<real_t>& pr=interacList.Perm_R(level, type, mat_indx);
       Permutation<real_t>& pc=interacList.Perm_C(level, type, mat_indx);
-      if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) Precomp(level, type, mat_indx);
+      if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) Precomp(type, mat_indx);
     }
   }
 
@@ -287,14 +309,14 @@ private:
     return P_;
   }
 
-  Matrix<real_t>& Precomp(int level, Mat_Type type, size_t mat_indx) {
-    level=0;
+  Matrix<real_t>& Precomp(Mat_Type type, size_t mat_indx) {
+    int level = 0;
     Matrix<real_t>& M_ = mat->Mat(level, type, mat_indx);
     if(M_.Dim(0)!=0 && M_.Dim(1)!=0) return M_;
     else{
       size_t class_indx = interacList.InteracClass(type, mat_indx);
       if(class_indx!=mat_indx){
-        Matrix<real_t>& M0 = Precomp(level, type, class_indx);
+        Matrix<real_t>& M0 = Precomp(type, class_indx);
         if(M0.Dim(0)==0 || M0.Dim(1)==0) return M_;
 
         for(size_t i=0;i<Perm_Count;i++) PrecompPerm(type, (Perm_Type) i);
@@ -391,8 +413,8 @@ private:
       Matrix<real_t> M_ce2c(n_ue*ker_dim[0],n_uc*ker_dim[1]);
       kernel->k_m2m->BuildMatrix(&equiv_surf[0], n_ue,
                                  &check_surf[0], n_uc, &(M_ce2c[0][0]));
-      Matrix<real_t>& M_c2e0 = Precomp(level, UC2UE0_Type, 0);
-      Matrix<real_t>& M_c2e1 = Precomp(level, UC2UE1_Type, 0);
+      Matrix<real_t>& M_c2e0 = Precomp(UC2UE0_Type, 0);
+      Matrix<real_t>& M_c2e1 = Precomp(UC2UE1_Type, 0);
       M=(M_ce2c*M_c2e0)*M_c2e1;
       break;
     }
@@ -409,8 +431,8 @@ private:
       size_t n_de=equiv_surf.size()/3;
       Matrix<real_t> M_pe2c(n_de*ker_dim[0],n_dc*ker_dim[1]);
       kernel->k_l2l->BuildMatrix(&equiv_surf[0], n_de, &check_surf[0], n_dc, &(M_pe2c[0][0]));
-      Matrix<real_t> M_c2e0=Precomp(level-1,DC2DE0_Type,0);
-      Matrix<real_t> M_c2e1=Precomp(level-1,DC2DE1_Type,0);
+      Matrix<real_t> M_c2e0=Precomp(DC2DE0_Type,0);
+      Matrix<real_t> M_c2e1=Precomp(DC2DE1_Type,0);
       Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
       Vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
       Permutation<real_t> P=equiv_surf_perm(multipole_order, Scaling, ker_perm, &scal_exp);
@@ -422,26 +444,7 @@ private:
       M=M_c2e0*(M_c2e1*M_pe2c);
       break;
     }
-    case D2T_Type:{
-      if(!multipole_order) break;
-      const int* ker_dim=kernel->k_l2t->ker_dim;
-      std::vector<real_t>& rel_trg_coord=mat->RelativeTrgCoord();
-      real_t r=powf(0.5,level);
-      size_t n_trg=rel_trg_coord.size()/3;
-      std::vector<real_t> trg_coord(n_trg*3);
-      for(size_t i=0;i<n_trg*3;i++) trg_coord[i]=rel_trg_coord[i]*r;
-      real_t c[3]={0,0,0};
-      std::vector<real_t> equiv_surf=d_equiv_surf(multipole_order,c,level);
-      size_t n_eq=equiv_surf.size()/3;
-      {
-        M     .Resize(n_eq*ker_dim [0], n_trg*ker_dim [1]);
-        kernel->k_l2t->BuildMatrix(&equiv_surf[0], n_eq, &trg_coord[0], n_trg, &(M     [0][0]));
-      }
-      Matrix<real_t>& M_c2e0=Precomp(level,DC2DE0_Type,0);
-      Matrix<real_t>& M_c2e1=Precomp(level,DC2DE1_Type,0);
-      M=M_c2e0*(M_c2e1*M);
-      break;
-    }
+
     case V_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_m2l->ker_dim;
@@ -483,7 +486,7 @@ private:
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_m2l->ker_dim;
       size_t mat_cnt =interacList.ListCount( V_Type);
-      for(size_t k=0;k<mat_cnt;k++) Precomp(level, V_Type, k);
+      for(size_t k=0;k<mat_cnt;k++) Precomp(V_Type, k);
 
       const size_t chld_cnt=1UL<<3;
       size_t n1=multipole_order*2;
@@ -566,8 +569,8 @@ private:
             for(int k=0; k<ker_dim[1]; k++)
               M_s2c[j][i*ker_dim[1]+k] = M_[j+k*ker_dim[0]];
         }
-        Matrix<real_t>& M_c2e0 = Precomp(level, UC2UE0_Type, 0);
-        Matrix<real_t>& M_c2e1 = Precomp(level, UC2UE1_Type, 0);
+        Matrix<real_t>& M_c2e0 = Precomp(UC2UE0_Type, 0);
+        Matrix<real_t>& M_c2e1 = Precomp(UC2UE1_Type, 0);
         Matrix<real_t> M_s2e=(M_s2c*M_c2e0)*M_c2e1;
         for(size_t i=0;i<M_s2e.Dim(0);i++) {
           real_t s=0;
@@ -593,16 +596,16 @@ private:
             for(size_t k=0;k<ker_dim[1];k++)
               M_check_zero_avg[i*ker_dim[1]+k][j*ker_dim[1]+k]-=1.0/n_surf;
         for(int level=0; level>=-MAX_DEPTH; level--){
-          Precomp(level, D2D_Type, 0);
+          Precomp(D2D_Type, 0);
           Permutation<real_t>& Pr = interacList.Perm_R(level, D2D_Type, 0);
           Permutation<real_t>& Pc = interacList.Perm_C(level, D2D_Type, 0);
-          M_l2l[-level] = M_check_zero_avg * Pr * Precomp(level, D2D_Type, interacList.InteracClass(D2D_Type, 0)) * Pc * M_check_zero_avg;
+          M_l2l[-level] = M_check_zero_avg * Pr * Precomp(D2D_Type, interacList.InteracClass(D2D_Type, 0)) * Pc * M_check_zero_avg;
           assert(M_l2l[-level].Dim(0)>0 && M_l2l[-level].Dim(1)>0);
           for(size_t mat_indx=0; mat_indx<mat_cnt_m2m; mat_indx++){
-            Precomp(level, U2U_Type, mat_indx);
+            Precomp(U2U_Type, mat_indx);
             Permutation<real_t>& Pr = interacList.Perm_R(level, U2U_Type, mat_indx);
             Permutation<real_t>& Pc = interacList.Perm_C(level, U2U_Type, mat_indx);
-            Matrix<real_t> M = Pr * Precomp(level, U2U_Type, interacList.InteracClass(U2U_Type, mat_indx)) * Pc;
+            Matrix<real_t> M = Pr * Precomp(U2U_Type, interacList.InteracClass(U2U_Type, mat_indx)) * Pc;
             assert(M.Dim(0)>0 && M.Dim(1)>0);
 
             if(mat_indx==0) M_m2m[-level] = M_equiv_zero_avg*M*M_equiv_zero_avg;
@@ -662,8 +665,8 @@ private:
         Matrix<real_t> M_e2pt(n_surf*kernel->k_l2l->ker_dim[0],n_corner*kernel->k_l2l->ker_dim[1]);
         kernel->k_l2l->BuildMatrix(&dn_equiv_surf[0], n_surf,
                                    &corner_pts[0], n_corner, &(M_e2pt[0][0]));
-        Matrix<real_t>& M_dc2de0 = Precomp(0, DC2DE0_Type, 0);
-        Matrix<real_t>& M_dc2de1 = Precomp(0, DC2DE1_Type, 0);
+        Matrix<real_t>& M_dc2de0 = Precomp( DC2DE0_Type, 0);
+        Matrix<real_t>& M_dc2de1 = Precomp( DC2DE1_Type, 0);
         M_err=(M*M_dc2de0)*(M_dc2de1*M_e2pt);
         for(size_t k=0;k<n_corner;k++) {
           for(int j0=-1;j0<=1;j0++)
@@ -711,28 +714,6 @@ private:
   }
 
 public:
-
-  FMM_Tree(): root_node(NULL), vprecomp_fft_flag(false), vlist_fft_flag(false),
-	      vlist_ifft_flag(false), mat(NULL), kernel(NULL) { };
-
-  ~FMM_Tree(){
-    if(root_node!=NULL){
-      delete root_node;
-    }
-    if(mat!=NULL){
-      delete mat;
-      mat=NULL;
-    }
-    if(vprecomp_fft_flag) fft_destroy_plan(vprecomp_fftplan);
-    {
-      if(vlist_fft_flag ) fft_destroy_plan(vlist_fftplan );
-      if(vlist_ifft_flag) fft_destroy_plan(vlist_ifftplan);
-      vlist_fft_flag =false;
-      vlist_ifft_flag=false;
-    }
-
-  }
-
   void Initialize(InitData* init_data) {
     Profile::Tic("InitTree",true);{
       Profile::Tic("InitRoot",false,5);
