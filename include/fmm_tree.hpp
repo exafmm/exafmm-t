@@ -134,105 +134,12 @@ public:
 
   }
 
+/* 1st Part: Generate precomputation matrix:
+ * interface: Initialize(multiple_order, &grad_kernel)
+ * Initialize Kernel, PrecompMat, InteracList members. If PrecompMat file exists, 
+ * load the binary matrix file into PrecompMat::mat; if not, calculate the matrix
+ * for each operator type, save them in PrecompMat::mat and save mat in file*/
 private:
-  inline int p2oLocal(std::vector<MortonId> & nodes, std::vector<MortonId>& leaves,
-		      unsigned int maxNumPts, unsigned int maxDepth, bool complete) {
-    assert(maxDepth<=MAX_DEPTH);
-    std::vector<MortonId> leaves_lst;
-    unsigned int init_size=leaves.size();
-    unsigned int num_pts=nodes.size();
-    MortonId curr_node=leaves[0];
-    MortonId last_node=leaves[init_size-1].NextId();
-    MortonId next_node;
-    unsigned int curr_pt=0;
-    unsigned int next_pt=curr_pt+maxNumPts;
-    while(next_pt <= num_pts){
-      next_node = curr_node.NextId();
-      while( next_pt < num_pts && next_node > nodes[next_pt] && curr_node.GetDepth() < maxDepth-1 ){
-	curr_node = curr_node.getDFD(curr_node.GetDepth()+1);
-	next_node = curr_node.NextId();
-      }
-      leaves_lst.push_back(curr_node);
-      curr_node = next_node;
-      unsigned int inc=maxNumPts;
-      while(next_pt < num_pts && curr_node > nodes[next_pt]){
-	inc=inc<<1;
-	next_pt+=inc;
-	if(next_pt > num_pts){
-	  next_pt = num_pts;
-	  break;
-	}
-      }
-      curr_pt = std::lower_bound(&nodes[0]+curr_pt,&nodes[0]+next_pt,curr_node,std::less<MortonId>())-&nodes[0];
-      if(curr_pt >= num_pts) break;
-      next_pt = curr_pt + maxNumPts;
-      if(next_pt > num_pts) next_pt = num_pts;
-    }
-    if(complete) {
-      while(curr_node<last_node){
-	while( curr_node.NextId() > last_node && curr_node.GetDepth() < maxDepth-1 )
-	  curr_node = curr_node.getDFD(curr_node.GetDepth()+1);
-	leaves_lst.push_back(curr_node);
-	curr_node = curr_node.NextId();
-      }
-    }
-    leaves=leaves_lst;
-    return 0;
-  }
-
-  inline int points2Octree(const std::vector<MortonId>& pt_mid, std::vector<MortonId>& nodes,
-			   unsigned int maxDepth, unsigned int maxNumPts) {
-    int myrank=0, np=1;
-    Profile::Tic("SortMortonId", true, 10);
-    std::vector<MortonId> pt_sorted;
-    HyperQuickSort(pt_mid, pt_sorted);
-    size_t pt_cnt=pt_sorted.size();
-    Profile::Toc();
-
-    Profile::Tic("p2o_local", false, 10);
-    std::vector<MortonId> nodes_local(1); nodes_local[0]=MortonId();
-    p2oLocal(pt_sorted, nodes_local, maxNumPts, maxDepth, myrank==np-1);
-    Profile::Toc();
-
-    Profile::Tic("RemoveDuplicates", true, 10);
-    size_t node_cnt=nodes_local.size();
-    MortonId first_node;
-    MortonId  last_node=nodes_local[node_cnt-1];
-    size_t i=0;
-    std::vector<MortonId> node_lst;
-    if(myrank){
-      while(i<node_cnt && nodes_local[i].getDFD(maxDepth)<first_node) i++; assert(i);
-      last_node=nodes_local[i>0?i-1:0].NextId();
-
-      while(first_node<last_node){
-        while(first_node.isAncestor(last_node))
-          first_node=first_node.getDFD(first_node.GetDepth()+1);
-        if(first_node==last_node) break;
-        node_lst.push_back(first_node);
-        first_node=first_node.NextId();
-      }
-    }
-    for(;i<node_cnt-(myrank==np-1?0:1);i++) node_lst.push_back(nodes_local[i]);
-    nodes=node_lst;
-    Profile::Toc();
-    return 0;
-  }
-
-
-  template<typename ElemType>
-  void CopyVec(std::vector<std::vector<ElemType> >& vec_, pvfmm::Vector<ElemType>& vec) {
-    int omp_p=omp_get_max_threads();
-    std::vector<size_t> vec_dsp(omp_p+1,0);
-    for(size_t tid=0;tid<omp_p;tid++){
-      vec_dsp[tid+1]=vec_dsp[tid]+vec_[tid].size();
-    }
-    vec.Resize(vec_dsp[omp_p]);
-#pragma omp parallel for
-    for(size_t tid=0;tid<omp_p;tid++){
-      memcpy(&vec[0]+vec_dsp[tid],&vec_[tid][0],vec_[tid].size()*sizeof(ElemType));
-    }
-  }
-
   void PrecompAll(Mat_Type type, int level=-1) {
     if(level==-1) {  // Run PrecompAll at all levels
       for(int l=0;l<MAX_DEPTH;l++) {
@@ -244,7 +151,6 @@ private:
       PrecompPerm(type, (Perm_Type) i);
     }
     size_t mat_cnt=interacList.ListCount(type); // num of relative pts (rel_coord) w.r.t this type
-    // std::cout << "Type: " << type << " num rel pts: " << mat_cnt << std::endl;
     mat->Mat(level, type, mat_cnt-1);  // this line doesn't do anything, can be removed
     std::vector<size_t> indx_lst;
     for(size_t i=0; i<mat_cnt; i++) {
@@ -444,7 +350,6 @@ private:
       M=M_c2e0*(M_c2e1*M_pe2c);
       break;
     }
-
     case V_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_m2l->ker_dim;
@@ -714,6 +619,254 @@ private:
   }
 
 public:
+  void Initialize(int mult_order, const Kernel* kernel_) {
+    Profile::Tic("InitFMM_Pts",true);{
+    int rank=0;
+    bool verbose=false;
+    if(kernel_) kernel_->Initialize(verbose);
+    multipole_order=mult_order;
+    kernel=kernel_;
+    assert(kernel!=NULL);
+    bool save_precomp=false;
+    mat=new PrecompMat(true);
+    std::string mat_fname;
+
+    std::stringstream st;
+    if(!st.str().size()){
+      char* pvfmm_dir = getenv ("PVFMM_DIR");
+      if(pvfmm_dir) st << pvfmm_dir;
+    }
+#ifndef STAT_MACROS_BROKEN
+    if(st.str().size()){
+      struct stat stat_buff;
+      if(stat(st.str().c_str(), &stat_buff) || !S_ISDIR(stat_buff.st_mode)){
+        std::cout<<"error: path not found: "<<st.str()<<'\n';
+        exit(0);
+      }
+    }
+#endif
+    if(st.str().size()) st<<'/';
+    st<< "Precomp_" << kernel->ker_name.c_str() << "_m" <<mult_order;
+    if(sizeof(real_t)==8) st<<"";
+    else if(sizeof(real_t)==4) st<<"_f";
+    else st<<"_t"<<sizeof(real_t);
+    st<<".data";
+    mat_fname=st.str();
+    save_precomp=true;
+
+    mat->LoadFile(mat_fname.c_str());
+    interacList.Initialize(mat);
+    Profile::Tic("PrecompUC2UE",false,4);
+    PrecompAll(UC2UE0_Type);
+    PrecompAll(UC2UE1_Type);
+    Profile::Toc();
+    Profile::Tic("PrecompDC2DE",false,4);
+    PrecompAll(DC2DE0_Type);
+    PrecompAll(DC2DE1_Type);
+    Profile::Toc();
+    Profile::Tic("PrecompBC",false,4);
+    PrecompAll(BC_Type,0);
+    Profile::Toc();
+    Profile::Tic("PrecompU2U",false,4);
+    PrecompAll(U2U_Type);
+    Profile::Toc();
+    Profile::Tic("PrecompD2D",false,4);
+    PrecompAll(D2D_Type);
+    Profile::Toc();
+    if(save_precomp){
+      Profile::Tic("Save2File",false,4);
+      if(!rank){
+        FILE* f=fopen(mat_fname.c_str(),"r");
+        if(f==NULL) { //File does not exists.
+          mat->Save2File(mat_fname.c_str());
+        }else fclose(f);
+      }
+      Profile::Toc();
+    }
+    Profile::Tic("PrecompV",false,4);
+    PrecompAll(V_Type);
+    Profile::Toc();
+    Profile::Tic("PrecompV1",false,4);
+    PrecompAll(V1_Type);
+    Profile::Toc();
+    }Profile::Toc();
+  }
+
+/* End of 1st Part: Precomputation */
+
+private:
+  inline int p2oLocal(std::vector<MortonId> & nodes, std::vector<MortonId>& leaves,
+		      unsigned int maxNumPts, unsigned int maxDepth, bool complete) {
+    assert(maxDepth<=MAX_DEPTH);
+    std::vector<MortonId> leaves_lst;
+    unsigned int init_size=leaves.size();
+    unsigned int num_pts=nodes.size();
+    MortonId curr_node=leaves[0];
+    MortonId last_node=leaves[init_size-1].NextId();
+    MortonId next_node;
+    unsigned int curr_pt=0;
+    unsigned int next_pt=curr_pt+maxNumPts;
+    while(next_pt <= num_pts){
+      next_node = curr_node.NextId();
+      while( next_pt < num_pts && next_node > nodes[next_pt] && curr_node.GetDepth() < maxDepth-1 ){
+	curr_node = curr_node.getDFD(curr_node.GetDepth()+1);
+	next_node = curr_node.NextId();
+      }
+      leaves_lst.push_back(curr_node);
+      curr_node = next_node;
+      unsigned int inc=maxNumPts;
+      while(next_pt < num_pts && curr_node > nodes[next_pt]){
+	inc=inc<<1;
+	next_pt+=inc;
+	if(next_pt > num_pts){
+	  next_pt = num_pts;
+	  break;
+	}
+      }
+      curr_pt = std::lower_bound(&nodes[0]+curr_pt,&nodes[0]+next_pt,curr_node,std::less<MortonId>())-&nodes[0];
+      if(curr_pt >= num_pts) break;
+      next_pt = curr_pt + maxNumPts;
+      if(next_pt > num_pts) next_pt = num_pts;
+    }
+    if(complete) {
+      while(curr_node<last_node){
+	while( curr_node.NextId() > last_node && curr_node.GetDepth() < maxDepth-1 )
+	  curr_node = curr_node.getDFD(curr_node.GetDepth()+1);
+	leaves_lst.push_back(curr_node);
+	curr_node = curr_node.NextId();
+      }
+    }
+    leaves=leaves_lst;
+    return 0;
+  }
+
+  inline int points2Octree(const std::vector<MortonId>& pt_mid, std::vector<MortonId>& nodes,
+			   unsigned int maxDepth, unsigned int maxNumPts) {
+    int myrank=0, np=1;
+    Profile::Tic("SortMortonId", true, 10);
+    std::vector<MortonId> pt_sorted;
+    HyperQuickSort(pt_mid, pt_sorted);
+    size_t pt_cnt=pt_sorted.size();
+    Profile::Toc();
+
+    Profile::Tic("p2o_local", false, 10);
+    std::vector<MortonId> nodes_local(1); nodes_local[0]=MortonId();
+    p2oLocal(pt_sorted, nodes_local, maxNumPts, maxDepth, myrank==np-1);
+    Profile::Toc();
+
+    Profile::Tic("RemoveDuplicates", true, 10);
+    size_t node_cnt=nodes_local.size();
+    MortonId first_node;
+    MortonId  last_node=nodes_local[node_cnt-1];
+    size_t i=0;
+    std::vector<MortonId> node_lst;
+    if(myrank){
+      while(i<node_cnt && nodes_local[i].getDFD(maxDepth)<first_node) i++; assert(i);
+      last_node=nodes_local[i>0?i-1:0].NextId();
+
+      while(first_node<last_node){
+        while(first_node.isAncestor(last_node))
+          first_node=first_node.getDFD(first_node.GetDepth()+1);
+        if(first_node==last_node) break;
+        node_lst.push_back(first_node);
+        first_node=first_node.NextId();
+      }
+    }
+    for(;i<node_cnt-(myrank==np-1?0:1);i++) node_lst.push_back(nodes_local[i]);
+    nodes=node_lst;
+    Profile::Toc();
+    return 0;
+  }
+
+  FMM_Node* FindNode(MortonId& key, bool subdiv, FMM_Node* start=NULL) {
+    int num_child=1UL<<3;
+    FMM_Node* n=start;
+    if(n==NULL) n=root_node;
+    while(n->GetMortonId()<key && (!n->IsLeaf()||subdiv)){
+      if(n->IsLeaf() && !n->IsGhost()) n->Subdivide();
+      if(n->IsLeaf()) break;
+      for(int j=0;j<num_child;j++){
+	if(n->Child(j)->GetMortonId().NextId()>key){
+	  n=n->Child(j);
+	  break;
+	}
+      }
+    }
+    assert(!subdiv || n->IsGhost() || n->GetMortonId()==key);
+    return n;
+  }
+
+  FMM_Node* PreorderNxt(FMM_Node* curr_node) {
+    assert(curr_node!=NULL);
+    int n=(1UL<<3);
+    if(!curr_node->IsLeaf())
+      for(int i=0;i<n;i++)
+	if(curr_node->Child(i)!=NULL)
+	  return curr_node->Child(i);
+    FMM_Node* node=curr_node;
+    while(true){
+      int i=node->Path2Node()+1;
+      node=node->Parent();
+      if(node==NULL) return NULL;
+      for(;i<n;i++)
+	if(node->Child(i)!=NULL)
+	  return node->Child(i);
+    }
+  }
+
+  FMM_Node* PostorderNxt(FMM_Node* curr_node) {
+    assert(curr_node!=NULL);
+    FMM_Node* node=curr_node;
+    int j=node->Path2Node()+1;
+    node=node->Parent();
+    if(node==NULL) return NULL;
+    int n=(1UL<<3);
+    for(;j<n;j++){
+      if(node->Child(j)!=NULL){
+	node=node->Child(j);
+	while(true){
+	  if(node->IsLeaf()) return node;
+	  for(int i=0;i<n;i++) {
+	    if(node->Child(i)!=NULL){
+	      node=node->Child(i);
+	      break;
+	    }
+	  }
+	}
+      }
+    }
+    return node;
+  }
+
+  FMM_Node* PostorderFirst() {
+    FMM_Node* node=root_node;
+    int n=(1UL<<3);
+    while(true){
+      if(node->IsLeaf()) return node;
+      for(int i=0;i<n;i++) {
+	if(node->Child(i)!=NULL){
+	  node=node->Child(i);
+	  break;
+	}
+      }
+    }
+  }
+
+public:
+  std::vector<FMM_Node*>& GetNodeList() {
+    if(root_node->GetStatus() & 1){
+      node_lst.clear();
+      FMM_Node* n=root_node;
+      while(n!=NULL){
+	int& status=n->GetStatus();
+	status=(status & (~(int)1));
+	node_lst.push_back(n);
+	n=PreorderNxt(n);
+      }
+    }
+    return node_lst;
+  }
+
   void Initialize(InitData* init_data) {
     Profile::Tic("InitTree",true);{
       Profile::Tic("InitRoot",false,5);
@@ -810,97 +963,6 @@ public:
     Profile::Toc();
   }
 
-  void Initialize(int mult_order, const Kernel* kernel_) {
-    Profile::Tic("InitFMM_Pts",true);{
-    int rank=0;
-    bool verbose=false;
-    if(kernel_) kernel_->Initialize(verbose);
-    multipole_order=mult_order;
-    kernel=kernel_;
-    assert(kernel!=NULL);
-    bool save_precomp=false;
-    mat=new PrecompMat(true);
-    std::string mat_fname;
-
-    std::stringstream st;
-    if(!st.str().size()){
-      char* pvfmm_dir = getenv ("PVFMM_DIR");
-      if(pvfmm_dir) st << pvfmm_dir;
-    }
-#ifndef STAT_MACROS_BROKEN
-    if(st.str().size()){
-      struct stat stat_buff;
-      if(stat(st.str().c_str(), &stat_buff) || !S_ISDIR(stat_buff.st_mode)){
-        std::cout<<"error: path not found: "<<st.str()<<'\n';
-        exit(0);
-      }
-    }
-#endif
-    if(st.str().size()) st<<'/';
-    st<< "Precomp_" << kernel->ker_name.c_str() << "_m" <<mult_order;
-    if(sizeof(real_t)==8) st<<"";
-    else if(sizeof(real_t)==4) st<<"_f";
-    else st<<"_t"<<sizeof(real_t);
-    st<<".data";
-    mat_fname=st.str();
-    save_precomp=true;
-
-    mat->LoadFile(mat_fname.c_str());
-    interacList.Initialize(mat);
-    Profile::Tic("PrecompUC2UE",false,4);
-    PrecompAll(UC2UE0_Type);
-    PrecompAll(UC2UE1_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompDC2DE",false,4);
-    PrecompAll(DC2DE0_Type);
-    PrecompAll(DC2DE1_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompBC",false,4);
-    PrecompAll(BC_Type,0);
-    Profile::Toc();
-    Profile::Tic("PrecompU2U",false,4);
-    PrecompAll(U2U_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompD2D",false,4);
-    PrecompAll(D2D_Type);
-    Profile::Toc();
-    if(save_precomp){
-      Profile::Tic("Save2File",false,4);
-      if(!rank){
-        FILE* f=fopen(mat_fname.c_str(),"r");
-        if(f==NULL) { //File does not exists.
-          mat->Save2File(mat_fname.c_str());
-        }else fclose(f);
-      }
-      Profile::Toc();
-    }
-    Profile::Tic("PrecompV",false,4);
-    PrecompAll(V_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompV1",false,4);
-    PrecompAll(V1_Type);
-    Profile::Toc();
-    }Profile::Toc();
-  }
-
-  FMM_Node* PreorderNxt(FMM_Node* curr_node) {
-    assert(curr_node!=NULL);
-    int n=(1UL<<3);
-    if(!curr_node->IsLeaf())
-      for(int i=0;i<n;i++)
-	if(curr_node->Child(i)!=NULL)
-	  return curr_node->Child(i);
-    FMM_Node* node=curr_node;
-    while(true){
-      int i=node->Path2Node()+1;
-      node=node->Parent();
-      if(node==NULL) return NULL;
-      for(;i<n;i++)
-	if(node->Child(i)!=NULL)
-	  return node->Child(i);
-    }
-  }
-
   void SetColleagues(FMM_Node* node=NULL) {
     int n1=27;
     int n2=8;
@@ -957,75 +1019,7 @@ public:
     }
   }
 
-  std::vector<FMM_Node*>& GetNodeList() {
-    if(root_node->GetStatus() & 1){
-      node_lst.clear();
-      FMM_Node* n=root_node;
-      while(n!=NULL){
-	int& status=n->GetStatus();
-	status=(status & (~(int)1));
-	node_lst.push_back(n);
-	n=PreorderNxt(n);
-      }
-    }
-    return node_lst;
-  }
 
-  FMM_Node* FindNode(MortonId& key, bool subdiv, FMM_Node* start=NULL) {
-    int num_child=1UL<<3;
-    FMM_Node* n=start;
-    if(n==NULL) n=root_node;
-    while(n->GetMortonId()<key && (!n->IsLeaf()||subdiv)){
-      if(n->IsLeaf() && !n->IsGhost()) n->Subdivide();
-      if(n->IsLeaf()) break;
-      for(int j=0;j<num_child;j++){
-	if(n->Child(j)->GetMortonId().NextId()>key){
-	  n=n->Child(j);
-	  break;
-	}
-      }
-    }
-    assert(!subdiv || n->IsGhost() || n->GetMortonId()==key);
-    return n;
-  }
-
-  FMM_Node* PostorderFirst() {
-    FMM_Node* node=root_node;
-    int n=(1UL<<3);
-    while(true){
-      if(node->IsLeaf()) return node;
-      for(int i=0;i<n;i++) {
-	if(node->Child(i)!=NULL){
-	  node=node->Child(i);
-	  break;
-	}
-      }
-    }
-  }
-
-  FMM_Node* PostorderNxt(FMM_Node* curr_node) {
-    assert(curr_node!=NULL);
-    FMM_Node* node=curr_node;
-    int j=node->Path2Node()+1;
-    node=node->Parent();
-    if(node==NULL) return NULL;
-    int n=(1UL<<3);
-    for(;j<n;j++){
-      if(node->Child(j)!=NULL){
-	node=node->Child(j);
-	while(true){
-	  if(node->IsLeaf()) return node;
-	  for(int i=0;i<n;i++) {
-	    if(node->Child(i)!=NULL){
-	      node=node->Child(i);
-	      break;
-	    }
-	  }
-	}
-      }
-    }
-    return node;
-  }
 
   void InitFMM_Tree(bool refine) {
     Profile::Tic("InitFMM_Tree",true);{
@@ -1388,6 +1382,20 @@ public:
         vec_lst[i]->Resize(vec_size[i]);
         vec_lst[i]->ReInit3(vec_size[i],&buff[0][0]+vec_disp[i],false);
       }
+    }
+  }
+
+  template<typename ElemType>
+  void CopyVec(std::vector<std::vector<ElemType> >& vec_, pvfmm::Vector<ElemType>& vec) {
+    int omp_p=omp_get_max_threads();
+    std::vector<size_t> vec_dsp(omp_p+1,0);
+    for(size_t tid=0;tid<omp_p;tid++){
+      vec_dsp[tid+1]=vec_dsp[tid]+vec_[tid].size();
+    }
+    vec.Resize(vec_dsp[omp_p]);
+#pragma omp parallel for
+    for(size_t tid=0;tid<omp_p;tid++){
+      memcpy(&vec[0]+vec_dsp[tid],&vec_[tid][0],vec_[tid].size()*sizeof(ElemType));
     }
   }
 
