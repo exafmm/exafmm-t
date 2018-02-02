@@ -150,15 +150,15 @@ private:
       PrecompPerm(type, (Perm_Type) i);
     }
     size_t mat_cnt=interacList.ListCount(type); // num of relative pts (rel_coord) w.r.t this type
-    mat->Mat(level, type, mat_cnt-1);  // this line doesn't do anything, can be removed
+    //mat->Mat(level, type, mat_cnt-1);  // this line doesn't do anything, can be removed
     std::vector<size_t> indx_lst;
-    for(size_t i=0; i<mat_cnt; i++) {
-      if(interacList.InteracClass(type,i)==i) {
-        indx_lst.push_back(i);
+    for(size_t i=0; i<mat_cnt; i++) {    // i is index of rel_coord
+      if(interacList.InteracClass(type,i)==i) {  // if i-th is a abs_coord (class_coord)
+        indx_lst.push_back(i);           // then add i to the index list (otherwise, i-th coord's matrix can be produced by permutation of its abs_coord's matrix)
       }
     }
     for(size_t i=0; i<indx_lst.size(); i++){
-      Precomp(type, indx_lst[i]);
+      Precomp(type, indx_lst[i]);        // calculate operator matrix of abs_coords
     }
     for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){
       Matrix<real_t>& M0=interacList.ClassMat(level, type, mat_indx);

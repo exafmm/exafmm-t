@@ -7,9 +7,9 @@ class InteracList{
 public:
 
   std::vector<Matrix<int> > rel_coord;
-  std::vector<std::vector<int> > hash_lut;
-  std::vector<std::vector<size_t> > interac_class;
-  std::vector<std::vector<std::vector<Perm_Type> > > perm_list;
+  std::vector<std::vector<int> > hash_lut;     // coord_hash -> index in rel_coord
+  std::vector<std::vector<size_t> > interac_class;  // index -> index of abs_coord of the same class
+  std::vector<std::vector<std::vector<Perm_Type> > > perm_list; // index -> list of permutations needed in order to change from abs_coord to rel_coord
   PrecompMat* mat;
 
   InteracList(){}
@@ -21,8 +21,8 @@ public:
     rel_coord.resize(Type_Count);
     hash_lut.resize(Type_Count);
 
-    InitList(0,0,1,UC2UE0_Type);
-    InitList(0,0,1,UC2UE1_Type);
+    InitList(0,0,1,UC2UE0_Type); // count = 1
+    InitList(0,0,1,UC2UE1_Type); 
     InitList(0,0,1,DC2DE0_Type);
     InitList(0,0,1,DC2DE1_Type);
 
@@ -127,8 +127,11 @@ public:
 	for(int i=-max_r;i<=max_r;i+=step)
 	  if(abs(i)>=min_r || abs(j)>=min_r || abs(k) >= min_r){
 	    int c[3]={i,j,k};
+            // count the number of coords of the same class
+            // ex. (-1,-1,2) is in the same class as (-2,-1,1)
 	    class_size_hash[class_hash(c)]++;
 	  }
+    // class count -> class count displacement
     scan(&class_size_hash[0], &class_disp_hash[0], max_hash);
     size_t count_=0;
     for(int k=-max_r;k<=max_r;k+=step)
@@ -136,16 +139,16 @@ public:
 	for(int i=-max_r;i<=max_r;i+=step)
 	  if(abs(i)>=min_r || abs(j)>=min_r || abs(k) >= min_r){
 	    int c[3]={i,j,k};
-	    int& idx=class_disp_hash[class_hash(c)];
-	    for(size_t l=0;l<3;l++) M[idx][l]=c[l];
-	    hash_lut[t][coord_hash(c)]=idx;
+	    int& idx=class_disp_hash[class_hash(c)]; // idx is the displ of current class
+	    for(size_t l=0;l<3;l++) M[idx][l]=c[l];  // store the sorted coords
+	    hash_lut[t][coord_hash(c)]=idx;          // store mapping: hash -> index in rel_coord
 	    count_++;
 	    idx++;
 	  }
     assert(count_==count);
     interac_class[t].resize(count);
     perm_list[t].resize(count);
-    for(size_t j=0;j<count;j++){
+    for(size_t j=0;j<count;j++){         // j is now the index of sorted rel_coord
       if(M[j][0]<0) perm_list[t][j].push_back(ReflecX);
       if(M[j][1]<0) perm_list[t][j].push_back(ReflecY);
       if(M[j][2]<0) perm_list[t][j].push_back(ReflecZ);
@@ -167,15 +170,17 @@ public:
       }
       assert(coord[0]<=coord[1] && coord[1]<=coord[2]);
       int c_hash = coord_hash(&coord[0]);
-      interac_class[t][j]=hash_lut[t][c_hash];
+      interac_class[t][j]=hash_lut[t][c_hash];  // j-th rel_coord -> abs coord of the same class
     }
   }
 
+  //! return x + 10y + 100z + 555
   int coord_hash(int* c){
     const int n=5;
     return ( (c[2]+n) * (2*n) + (c[1]+n) ) *(2*n) + (c[0]+n);
   }
 
+  //! swap x,y,z so that |z|>|y|>|x|, return hash of new coord
   int class_hash(int* c_){
     int c[3]={abs(c_[0]), abs(c_[1]), abs(c_[2])};
     if(c[1]>c[0] && c[1]>c[2])
