@@ -87,7 +87,6 @@ namespace pvfmm{
   };
 
 class FMM_Tree {
-
 private:
   int multipole_order;
   FMM_Node* root_node;
@@ -430,24 +429,6 @@ private:
       }
       break;
     }
-    case W_Type:{
-      if(!multipole_order) break;
-      const int* ker_dim=kernel->k_m2t->ker_dim;
-      std::vector<real_t>& rel_trg_coord=mat->RelativeTrgCoord();
-      real_t s=powf(0.5,level);
-      size_t n_trg=rel_trg_coord.size()/3;
-      std::vector<real_t> trg_coord(n_trg*3);
-      for(size_t j=0;j<n_trg*3;j++) trg_coord[j]=rel_trg_coord[j]*s;
-      int* coord2=interacList.RelativeCoord(type,mat_indx);
-      real_t c[3]={(real_t)((coord2[0]+1)*s*0.25),(real_t)((coord2[1]+1)*s*0.25),(real_t)((coord2[2]+1)*s*0.25)};
-      std::vector<real_t> equiv_surf=u_equiv_surf(multipole_order,c,level+1);
-      size_t n_eq=equiv_surf.size()/3;
-      {
-        M     .Resize(n_eq*ker_dim [0],n_trg*ker_dim [1]);
-        kernel->k_m2t->BuildMatrix(&equiv_surf[0], n_eq, &trg_coord[0], n_trg, &(M     [0][0]));
-      }
-      break;
-    }
     case BC_Type:{
       if(!multipole_order) break;
       if(kernel->k_m2l->ker_dim[0]!=kernel->k_m2m->ker_dim[0]) break;
@@ -694,6 +675,8 @@ public:
 
 /* End of 1st Part: Precomputation */
 
+/* 2nd Part: Tree Construction 
+ * Interface: Initialize(init_data) */
 private:
   inline int p2oLocal(std::vector<MortonId> & nodes, std::vector<MortonId>& leaves,
 		      unsigned int maxNumPts, unsigned int maxDepth, bool complete) {
@@ -962,7 +945,10 @@ public:
     }
     Profile::Toc();
   }
+/* End of 2nd Part: Tree Construction */
 
+/* 3rd Part: Setup FMM */
+private:
   void SetColleagues(FMM_Node* node=NULL) {
     int n1=27;
     int n2=8;
@@ -1019,118 +1005,6 @@ public:
     }
   }
 
-
-/*
-  void InitFMM_Tree(bool refine) {
-    Profile::Tic("InitFMM_Tree",true);{
-      interacList.Initialize(mat);
-    }Profile::Toc();
-  }
-*/
-  void SetupFMM() {
-    Profile::Tic("SetupFMM",true);{
-    Profile::Tic("SetColleagues",false,3);
-    SetColleagues();
-    Profile::Toc();
-    Profile::Tic("CollectNodeData",false,3);
-    FMM_Node* n=dynamic_cast<FMM_Node*>(PostorderFirst());
-    std::vector<FMM_Node*> all_nodes;
-    while(n!=NULL){
-      n->pt_cnt[0]=0;
-      n->pt_cnt[1]=0;
-      all_nodes.push_back(n);
-      n=static_cast<FMM_Node*>(PostorderNxt(n));
-    }
-    std::vector<std::vector<FMM_Node*> > node_lists; // TODO: Remove this parameter, not really needed
-    CollectNodeData(all_nodes, node_data_buff, node_lists);
-    Profile::Toc();
-
-    Profile::Tic("BuildLists",false,3);
-    BuildInteracLists();
-    Profile::Toc();
-    setup_data.resize(8*MAX_DEPTH);
-    precomp_lst.resize(8);
-    Profile::Tic("UListSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*0].precomp_data=&precomp_lst[0];
-      U_ListSetup(setup_data[i+MAX_DEPTH*0],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
-    Profile::Toc();
-    Profile::Tic("WListSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*1].precomp_data=&precomp_lst[1];
-      W_ListSetup(setup_data[i+MAX_DEPTH*1],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
-    Profile::Toc();
-    Profile::Tic("XListSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*2].precomp_data=&precomp_lst[2];
-      X_ListSetup(setup_data[i+MAX_DEPTH*2],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
-    Profile::Toc();
-    Profile::Tic("VListSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*3].precomp_data=&precomp_lst[3];
-      V_ListSetup(setup_data[i+MAX_DEPTH*3],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
-    Profile::Toc();
-    Profile::Tic("D2DSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*4].precomp_data=&precomp_lst[4];
-      Down2DownSetup(setup_data[i+MAX_DEPTH*4],node_data_buff,node_lists,i);
-    }
-    Profile::Toc();
-    Profile::Tic("D2TSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*5].precomp_data=&precomp_lst[5];
-      Down2TargetSetup(setup_data[i+MAX_DEPTH*5],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
-    Profile::Toc();
-
-    Profile::Tic("S2USetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*6].precomp_data=&precomp_lst[6];
-      Source2UpSetup(setup_data[i+MAX_DEPTH*6],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
-    Profile::Toc();
-    Profile::Tic("U2USetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*7].precomp_data=&precomp_lst[7];
-      Up2UpSetup(setup_data[i+MAX_DEPTH*7],node_data_buff,node_lists,i);
-    }
-    Profile::Toc();
-    ClearFMMData();
-    }Profile::Toc();
-  }
-
-  void ClearFMMData() {
-    Profile::Tic("ClearFMMData",true);
-    int omp_p=omp_get_max_threads();
-#pragma omp parallel for
-    for(int j=0;j<omp_p;j++){
-      Matrix<real_t>* mat;
-      mat=setup_data[0+MAX_DEPTH*1]. input_data;
-      if(mat && mat->Dim(0)*mat->Dim(1)){
-        size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
-        size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
-        memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
-      }
-      mat=setup_data[0+MAX_DEPTH*2].output_data;
-      if(mat && mat->Dim(0)*mat->Dim(1)){
-        size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
-        size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
-        memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
-      }
-      mat=setup_data[0+MAX_DEPTH*0].output_data;
-      if(mat && mat->Dim(0)*mat->Dim(1)){
-        size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
-        size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
-        memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
-      }
-    }
-    Profile::Toc();
-  }
-
   void CollectNodeData(std::vector<FMM_Node*>& node, std::vector<Matrix<real_t> >& buff_list, std::vector<std::vector<FMM_Node*> >& n_list) {
     std::vector<std::vector<Vector<real_t>* > > vec_list(0);
     if(buff_list.size()<7) buff_list.resize(7);
@@ -1180,7 +1054,6 @@ public:
     for(size_t i=0;i<node_lst.size();i++){
       FMM_Node* node=node_lst[i];
       Vector<real_t>& data_vec=node->FMMData()->upward_equiv;
-//std::cout << "CollectNodeData upward: " << data_vec.Dim() << std::endl;
       data_vec.Resize(vec_sz);
       vec_lst.push_back(&data_vec);
     }
@@ -1224,7 +1097,6 @@ public:
     for(size_t i=0;i<node_lst.size();i++){
       FMM_Node* node=node_lst[i];
       Vector<real_t>& data_vec=node->FMMData()->dnward_equiv;
-//std::cout << "CollectNodeData downward: " << data_vec.Dim() << std::endl;
       data_vec.Resize(vec_sz);
       vec_lst1.push_back(&data_vec);
     }
@@ -1385,17 +1257,82 @@ public:
     }
   }
 
-  template<typename ElemType>
-  void CopyVec(std::vector<std::vector<ElemType> >& vec_, pvfmm::Vector<ElemType>& vec) {
-    int omp_p=omp_get_max_threads();
-    std::vector<size_t> vec_dsp(omp_p+1,0);
-    for(size_t tid=0;tid<omp_p;tid++){
-      vec_dsp[tid+1]=vec_dsp[tid]+vec_[tid].size();
+  void BuildInteracLists() {
+    std::vector<FMM_Node*> n_list_src;
+    std::vector<FMM_Node*> n_list_trg;
+    {
+      std::vector<FMM_Node*>& nodes=GetNodeList();
+      for(size_t i=0;i<nodes.size();i++){
+        if(!nodes[i]->IsGhost() && nodes[i]->pt_cnt[0]){
+          n_list_src.push_back(nodes[i]);
+        }
+        if(!nodes[i]->IsGhost() && nodes[i]->pt_cnt[1]){
+          n_list_trg.push_back(nodes[i]);
+        }
+      }
     }
-    vec.Resize(vec_dsp[omp_p]);
+    size_t node_cnt=std::max(n_list_src.size(),n_list_trg.size());
+    std::vector<Mat_Type> type_lst;
+    std::vector<std::vector<FMM_Node*>*> type_node_lst;
+    type_lst.push_back(S2U_Type); type_node_lst.push_back(&n_list_src);
+    type_lst.push_back(U2U_Type); type_node_lst.push_back(&n_list_src);
+    type_lst.push_back(D2D_Type); type_node_lst.push_back(&n_list_trg);
+    type_lst.push_back(D2T_Type); type_node_lst.push_back(&n_list_trg);
+    type_lst.push_back(U0_Type ); type_node_lst.push_back(&n_list_trg);
+    type_lst.push_back(U1_Type ); type_node_lst.push_back(&n_list_trg);
+    type_lst.push_back(U2_Type ); type_node_lst.push_back(&n_list_trg);
+    type_lst.push_back(W_Type  ); type_node_lst.push_back(&n_list_trg);
+    type_lst.push_back(X_Type  ); type_node_lst.push_back(&n_list_trg);
+    type_lst.push_back(V1_Type ); type_node_lst.push_back(&n_list_trg);
+    std::vector<size_t> interac_cnt(type_lst.size());
+    std::vector<size_t> interac_dsp(type_lst.size(),0);
+    for(size_t i=0;i<type_lst.size();i++){
+      interac_cnt[i]=interacList.ListCount(type_lst[i]);
+    }
+    scan(&interac_cnt[0],&interac_dsp[0],type_lst.size());
+    int omp_p=omp_get_max_threads();
 #pragma omp parallel for
-    for(size_t tid=0;tid<omp_p;tid++){
-      memcpy(&vec[0]+vec_dsp[tid],&vec_[tid][0],vec_[tid].size()*sizeof(ElemType));
+    for(int j=0;j<omp_p;j++){
+      for(size_t k=0;k<type_lst.size();k++){
+        std::vector<FMM_Node*>& n_list=*type_node_lst[k];
+        size_t a=(n_list.size()*(j  ))/omp_p;
+        size_t b=(n_list.size()*(j+1))/omp_p;
+        for(size_t i=a;i<b;i++){
+          FMM_Node* n=n_list[i];
+          n->interac_list[type_lst[k]].resize(interac_cnt[k]);
+          interacList.BuildList(n,type_lst[k]);
+        }
+      }
+    }
+  }
+
+  void PtSetup(SetupData& setup_data, ptSetupData* data_){
+    ptSetupData& data=*(ptSetupData*)data_;
+    if(data.pt_interac_data.interac_cnt.Dim()){
+      InteracData& intdata=data.pt_interac_data;
+      Vector<size_t>  cnt;
+      Vector<size_t>& dsp=intdata.interac_cst;
+      cnt.Resize(intdata.interac_cnt.Dim());
+      dsp.Resize(intdata.interac_dsp.Dim());
+#pragma omp parallel for
+      for(size_t trg=0;trg<cnt.Dim();trg++){
+        size_t trg_cnt=data.trg_coord.cnt[trg];
+        cnt[trg]=0;
+        for(size_t i=0;i<intdata.interac_cnt[trg];i++){
+          size_t int_id=intdata.interac_dsp[trg]+i;
+          size_t src=intdata.in_node[int_id];
+          size_t src_cnt=data.src_coord.cnt[src];
+          size_t srf_cnt=data.srf_coord.cnt[src];
+          cnt[trg]+=(src_cnt+srf_cnt)*trg_cnt;
+        }
+      }
+      dsp[0]=cnt[0];
+      scan(&cnt[0],&dsp[0],dsp.Dim());
+    }
+    setup_data.pt_setup_data = data;
+    {
+      size_t n=setup_data.output_data->Dim(0)*setup_data.output_data->Dim(1)*sizeof(real_t);
+      if(dev_buffer.Dim()<n) dev_buffer.Resize(n);
     }
   }
 
@@ -1442,7 +1379,6 @@ public:
         Mat_Type& interac_type=interac_type_lst[type_indx];
         size_t mat_cnt=interacList.ListCount(interac_type);
         Matrix<size_t> precomp_data_offset;
-        // std::vector<std::vector<size_t> precomp_data_offset;
         {
           struct HeaderData{
             size_t total_size;
@@ -1593,34 +1529,45 @@ public:
     Profile::Toc();
   }
 
-
-  void PtSetup(SetupData& setup_data, ptSetupData* data_){
-    ptSetupData& data=*(ptSetupData*)data_;
-    if(data.pt_interac_data.interac_cnt.Dim()){
-      InteracData& intdata=data.pt_interac_data;
-      Vector<size_t>  cnt;
-      Vector<size_t>& dsp=intdata.interac_cst;
-      cnt.Resize(intdata.interac_cnt.Dim());
-      dsp.Resize(intdata.interac_dsp.Dim());
+  void ClearFMMData() {
+    Profile::Tic("ClearFMMData",true);
+    int omp_p=omp_get_max_threads();
 #pragma omp parallel for
-      for(size_t trg=0;trg<cnt.Dim();trg++){
-        size_t trg_cnt=data.trg_coord.cnt[trg];
-        cnt[trg]=0;
-        for(size_t i=0;i<intdata.interac_cnt[trg];i++){
-          size_t int_id=intdata.interac_dsp[trg]+i;
-          size_t src=intdata.in_node[int_id];
-          size_t src_cnt=data.src_coord.cnt[src];
-          size_t srf_cnt=data.srf_coord.cnt[src];
-          cnt[trg]+=(src_cnt+srf_cnt)*trg_cnt;
-        }
+    for(int j=0;j<omp_p;j++){
+      Matrix<real_t>* mat;
+      mat=setup_data[0+MAX_DEPTH*1]. input_data;
+      if(mat && mat->Dim(0)*mat->Dim(1)){
+        size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
+        size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
+        memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
       }
-      dsp[0]=cnt[0];
-      scan(&cnt[0],&dsp[0],dsp.Dim());
+      mat=setup_data[0+MAX_DEPTH*2].output_data;
+      if(mat && mat->Dim(0)*mat->Dim(1)){
+        size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
+        size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
+        memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
+      }
+      mat=setup_data[0+MAX_DEPTH*0].output_data;
+      if(mat && mat->Dim(0)*mat->Dim(1)){
+        size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
+        size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
+        memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
+      }
     }
-    setup_data.pt_setup_data = data;
-    {
-      size_t n=setup_data.output_data->Dim(0)*setup_data.output_data->Dim(1)*sizeof(real_t);
-      if(dev_buffer.Dim()<n) dev_buffer.Resize(n);
+    Profile::Toc();
+  }
+
+  template<typename ElemType>
+  void CopyVec(std::vector<std::vector<ElemType> >& vec_, pvfmm::Vector<ElemType>& vec) {
+    int omp_p=omp_get_max_threads();
+    std::vector<size_t> vec_dsp(omp_p+1,0);
+    for(size_t tid=0;tid<omp_p;tid++){
+      vec_dsp[tid+1]=vec_dsp[tid]+vec_[tid].size();
+    }
+    vec.Resize(vec_dsp[omp_p]);
+#pragma omp parallel for
+    for(size_t tid=0;tid<omp_p;tid++){
+      memcpy(&vec[0]+vec_dsp[tid],&vec_[tid][0],vec_[tid].size()*sizeof(ElemType));
     }
   }
 
@@ -1735,8 +1682,6 @@ public:
       for(size_t i=0;i<nodes.size();i++){
         Vector<real_t>& coord_vec=upwd_check_surf[nodes[i]->depth];
         Vector<real_t>& value_vec=(nodes[i]->FMMData())->upward_equiv;
-
-//std::cout << value_vec.Dim() << std::endl;
         if(coord_vec.Dim()){
           coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
           assert(coord.dsp[i]<coord.len);
@@ -1846,7 +1791,6 @@ public:
     PtSetup(setup_data, &data);
   }
 
-
   void Up2UpSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
     if(!multipole_order) return;
     {
@@ -1871,58 +1815,6 @@ public:
     for(size_t i=0;i<nodes_out.size();i++) output_vector.push_back(&(nodes_out[i]->FMMData())->upward_equiv);
     SetupInterac(setup_data);
   }
-
-
-  void BuildInteracLists() {
-    std::vector<FMM_Node*> n_list_src;
-    std::vector<FMM_Node*> n_list_trg;
-    {
-      std::vector<FMM_Node*>& nodes=GetNodeList();
-      for(size_t i=0;i<nodes.size();i++){
-        if(!nodes[i]->IsGhost() && nodes[i]->pt_cnt[0]){
-          n_list_src.push_back(nodes[i]);
-        }
-        if(!nodes[i]->IsGhost() && nodes[i]->pt_cnt[1]){
-          n_list_trg.push_back(nodes[i]);
-        }
-      }
-    }
-    size_t node_cnt=std::max(n_list_src.size(),n_list_trg.size());
-    std::vector<Mat_Type> type_lst;
-    std::vector<std::vector<FMM_Node*>*> type_node_lst;
-    type_lst.push_back(S2U_Type); type_node_lst.push_back(&n_list_src);
-    type_lst.push_back(U2U_Type); type_node_lst.push_back(&n_list_src);
-    type_lst.push_back(D2D_Type); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(D2T_Type); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(U0_Type ); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(U1_Type ); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(U2_Type ); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(W_Type  ); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(X_Type  ); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(V1_Type ); type_node_lst.push_back(&n_list_trg);
-    std::vector<size_t> interac_cnt(type_lst.size());
-    std::vector<size_t> interac_dsp(type_lst.size(),0);
-    for(size_t i=0;i<type_lst.size();i++){
-      interac_cnt[i]=interacList.ListCount(type_lst[i]);
-    }
-    scan(&interac_cnt[0],&interac_dsp[0],type_lst.size());
-    int omp_p=omp_get_max_threads();
-#pragma omp parallel for
-    for(int j=0;j<omp_p;j++){
-      for(size_t k=0;k<type_lst.size();k++){
-        std::vector<FMM_Node*>& n_list=*type_node_lst[k];
-        size_t a=(n_list.size()*(j  ))/omp_p;
-        size_t b=(n_list.size()*(j+1))/omp_p;
-        for(size_t i=a;i<b;i++){
-          FMM_Node* n=n_list[i];
-          n->interac_list[type_lst[k]].resize(interac_cnt[k]);
-          interacList.BuildList(n,type_lst[k]);
-        }
-      }
-    }
-  }
-
-
 
   void V_ListSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
     if(!multipole_order) return;
@@ -2073,7 +1965,6 @@ public:
     }
     Profile::Toc();
   }
-
 
   void Down2DownSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
     if(!multipole_order) return;
@@ -2954,8 +2845,85 @@ public:
     }
     PtSetup(setup_data, &data);
   }
+public:
+  void SetupFMM() {
+    Profile::Tic("SetupFMM",true);{
+    Profile::Tic("SetColleagues",false,3);
+    SetColleagues();
+    Profile::Toc();
+    Profile::Tic("CollectNodeData",false,3);
+    FMM_Node* n=dynamic_cast<FMM_Node*>(PostorderFirst());
+    std::vector<FMM_Node*> all_nodes;
+    while(n!=NULL){
+      n->pt_cnt[0]=0;
+      n->pt_cnt[1]=0;
+      all_nodes.push_back(n);
+      n=static_cast<FMM_Node*>(PostorderNxt(n));
+    }
+    std::vector<std::vector<FMM_Node*> > node_lists; // TODO: Remove this parameter, not really needed
+    CollectNodeData(all_nodes, node_data_buff, node_lists);
+    Profile::Toc();
 
-  /* below are traversal functions */
+    Profile::Tic("BuildLists",false,3);
+    BuildInteracLists();
+    Profile::Toc();
+    setup_data.resize(8*MAX_DEPTH);
+    precomp_lst.resize(8);
+    Profile::Tic("UListSetup",false,3);
+    for(size_t i=0;i<MAX_DEPTH;i++){
+      setup_data[i+MAX_DEPTH*0].precomp_data=&precomp_lst[0];
+      U_ListSetup(setup_data[i+MAX_DEPTH*0],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
+    }
+    Profile::Toc();
+    Profile::Tic("WListSetup",false,3);
+    for(size_t i=0;i<MAX_DEPTH;i++){
+      setup_data[i+MAX_DEPTH*1].precomp_data=&precomp_lst[1];
+      W_ListSetup(setup_data[i+MAX_DEPTH*1],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
+    }
+    Profile::Toc();
+    Profile::Tic("XListSetup",false,3);
+    for(size_t i=0;i<MAX_DEPTH;i++){
+      setup_data[i+MAX_DEPTH*2].precomp_data=&precomp_lst[2];
+      X_ListSetup(setup_data[i+MAX_DEPTH*2],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
+    }
+    Profile::Toc();
+    Profile::Tic("VListSetup",false,3);
+    for(size_t i=0;i<MAX_DEPTH;i++){
+      setup_data[i+MAX_DEPTH*3].precomp_data=&precomp_lst[3];
+      V_ListSetup(setup_data[i+MAX_DEPTH*3],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
+    }
+    Profile::Toc();
+    Profile::Tic("D2DSetup",false,3);
+    for(size_t i=0;i<MAX_DEPTH;i++){
+      setup_data[i+MAX_DEPTH*4].precomp_data=&precomp_lst[4];
+      Down2DownSetup(setup_data[i+MAX_DEPTH*4],node_data_buff,node_lists,i);
+    }
+    Profile::Toc();
+    Profile::Tic("D2TSetup",false,3);
+    for(size_t i=0;i<MAX_DEPTH;i++){
+      setup_data[i+MAX_DEPTH*5].precomp_data=&precomp_lst[5];
+      Down2TargetSetup(setup_data[i+MAX_DEPTH*5],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
+    }
+    Profile::Toc();
+
+    Profile::Tic("S2USetup",false,3);
+    for(size_t i=0;i<MAX_DEPTH;i++){
+      setup_data[i+MAX_DEPTH*6].precomp_data=&precomp_lst[6];
+      Source2UpSetup(setup_data[i+MAX_DEPTH*6],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
+    }
+    Profile::Toc();
+    Profile::Tic("U2USetup",false,3);
+    for(size_t i=0;i<MAX_DEPTH;i++){
+      setup_data[i+MAX_DEPTH*7].precomp_data=&precomp_lst[7];
+      Up2UpSetup(setup_data[i+MAX_DEPTH*7],node_data_buff,node_lists,i);
+    }
+    Profile::Toc();
+    ClearFMMData();
+    }Profile::Toc();
+  }
+/* End of 3rd Part: Setup FMM */
+
+/* 4th Part: Evaluation */
 private:
   void EvalListPts(SetupData& setup_data) {
     if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
@@ -3665,6 +3633,7 @@ public:
     }
     Profile::Toc();
   }
+/* End of 4th part: Evaluation */
 
   void CheckFMMOutput(std::string t_name){
     int np=omp_get_max_threads();
@@ -3731,7 +3700,6 @@ public:
       }
     }
   }
-
 };
 
 }//end namespace
