@@ -103,9 +103,9 @@ public:
 	t_avg=t_sum/np;
 	f_avg=f_sum/np;
 	fs_sum=f_sum/t_max;
- 
+  
 	if(!rank){
-	  if(i==151||i==153)
+          if(n_log[i] == "U-List" || n_log[i] == "V-List")
 	    std::cout << n_log[i] << "     : " << t_avg << std::endl;
 	}
 	level--;

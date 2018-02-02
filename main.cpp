@@ -87,7 +87,6 @@ int main(int argc, char **argv){
       nodes[i]->src_scatter = nodes[i]->pt_scatter;
     }
     Profile::Toc();
-    tree.InitFMM_Tree(false);
     tree.SetupFMM();
     tree.RunFMM();
     Profile::Toc();

@@ -1020,13 +1020,13 @@ public:
   }
 
 
-
+/*
   void InitFMM_Tree(bool refine) {
     Profile::Tic("InitFMM_Tree",true);{
       interacList.Initialize(mat);
     }Profile::Toc();
   }
-
+*/
   void SetupFMM() {
     Profile::Tic("SetupFMM",true);{
     Profile::Tic("SetColleagues",false,3);
