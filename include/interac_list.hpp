@@ -21,17 +21,17 @@ public:
     rel_coord.resize(Type_Count);
     hash_lut.resize(Type_Count);
 
-    InitList(0,0,1,UC2UE0_Type); // count = 1
+    InitList(0,0,1,UC2UE0_Type); // count = 1, (0,0,0)
     InitList(0,0,1,UC2UE1_Type); 
     InitList(0,0,1,DC2DE0_Type);
     InitList(0,0,1,DC2DE1_Type);
 
     InitList(0,0,1,S2U_Type);
-    InitList(1,1,2,U2U_Type);
+    InitList(1,1,2,U2U_Type);    // count = 8, (+1 or -1)
     InitList(1,1,2,D2D_Type);
     InitList(0,0,1,D2T_Type);
 
-    InitList(3,3,2,U0_Type);
+    InitList(3,3,2,U0_Type);     // count = 4^3-2^3 = 56
     InitList(1,0,1,U1_Type);
     InitList(3,3,2,U2_Type);
 

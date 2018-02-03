@@ -38,12 +38,8 @@ typedef enum{
 class PrecompMat{
 
  public:
-
-  bool scale_invar;
-
-  PrecompMat(bool scale_invar_): scale_invar(scale_invar_){
-    if(!scale_invar) mat.resize(256*Type_Count);
-    else mat.resize(Type_Count);
+  PrecompMat() {
+    mat.resize(Type_Count);
     for(size_t i=0;i<mat.size();i++)
       mat[i].resize(500);
 
@@ -60,7 +56,7 @@ class PrecompMat{
   }
 
   Matrix<real_t>& Mat(int l, Mat_Type type, size_t indx){
-    int level=(scale_invar?0:l+128);
+    int level = 0;
     assert(level*Type_Count+type<mat.size());
     if(indx>=mat[level*Type_Count+type].size()){
       mat[level*Type_Count+type].resize(indx+1);
@@ -113,13 +109,13 @@ class PrecompMat{
 	return offset;
       }
     }
-    std::vector<Matrix<real_t> >& mat_=mat[(scale_invar?0:level+128)*Type_Count+type];
+    std::vector<Matrix<real_t> >& mat_=mat[0*Type_Count+type];
     size_t mat_cnt=mat_.size();
     size_t indx_size=0;
     size_t mem_size=0;
     int omp_p=omp_get_max_threads();
-    size_t l0=(scale_invar?0:level);
-    size_t l1=(scale_invar?128:level+1);
+    size_t l0=0;
+    size_t l1=128;
     {
       indx_size+=sizeof(HeaderData);
       indx_size+=mat_cnt*(1+(2+2)*(l1-l0))*sizeof(size_t);
@@ -229,7 +225,7 @@ class PrecompMat{
     int tmp;
     tmp=sizeof(real_t);
     fwrite(&tmp,sizeof(int),1,f);
-    tmp=(scale_invar?1:0);
+    tmp=1;
     fwrite(&tmp,sizeof(int),1,f);
     for(size_t i=0;i<mat.size();i++){
       int n=mat[i].size();
@@ -300,8 +296,7 @@ class PrecompMat{
       tmp=*(int*)f_ptr; f_ptr+=sizeof(int);
       assert(tmp==sizeof(real_t));
       tmp=*(int*)f_ptr; f_ptr+=sizeof(int);
-      scale_invar=tmp;
-      size_t mat_size=(size_t)Type_Count*(scale_invar?1:256);
+      size_t mat_size=(size_t)Type_Count*1;
       if(mat.size()<mat_size){
 	mat.resize(mat_size);
       }
@@ -338,10 +333,6 @@ class PrecompMat{
 
   std::vector<real_t>& RelativeTrgCoord(){
     return rel_trg_coord;
-  }
-
-  bool ScaleInvar(){
-    return scale_invar;
   }
 
  private:

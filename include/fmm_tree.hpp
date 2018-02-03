@@ -160,8 +160,8 @@ private:
     for(size_t i=0; i<indx_lst.size(); i++){
       Precomp(type, indx_lst[i]);        // calculate operator matrix of abs_coords
     }
-    for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){
-      Matrix<real_t>& M0=interacList.ClassMat(level, type, mat_indx);
+    for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){   // loop over all rel_coord
+      Matrix<real_t>& M0=interacList.ClassMat(level, type, mat_indx);  // get the class_coord matrix pointer
       Permutation<real_t>& pr=interacList.Perm_R(level, type, mat_indx);
       Permutation<real_t>& pc=interacList.Perm_C(level, type, mat_indx);
       if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) Precomp(type, mat_indx);
@@ -609,7 +609,7 @@ public:
     kernel=kernel_;
     assert(kernel!=NULL);
     bool save_precomp=false;
-    mat=new PrecompMat(true);
+    mat=new PrecompMat();
     std::string mat_fname;
 
     std::stringstream st;
