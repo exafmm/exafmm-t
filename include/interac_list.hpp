@@ -61,12 +61,12 @@ public:
 
   Matrix<real_t>& ClassMat(Mat_Type type, size_t indx){
     size_t indx0=InteracClass(type, indx);
-    return mat->Mat(type, indx0);
+    return mat->mat[type][indx0];
   }
 
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
     size_t indx0=InteracClass(type, indx);
-    Matrix     <real_t>& M0      =mat->Mat   (type, indx0);
+    Matrix     <real_t>& M0      = mat->mat[type][indx0];
     Permutation<real_t>& row_perm=mat->Perm_R(l, type, indx );
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;
     if(row_perm.Dim()==0){
@@ -90,7 +90,7 @@ public:
 
   Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx){
     size_t indx0=InteracClass(type, indx);
-    Matrix     <real_t>& M0      =mat->Mat   (type, indx0);
+    Matrix     <real_t>& M0      = mat->mat[type][indx0];
     Permutation<real_t>& col_perm=mat->Perm_C(l, type, indx );
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
     if(col_perm.Dim()==0){
