@@ -216,7 +216,7 @@ private:
 
   Matrix<real_t>& Precomp(Mat_Type type, size_t mat_indx) {
     int level = 0;
-    Matrix<real_t>& M_ = mat->Mat(level, type, mat_indx);
+    Matrix<real_t>& M_ = mat->Mat(type, mat_indx);
     if(M_.Dim(0)!=0 && M_.Dim(1)!=0) return M_;
     else{
       size_t class_indx = interacList.InteracClass(type, mat_indx);
@@ -414,7 +414,7 @@ private:
             if(ref_coord[0]==rel_coord[0] &&
                ref_coord[1]==rel_coord[1] &&
                ref_coord[2]==rel_coord[2]){
-              Matrix<real_t>& M = mat->Mat(level, V_Type, k);
+              Matrix<real_t>& M = mat->Mat(V_Type, k);
               M_ptr[j2*chld_cnt+j1]=&M[0][0];
               break;
             }
@@ -1780,8 +1780,8 @@ private:
         pvfmm::Vector<size_t>& cnt=pt_interac_data.interac_cnt;
         pvfmm::Vector<size_t>& dsp=pt_interac_data.interac_dsp;
         if(cnt.Dim() && cnt[cnt.Dim()-1]+dsp[dsp.Dim()-1]){
-          data.pt_interac_data.M[2]=mat->Mat(level, UC2UE0_Type, 0);
-          data.pt_interac_data.M[3]=mat->Mat(level, UC2UE1_Type, 0);
+          data.pt_interac_data.M[2]=mat->Mat(UC2UE0_Type, 0);
+          data.pt_interac_data.M[3]=mat->Mat(UC2UE1_Type, 0);
         }else{
           data.pt_interac_data.M[2].ReInit(0,0);
           data.pt_interac_data.M[3].ReInit(0,0);
@@ -1850,7 +1850,7 @@ private:
       std::vector<real_t*> precomp_mat;
       {
         for(size_t mat_id=0;mat_id<mat_cnt;mat_id++){
-          Matrix<real_t>& M = mat->Mat(level, interac_type, mat_id);
+          Matrix<real_t>& M = mat->Mat(interac_type, mat_id);
           precomp_mat.push_back(&M[0][0]);
         }
       }
@@ -2835,8 +2835,8 @@ private:
         pvfmm::Vector<size_t>& cnt=pt_interac_data.interac_cnt;
         pvfmm::Vector<size_t>& dsp=pt_interac_data.interac_dsp;
         if(cnt.Dim() && cnt[cnt.Dim()-1]+dsp[dsp.Dim()-1]){
-          data.pt_interac_data.M[0]=mat->Mat(level, DC2DE0_Type, 0);
-          data.pt_interac_data.M[1]=mat->Mat(level, DC2DE1_Type, 0);
+          data.pt_interac_data.M[0]=mat->Mat(DC2DE0_Type, 0);
+          data.pt_interac_data.M[1]=mat->Mat(DC2DE1_Type, 0);
         }else{
           data.pt_interac_data.M[0].ReInit(0,0);
           data.pt_interac_data.M[1].ReInit(0,0);

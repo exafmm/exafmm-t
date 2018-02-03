@@ -36,8 +36,9 @@ typedef enum{
 } Perm_Type;
 
 class PrecompMat{
+public:
+  std::vector<std::vector<Matrix<real_t> > > mat;
 
- public:
   PrecompMat() {
     mat.resize(Type_Count);
     for(size_t i=0;i<mat.size();i++)
@@ -55,13 +56,12 @@ class PrecompMat{
     }
   }
 
-  Matrix<real_t>& Mat(int l, Mat_Type type, size_t indx){
-    int level = 0;
-    assert(level*Type_Count+type<mat.size());
-    if(indx>=mat[level*Type_Count+type].size()){
-      mat[level*Type_Count+type].resize(indx+1);
+  Matrix<real_t>& Mat(Mat_Type type, size_t indx){
+    assert(type < mat.size());
+    if(indx >= mat[type].size()){
+      mat[type].resize(indx+1);
     }
-    return mat[level*Type_Count+type][indx];
+    return mat[type][indx];
   }
 
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
@@ -122,7 +122,7 @@ class PrecompMat{
       indx_size=align_ptr(indx_size);
 
       for(size_t j=0;j<mat_cnt;j++){
-	Matrix     <real_t>& M =Mat   (level,type,j);
+	Matrix     <real_t>& M =Mat   (type,j);
 	if(M.Dim(0)>0 && M.Dim(1)>0){
 	  mem_size+=M.Dim(0)*M.Dim(1)*sizeof(real_t); mem_size=align_ptr(mem_size);
 	}
@@ -164,7 +164,7 @@ class PrecompMat{
       header. max_depth=l1-l0             ;
       size_t data_offset=offset+indx_size;
       for(size_t j=0;j<mat_cnt;j++){
-	Matrix     <real_t>& M =Mat   (level,type,j);
+	Matrix     <real_t>& M =Mat   (type,j);
 	offset_indx[j][0]=data_offset; indx_ptr+=sizeof(size_t);
 	data_offset+=M.Dim(0)*M.Dim(1)*sizeof(real_t); mem_size=align_ptr(mem_size);
 	for(size_t l=l0;l<l1;l++){
@@ -187,7 +187,7 @@ class PrecompMat{
       indx_ptr+=sizeof(HeaderData);
       Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
       for(size_t j=0;j<mat_cnt;j++){
-	Matrix     <real_t>& M =Mat   (level,type,j);
+	Matrix     <real_t>& M =Mat   (type,j);
 	if(M.Dim(0)>0 && M.Dim(1)>0){
 	  size_t a=(M.Dim(0)*M.Dim(1)* tid   )/omp_p;
 	  size_t b=(M.Dim(0)*M.Dim(1)*(tid+1))/omp_p;
@@ -336,8 +336,6 @@ class PrecompMat{
   }
 
  private:
-
-  std::vector<std::vector<Matrix     <real_t> > > mat;
   std::vector<std::vector<Permutation<real_t> > > perm;
   std::vector<std::vector<Permutation<real_t> > > perm_r;
   std::vector<std::vector<Permutation<real_t> > > perm_c;
