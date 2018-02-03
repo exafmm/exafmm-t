@@ -59,7 +59,7 @@ public:
   }
 
 
-  Matrix<real_t>& ClassMat(int l, Mat_Type type, size_t indx){
+  Matrix<real_t>& ClassMat(Mat_Type type, size_t indx){
     size_t indx0=InteracClass(type, indx);
     return mat->Mat(type, indx0);
   }

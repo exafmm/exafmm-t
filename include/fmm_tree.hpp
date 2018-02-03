@@ -161,7 +161,7 @@ private:
       Precomp(type, indx_lst[i]);        // calculate operator matrix of abs_coords
     }
     for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){   // loop over all rel_coord
-      Matrix<real_t>& M0=interacList.ClassMat(level, type, mat_indx);  // get the class_coord matrix pointer
+      Matrix<real_t>& M0=interacList.ClassMat(type, mat_indx);  // get the class_coord matrix pointer
       Permutation<real_t>& pr=interacList.Perm_R(level, type, mat_indx);
       Permutation<real_t>& pc=interacList.Perm_C(level, type, mat_indx);
       if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) Precomp(type, mat_indx);
@@ -1014,7 +1014,7 @@ private:
     if(node.size()==0) return;
     int indx=0;
     size_t vec_sz;
-    Matrix<real_t>& M_uc2ue = interacList.ClassMat(0, UC2UE1_Type, 0);
+    Matrix<real_t>& M_uc2ue = interacList.ClassMat(UC2UE1_Type, 0);
     vec_sz=M_uc2ue.Dim(1);
     std::vector< FMM_Node* > node_lst;
     node_lst.clear();
@@ -1059,7 +1059,7 @@ private:
     }
 
     indx=1;
-    Matrix<real_t>& M_dc2de0 = interacList.ClassMat(0, DC2DE0_Type, 0);
+    Matrix<real_t>& M_dc2de0 = interacList.ClassMat(DC2DE0_Type, 0);
     vec_sz=M_dc2de0.Dim(0);
     node_lst.clear();
     for(int i=0;i<=MAX_DEPTH;i++)
@@ -1439,7 +1439,7 @@ private:
         }
         std::vector<std::vector<size_t>> interac_dsp(n_out, std::vector<size_t>(mat_cnt));
         std::vector<size_t> interac_blk_dsp(1,0);
-        Matrix<real_t>& M0 = interacList.ClassMat(level, interac_type_lst[0], 0);
+        Matrix<real_t>& M0 = interacList.ClassMat(interac_type_lst[0], 0);
         M_dim0=M0.Dim(0); M_dim1=M0.Dim(1);
         {
           size_t vec_size=(M_dim0+M_dim1)*sizeof(real_t);
