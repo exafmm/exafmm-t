@@ -38,6 +38,7 @@ typedef enum{
 class PrecompMat{
 public:
   std::vector<std::vector<Matrix<real_t> > > mat;
+  std::vector<std::vector<Permutation<real_t> > > perm;
 
   PrecompMat() {
     mat.resize(Type_Count);
@@ -73,12 +74,6 @@ public:
     }
     return perm_c[level*Type_Count+type][indx];
   }
-
-  Permutation<real_t>& Perm(Mat_Type type, size_t indx){
-    assert(indx<Perm_Count);
-    return perm[type][indx];
-  }
-
 
   inline uintptr_t align_ptr(uintptr_t ptr){
     static uintptr_t     ALIGN_MINUS_ONE=MEM_ALIGN-1;
@@ -328,7 +323,6 @@ public:
   }
 
  private:
-  std::vector<std::vector<Permutation<real_t> > > perm;
   std::vector<std::vector<Permutation<real_t> > > perm_r;
   std::vector<std::vector<Permutation<real_t> > > perm_c;
   std::vector<real_t> rel_trg_coord;

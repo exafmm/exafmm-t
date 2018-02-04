@@ -74,13 +74,13 @@ public:
       for(int i=0;i<l;i++) p_list.push_back(Scaling);
       Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(0));
       for(int i=0;i<C_Perm;i++){
-	Permutation<real_t>& pr=mat->Perm(type, R_Perm + i);
+	Permutation<real_t>& pr=mat->perm[type][R_Perm + i];
 	if(!pr.Dim()) row_perm_=Permutation<real_t>(0);
       }
       if(row_perm_.Dim()>0)
 	for(int i=p_list.size()-1; i>=0; i--){
 	  assert(type!=V_Type);
-	  Permutation<real_t>& pr=mat->Perm(type, R_Perm + p_list[i]);
+	  Permutation<real_t>& pr=mat->perm[type][R_Perm + p_list[i]];
 	  row_perm_=pr.Transpose()*row_perm_;
 	}
       row_perm=row_perm_;
@@ -98,13 +98,13 @@ public:
       for(int i=0;i<l;i++) p_list.push_back(Scaling);
       Permutation<real_t> col_perm_=Permutation<real_t>(M0.Dim(1));
       for(int i=0;i<C_Perm;i++){
-	Permutation<real_t>& pc=mat->Perm(type, C_Perm + i);
+	Permutation<real_t>& pc=mat->perm[type][C_Perm + i];
 	if(!pc.Dim()) col_perm_=Permutation<real_t>(0);
       }
       if(col_perm_.Dim()>0)
 	for(int i=p_list.size()-1; i>=0; i--){
 	  assert(type!=V_Type);
-	  Permutation<real_t>& pc=mat->Perm(type, C_Perm + p_list[i]);
+	  Permutation<real_t>& pc=mat->perm[type][C_Perm + p_list[i]];
 	  col_perm_=col_perm_*pc;
 	}
       col_perm=col_perm_;

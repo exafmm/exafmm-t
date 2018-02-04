@@ -151,6 +151,7 @@ private:
     }
     size_t mat_cnt=interacList.ListCount(type); // num of relative pts (rel_coord) w.r.t this type
     mat->mat[type].resize(mat_cnt);
+    // if (level==0) std::cout << "Mat Type: " << type << " rel_coord count:  " << mat_cnt << std::endl;
     std::vector<size_t> indx_lst;
     for(size_t i=0; i<mat_cnt; i++) {    // i is index of rel_coord
       if(interacList.InteracClass(type,i)==i) {  // if i-th is a abs_coord (class_coord)
@@ -169,8 +170,7 @@ private:
   }
 
   Permutation<real_t>& PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
-    // since we never save values in mat->perm vector, P_ is always an empty Permutation instance
-    Permutation<real_t>& P_ = mat->Perm(type, perm_indx);
+    Permutation<real_t>& P_ = mat->perm[type][perm_indx];
     if(P_.Dim()!=0) return P_;
     size_t m=multipole_order;
     size_t p_indx=perm_indx % C_Perm;
@@ -224,7 +224,7 @@ private:
         Matrix<real_t>& M0 = Precomp(type, class_indx);
         if(M0.Dim(0)==0 || M0.Dim(1)==0) return M_;
 
-        for(size_t i=0;i<Perm_Count;i++) PrecompPerm(type, (Perm_Type) i);
+        //for(size_t i=0;i<Perm_Count;i++) PrecompPerm(type, (Perm_Type) i);
         Permutation<real_t>& Pr = interacList.Perm_R(level, type, mat_indx);
         Permutation<real_t>& Pc = interacList.Perm_C(level, type, mat_indx);
         if(Pr.Dim()>0 && Pc.Dim()>0 && M0.Dim(0)>0 && M0.Dim(1)>0) return M_;
