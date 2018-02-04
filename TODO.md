@@ -2,7 +2,7 @@
 -------------
 - [ ] remove perm_r perm_c (Perm_R, Perm_C)
 - [ ] remove unnecessary/unused permutation type
-- [ ] make Precompmat members public instead of calling access functions
+- [x] make Precompmat members public instead of calling access functions
 - [ ] write down math equations for precomputation
 - [ ] remove "ghost" and "scatter" related members and functions
 - [ ] use exafmm hilbert id header (if necessary)

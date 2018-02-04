@@ -139,27 +139,22 @@ public:
  * load the binary matrix file into PrecompMat::mat; if not, calculate the matrix
  * for each operator type, save them in PrecompMat::mat and save mat in file*/
 private:
-  void PrecompAll(Mat_Type type, int level=-1) {
-    if(level==-1) {  // Run PrecompAll at all levels
-      for(int l=0;l<MAX_DEPTH;l++) {
-        PrecompAll(type, l);
-      }
-      return;
-    }
-    for(size_t i=0;i<Perm_Count;i++) {
+  void PrecompAll(Mat_Type type) {
+    for(int level=0; level<MAX_DEPTH; level++)
+      PrecompAll(type, level);
+  }
+
+  void PrecompAll(Mat_Type type, int level) {
+    for(size_t i=0; i<Perm_Count; i++) {
       PrecompPerm(type, (Perm_Type) i);
     }
     size_t mat_cnt=interacList.ListCount(type); // num of relative pts (rel_coord) w.r.t this type
     mat->mat[type].resize(mat_cnt);
     // if (level==0) std::cout << "Mat Type: " << type << " rel_coord count:  " << mat_cnt << std::endl;
-    std::vector<size_t> indx_lst;
-    for(size_t i=0; i<mat_cnt; i++) {    // i is index of rel_coord
-      if(interacList.InteracClass(type,i)==i) {  // if i-th is a abs_coord (class_coord)
-        indx_lst.push_back(i);           // then add i to the index list (otherwise, i-th coord's matrix can be produced by permutation of its abs_coord's matrix)
+    for(size_t i=0; i<mat_cnt; i++) {           // i is index of rel_coord
+      if(interacList.interac_class[type][i] == i) { // if i-th coord is a class_coord
+        Precomp(type, i);                       // calculate operator matrix of abs_coords
       }
-    }
-    for(size_t i=0; i<indx_lst.size(); i++){
-      Precomp(type, indx_lst[i]);        // calculate operator matrix of abs_coords
     }
     for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){   // loop over all rel_coord
       Matrix<real_t>& M0=interacList.ClassMat(type, mat_indx);  // get the class_coord matrix pointer
@@ -219,11 +214,10 @@ private:
     Matrix<real_t>& M_ = mat->mat[type][mat_indx];
     if(M_.Dim(0)!=0 && M_.Dim(1)!=0) return M_;
     else{
-      size_t class_indx = interacList.InteracClass(type, mat_indx);
+      size_t class_indx = interacList.interac_class[type][mat_indx];
       if(class_indx!=mat_indx){
         Matrix<real_t>& M0 = Precomp(type, class_indx);
         if(M0.Dim(0)==0 || M0.Dim(1)==0) return M_;
-
         //for(size_t i=0;i<Perm_Count;i++) PrecompPerm(type, (Perm_Type) i);
         Permutation<real_t>& Pr = interacList.Perm_R(level, type, mat_indx);
         Permutation<real_t>& Pc = interacList.Perm_C(level, type, mat_indx);
@@ -311,7 +305,7 @@ private:
       std::vector<real_t> check_surf=u_check_surf(multipole_order,c,level);
       size_t n_uc=check_surf.size()/3;
       real_t s=powf(0.5,(level+2));
-      int* coord=interacList.RelativeCoord(type,mat_indx);
+      int* coord=interacList.rel_coord[type][mat_indx];
       real_t child_coord[3]={(coord[0]+1)*s,(coord[1]+1)*s,(coord[2]+1)*s};
       std::vector<real_t> equiv_surf=u_equiv_surf(multipole_order,child_coord,level+1);
       size_t n_ue=equiv_surf.size()/3;
@@ -327,7 +321,7 @@ private:
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_l2l->ker_dim;
       real_t s=powf(0.5,level+1);
-      int* coord=interacList.RelativeCoord(type,mat_indx);
+      int* coord=interacList.rel_coord[type][mat_indx];
       real_t c[3]={(coord[0]+1)*s,(coord[1]+1)*s,(coord[2]+1)*s};
       std::vector<real_t> check_surf=d_check_surf(multipole_order,c,level);
       size_t n_dc=check_surf.size()/3;
@@ -356,7 +350,7 @@ private:
       int n3 =n1*n1*n1;
       int n3_=n1*n1*(n1/2+1);
       real_t s=powf(0.5,level);
-      int* coord2=interacList.RelativeCoord(type,mat_indx);
+      int* coord2=interacList.rel_coord[type][mat_indx];
       real_t coord_diff[3]={coord2[0]*s,coord2[1]*s,coord2[2]*s};
       std::vector<real_t> r_trg(3,0.0);
       std::vector<real_t> conv_poten(n3*ker_dim[0]*ker_dim[1]);
@@ -403,14 +397,14 @@ private:
       Vector<real_t*> M_ptr(chld_cnt*chld_cnt);
       for(size_t i=0;i<chld_cnt*chld_cnt;i++) M_ptr[i]=&zero_vec[0];
 
-      int* rel_coord_=interacList.RelativeCoord(V1_Type, mat_indx);
+      int* rel_coord_=interacList.rel_coord[V1_Type][mat_indx];
       for(int j1=0;j1<chld_cnt;j1++)
         for(int j2=0;j2<chld_cnt;j2++){
           int rel_coord[3]={rel_coord_[0]*2-(j1/1)%2+(j2/1)%2,
                             rel_coord_[1]*2-(j1/2)%2+(j2/2)%2,
                             rel_coord_[2]*2-(j1/4)%2+(j2/4)%2};
           for(size_t k=0;k<mat_cnt;k++){
-            int* ref_coord=interacList.RelativeCoord(V_Type, k);
+            int* ref_coord=interacList.rel_coord[V_Type][k];
             if(ref_coord[0]==rel_coord[0] &&
                ref_coord[1]==rel_coord[1] &&
                ref_coord[2]==rel_coord[2]){
@@ -485,13 +479,13 @@ private:
           Precomp(D2D_Type, 0);
           Permutation<real_t>& Pr = interacList.Perm_R(level, D2D_Type, 0);
           Permutation<real_t>& Pc = interacList.Perm_C(level, D2D_Type, 0);
-          M_l2l[-level] = M_check_zero_avg * Pr * Precomp(D2D_Type, interacList.InteracClass(D2D_Type, 0)) * Pc * M_check_zero_avg;
+          M_l2l[-level] = M_check_zero_avg * Pr * Precomp(D2D_Type, interacList.interac_class[D2D_Type][0]) * Pc * M_check_zero_avg;
           assert(M_l2l[-level].Dim(0)>0 && M_l2l[-level].Dim(1)>0);
           for(size_t mat_indx=0; mat_indx<mat_cnt_m2m; mat_indx++){
             Precomp(U2U_Type, mat_indx);
             Permutation<real_t>& Pr = interacList.Perm_R(level, U2U_Type, mat_indx);
             Permutation<real_t>& Pc = interacList.Perm_C(level, U2U_Type, mat_indx);
-            Matrix<real_t> M = Pr * Precomp(U2U_Type, interacList.InteracClass(U2U_Type, mat_indx)) * Pc;
+            Matrix<real_t> M = Pr * Precomp(U2U_Type, interacList.interac_class[U2U_Type][mat_indx]) * Pc;
             assert(M.Dim(0)>0 && M.Dim(1)>0);
 
             if(mat_indx==0) M_m2m[-level] = M_equiv_zero_avg*M*M_equiv_zero_avg;
@@ -1466,7 +1460,7 @@ private:
               interac_dsp_-=offset;
               assert(interac_dsp_*vec_size<=buff_size);
             }
-            interac_mat.push_back(precomp_data_offset[interacList.InteracClass(interac_type,j)][0]);
+            interac_mat.push_back(precomp_data_offset[interacList.interac_class[interac_type][j]][0]);
             interac_cnt.push_back(interac_dsp_-interac_dsp[0][j]);
           }
           interac_blk.push_back(mat_cnt-interac_blk_dsp.back());
@@ -1745,7 +1739,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.RelativeCoord(type,j);
+                const int* rel_coord=interacList.rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -2148,7 +2142,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.RelativeCoord(type,j);
+                const int* rel_coord=interacList.rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -2322,7 +2316,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.RelativeCoord(type,j);
+                const int* rel_coord=interacList.rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -2514,7 +2508,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.RelativeCoord(type,j);
+                const int* rel_coord=interacList.rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -2538,7 +2532,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.RelativeCoord(type,j);
+                const int* rel_coord=interacList.rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -2562,7 +2556,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.RelativeCoord(type,j);
+                const int* rel_coord=interacList.rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -2587,7 +2581,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.RelativeCoord(type,j);
+                const int* rel_coord=interacList.rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -2613,7 +2607,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.RelativeCoord(type,j);
+                const int* rel_coord=interacList.rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -2800,7 +2794,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.RelativeCoord(type,j);
+                const int* rel_coord=interacList.rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];

@@ -5,7 +5,6 @@ namespace pvfmm{
 
 class InteracList{
 public:
-
   std::vector<Matrix<int> > rel_coord;
   std::vector<std::vector<int> > hash_lut;     // coord_hash -> index in rel_coord
   std::vector<std::vector<size_t> > interac_class;  // index -> index of abs_coord of the same class
@@ -46,31 +45,18 @@ public:
     return rel_coord[t].Dim(0);
   }
 
-  int* RelativeCoord(Mat_Type t, size_t i){
-    return rel_coord[t][i];
-  }
-
-  size_t InteracClass(Mat_Type t, size_t i){
-    return interac_class[t][i];
-  }
-
-  std::vector<Perm_Type>& PermutList(Mat_Type t, size_t i){
-    return perm_list[t][i];
-  }
-
-
   Matrix<real_t>& ClassMat(Mat_Type type, size_t indx){
-    size_t indx0=InteracClass(type, indx);
+    size_t indx0 = interac_class[type][indx];
     return mat->mat[type][indx0];
   }
 
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
-    size_t indx0=InteracClass(type, indx);
+    size_t indx0 = interac_class[type][indx];
     Matrix     <real_t>& M0      = mat->mat[type][indx0];
     Permutation<real_t>& row_perm=mat->Perm_R(l, type, indx );
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;
     if(row_perm.Dim()==0){
-      std::vector<Perm_Type> p_list=PermutList(type, indx);
+      std::vector<Perm_Type> p_list = perm_list[type][indx];
       for(int i=0;i<l;i++) p_list.push_back(Scaling);
       Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(0));
       for(int i=0;i<C_Perm;i++){
@@ -89,12 +75,12 @@ public:
   }
 
   Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx){
-    size_t indx0=InteracClass(type, indx);
+    size_t indx0 = interac_class[type][indx];
     Matrix     <real_t>& M0      = mat->mat[type][indx0];
     Permutation<real_t>& col_perm=mat->Perm_C(l, type, indx );
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
     if(col_perm.Dim()==0){
-      std::vector<Perm_Type> p_list=PermutList(type, indx);
+      std::vector<Perm_Type> p_list = perm_list[type][indx];
       for(int i=0;i<l;i++) p_list.push_back(Scaling);
       Permutation<real_t> col_perm_=Permutation<real_t>(M0.Dim(1));
       for(int i=0;i<C_Perm;i++){
@@ -375,7 +361,6 @@ public:
       break;
     }
   }
-
 };
 
 }//end namespace
