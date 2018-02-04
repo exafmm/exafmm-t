@@ -153,13 +153,13 @@ private:
     // if (level==0) std::cout << "Mat Type: " << type << " rel_coord count:  " << mat_cnt << std::endl;
     for(size_t i=0; i<mat_cnt; i++) {           // i is index of rel_coord
       if(interacList.interac_class[type][i] == i) { // if i-th coord is a class_coord
-        Precomp(type, i);                       // calculate operator matrix of abs_coords
+        Precomp(type, i);                       // calculate operator matrix of class_coord
       }
     }
     for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){   // loop over all rel_coord
       Matrix<real_t>& M0=interacList.ClassMat(type, mat_indx);  // get the class_coord matrix pointer
-      Permutation<real_t>& pr=interacList.Perm_R(level, type, mat_indx);
-      Permutation<real_t>& pc=interacList.Perm_C(level, type, mat_indx);
+      Permutation<real_t>& pr=interacList.Perm_R(level, type, mat_indx);  // calculate perm_r 
+      Permutation<real_t>& pc=interacList.Perm_C(level, type, mat_indx);  // & perm_c for U2U and D2U type
       if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) Precomp(type, mat_indx);
     }
   }
@@ -204,7 +204,7 @@ private:
     }
 #pragma omp critical (PRECOMP_MATRIX_PTS)
     {
-      if(P_.Dim()==0) P_=P; // Dim is always 0
+      if(P_.Dim()==0) P_=P;
     }
     return P_;
   }

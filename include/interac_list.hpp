@@ -50,24 +50,25 @@ public:
     return mat->mat[type][indx0];
   }
 
+  // This is only related to U2U and D2D operator
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
-    size_t indx0 = interac_class[type][indx];
-    Matrix     <real_t>& M0      = mat->mat[type][indx0];
-    Permutation<real_t>& row_perm=mat->Perm_R(l, type, indx );
-    if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;
-    if(row_perm.Dim()==0){
-      std::vector<Perm_Type> p_list = perm_list[type][indx];
-      for(int i=0;i<l;i++) p_list.push_back(Scaling);
-      Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(0));
-      for(int i=0;i<C_Perm;i++){
-	Permutation<real_t>& pr=mat->perm[type][R_Perm + i];
-	if(!pr.Dim()) row_perm_=Permutation<real_t>(0);
+    size_t indx0 = interac_class[type][indx];                     // indx0: class coord index
+    Matrix     <real_t>& M0      = mat->mat[type][indx0];         // class coord matrix
+    Permutation<real_t>& row_perm=mat->Perm_R(l, type, indx );    // mat->perm_r[(l+128)*16+type][indx] 
+    if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;             // if mat hasn't been computed, then return
+    if(row_perm.Dim()==0){                                        // if this perm_r entry hasn't been computed
+      std::vector<Perm_Type> p_list = perm_list[type][indx];      // get perm_list of current rel_coord
+      for(int i=0;i<l;i++) p_list.push_back(Scaling);             // push back Scaling operation l times
+      Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(0));  // init row_perm to be size npts*src_dim
+      for(int i=0;i<C_Perm;i++){                                  // loop over permutation types
+	Permutation<real_t>& pr=mat->perm[type][R_Perm + i];      // grab the handle of its mat->perm entry
+	if(!pr.Dim()) row_perm_=Permutation<real_t>(0);           // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
       }
-      if(row_perm_.Dim()>0)
-	for(int i=p_list.size()-1; i>=0; i--){
-	  assert(type!=V_Type);
-	  Permutation<real_t>& pr=mat->perm[type][R_Perm + p_list[i]];
-	  row_perm_=pr.Transpose()*row_perm_;
+      if(row_perm_.Dim()>0)                                       // if this type & entry needs permutation
+	for(int i=p_list.size()-1; i>=0; i--){                    // loop over the operations of perm_list from end to begin
+	  //assert(type!=V_Type);
+	  Permutation<real_t>& pr=mat->perm[type][R_Perm + p_list[i]];  // get the permutation of the operation
+	  row_perm_=pr.Transpose()*row_perm_;                     // accumulate the permutation to row_perm (perm_r in precompmat header)
 	}
       row_perm=row_perm_;
     }
@@ -89,7 +90,7 @@ public:
       }
       if(col_perm_.Dim()>0)
 	for(int i=p_list.size()-1; i>=0; i--){
-	  assert(type!=V_Type);
+	  //assert(type!=V_Type);
 	  Permutation<real_t>& pc=mat->perm[type][C_Perm + p_list[i]];
 	  col_perm_=col_perm_*pc;
 	}

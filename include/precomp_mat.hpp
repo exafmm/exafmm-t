@@ -318,15 +318,9 @@ public:
 
 #undef MY_FREAD
 
-  std::vector<real_t>& RelativeTrgCoord(){
-    return rel_trg_coord;
-  }
-
  private:
   std::vector<std::vector<Permutation<real_t> > > perm_r;
   std::vector<std::vector<Permutation<real_t> > > perm_c;
-  std::vector<real_t> rel_trg_coord;
-
 };
 
 }//end namespace
