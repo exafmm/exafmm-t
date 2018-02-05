@@ -14,7 +14,6 @@ class FMM_Node {
   bool ghost;
   size_t max_pts;
   size_t node_id;
-  long long weight;
   real_t coord[3];
   FMM_Node * colleague[27];
   Vector<real_t> pt_coord;
@@ -34,7 +33,7 @@ class FMM_Node {
   FMM_Data* fmm_data;
 
   FMM_Node() : depth(0), max_depth(MAX_DEPTH), parent(NULL), child(NULL), status(1),
-	       ghost(false), weight(1) {
+	       ghost(false) {
     fmm_data=NULL;
   }
 
