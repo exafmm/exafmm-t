@@ -38,7 +38,6 @@ public:
     InitList(1,1,1,V1_Type);
     InitList(5,5,2,W_Type);
     InitList(5,5,2,X_Type);
-    InitList(0,0,1,BC_Type);
   }
 
   size_t ListCount(Mat_Type t){

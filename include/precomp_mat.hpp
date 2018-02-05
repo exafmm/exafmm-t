@@ -19,8 +19,7 @@ typedef enum{
   W_Type    =12,
   X_Type    =13,
   V1_Type   =14,
-  BC_Type   =15,
-  Type_Count=16
+  Type_Count=15
 } Mat_Type;
 
 typedef enum{
