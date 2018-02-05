@@ -586,7 +586,7 @@ private:
         first_node=first_node.NextId();
       }
     }
-    for(;i<node_cnt-(myrank==np-1?0:1);i++) node_lst.push_back(nodes_local[i]);
+    for(;i<node_cnt;i++) node_lst.push_back(nodes_local[i]);
     nodes=node_lst;
     Profile::Toc();
     return 0;
@@ -668,15 +668,11 @@ private:
 
 public:
   std::vector<FMM_Node*>& GetNodeList() {
-    if(root_node->GetStatus() & 1){
-      node_lst.clear();
-      FMM_Node* n=root_node;
-      while(n!=NULL){
-	int& status=n->GetStatus();
-	status=(status & (~(int)1));
-	node_lst.push_back(n);
-	n=PreorderNxt(n);
-      }
+    node_lst.clear();
+    FMM_Node* n=root_node;
+    while(n!=NULL){
+      node_lst.push_back(n);
+      n=PreorderNxt(n);
     }
     return node_lst;
   }

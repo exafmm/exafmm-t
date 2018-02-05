@@ -10,7 +10,6 @@ class FMM_Node {
   int path2node;
   FMM_Node* parent;
   FMM_Node** child;
-  int status;
   size_t max_pts;
   size_t node_id;
   real_t coord[3];
@@ -31,7 +30,7 @@ class FMM_Node {
   std::vector<FMM_Node*> interac_list[Type_Count];
   FMM_Data* fmm_data;
 
-  FMM_Node() : depth(0), max_depth(MAX_DEPTH), parent(NULL), child(NULL), status(1) {
+  FMM_Node() : depth(0), max_depth(MAX_DEPTH), parent(NULL), child(NULL) {
     fmm_data=NULL;
   }
 
@@ -101,7 +100,6 @@ class FMM_Node {
 
   void Truncate() {
     if(!child) return;
-    SetStatus(1);
     int n=(1UL<<3);
     for(int i=0;i<n;i++){
       if(child[i]!=NULL)
@@ -126,7 +124,6 @@ class FMM_Node {
   void Subdivide(){
     if(!IsLeaf()) return;
     if(child) return;
-    SetStatus(1);
     int n = 8;
     child=new FMM_Node* [n];
     for(int i=0;i<n;i++){
@@ -213,16 +210,6 @@ class FMM_Node {
 
   bool IsLeaf() {
     return child == NULL;
-  }
-
-  int& GetStatus() {
-    return status;
-  }
-
-  void SetStatus(int flag) {
-    status=(status|flag);
-    if(parent && !(parent->GetStatus() & flag))
-      parent->SetStatus(flag);
   }
 
   FMM_Node* Child(int id){
