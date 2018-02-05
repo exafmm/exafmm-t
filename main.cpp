@@ -71,7 +71,7 @@ int main(int argc, char **argv){
   init_data.coord=src_coord;
   init_data.value=src_value;
 
-  FMM_Tree tree;
+  FMM_Tree tree(mult_order);
   tree.Initialize(mult_order,&grad_ker);
   for(size_t it=0;it<2;it++){
     Profile::Tic("TotalTime",true);
