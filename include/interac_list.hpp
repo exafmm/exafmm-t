@@ -193,12 +193,12 @@ public:
 
     case S2U_Type:
       {
-	if(!n->IsGhost() && n->IsLeaf()) interac_list[0]=n;
+	if(n->IsLeaf()) interac_list[0]=n;
 	break;
       }
     case U2U_Type:
       {
-	if(n->IsGhost() || n->IsLeaf()) return;
+	if(n->IsLeaf()) return;
 	for(int j=0;j<n_child;j++){
 	  rel_coord[0]=-1+(j & 1?2:0);
 	  rel_coord[1]=-1+(j & 2?2:0);
@@ -206,13 +206,13 @@ public:
 	  int c_hash = coord_hash(rel_coord);
 	  int idx=hash_lut[t][c_hash];
 	  FMM_Node* chld=(FMM_Node*)n->Child(j);
-	  if(idx>=0 && !chld->IsGhost()) interac_list[idx]=chld;
+	  if(idx>=0) interac_list[idx]=chld;
 	}
 	break;
       }
     case D2D_Type:
       {
-	if(n->IsGhost() || n->Parent()==NULL) return;
+	if(n->Parent()==NULL) return;
 	FMM_Node* p=(FMM_Node*)n->Parent();
 	int p2n=n->Path2Node();
 	{
@@ -227,12 +227,12 @@ public:
       }
     case D2T_Type:
       {
-	if(!n->IsGhost() && n->IsLeaf()) interac_list[0]=n;
+	if(n->IsLeaf()) interac_list[0]=n;
 	break;
       }
     case U0_Type:
       {
-	if(n->IsGhost() || n->Parent()==NULL || !n->IsLeaf()) return;
+	if(n->Parent()==NULL || !n->IsLeaf()) return;
 	FMM_Node* p=(FMM_Node*)n->Parent();
 	int p2n=n->Path2Node();
 	for(int i=0;i<n_collg;i++){
@@ -250,7 +250,7 @@ public:
       }
     case U1_Type:
       {
-	if(n->IsGhost() || !n->IsLeaf()) return;
+	if(!n->IsLeaf()) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
 	  if(col!=NULL && col->IsLeaf()){
@@ -266,7 +266,7 @@ public:
       }
     case U2_Type:
       {
-	if(n->IsGhost() || !n->IsLeaf()) return;
+	if(!n->IsLeaf()) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
 	  if(col!=NULL && !col->IsLeaf()){
@@ -287,7 +287,7 @@ public:
       }
     case V_Type:
       {
-	if(n->IsGhost() || n->Parent()==NULL) return;
+	if(n->Parent()==NULL) return;
 	FMM_Node* p=(FMM_Node*)n->Parent();
 	int p2n=n->Path2Node();
 	for(int i=0;i<n_collg;i++){
@@ -307,7 +307,7 @@ public:
       }
     case V1_Type:
       {
-	if(n->IsGhost() || n->IsLeaf()) return;
+	if(n->IsLeaf()) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
 	  if(col!=NULL && !col->IsLeaf()){
@@ -323,7 +323,7 @@ public:
       }
     case W_Type:
       {
-	if(n->IsGhost() || !n->IsLeaf()) return;
+	if(!n->IsLeaf()) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
 	  if(col!=NULL && !col->IsLeaf()){
@@ -341,7 +341,7 @@ public:
       }
     case X_Type:
       {
-	if(n->IsGhost() || n->Parent()==NULL) return;
+	if(n->Parent()==NULL) return;
 	FMM_Node* p=(FMM_Node*)n->Parent();
 	int p2n=n->Path2Node();
 	for(int i=0;i<n_collg;i++){

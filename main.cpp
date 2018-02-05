@@ -97,8 +97,8 @@ int main(int argc, char **argv){
   std::vector<FMM_Node*>& nodes=tree.GetNodeList();
   for(size_t i=0;i<nodes.size();i++){
     FMM_Node* n=nodes[i];
-    if(!n->IsGhost()) all_nodes[n->depth]++;
-    if(!n->IsGhost() && n->IsLeaf()){
+    all_nodes[n->depth]++;
+    if(n->IsLeaf()){
       leaf_nodes[n->depth]++;
       if(maxdepth<n->depth) maxdepth=n->depth;
       nleaf++;

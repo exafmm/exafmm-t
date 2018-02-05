@@ -597,7 +597,7 @@ private:
     FMM_Node* n=start;
     if(n==NULL) n=root_node;
     while(n->GetMortonId()<key && (!n->IsLeaf()||subdiv)){
-      if(n->IsLeaf() && !n->IsGhost()) n->Subdivide();
+      if(n->IsLeaf()) n->Subdivide();
       if(n->IsLeaf()) break;
       for(int j=0;j<num_child;j++){
 	if(n->Child(j)->GetMortonId().NextId()>key){
@@ -606,7 +606,7 @@ private:
 	}
       }
     }
-    assert(!subdiv || n->IsGhost() || n->GetMortonId()==key);
+    assert(!subdiv || n->GetMortonId()==key);
     return n;
   }
 
@@ -736,7 +736,6 @@ public:
 
       Profile::Tic("PointerTree",false,5);
       int omp_p=omp_get_max_threads();
-      root_node->SetGhost(false);
       for(int i=0;i<omp_p;i++){
         size_t idx=(lin_oct.size()*i)/omp_p;
         FMM_Node* n=FindNode(lin_oct[idx], true);
@@ -750,7 +749,6 @@ public:
         FMM_Node* n=FindNode(lin_oct[idx], false);
         if(a==0) n=root_node;
         while(n!=NULL && (idx<b || i==omp_p-1)){
-          n->SetGhost(false);
           MortonId dn=n->GetMortonId();
           if(idx<b && dn.isAncestor(lin_oct[idx])){
             if(n->IsLeaf()) n->Subdivide();
@@ -760,7 +758,6 @@ public:
             idx++;
           }else{
             n->Truncate();
-            n->SetGhost(true);
           }
           n=PreorderNxt(n);
         }
@@ -857,7 +854,6 @@ private:
       }else{
         node[i]->pt_cnt[0]+=node[i]-> src_coord.Dim()/3;
         node[i]->pt_cnt[0]+=node[i]->surf_coord.Dim()/3;
-        if(node[i]->IsGhost()) node[i]->pt_cnt[0]++; // TODO: temporary fix, pt_cnt not known for ghost nodes
       }
       if(node[i]->depth==0) r_node=node[i];
     }
@@ -949,7 +945,7 @@ private:
     for(int i=0;i<=MAX_DEPTH;i++)
       node_lst_vec[i].clear();
     for(size_t i=0;i<node.size();i++)
-      if(!node[i]->IsLeaf() && !node[i]->IsGhost())
+      if(!node[i]->IsLeaf())
         node_lst_vec[node[i]->depth].push_back(node[i]);
     for(int i=0;i<=MAX_DEPTH;i++)
       for(size_t j=0;j<node_lst_vec[i].size();j++)
@@ -986,7 +982,7 @@ private:
     int trg_dof=kernel->ker_dim[1];
     node_lst.clear();
     for(size_t i=0;i<node.size();i++) {
-      if(node[i]->IsLeaf() && !node[i]->IsGhost()){
+      if(node[i]->IsLeaf()){
         node_lst.push_back(node[i]);
       }else{
         node[i]->trg_value.Resize(0);
@@ -1094,10 +1090,10 @@ private:
     {
       std::vector<FMM_Node*>& nodes=GetNodeList();
       for(size_t i=0;i<nodes.size();i++){
-        if(!nodes[i]->IsGhost() && nodes[i]->pt_cnt[0]){
+        if(nodes[i]->pt_cnt[0]){
           n_list_src.push_back(nodes[i]);
         }
-        if(!nodes[i]->IsGhost() && nodes[i]->pt_cnt[1]){
+        if(nodes[i]->pt_cnt[1]){
           n_list_trg.push_back(nodes[i]);
         }
       }
@@ -1239,7 +1235,7 @@ private:
         }
 #pragma omp parallel for
         for(size_t i=0;i<n_out;i++){
-          if(!nodes_out[i]->IsGhost() && (level==-1 || nodes_out[i]->depth==level)){
+          if((level==-1 || nodes_out[i]->depth==level)){
             std::vector<FMM_Node*>& lst=nodes_out[i]->interac_list[interac_type];
             for (int l=0; l<lst.size(); l++) {
               trg_interac_list[i][l] = lst[l];
@@ -1417,11 +1413,11 @@ private:
       for(size_t i=0;i<nodes_in .size();i++)
         if((nodes_in [i]->depth==level || level==-1)
   	 && (nodes_in [i]->src_coord.Dim() || nodes_in [i]->surf_coord.Dim())
-  	 && nodes_in [i]->IsLeaf() && !nodes_in [i]->IsGhost()) setup_data.nodes_in .push_back(nodes_in [i]);
+  	 && nodes_in [i]->IsLeaf()) setup_data.nodes_in .push_back(nodes_in [i]);
       for(size_t i=0;i<nodes_out.size();i++)
         if((nodes_out[i]->depth==level || level==-1)
   	 && (nodes_out[i]->src_coord.Dim() || nodes_out[i]->surf_coord.Dim())
-  	 && nodes_out[i]->IsLeaf() && !nodes_out[i]->IsGhost()) setup_data.nodes_out.push_back(nodes_out[i]);
+  	 && nodes_out[i]->IsLeaf()) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
     data. level=setup_data. level;
@@ -1835,7 +1831,7 @@ private:
       setup_data.nodes_in .clear();
       setup_data.nodes_out.clear();
       for(size_t i=0;i<nodes_in .size();i++) if((level==0 || level==-1) && (nodes_in [i]->src_coord.Dim() || nodes_in [i]->surf_coord.Dim()) &&  nodes_in [i]->IsLeaf ()) setup_data.nodes_in .push_back(nodes_in [i]);
-      for(size_t i=0;i<nodes_out.size();i++) if((level==0 || level==-1) &&  nodes_out[i]->pt_cnt[1]                                          && !nodes_out[i]->IsGhost()) setup_data.nodes_out.push_back(nodes_out[i]);
+      for(size_t i=0;i<nodes_out.size();i++) if((level==0 || level==-1) &&  nodes_out[i]->pt_cnt[1]   ) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
     data. level=setup_data. level;
@@ -2024,8 +2020,8 @@ private:
       std::vector<FMM_Node*>& nodes_out=n_list[5];
       setup_data.nodes_in .clear();
       setup_data.nodes_out.clear();
-      for(size_t i=0;i<nodes_in .size();i++) if((level==0 || level==-1) && nodes_in [i]->pt_cnt[0]                                                            ) setup_data.nodes_in .push_back(nodes_in [i]);
-      for(size_t i=0;i<nodes_out.size();i++) if((level==0 || level==-1) && nodes_out[i]->trg_coord.Dim() && nodes_out[i]->IsLeaf() && !nodes_out[i]->IsGhost()) setup_data.nodes_out.push_back(nodes_out[i]);
+      for(size_t i=0;i<nodes_in .size();i++) if((level==0 || level==-1) && nodes_in [i]->pt_cnt[0]) setup_data.nodes_in.push_back(nodes_in [i]);
+      for(size_t i=0;i<nodes_out.size();i++) if((level==0 || level==-1) && nodes_out[i]->trg_coord.Dim() && nodes_out[i]->IsLeaf() ) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
     data. level=setup_data. level;
@@ -2148,8 +2144,7 @@ private:
               FMM_Node* snode=intlst[j];
               size_t snode_id=snode->node_id;
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
-              if(snode->IsGhost() && snode->src_coord.Dim()+snode->surf_coord.Dim()==0){
-              }else if(snode->IsLeaf() && snode->pt_cnt[0]<=Nsrf) continue;
+              if(snode->IsLeaf() && snode->pt_cnt[0]<=Nsrf) continue;
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
@@ -2205,7 +2200,7 @@ private:
       for(size_t i=0;i<nodes_out.size();i++)
         if((level==0 || level==-1)
   	 && (nodes_out[i]->trg_coord.Dim()                                  )
-  	 && nodes_out[i]->IsLeaf() && !nodes_out[i]->IsGhost()) setup_data.nodes_out.push_back(nodes_out[i]);
+  	 && nodes_out[i]->IsLeaf() ) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
     data. level=setup_data. level;
@@ -2439,7 +2434,6 @@ private:
               FMM_Node* snode=intlst[j];
               size_t snode_id=snode->node_id;
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
-              if(snode->IsGhost() && snode->src_coord.Dim()+snode->surf_coord.Dim()==0) continue;
               if(snode->pt_cnt[0]> Nsrf) continue;
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
@@ -2489,8 +2483,8 @@ private:
       std::vector<FMM_Node*>& nodes_out=n_list[5];
       setup_data.nodes_in .clear();
       setup_data.nodes_out.clear();
-      for(size_t i=0;i<nodes_in .size();i++) if((nodes_in [i]->depth==level || level==-1) && nodes_in [i]->trg_coord.Dim() && nodes_in [i]->IsLeaf() && !nodes_in [i]->IsGhost()) setup_data.nodes_in .push_back(nodes_in [i]);
-      for(size_t i=0;i<nodes_out.size();i++) if((nodes_out[i]->depth==level || level==-1) && nodes_out[i]->trg_coord.Dim() && nodes_out[i]->IsLeaf() && !nodes_out[i]->IsGhost()) setup_data.nodes_out.push_back(nodes_out[i]);
+      for(size_t i=0;i<nodes_in .size();i++) if((nodes_in [i]->depth==level || level==-1) && nodes_in [i]->trg_coord.Dim() && nodes_in [i]->IsLeaf() ) setup_data.nodes_in .push_back(nodes_in [i]);
+      for(size_t i=0;i<nodes_out.size();i++) if((nodes_out[i]->depth==level || level==-1) && nodes_out[i]->trg_coord.Dim() && nodes_out[i]->IsLeaf() ) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
     data. level=setup_data. level;
@@ -3425,7 +3419,7 @@ private:
     std::vector<FMM_Node*>& nodes=GetNodeList();
     for(size_t i=0;i<nodes.size();i++){
       FMM_Node* n=nodes[i];
-      if(!n->IsGhost() && n->IsLeaf()) leaf_nodes.push_back(n);
+      if(n->IsLeaf()) leaf_nodes.push_back(n);
       if(n->depth>depth) depth=n->depth;
     }
     Profile::Toc();
@@ -3474,7 +3468,7 @@ public:
     std::vector<real_t> src_value;
     FMM_Node* n=root_node;
     while(n!=NULL){
-      if(n->IsLeaf() && !n->IsGhost()){
+      if(n->IsLeaf()){
         pvfmm::Vector<real_t>& coord_vec=n->src_coord;
         pvfmm::Vector<real_t>& value_vec=n->src_value;
         for(size_t i=0;i<coord_vec.Dim();i++) src_coord.push_back(coord_vec[i]);
@@ -3493,7 +3487,7 @@ public:
     size_t step_size=1+src_cnt*src_cnt*1e-9/p;
     n=root_node;
     while(n!=NULL){
-      if(n->IsLeaf() && !n->IsGhost()){
+      if(n->IsLeaf()){
         pvfmm::Vector<real_t>& coord_vec=n->trg_coord;
         pvfmm::Vector<real_t>& poten_vec=n->trg_value;
         for(size_t i=0;i<coord_vec.Dim()/3          ;i++){
