@@ -2,6 +2,7 @@
 #define _PVFMM_FMM_TREE_HPP_
 #include "intrinsics.h"
 #include "pvfmm.h"
+#include <queue>
 #if FLOAT
 typedef fftwf_complex fft_complex;
 typedef fftwf_plan fft_plan;
@@ -851,14 +852,15 @@ private:
     }
   }
 
-  void CollectNodeData(std::vector<FMM_Node*>& node, std::vector<Matrix<real_t> >& buff_list, std::vector<std::vector<FMM_Node*> >& n_list) {
+  // generate node_list for different operators and node_data_buff (src trg information)
+  void CollectNodeData(std::vector<FMM_Node*>& node, std::vector<Matrix<real_t> >& node_data_buff, std::vector<std::vector<FMM_Node*> >& n_list) {
     std::vector<std::vector<Vector<real_t>* > > vec_list(0);
-    if(buff_list.size()<7) buff_list.resize(7);
+    if(node_data_buff.size()<7) node_data_buff.resize(7);
     if(   n_list.size()<7)    n_list.resize(7);
     if( vec_list.size()<7)  vec_list.resize(7);
     if(node.size()==0) return;
-
-    std::vector<FMM_Node*> leafs, nonleafs;
+    // post-order traversal
+    std::vector<FMM_Node*> leafs, nonleafs;                     // input nodes here are post-order
     for (int i=0; i<node.size(); i++) {
       if (node[i]->IsLeaf()) {
         leafs.push_back(node[i]);
@@ -873,72 +875,45 @@ private:
         node[i]->src_value.Resize(0);
         node[i]->surf_value.Resize(0);
         node[i]->trg_value.Resize(0);
+        for (int j=0; j<8; j++) {
+          FMM_Node* child = node[i]->Child(j);
+          node[i]->pt_cnt[0] += child->pt_cnt[0];
+          node[i]->pt_cnt[1] += child->pt_cnt[1];
+        }
       }      
     }
+    // level order traversal
+    std::vector<FMM_Node*> nodesLevelOrder;            // level order traversal with leafs
+    std::vector<FMM_Node*> nonleafsLevelOrder;         // level order traversal without leafs
+    std::queue<FMM_Node*> nodesQueue; 
+    nodesQueue.push(root_node);
+    while (!nodesQueue.empty()) {
+      FMM_Node* curr = nodesQueue.front();
+      nodesQueue.pop();
+      if (curr != root_node)  nodesLevelOrder.push_back(curr);
+      if (!curr->IsLeaf()) nonleafsLevelOrder.push_back(curr);
+      for (int i=0; i<8; i++) {
+        FMM_Node* child = curr->Child(i);
+        if (child!=NULL) nodesQueue.push(child);
+      } 
+    }
+    nodesLevelOrder.push_back(root_node);   // level 0 root is the last one instead of the first elem in pvfmm's level order TT
+
     // indx = 0: Initialize M2M node_list, vec_list (upward_equiv)
     int indx=0;
-    size_t vec_sz;
-    Matrix<real_t>& M_uc2ue = interacList.ClassMat(UC2UE1_Type, 0);
-    vec_sz=M_uc2ue.Dim(1);
-    std::vector<std::vector< FMM_Node* > > node_lst_vec(MAX_DEPTH+1);
-
-    for(int i=0; i<nonleafs.size(); i++) {                  // add nonleafs to node_lst_vec[depth]
-      node_lst_vec[nonleafs[i]->depth].push_back(nonleafs[i]);
-    }
-    size_t chld_cnt=1UL<<3;
-    for(int i=MAX_DEPTH;i>=0;i--){                          // from leaf to root
-      for(size_t j=0;j<node_lst_vec[i].size();j++){
-        for(size_t k=0;k<chld_cnt;k++){
-          FMM_Node* node=node_lst_vec[i][j]->Child(k);
-          node_lst_vec[i][j]->pt_cnt[0]+=node->pt_cnt[0];   // accumulate parent's pt_cnt
-        }
-      }
-    }
-    for(int i=0;i<=MAX_DEPTH;i++){                          // from root to leaf
-      for(size_t j=0;j<node_lst_vec[i].size();j++){
-          for(size_t k=0;k<chld_cnt;k++){
-            FMM_Node* node=node_lst_vec[i][j]->Child(k);
-            n_list[indx].push_back(node);                   // add non-leaf nodes' child
-          }
-      }
-    }
-    n_list[indx].push_back(root_node);
+    n_list[indx] = nodesLevelOrder;
+    size_t vec_sz = interacList.ClassMat(UC2UE1_Type, 0).Dim(1);
     std::vector<Vector<real_t>*>& vec_lst=vec_list[indx];
     for(size_t i=0; i<n_list[indx].size();i++){
       FMM_Node* node = n_list[indx][i];
-      Vector<real_t>& data_vec=node->FMMData()->upward_equiv;
-      data_vec.Resize(vec_sz);                              // upward_equiv.resize(n_ue)
-      vec_lst.push_back(&data_vec);                         
+      node->fmm_data->upward_equiv.Resize(vec_sz);
+      vec_lst.push_back( &(node->fmm_data->upward_equiv) );
     }
 
     // indx = 1: Initialize L2L: nodelist and vec_list (dnward_equiv)
     indx=1;
-    Matrix<real_t>& M_dc2de0 = interacList.ClassMat(DC2DE0_Type, 0);
-    vec_sz=M_dc2de0.Dim(0);
-    for(int i=0;i<=MAX_DEPTH;i++)
-      node_lst_vec[i].clear();                             // clear node_lst_vec buff
-    for(int i=0; i<nonleafs.size(); i++) {                  // add nonleafs to node_lst_vec[depth]
-      node_lst_vec[nonleafs[i]->depth].push_back(nonleafs[i]);
-    }
-    chld_cnt=1UL<<3;
-    for(int i=MAX_DEPTH;i>=0;i--){
-      for(size_t j=0;j<node_lst_vec[i].size();j++){
-        for(size_t k=0;k<chld_cnt;k++){
-          FMM_Node* node=node_lst_vec[i][j]->Child(k);
-          node_lst_vec[i][j]->pt_cnt[1]+=node->pt_cnt[1];
-        }
-      }
-    }
-    for(int i=0;i<=MAX_DEPTH;i++){
-      for(size_t j=0;j<node_lst_vec[i].size();j++){
-        if(node_lst_vec[i][j]->pt_cnt[1])
-          for(size_t k=0;k<chld_cnt;k++){
-            FMM_Node* node=node_lst_vec[i][j]->Child(k);
-            n_list[indx].push_back(node);
-          }
-      }
-    }
-    n_list[indx].push_back(root_node);
+    n_list[indx] = nodesLevelOrder;
+    vec_sz = interacList.ClassMat(DC2DE0_Type, 0).Dim(0);
     std::vector<Vector<real_t>*>& vec_lst1=vec_list[indx];
     for(size_t i=0;i<n_list[indx].size();i++){
       FMM_Node* node = n_list[indx][i];
@@ -949,35 +924,16 @@ private:
 
     // indx 2 & 3: node_list: non-leaf nodes
     indx=2;
-    node_lst.clear();
-    for(int i=0;i<=MAX_DEPTH;i++)           // clear buff
-      node_lst_vec[i].clear();
-    for(int i=0; i<nonleafs.size(); i++) {                  // add nonleafs to node_lst_vec[depth]
-      node_lst_vec[nonleafs[i]->depth].push_back(nonleafs[i]);
-    }
-    for(int i=0;i<=MAX_DEPTH;i++)           // loop from root to leaf
-      for(size_t j=0;j<node_lst_vec[i].size();j++)
-        node_lst.push_back(node_lst_vec[i][j]);
-    n_list[indx]=node_lst;                  // root->leaf order: non-leaf nodes
+    n_list[indx] = nonleafsLevelOrder; 
 
     indx=3;
-    node_lst.clear();
-    for(int i=0;i<=MAX_DEPTH;i++)
-      node_lst_vec[i].clear();
-    for(int i=0; i<nonleafs.size(); i++) {                  // add nonleafs to node_lst_vec[depth]
-      node_lst_vec[nonleafs[i]->depth].push_back(nonleafs[i]);
-    }
-    for(int i=0;i<=MAX_DEPTH;i++)
-      for(size_t j=0;j<node_lst_vec[i].size();j++)
-        node_lst.push_back(node_lst_vec[i][j]);
-    n_list[indx]=node_lst;
+    n_list[indx] = nonleafsLevelOrder; 
 
     // indx = 4: nodelist[4] list of leaf, vec_list[4]: vec of src_value & surf_value(this is zero for now)
     indx=4;
-    node_lst.clear();
+    n_list[indx] = leafs;
     int src_dof=kernel->ker_dim[0];
     int surf_dof=3+src_dof;
-    n_list[indx] = leafs;
     std::vector<Vector<real_t>*>& vec_lst4=vec_list[indx];
     for(int i=0; i<leafs.size(); i++){      // loop over leaves
       FMM_Node* leaf = leafs[i];
@@ -993,8 +949,8 @@ private:
 
     // indx =5: same as 4, nodelist[5]: leaves, vec_list[5] vectors of trg_value
     indx=5;
-    int trg_dof=kernel->ker_dim[1];
     n_list[indx] = leafs;
+    int trg_dof=kernel->ker_dim[1];
     std::vector<Vector<real_t>*>& vec_lst5=vec_list[indx];
     for(int i=0; i<leafs.size(); i++){      // loop over leaves
       FMM_Node* leaf = leafs[i];
@@ -1025,9 +981,9 @@ private:
       vec_lst6.push_back(&dnwd_equiv_surf[depth]);
     }
     
-    if(buff_list.size()<=vec_list.size()) buff_list.resize(vec_list.size()+1); //buff_list size: 7->8
+    if(node_data_buff.size()<=vec_list.size()) node_data_buff.resize(vec_list.size()+1); //node_data_buff size: 7->8
     for(size_t indx=0;indx<vec_list.size();indx++){              // loop over vec_list
-      Matrix<real_t>& buff=buff_list[indx];
+      Matrix<real_t>& buff=node_data_buff[indx];
       std::vector<Vector<real_t>*>& vec_lst= vec_list[indx];
       size_t n_vec=vec_lst.size();                  // num of vectors in vec_list[indx]
       if(!n_vec) continue;
@@ -1054,6 +1010,7 @@ private:
     }
   }
 
+  // Fill in FMM_Node::interac_list of all nodes
   void BuildInteracLists() {
     std::vector<FMM_Node*> n_list_src;
     std::vector<FMM_Node*> n_list_trg;
@@ -1081,7 +1038,7 @@ private:
     type_lst.push_back(W_Type  ); type_node_lst.push_back(&n_list_trg);
     type_lst.push_back(X_Type  ); type_node_lst.push_back(&n_list_trg);
     type_lst.push_back(V1_Type ); type_node_lst.push_back(&n_list_trg);
-    std::vector<size_t> interac_cnt(type_lst.size());
+    std::vector<size_t> interac_cnt(type_lst.size());  // num of rel_coord of different operators
     std::vector<size_t> interac_dsp(type_lst.size(),0);
     for(size_t i=0;i<type_lst.size();i++){
       interac_cnt[i]=interacList.ListCount(type_lst[i]);
@@ -1090,9 +1047,9 @@ private:
     int omp_p=omp_get_max_threads();
 #pragma omp parallel for
     for(int j=0;j<omp_p;j++){
-      for(size_t k=0;k<type_lst.size();k++){
-        std::vector<FMM_Node*>& n_list=*type_node_lst[k];
-        size_t a=(n_list.size()*(j  ))/omp_p;
+      for(size_t k=0;k<type_lst.size();k++){           // loop over mat_types
+        std::vector<FMM_Node*>& n_list=*type_node_lst[k];  // num of nodes involved
+        size_t a=(n_list.size()*(j  ))/omp_p;              // 
         size_t b=(n_list.size()*(j+1))/omp_p;
         for(size_t i=a;i<b;i++){
           FMM_Node* n=n_list[i];
@@ -2652,8 +2609,8 @@ public:
     while(n!=NULL){
       n->pt_cnt[0]=0;
       n->pt_cnt[1]=0;
-      all_nodes.push_back(n);
-      n=static_cast<FMM_Node*>(PostorderNxt(n));
+      all_nodes.push_back(n);        // all_nodes: postorder tree traversal
+      n = PostorderNxt(n);
     }
     std::vector<std::vector<FMM_Node*> > node_lists; // TODO: Remove this parameter, not really needed
     CollectNodeData(all_nodes, node_data_buff, node_lists);
@@ -2722,13 +2679,10 @@ public:
 private:
   void EvalListPts(SetupData& setup_data) {
     if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
-    bool have_gpu=false;
     Profile::Tic("Host2Device",false,25);
     char* dev_buff = dev_buffer.data_ptr;
     Profile::Toc();
     Profile::Tic("DeviceComp",false,20);
-    int lock_idx=-1;
-    int wait_lock_idx=-1;
     {
       ptSetupData data = setup_data.pt_setup_data;
       {
@@ -2995,8 +2949,6 @@ private:
     real_t* output_data = setup_data.output_data->data_ptr;
     Profile::Toc();
     Profile::Tic("DeviceComp",false,20);
-    int lock_idx=-1;
-    int wait_lock_idx=-1;
     {
       size_t M_dim0 = setup_data.M_dim0;
       size_t M_dim1 = setup_data.M_dim1;
