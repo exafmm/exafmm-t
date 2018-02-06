@@ -1,10 +1,12 @@
 ###TODO
 -------------
+- [ ] remove surf_coord & surf_value from FMM_Node
 - [ ] remove perm_r perm_c (Perm_R, Perm_C)
 - [ ] remove unnecessary/unused permutation type
 - [x] make Precompmat members public instead of calling access functions
 - [ ] write down math equations for precomputation
-- [ ] remove "ghost" and "scatter" related members and functions
+- [x] remove "ghost" 
+- [ ] remove "scatter" related members and functions
 - [ ] use exafmm hilbert id header (if necessary)
 
 - [x] Real_t -> real_t
