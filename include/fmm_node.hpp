@@ -20,9 +20,6 @@ class FMM_Node {
   Vector<real_t> src_coord;
   Vector<real_t> src_value;
   Vector<size_t> src_scatter;
-  Vector<real_t> surf_coord;
-  Vector<real_t> surf_value;
-  Vector<size_t> surf_scatter;
   Vector<real_t> trg_coord;
   Vector<real_t> trg_value;
   Vector<size_t> trg_scatter;
@@ -90,9 +87,6 @@ class FMM_Node {
     coord  .push_back(&src_coord  );
     value  .push_back(&src_value  );
     scatter.push_back(&src_scatter);
-    coord  .push_back(&surf_coord  );
-    value  .push_back(&surf_value  );
-    scatter.push_back(&surf_scatter);
     coord  .push_back(&trg_coord  );
     value  .push_back(&trg_value  );
     scatter.push_back(&trg_scatter);

@@ -862,15 +862,12 @@ private:
       if (nodes[i]->IsLeaf()) {
         leafs.push_back(nodes[i]);
         nodes[i]->pt_cnt[0] += nodes[i]->src_coord.Dim()  / 3;
-        nodes[i]->pt_cnt[0] += nodes[i]->surf_coord.Dim() / 3;    // pt_cnt[0] = n_src + n_surf 
         nodes[i]->pt_cnt[1] += nodes[i]->trg_coord.Dim()  / 3;
       } else {
         nonleafs.push_back(nodes[i]);
         nodes[i]->src_coord.Resize(0);
-        nodes[i]->surf_coord.Resize(0);
         nodes[i]->trg_coord.Resize(0);
         nodes[i]->src_value.Resize(0);
-        nodes[i]->surf_value.Resize(0);
         nodes[i]->trg_value.Resize(0);
         for (int j=0; j<8; j++) {
           FMM_Node* child = nodes[i]->Child(j);
@@ -1280,11 +1277,11 @@ private:
       setup_data.nodes_out.clear();
       for(size_t i=0;i<nodes_in .size();i++)
         if((nodes_in [i]->depth==level || level==-1)
-  	 && (nodes_in [i]->src_coord.Dim() || nodes_in [i]->surf_coord.Dim())
+  	 && nodes_in [i]->src_coord.Dim()
   	 && nodes_in [i]->IsLeaf()) setup_data.nodes_in .push_back(nodes_in [i]);
       for(size_t i=0;i<nodes_out.size();i++)
         if((nodes_out[i]->depth==level || level==-1)
-  	 && (nodes_out[i]->src_coord.Dim() || nodes_out[i]->surf_coord.Dim())
+  	 && nodes_out[i]->src_coord.Dim()
   	 && nodes_out[i]->IsLeaf()) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
@@ -1341,24 +1338,10 @@ private:
       value.dsp.Resize(nodes.size());
 #pragma omp parallel for
       for(size_t i=0;i<nodes.size();i++){
-        Vector<real_t>& coord_vec=nodes[i]->surf_coord;
-        Vector<real_t>& value_vec=nodes[i]->surf_value;
-        if(coord_vec.Dim()){
-          coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
-          assert(coord.dsp[i]<coord.len);
-          coord.cnt[i]=coord_vec.Dim();
-        }else{
-          coord.dsp[i]=0;
-          coord.cnt[i]=0;
-        }
-        if(value_vec.Dim()){
-          value.dsp[i]=&value_vec[0]-value.ptr[0][0];
-          assert(value.dsp[i]<value.len);
-          value.cnt[i]=value_vec.Dim();
-        }else{
-          value.dsp[i]=0;
-          value.cnt[i]=0;
-        }
+        coord.dsp[i]=0;
+        coord.cnt[i]=0;
+        value.dsp[i]=0;
+        value.cnt[i]=0;
       }
     }
     {
@@ -1698,8 +1681,8 @@ private:
       std::vector<FMM_Node*>& nodes_out=n_list[1];
       setup_data.nodes_in .clear();
       setup_data.nodes_out.clear();
-      for(size_t i=0;i<nodes_in .size();i++) if((level==0 || level==-1) && (nodes_in [i]->src_coord.Dim() || nodes_in [i]->surf_coord.Dim()) &&  nodes_in [i]->IsLeaf ()) setup_data.nodes_in .push_back(nodes_in [i]);
-      for(size_t i=0;i<nodes_out.size();i++) if((level==0 || level==-1) &&  nodes_out[i]->pt_cnt[1]   ) setup_data.nodes_out.push_back(nodes_out[i]);
+      for(size_t i=0;i<nodes_in .size();i++) if((level==0 || level==-1) && nodes_in [i]->src_coord.Dim() &&  nodes_in [i]->IsLeaf ()) setup_data.nodes_in .push_back(nodes_in [i]);
+      for(size_t i=0;i<nodes_out.size();i++) if((level==0 || level==-1) && nodes_out[i]->pt_cnt[1]   ) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
     data. level=setup_data. level;
@@ -1755,24 +1738,10 @@ private:
       value.dsp.Resize(nodes.size());
 #pragma omp parallel for
       for(size_t i=0;i<nodes.size();i++){
-        Vector<real_t>& coord_vec=nodes[i]->surf_coord;
-        Vector<real_t>& value_vec=nodes[i]->surf_value;
-        if(coord_vec.Dim()){
-          coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
-          assert(coord.dsp[i]<coord.len);
-          coord.cnt[i]=coord_vec.Dim();
-        }else{
-          coord.dsp[i]=0;
-          coord.cnt[i]=0;
-        }
-        if(value_vec.Dim()){
-          value.dsp[i]=&value_vec[0]-value.ptr[0][0];
-          assert(value.dsp[i]<value.len);
-          value.cnt[i]=value_vec.Dim();
-        }else{
-          value.dsp[i]=0;
-          value.cnt[i]=0;
-        }
+        coord.dsp[i]=0;
+        coord.cnt[i]=0;
+        value.dsp[i]=0;
+        value.cnt[i]=0;
       }
     }
     {
@@ -2063,8 +2032,8 @@ private:
       setup_data.nodes_out.clear();
       for(size_t i=0;i<nodes_in .size();i++)
         if((level==0 || level==-1)
-  	 && (nodes_in [i]->src_coord.Dim() || nodes_in [i]->surf_coord.Dim())
-  	 && nodes_in [i]->IsLeaf()                            ) setup_data.nodes_in .push_back(nodes_in [i]);
+  	 && nodes_in [i]->src_coord.Dim()
+  	 && nodes_in [i]->IsLeaf() ) setup_data.nodes_in .push_back(nodes_in [i]);
       for(size_t i=0;i<nodes_out.size();i++)
         if((level==0 || level==-1)
   	 && (nodes_out[i]->trg_coord.Dim()                                  )
@@ -2124,24 +2093,10 @@ private:
       value.dsp.Resize(nodes.size());
 #pragma omp parallel for
       for(size_t i=0;i<nodes.size();i++){
-        Vector<real_t>& coord_vec=nodes[i]->surf_coord;
-        Vector<real_t>& value_vec=nodes[i]->surf_value;
-        if(coord_vec.Dim()){
-          coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
-          assert(coord.dsp[i]<coord.len);
-          coord.cnt[i]=coord_vec.Dim();
-        }else{
-          coord.dsp[i]=0;
-          coord.cnt[i]=0;
-        }
-        if(value_vec.Dim()){
-          value.dsp[i]=&value_vec[0]-value.ptr[0][0];
-          assert(value.dsp[i]<value.len);
-          value.cnt[i]=value_vec.Dim();
-        }else{
-          value.dsp[i]=0;
-          value.cnt[i]=0;
-        }
+        coord.dsp[i]=0;
+        coord.cnt[i]=0;
+        value.dsp[i]=0;
+        value.cnt[i]=0;
       }
     }
     {
