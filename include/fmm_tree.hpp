@@ -990,18 +990,13 @@ private:
       interac_cnt[i]=interacList.ListCount(type_lst[i]);
     }
     scan(&interac_cnt[0],&interac_dsp[0],type_lst.size());
-    int omp_p=omp_get_max_threads();
 #pragma omp parallel for
-    for(int j=0;j<omp_p;j++){
-      for(size_t k=0;k<type_lst.size();k++){           // loop over mat_types
-        std::vector<FMM_Node*>& n_list=*type_node_lst[k];  // num of nodes involved
-        size_t a=(n_list.size()*(j  ))/omp_p;              // 
-        size_t b=(n_list.size()*(j+1))/omp_p;
-        for(size_t i=a;i<b;i++){
-          FMM_Node* n=n_list[i];
-          n->interac_list[type_lst[k]].resize(interac_cnt[k]);
-          interacList.BuildList(n,type_lst[k]);
-        }
+    for(size_t k=0; k<type_lst.size(); k++){           // loop over mat_types
+      std::vector<FMM_Node*>& n_list=*type_node_lst[k];  // num of nodes involved
+      for(size_t i=0; i<n_list.size(); i++){
+        FMM_Node* n=n_list[i];
+        n->interac_list[type_lst[k]].resize(interac_cnt[k]);
+        interacList.BuildList(n,type_lst[k]);
       }
     }
   }
