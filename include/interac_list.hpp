@@ -214,7 +214,7 @@ public:
       {
 	if(n->Parent()==NULL) return;
 	FMM_Node* p=(FMM_Node*)n->Parent();
-	int p2n=n->Path2Node();
+	int p2n=n->path2node;
 	{
 	  rel_coord[0]=-1+(p2n & 1?2:0);
 	  rel_coord[1]=-1+(p2n & 2?2:0);
@@ -234,7 +234,7 @@ public:
       {
 	if(n->Parent()==NULL || !n->IsLeaf()) return;
 	FMM_Node* p=(FMM_Node*)n->Parent();
-	int p2n=n->Path2Node();
+	int p2n=n->path2node;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* pc=(FMM_Node*)p->Colleague(i);
 	  if(pc!=NULL && pc->IsLeaf()){
@@ -289,7 +289,7 @@ public:
       {
 	if(n->Parent()==NULL) return;
 	FMM_Node* p=(FMM_Node*)n->Parent();
-	int p2n=n->Path2Node();
+	int p2n=n->path2node;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* pc=(FMM_Node*)p->Colleague(i);
 	  if(pc!=NULL?!pc->IsLeaf():0){
@@ -343,7 +343,7 @@ public:
       {
 	if(n->Parent()==NULL) return;
 	FMM_Node* p=(FMM_Node*)n->Parent();
-	int p2n=n->Path2Node();
+	int p2n=n->path2node;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* pc=(FMM_Node*)p->Colleague(i);
 	  if(pc!=NULL && pc->IsLeaf()){

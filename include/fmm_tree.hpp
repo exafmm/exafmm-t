@@ -640,7 +640,7 @@ private:
 	  return curr_node->Child(i);
     FMM_Node* node=curr_node;
     while(true){
-      int i=node->Path2Node()+1;
+      int i=node->path2node+1;
       node=node->Parent();
       if(node==NULL) return NULL;
       for(;i<n;i++)
@@ -652,7 +652,7 @@ private:
   FMM_Node* PostorderNxt(FMM_Node* curr_node) {
     assert(curr_node!=NULL);
     FMM_Node* node=curr_node;
-    int j=node->Path2Node()+1;
+    int j=node->path2node+1;
     node=node->Parent();
     if(node==NULL) return NULL;
     int n=(1UL<<3);
@@ -825,7 +825,7 @@ private:
       for(int i=0;i<n1;i++)node->SetColleague(NULL,i);
       parent_node=node->Parent();
       if(parent_node==NULL) return;
-      int l=node->Path2Node();         // l is octant
+      int l=node->path2node;         // l is octant
       for(int i=0;i<n1;i++){           
         tmp_node1=parent_node->Colleague(i);  // loop over parent's colleagues
         if(tmp_node1!=NULL)
