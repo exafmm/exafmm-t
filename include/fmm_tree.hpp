@@ -28,7 +28,29 @@ namespace pvfmm{
     Matrix<real_t>* ptr;
     Vector<size_t> cnt;
     Vector<size_t> dsp;
+
+    PackedData() {}
+    PackedData(Matrix<real_t>* mat, std::vector<FMM_Node*> nodes, bool isSrc, bool isCoord) {
+      ptr = mat;
+      len = mat->Dim(0) * mat->Dim(1);
+      cnt.Resize(nodes.size());
+      dsp.Resize(nodes.size());
+      for(int i=0; i<nodes.size(); i++) {
+        FMM_Node* node = nodes[i];
+        Vector<real_t>* vec;
+        if (isSrc) {
+          if (isCoord) vec = &(node->src_coord);
+          else vec = &(node->src_value);
+        } else {
+          if (isCoord) vec = &(node->trg_coord);
+          else vec = &(node->trg_value);
+        }
+        dsp[i] = vec->data_ptr - mat[0][0];
+        cnt[i] = vec->Dim();
+      }
+    }
   };
+
   struct InteracData{
     Vector<size_t> in_node;
     Vector<size_t> scal_idx;
@@ -996,8 +1018,9 @@ private:
     }
   }
 
+  // Initialize ptSetupData::pt_interac_data.interac_cst, then save ptSetupData in setup_data
   void PtSetup(SetupData& setup_data, ptSetupData* data_){
-    ptSetupData& data=*(ptSetupData*)data_;
+    ptSetupData& data = *data_;
     if(data.pt_interac_data.interac_cnt.Dim()){
       InteracData& intdata=data.pt_interac_data;
       Vector<size_t>  cnt;
@@ -1973,79 +1996,24 @@ private:
     ptSetupData data;
     data. level = setup_data. level;
     data.kernel = setup_data.kernel;
+    bool isSrc = true, isTrg = false, isCoord = true, isValue = false;
+    data.src_coord = PackedData(setup_data.coord_data,
+                                setup_data.nodes_in, isSrc, isCoord);
+    data.src_value = PackedData(setup_data.input_data,
+                                setup_data.nodes_in, isSrc, isValue);
+    data.trg_coord = PackedData(setup_data.coord_data,
+                                setup_data.nodes_out, isTrg, isCoord);
+    data.trg_value = PackedData(setup_data.output_data,
+                                setup_data.nodes_out, isTrg, isValue);
+    
+    // initialize leaf's node_id, can put it in other functions
+    for(int i=0; i<setup_data.nodes_in.size(); i++) {
+      FMM_Node* leaf = setup_data.nodes_in[i];
+      leaf->node_id = i;
+    }
+
     std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
     std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-
-    //data.src_coord
-    {
-      std::vector<FMM_Node*>& nodes=nodes_in;
-      PackedData& coord=data.src_coord;
-      PackedData& value=data.src_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data. input_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        nodes[i]->node_id=i;
-        Vector<real_t>& coord_vec=nodes[i]->src_coord;
-        Vector<real_t>& value_vec=nodes[i]->src_value;
-        if(coord_vec.Dim()){
-          coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
-          assert(coord.dsp[i]<coord.len);
-          coord.cnt[i]=coord_vec.Dim();
-        }else{
-          coord.dsp[i]=0;
-          coord.cnt[i]=0;
-        }
-        if(value_vec.Dim()){
-          value.dsp[i]=&value_vec[0]-value.ptr[0][0];
-          assert(value.dsp[i]<value.len);
-          value.cnt[i]=value_vec.Dim();
-        }else{
-          value.dsp[i]=0;
-          value.cnt[i]=0;
-        }
-      }
-    }
-    {
-      std::vector<FMM_Node*>& nodes=nodes_out;
-      PackedData& coord=data.trg_coord;
-      PackedData& value=data.trg_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data.output_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        Vector<real_t>& coord_vec=nodes[i]->trg_coord;
-        Vector<real_t>& value_vec=nodes[i]->trg_value;
-        if(coord_vec.Dim()){
-          coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
-          assert(coord.dsp[i]<coord.len);
-          coord.cnt[i]=coord_vec.Dim();
-        }else{
-          coord.dsp[i]=0;
-          coord.cnt[i]=0;
-        }
-        if(value_vec.Dim()){
-          value.dsp[i]=&value_vec[0]-value.ptr[0][0];
-          assert(value.dsp[i]<value.len);
-          value.cnt[i]=value_vec.Dim();
-        }else{
-          value.dsp[i]=0;
-          value.cnt[i]=0;
-        }
-      }
-    }
     {
       int omp_p=omp_get_max_threads();
       std::vector<std::vector<size_t> > in_node_(omp_p);
