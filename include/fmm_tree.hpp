@@ -44,8 +44,6 @@ namespace pvfmm{
     const Kernel* kernel;
     PackedData src_coord;
     PackedData src_value;
-    PackedData srf_coord;
-    PackedData srf_value;
     PackedData trg_coord;
     PackedData trg_value;
     InteracData pt_interac_data;
@@ -96,9 +94,9 @@ private:
   PrecompMat* mat;
   Vector<char> dev_buffer;
 
-  std::vector<Matrix<real_t> > node_data_buff;   // used in CollectNodeData
   InteracList interacList;
-  std::vector<std::vector<char> > precomp_lst;
+  std::vector<Matrix<real_t> > node_data_buff;   // used in CollectNodeData
+  std::vector<std::vector<char> > precomp_lst;   // used in ListSetup
   std::vector<SetupData > setup_data;
   std::vector<Vector<real_t> > upwd_check_surf;
   std::vector<Vector<real_t> > upwd_equiv_surf;
@@ -1014,8 +1012,7 @@ private:
           size_t int_id=intdata.interac_dsp[trg]+i;
           size_t src=intdata.in_node[int_id];
           size_t src_cnt=data.src_coord.cnt[src];
-          size_t srf_cnt=data.srf_coord.cnt[src];
-          cnt[trg]+=(src_cnt+srf_cnt)*trg_cnt;
+          cnt[trg]+=(src_cnt)*trg_cnt;
         }
       }
       dsp[0]=cnt[0];
@@ -1322,26 +1319,6 @@ private:
           value.dsp[i]=0;
           value.cnt[i]=0;
         }
-      }
-    }
-    {
-      std::vector<FMM_Node*>& nodes=nodes_in;
-      PackedData& coord=data.srf_coord;
-      PackedData& value=data.srf_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data. input_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        coord.dsp[i]=0;
-        coord.cnt[i]=0;
-        value.dsp[i]=0;
-        value.cnt[i]=0;
       }
     }
     {
@@ -1725,26 +1702,6 @@ private:
       }
     }
     {
-      std::vector<FMM_Node*>& nodes=nodes_in;
-      PackedData& coord=data.srf_coord;
-      PackedData& value=data.srf_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data. input_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        coord.dsp[i]=0;
-        coord.cnt[i]=0;
-        value.dsp[i]=0;
-        value.cnt[i]=0;
-      }
-    }
-    {
       std::vector<FMM_Node*>& nodes=nodes_out;
       PackedData& coord=data.trg_coord;
       PackedData& value=data.trg_value;
@@ -1901,26 +1858,6 @@ private:
       }
     }
     {
-      std::vector<FMM_Node*>& nodes=nodes_in;
-      PackedData& coord=data.srf_coord;
-      PackedData& value=data.srf_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data. input_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        coord.dsp[i]=0;
-        coord.cnt[i]=0;
-        value.dsp[i]=0;
-        value.cnt[i]=0;
-      }
-    }
-    {
       std::vector<FMM_Node*>& nodes=nodes_out;
       PackedData& coord=data.trg_coord;
       PackedData& value=data.trg_value;
@@ -2020,30 +1957,26 @@ private:
   }
 
   void U_ListSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
-    {
-      setup_data. level=level;
-      setup_data.kernel=kernel->k_s2t;
-      setup_data. input_data=&buff[4];
-      setup_data.output_data=&buff[5];
-      setup_data. coord_data=&buff[6];
-      std::vector<FMM_Node*>& nodes_in =n_list[4];
-      std::vector<FMM_Node*>& nodes_out=n_list[5];
-      setup_data.nodes_in .clear();
-      setup_data.nodes_out.clear();
-      for(size_t i=0;i<nodes_in .size();i++)
-        if((level==0 || level==-1)
-  	 && nodes_in [i]->src_coord.Dim()
-  	 && nodes_in [i]->IsLeaf() ) setup_data.nodes_in .push_back(nodes_in [i]);
-      for(size_t i=0;i<nodes_out.size();i++)
-        if((level==0 || level==-1)
-  	 && (nodes_out[i]->trg_coord.Dim()                                  )
-  	 && nodes_out[i]->IsLeaf() ) setup_data.nodes_out.push_back(nodes_out[i]);
+    // initialize Setup_data
+    setup_data. level = level;
+    setup_data.kernel = kernel->k_s2t;
+    setup_data. input_data = &buff[4];        // src_value
+    setup_data.output_data = &buff[5];        // trg_value
+    setup_data. coord_data = &buff[6];        // src & trg coords, upward/dnward check/equiv surface
+    setup_data.nodes_in .clear();
+    setup_data.nodes_out.clear();
+    if (level==-1) { 
+      setup_data.nodes_in = n_list[4];
+      setup_data.nodes_out = n_list[5];
     }
+    // initialize ptSetupData
     ptSetupData data;
-    data. level=setup_data. level;
-    data.kernel=setup_data.kernel;
+    data. level = setup_data. level;
+    data.kernel = setup_data.kernel;
     std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
     std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
+
+    //data.src_coord
     {
       std::vector<FMM_Node*>& nodes=nodes_in;
       PackedData& coord=data.src_coord;
@@ -2077,26 +2010,6 @@ private:
           value.dsp[i]=0;
           value.cnt[i]=0;
         }
-      }
-    }
-    {
-      std::vector<FMM_Node*>& nodes=nodes_in;
-      PackedData& coord=data.srf_coord;
-      PackedData& value=data.srf_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data. input_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        coord.dsp[i]=0;
-        coord.cnt[i]=0;
-        value.dsp[i]=0;
-        value.cnt[i]=0;
       }
     }
     {
@@ -2350,26 +2263,6 @@ private:
       }
     }
     {
-      std::vector<FMM_Node*>& nodes=nodes_in;
-      PackedData& coord=data.srf_coord;
-      PackedData& value=data.srf_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data. input_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        coord.dsp[i]=0;
-        coord.cnt[i]=0;
-        value.dsp[i]=0;
-        value.cnt[i]=0;
-      }
-    }
-    {
       std::vector<FMM_Node*>& nodes=nodes_out;
       PackedData& coord=data.trg_coord;
       PackedData& value=data.trg_value;
@@ -2587,7 +2480,6 @@ private:
 #pragma omp parallel for
         for(size_t tid=0;tid<omp_p;tid++){
           Matrix<real_t> src_coord, src_value;
-          Matrix<real_t> srf_coord, srf_value;
           Matrix<real_t> trg_coord, trg_value;
           Vector<real_t> buff;
           {
@@ -2730,8 +2622,6 @@ private:
                   size_t src=intdata.in_node[int_id];
                   src_coord.ReInit(1, data.src_coord.cnt[src], &data.src_coord.ptr[0][0][data.src_coord.dsp[src]], false);
                   src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
-                  srf_coord.ReInit(1, data.srf_coord.cnt[src], &data.srf_coord.ptr[0][0][data.srf_coord.dsp[src]], false);
-                  srf_value.ReInit(1, data.srf_value.cnt[src], &data.srf_value.ptr[0][0][data.srf_value.dsp[src]], false);
                   real_t* vbuff2_ptr=(vbuff[2].Dim(0)*vbuff[2].Dim(1)?vbuff[2][interac_idx]:src_value[0]);
                   real_t* vbuff3_ptr=(vbuff[3].Dim(0)*vbuff[3].Dim(1)?vbuff[3][interac_idx]:trg_value[0]);
                   if(src_coord.Dim(1)){
@@ -2751,22 +2641,6 @@ private:
                     }
                     setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, vbuff2_ptr,
                                                  trg_coord[0], trg_coord.Dim(1)/3, vbuff3_ptr);
-                  }
-                  if(srf_coord.Dim(1)){
-                    {
-                      real_t* shift=&intdata.coord_shift[int_id*3];
-                      if(shift[0]!=0 || shift[1]!=0 || shift[2]!=0){
-                        size_t vdim=srf_coord.Dim(1);
-                        Vector<real_t> new_coord(vdim, &buff[0], false);
-                        assert(buff.Dim()>=vdim);
-                        for(size_t j=0;j<vdim;j+=3){
-                          for(size_t k=0;k<3;k++){
-                            new_coord[j+k]=srf_coord[0][j+k]+shift[k];
-                          }
-                        }
-                        srf_coord.ReInit(1, vdim, &new_coord[0], false);
-                      }
-                    }
                   }
                   interac_idx++;
                 }
