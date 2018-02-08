@@ -105,7 +105,7 @@ public:
 	fs_sum=f_sum/t_max;
   
 	if(!rank){
-          //if(n_log[i] == "U-List" || n_log[i] == "V-List")
+          if(n_log[i] == "U-List" || n_log[i] == "V-List")
 	    std::cout << n_log[i] << "     : " << t_avg << std::endl;
 	}
 	level--;

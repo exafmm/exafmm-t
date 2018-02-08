@@ -23,6 +23,10 @@ typedef fftw_plan fft_plan;
 #include "geometry.h"
 
 namespace pvfmm{
+  int SrcCoord = 1, SrcValue = 2, TrgCoord = 3, TrgValue = 4,
+      UpwardEquivCoord = 5, UpwardCheckCoord=6, UpwardEquivValue = 7,
+      DnwardEquivCoord = 8, DnwardCheckCoord=9, DnwardEquivValue = 10;
+  
   struct PackedData{
     size_t len;
     Matrix<real_t>* ptr;
@@ -30,7 +34,7 @@ namespace pvfmm{
     Vector<size_t> dsp;
 
     PackedData() {}
-    PackedData(Matrix<real_t>* mat, std::vector<FMM_Node*> nodes, bool isSrc, bool isCoord) {
+    PackedData(Matrix<real_t>* mat, std::vector<FMM_Node*> nodes, int type) {
       ptr = mat;
       len = mat->Dim(0) * mat->Dim(1);
       cnt.Resize(nodes.size());
@@ -38,17 +42,23 @@ namespace pvfmm{
       for(int i=0; i<nodes.size(); i++) {
         FMM_Node* node = nodes[i];
         Vector<real_t>* vec;
-        if (isSrc) {
-          if (isCoord) vec = &(node->src_coord);
-          else vec = &(node->src_value);
-        } else {
-          if (isCoord) vec = &(node->trg_coord);
-          else vec = &(node->trg_value);
+        switch (type) {
+          case 1:  vec = &(node->src_coord); break;  // src_coord
+          case 2:  vec = &(node->src_value); break;  // src_value 
+          case 3:  vec = &(node->trg_coord); break;  // trg_coord
+          case 4:  vec = &(node->trg_value); break;  // trg_value
+          case 5:  vec = &(upwd_equiv_surf[node->depth]); break;  // upward equivalent surface coords 
+          case 6:  vec = &(upwd_check_surf[node->depth]); break;  // upward check      surface coords
+          case 7:  vec = &(node->fmm_data->upward_equiv); break;  // upward equivalent charges
+          case 8:  vec = &(dnwd_equiv_surf[node->depth]); break;  // downward equivalent surface coords
+          case 9:  vec = &(dnwd_check_surf[node->depth]); break;  // downward check      surface coords
+          case 10: vec = &(node->fmm_data->dnward_equiv); break;  // downward equivalent charges
+          default: assert(0 && "PackedData type has to be an integer from 1 to 10");
         }
         dsp[i] = vec->data_ptr - mat[0][0];
         cnt[i] = vec->Dim();
       }
-    }
+    } 
   };
 
   struct InteracData{
@@ -1276,15 +1286,10 @@ private:
     ptSetupData data;
     data. level = setup_data. level;
     data.kernel = setup_data.kernel;
-    bool isSrc = true, isTrg = false, isCoord = true, isValue = false;
-    data.src_coord = PackedData(setup_data.coord_data,
-                                setup_data.nodes_in, isSrc, isCoord);
-    data.src_value = PackedData(setup_data.input_data,
-                                setup_data.nodes_in, isSrc, isValue);
-    data.trg_coord = PackedData(setup_data.coord_data,
-                                setup_data.nodes_out, isTrg, isCoord);
-    data.trg_value = PackedData(setup_data.output_data,
-                                setup_data.nodes_out, isTrg, isValue);
+    data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, SrcCoord);
+    data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, SrcValue);
+    data.trg_coord = PackedData(setup_data.coord_data, setup_data.nodes_out, TrgCoord);
+    data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, TrgValue);
     
     // initialize leaf's node_id, can put it in other functions
     for(int i=0; i<setup_data.nodes_in.size(); i++) {
@@ -1475,48 +1480,17 @@ private:
     ptSetupData data;
     data. level=setup_data. level;
     data.kernel=setup_data.kernel;
-    bool isSrc = true, isTrg = false, isCoord = true, isValue = false;
-    data.trg_coord = PackedData(setup_data.coord_data,
-                                        setup_data.nodes_out, isTrg, isCoord);
-    data.trg_value = PackedData(setup_data.output_data,
-                                        setup_data.nodes_out, isTrg, isValue);
+    data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, UpwardEquivCoord);
+    data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, UpwardEquivValue);
+    data.trg_coord = PackedData(setup_data.coord_data, setup_data.nodes_out, TrgCoord);
+    data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, TrgValue);
+
+    for(int i=0; i<setup_data.nodes_in.size(); i++) {
+      FMM_Node* node = setup_data.nodes_in[i];
+      node->node_id = i;
+    }
     std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
     std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    {
-      std::vector<FMM_Node*>& nodes=nodes_in;
-      PackedData& coord=data.src_coord;
-      PackedData& value=data.src_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data. input_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        ((FMM_Node*)nodes[i])->node_id=i;
-        Vector<real_t>& coord_vec=upwd_equiv_surf[nodes[i]->depth];
-        Vector<real_t>& value_vec=(nodes[i]->FMMData())->upward_equiv;
-        if(coord_vec.Dim()){
-          coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
-          assert(coord.dsp[i]<coord.len);
-          coord.cnt[i]=coord_vec.Dim();
-        }else{
-          coord.dsp[i]=0;
-          coord.cnt[i]=0;
-        }
-        if(value_vec.Dim()){
-          value.dsp[i]=&value_vec[0]-value.ptr[0][0];
-          assert(value.dsp[i]<value.len);
-          value.cnt[i]=value_vec.Dim();
-        }else{
-          value.dsp[i]=0;
-          value.cnt[i]=0;
-        }
-      }
-    }
     {
       int omp_p=omp_get_max_threads();
       std::vector<std::vector<size_t> > in_node_(omp_p);
@@ -1600,47 +1574,13 @@ private:
     ptSetupData data;
     data. level=setup_data. level;
     data.kernel=setup_data.kernel;
-    bool isSrc = true, isTrg = false, isCoord = true, isValue = false;
-    data.src_coord = PackedData(setup_data.coord_data,
-                                setup_data.nodes_in, isSrc, isCoord);
-    data.src_value = PackedData(setup_data.input_data,
-                                setup_data.nodes_in, isSrc, isValue);
+    data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, SrcCoord);
+    data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, SrcValue);
+    data.trg_coord = PackedData(setup_data.coord_data, setup_data.nodes_out, DnwardCheckCoord);
+    data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, DnwardEquivValue);
     std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
     std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    {
-      std::vector<FMM_Node*>& nodes=nodes_out;
-      PackedData& coord=data.trg_coord;
-      PackedData& value=data.trg_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data.output_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        Vector<real_t>& coord_vec=dnwd_check_surf[nodes[i]->depth];
-        Vector<real_t>& value_vec=(nodes[i]->FMMData())->dnward_equiv;
-        if(coord_vec.Dim()){
-          coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
-          assert(coord.dsp[i]<coord.len);
-          coord.cnt[i]=coord_vec.Dim();
-        }else{
-          coord.dsp[i]=0;
-          coord.cnt[i]=0;
-        }
-        if(value_vec.Dim()){
-          value.dsp[i]=&value_vec[0]-value.ptr[0][0];
-          assert(value.dsp[i]<value.len);
-          value.cnt[i]=value_vec.Dim();
-        }else{
-          value.dsp[i]=0;
-          value.cnt[i]=0;
-        }
-      }
-    }
+      
     {
       int omp_p=omp_get_max_threads();
       std::vector<std::vector<size_t> > in_node_(omp_p);
@@ -1881,49 +1821,15 @@ private:
   	 && nodes_out[i]->IsLeaf()) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
-    data. level=setup_data. level;
-    data.kernel=setup_data.kernel;
-    bool isSrc = true, isTrg = false, isCoord = true, isValue = false;
-    data.src_coord = PackedData(setup_data.coord_data,
-                                setup_data.nodes_in, isSrc, isCoord);
-    data.src_value = PackedData(setup_data.input_data,
-                                setup_data.nodes_in, isSrc, isValue);
+    data. level = setup_data. level;
+    data.kernel = setup_data.kernel;
+    data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, SrcCoord);
+    data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, SrcValue);
+    data.trg_coord = PackedData(setup_data.coord_data, setup_data.nodes_out, UpwardCheckCoord);
+    data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, UpwardEquivValue);
+
     std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
     std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    {
-      std::vector<FMM_Node*>& nodes=nodes_out;
-      PackedData& coord=data.trg_coord;
-      PackedData& value=data.trg_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data.output_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        Vector<real_t>& coord_vec=upwd_check_surf[nodes[i]->depth];
-        Vector<real_t>& value_vec=(nodes[i]->FMMData())->upward_equiv;
-        if(coord_vec.Dim()){
-          coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
-          assert(coord.dsp[i]<coord.len);
-          coord.cnt[i]=coord_vec.Dim();
-        }else{
-          coord.dsp[i]=0;
-          coord.cnt[i]=0;
-        }
-        if(value_vec.Dim()){
-          value.dsp[i]=&value_vec[0]-value.ptr[0][0];
-          assert(value.dsp[i]<value.len);
-          value.cnt[i]=value_vec.Dim();
-        }else{
-          value.dsp[i]=0;
-          value.cnt[i]=0;
-        }
-      }
-    }
     {
       int omp_p=omp_get_max_threads();
       std::vector<std::vector<size_t> > in_node_(omp_p);
@@ -2083,48 +1989,17 @@ private:
     ptSetupData data;
     data. level=setup_data. level;
     data.kernel=setup_data.kernel;
-    bool isSrc = true, isTrg = false, isCoord = true, isValue = false;
-    data.trg_coord = PackedData(setup_data.coord_data,
-                                setup_data.nodes_out, isTrg, isCoord);
-    data.trg_value = PackedData(setup_data.output_data,
-                                setup_data.nodes_out, isTrg, isValue);
+    data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, DnwardEquivCoord);
+    data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, DnwardEquivValue);
+    data.trg_coord = PackedData(setup_data.coord_data, setup_data.nodes_out, TrgCoord);
+    data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, TrgValue);
+    for(int i=0; i<setup_data.nodes_in.size(); i++) {
+      FMM_Node* node = setup_data.nodes_in[i];
+      node->node_id = i;
+    }
+
     std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
     std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    {
-      std::vector<FMM_Node*>& nodes=nodes_in;
-      PackedData& coord=data.src_coord;
-      PackedData& value=data.src_value;
-      coord.ptr=setup_data. coord_data;
-      value.ptr=setup_data. input_data;
-      coord.len=coord.ptr->Dim(0)*coord.ptr->Dim(1);
-      value.len=value.ptr->Dim(0)*value.ptr->Dim(1);
-      coord.cnt.Resize(nodes.size());
-      coord.dsp.Resize(nodes.size());
-      value.cnt.Resize(nodes.size());
-      value.dsp.Resize(nodes.size());
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        nodes[i]->node_id=i;
-        Vector<real_t>& coord_vec=dnwd_equiv_surf[nodes[i]->depth];
-        Vector<real_t>& value_vec=nodes[i]->FMMData()->dnward_equiv;
-        if(coord_vec.Dim()){
-          coord.dsp[i]=&coord_vec[0]-coord.ptr[0][0];
-          assert(coord.dsp[i]<coord.len);
-          coord.cnt[i]=coord_vec.Dim();
-        }else{
-          coord.dsp[i]=0;
-          coord.cnt[i]=0;
-        }
-        if(value_vec.Dim()){
-          value.dsp[i]=&value_vec[0]-value.ptr[0][0];
-          assert(value.dsp[i]<value.len);
-          value.cnt[i]=value_vec.Dim();
-        }else{
-          value.dsp[i]=0;
-          value.cnt[i]=0;
-        }
-      }
-    }
     {
       int omp_p=omp_get_max_threads();
       std::vector<std::vector<size_t> > in_node_(omp_p);
