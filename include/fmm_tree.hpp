@@ -212,7 +212,7 @@ private:
     size_t p_indx=perm_indx % C_Perm;
     Permutation<real_t> P;
     switch (type) {
-    case U2U_Type: {
+    case M2M_Type: {
       Vector<real_t> scal_exp;
       Permutation<real_t> ker_perm;
       if(perm_indx<C_Perm) {
@@ -226,7 +226,7 @@ private:
       P=equiv_surf_perm(m, p_indx, ker_perm, &scal_exp);
       break;
     }
-    case D2D_Type: {
+    case L2L_Type: {
       Vector<real_t> scal_exp;
       Permutation<real_t> ker_perm;
       if(perm_indx<C_Perm){
@@ -267,7 +267,7 @@ private:
     }
     Matrix<real_t> M;
     switch (type){
-    case UC2UE0_Type:{
+    case M2M_V_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_m2m->ker_dim;
       real_t c[3]={0,0,0};
@@ -288,7 +288,7 @@ private:
       M=V.Transpose()*S;
       break;
     }
-    case UC2UE1_Type:{
+    case M2M_U_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_m2m->ker_dim;
       real_t c[3]={0,0,0};
@@ -303,7 +303,7 @@ private:
       M=U.Transpose();
       break;
     }
-    case DC2DE0_Type:{
+    case L2L_V_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_l2l->ker_dim;
       real_t c[3]={0,0,0};
@@ -324,7 +324,7 @@ private:
       M=V.Transpose()*S;
       break;
     }
-    case DC2DE1_Type:{
+    case L2L_U_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_l2l->ker_dim;
       real_t c[3]={0,0,0};
@@ -339,7 +339,7 @@ private:
       M=U.Transpose();
       break;
     }
-    case U2U_Type:{
+    case M2M_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_m2m->ker_dim;
       real_t c[3]={0,0,0};
@@ -353,12 +353,12 @@ private:
       Matrix<real_t> M_ce2c(n_ue*ker_dim[0],n_uc*ker_dim[1]);
       kernel->k_m2m->BuildMatrix(&equiv_surf[0], n_ue,
                                  &check_surf[0], n_uc, &(M_ce2c[0][0]));
-      Matrix<real_t>& M_c2e0 = Precomp(UC2UE0_Type, 0);
-      Matrix<real_t>& M_c2e1 = Precomp(UC2UE1_Type, 0);
+      Matrix<real_t>& M_c2e0 = Precomp(M2M_V_Type, 0);
+      Matrix<real_t>& M_c2e1 = Precomp(M2M_U_Type, 0);
       M=(M_ce2c*M_c2e0)*M_c2e1;
       break;
     }
-    case D2D_Type:{
+    case L2L_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_l2l->ker_dim;
       real_t s=powf(0.5,level+1);
@@ -371,8 +371,8 @@ private:
       size_t n_de=equiv_surf.size()/3;
       Matrix<real_t> M_pe2c(n_de*ker_dim[0],n_dc*ker_dim[1]);
       kernel->k_l2l->BuildMatrix(&equiv_surf[0], n_de, &check_surf[0], n_dc, &(M_pe2c[0][0]));
-      Matrix<real_t> M_c2e0=Precomp(DC2DE0_Type,0);
-      Matrix<real_t> M_c2e1=Precomp(DC2DE1_Type,0);
+      Matrix<real_t> M_c2e0=Precomp(L2L_V_Type,0);
+      Matrix<real_t> M_c2e1=Precomp(L2L_U_Type,0);
       Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
       Vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
       Permutation<real_t> P=equiv_surf_perm(multipole_order, Scaling, ker_perm, &scal_exp);
@@ -513,18 +513,18 @@ public:
     mat->LoadFile(mat_fname.c_str());
     interacList.Initialize(mat);
     Profile::Tic("PrecompUC2UE",false,4);
-    PrecompAll(UC2UE0_Type);
-    PrecompAll(UC2UE1_Type);
+    PrecompAll(M2M_V_Type);
+    PrecompAll(M2M_U_Type);
     Profile::Toc();
     Profile::Tic("PrecompDC2DE",false,4);
-    PrecompAll(DC2DE0_Type);
-    PrecompAll(DC2DE1_Type);
+    PrecompAll(L2L_V_Type);
+    PrecompAll(L2L_U_Type);
     Profile::Toc();
     Profile::Tic("PrecompU2U",false,4);
-    PrecompAll(U2U_Type);
+    PrecompAll(M2M_Type);
     Profile::Toc();
     Profile::Tic("PrecompD2D",false,4);
-    PrecompAll(D2D_Type);
+    PrecompAll(L2L_Type);
     Profile::Toc();
     if(save_precomp){
       Profile::Tic("Save2File",false,4);
@@ -921,8 +921,8 @@ private:
     n_list[5] = leafs;
     n_list[6] = leafs;
     // fill in vec_list
-    int n_ue = interacList.ClassMat(UC2UE1_Type, 0).Dim(1);
-    int n_de = interacList.ClassMat(DC2DE0_Type, 0).Dim(0);
+    int n_ue = interacList.ClassMat(M2M_U_Type, 0).Dim(1);
+    int n_de = interacList.ClassMat(L2L_V_Type, 0).Dim(0);
     for(int i=0; i<nodesLevelOrder.size(); i++) {
       FMM_Node* node = nodesLevelOrder[i];
       node->fmm_data->upward_equiv.Resize(n_ue);
@@ -991,10 +991,10 @@ private:
     size_t node_cnt=std::max(n_list_src.size(),n_list_trg.size());
     std::vector<Mat_Type> type_lst;
     std::vector<std::vector<FMM_Node*>*> type_node_lst;
-    type_lst.push_back(S2U_Type); type_node_lst.push_back(&n_list_src);
-    type_lst.push_back(U2U_Type); type_node_lst.push_back(&n_list_src);
-    type_lst.push_back(D2D_Type); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(D2T_Type); type_node_lst.push_back(&n_list_trg);
+    type_lst.push_back(P2M_Type); type_node_lst.push_back(&n_list_src);
+    type_lst.push_back(M2M_Type); type_node_lst.push_back(&n_list_src);
+    type_lst.push_back(L2L_Type); type_node_lst.push_back(&n_list_trg);
+    type_lst.push_back(L2P_Type); type_node_lst.push_back(&n_list_trg);
     type_lst.push_back(U0_Type ); type_node_lst.push_back(&n_list_trg);
     type_lst.push_back(U1_Type ); type_node_lst.push_back(&n_list_trg);
     type_lst.push_back(U2_Type ); type_node_lst.push_back(&n_list_trg);
@@ -1984,7 +1984,7 @@ private:
           real_t s=powf(0.5,tnode->depth);
           size_t interac_cnt_=0;
           {
-            Mat_Type type=S2U_Type;
+            Mat_Type type=P2M_Type;
             std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
             for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
               FMM_Node* snode=intlst[j];
@@ -2028,8 +2028,8 @@ private:
         pvfmm::Vector<size_t>& cnt=pt_interac_data.interac_cnt;
         pvfmm::Vector<size_t>& dsp=pt_interac_data.interac_dsp;
         if(cnt.Dim() && cnt[cnt.Dim()-1]+dsp[dsp.Dim()-1]){
-          data.pt_interac_data.M[2] = mat->mat[UC2UE0_Type][0];
-          data.pt_interac_data.M[3] = mat->mat[UC2UE1_Type][0];
+          data.pt_interac_data.M[2] = mat->mat[M2M_V_Type][0];
+          data.pt_interac_data.M[3] = mat->mat[M2M_U_Type][0];
         }else{
           data.pt_interac_data.M[2].ReInit(0,0);
           data.pt_interac_data.M[3].ReInit(0,0);
@@ -2045,7 +2045,7 @@ private:
       setup_data.level=level;
       setup_data.kernel=kernel->k_m2m;
       setup_data.interac_type.resize(1);
-      setup_data.interac_type[0]=U2U_Type;
+      setup_data.interac_type[0]=M2M_Type;
       setup_data. input_data=&buff[0];
       setup_data.output_data=&buff[0];
       std::vector<FMM_Node*>& nodes_in =n_list[0];
@@ -2070,7 +2070,7 @@ private:
       setup_data.level=level;
       setup_data.kernel=kernel->k_l2l;
       setup_data.interac_type.resize(1);
-      setup_data.interac_type[0]=D2D_Type;
+      setup_data.interac_type[0]=L2L_Type;
       setup_data. input_data=&buff[1];
       setup_data.output_data=&buff[1];
       std::vector<FMM_Node*>& nodes_in =n_list[1];
@@ -2185,7 +2185,7 @@ private:
           real_t s=powf(0.5,tnode->depth);
           size_t interac_cnt_=0;
           {
-            Mat_Type type=D2T_Type;
+            Mat_Type type=L2P_Type;
             std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
             for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
               FMM_Node* snode=intlst[j];
@@ -2229,8 +2229,8 @@ private:
         pvfmm::Vector<size_t>& cnt=pt_interac_data.interac_cnt;
         pvfmm::Vector<size_t>& dsp=pt_interac_data.interac_dsp;
         if(cnt.Dim() && cnt[cnt.Dim()-1]+dsp[dsp.Dim()-1]){
-          data.pt_interac_data.M[0]=mat->mat[DC2DE0_Type][0];
-          data.pt_interac_data.M[1]=mat->mat[DC2DE1_Type][0];
+          data.pt_interac_data.M[0]=mat->mat[L2L_V_Type][0];
+          data.pt_interac_data.M[1]=mat->mat[L2L_U_Type][0];
         }else{
           data.pt_interac_data.M[0].ReInit(0,0);
           data.pt_interac_data.M[1].ReInit(0,0);

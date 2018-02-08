@@ -20,15 +20,15 @@ public:
     rel_coord.resize(Type_Count);
     hash_lut.resize(Type_Count);
 
-    InitList(0,0,1,UC2UE0_Type);
-    InitList(0,0,1,UC2UE1_Type);
-    InitList(0,0,1,DC2DE0_Type);
-    InitList(0,0,1,DC2DE1_Type);
+    InitList(0,0,1,M2M_V_Type);
+    InitList(0,0,1,M2M_U_Type);
+    InitList(0,0,1,L2L_V_Type);
+    InitList(0,0,1,L2L_U_Type);
 
-    InitList(0,0,1,S2U_Type);
-    InitList(1,1,2,U2U_Type);    // count = 8, (+1 or -1)
-    InitList(1,1,2,D2D_Type);
-    InitList(0,0,1,D2T_Type);
+    InitList(0,0,1,P2M_Type);
+    InitList(1,1,2,M2M_Type);    // count = 8, (+1 or -1)
+    InitList(1,1,2,L2L_Type);
+    InitList(0,0,1,L2P_Type);
 
     InitList(3,3,2,U0_Type);     // count = 4^3-2^3 = 56
     InitList(1,0,1,U1_Type);
@@ -191,12 +191,12 @@ public:
 
     switch (t){
 
-    case S2U_Type:
+    case P2M_Type:
       {
 	if(n->IsLeaf()) interac_list[0]=n;
 	break;
       }
-    case U2U_Type:
+    case M2M_Type:
       {
 	if(n->IsLeaf()) return;
 	for(int j=0;j<n_child;j++){
@@ -210,7 +210,7 @@ public:
 	}
 	break;
       }
-    case D2D_Type:
+    case L2L_Type:
       {
 	if(n->Parent()==NULL) return;
 	FMM_Node* p=(FMM_Node*)n->Parent();
@@ -225,7 +225,7 @@ public:
 	}
 	break;
       }
-    case D2T_Type:
+    case L2P_Type:
       {
 	if(n->IsLeaf()) interac_list[0]=n;
 	break;

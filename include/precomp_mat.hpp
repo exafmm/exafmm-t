@@ -4,14 +4,14 @@
 namespace pvfmm{
 
 typedef enum{
-  UC2UE0_Type= 0,
-  UC2UE1_Type= 1,
-  DC2DE0_Type= 2,
-  DC2DE1_Type= 3,
-  S2U_Type  = 4,
-  U2U_Type  = 5,
-  D2D_Type  = 6,
-  D2T_Type  = 7,
+  M2M_V_Type= 0,
+  M2M_U_Type= 1,
+  L2L_V_Type= 2,
+  L2L_U_Type= 3,
+  P2M_Type  = 4,
+  M2M_Type  = 5,
+  L2L_Type  = 6,
+  L2P_Type  = 7,
   U0_Type   = 8,
   U1_Type   = 9,
   U2_Type   =10,
