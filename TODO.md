@@ -1,14 +1,27 @@
 ###TODO
 -------------
-- [ ] remove surf_coord & surf_value from FMM_Node
-- [ ] remove perm_r perm_c (Perm_R, Perm_C)
+- [x] remove surf_coord & surf_value from FMM_Node
 - [ ] remove unnecessary/unused permutation type
 - [x] make Precompmat members public instead of calling access functions
 - [ ] write down math equations for precomputation
-- [x] remove "ghost" 
+- [x] remove "ghost"
 - [ ] remove "scatter" related members and functions
 - [ ] use exafmm hilbert id header (if necessary)
+- [ ] remove gradient kernel related stuff
+- [ ] assume source == target
+- [ ] Flatten the class hierarchy
 
+- [ ] UC2UE0 -> M2M_V
+- [ ] UC2UE1 -> M2M_U
+- [ ] DC2DE0 -> L2L_V
+- [ ] DC2DE1 -> L2L_U
+- [ ] U2U -> M2M
+- [ ] D2D -> L2L
+- [ ] S2U -> P2M
+- [ ] D2T -> L2P
+- [ ] Remove U0, U1, U2
+- [ ] W -> M2P
+- [ ] X -> P2L
 - [x] Real_t -> real_t
 - [ ] size_t -> int
 - [ ] Matrix -> std::vector(std::vector) for non-Real_t

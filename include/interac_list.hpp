@@ -20,8 +20,8 @@ public:
     rel_coord.resize(Type_Count);
     hash_lut.resize(Type_Count);
 
-    InitList(0,0,1,UC2UE0_Type); // count = 1, (0,0,0)
-    InitList(0,0,1,UC2UE1_Type); 
+    InitList(0,0,1,UC2UE0_Type);
+    InitList(0,0,1,UC2UE1_Type);
     InitList(0,0,1,DC2DE0_Type);
     InitList(0,0,1,DC2DE1_Type);
 
@@ -53,7 +53,7 @@ public:
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
     size_t indx0 = interac_class[type][indx];                     // indx0: class coord index
     Matrix     <real_t>& M0      = mat->mat[type][indx0];         // class coord matrix
-    Permutation<real_t>& row_perm=mat->Perm_R(l, type, indx );    // mat->perm_r[(l+128)*16+type][indx] 
+    Permutation<real_t>& row_perm=mat->Perm_R(l, type, indx );    // mat->perm_r[(l+128)*16+type][indx]
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;             // if mat hasn't been computed, then return
     if(row_perm.Dim()==0){                                        // if this perm_r entry hasn't been computed
       std::vector<Perm_Type> p_list = perm_list[type][indx];      // get perm_list of current rel_coord
@@ -366,4 +366,3 @@ public:
 }//end namespace
 
 #endif //_PVFMM_INTERAC_LIST_HPP_
-
