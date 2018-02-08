@@ -7,7 +7,10 @@ LDFLAGS = -lfftw3 -lfftw3f -llapack -lblas
 %.o: %.cpp
 	$(CXX) -c $< -o $@
 
-float: main.cpp
+potential: main.cpp
+	time $(CXX) $(CXXFLAGS) -c $< -o main.o -DFLOAT -DPOTENTIAL
+
+force: main.cpp
 	time $(CXX) -c $< -o main.o -DFLOAT
 
 double: main.cpp
