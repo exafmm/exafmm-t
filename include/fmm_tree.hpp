@@ -120,10 +120,6 @@ private:
   std::vector<Matrix<real_t> > node_data_buff;   // used in CollectNodeData
   std::vector<std::vector<char> > precomp_lst;   // used in ListSetup
   std::vector<SetupData > setup_data;
-  std::vector<Vector<real_t> > upwd_check_surf;
-  std::vector<Vector<real_t> > upwd_equiv_surf;
-  std::vector<Vector<real_t> > dnwd_check_surf;
-  std::vector<Vector<real_t> > dnwd_equiv_surf;
 
   fft_plan vprecomp_fftplan;
   bool vprecomp_fft_flag;
@@ -134,27 +130,7 @@ private:
 
 public:
   FMM_Tree(int multi_order): multipole_order(multi_order), root_node(NULL), vprecomp_fft_flag(false), vlist_fft_flag(false),
-	      vlist_ifft_flag(false), mat(NULL), kernel(NULL) {
-    // initialize FMM_Tree::
-    if(upwd_check_surf.size()==0){
-      size_t m=multipole_order;
-      upwd_check_surf.resize(MAX_DEPTH);
-      upwd_equiv_surf.resize(MAX_DEPTH);
-      dnwd_check_surf.resize(MAX_DEPTH);
-      dnwd_equiv_surf.resize(MAX_DEPTH);
-      for(size_t depth=0;depth<MAX_DEPTH;depth++){
-        real_t c[3]={0.0,0.0,0.0};
-        upwd_check_surf[depth].Resize((6*(m-1)*(m-1)+2)*3);
-        upwd_equiv_surf[depth].Resize((6*(m-1)*(m-1)+2)*3);
-        dnwd_check_surf[depth].Resize((6*(m-1)*(m-1)+2)*3);
-        dnwd_equiv_surf[depth].Resize((6*(m-1)*(m-1)+2)*3);
-        upwd_check_surf[depth] = u_check_surf(m,c,depth);
-        upwd_equiv_surf[depth] = u_equiv_surf(m,c,depth);
-        dnwd_check_surf[depth] = d_check_surf(m,c,depth);
-        dnwd_equiv_surf[depth] = d_equiv_surf(m,c,depth);
-      }
-    }            
-  }
+	      vlist_ifft_flag(false), mat(NULL), kernel(NULL) { }
 
   ~FMM_Tree(){
     if(root_node!=NULL){
