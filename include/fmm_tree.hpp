@@ -1828,6 +1828,10 @@ private:
     data.trg_coord = PackedData(setup_data.coord_data, setup_data.nodes_out, UpwardCheckCoord);
     data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, UpwardEquivValue);
 
+    for(int i=0; i<setup_data.nodes_in.size(); i++) {
+      FMM_Node* node = setup_data.nodes_in[i];
+      node->node_id = i;
+    }
     std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
     std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
     {
