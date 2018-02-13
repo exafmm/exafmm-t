@@ -7,7 +7,7 @@ class FMM_Node {
  public:
   int depth;
   int max_depth;
-  int path2node;
+  int octant;
   FMM_Node* parent;
   FMM_Node** child;
   size_t max_pts;
@@ -44,7 +44,7 @@ class FMM_Node {
     child=NULL;
   }
 
-  void Initialize(FMM_Node* parent_, int path2node_, InitData* data_){
+  void Initialize(FMM_Node* parent_, int octant_, InitData* data_){
     parent=parent_;
     depth=(parent==NULL?0:parent->depth+1);
     if(data_!=NULL){
@@ -53,8 +53,8 @@ class FMM_Node {
     }else if(parent!=NULL){
       max_depth=parent->max_depth;
     }
-    assert(path2node_>=0 && path2node_<8);
-    path2node=path2node_;
+    assert(octant_>=0 && octant_<8);
+    octant=octant_;
     real_t coord_offset=((real_t)1.0)/((real_t)(((uint64_t)1)<<depth));
     if(!parent_){
       for(int j=0;j<3;j++) coord[j]=0;
@@ -63,7 +63,7 @@ class FMM_Node {
       for(int j=0;j<3;j++){
         coord[j]=parent_->coord[j]+
           // ((Path2Node() & flag)?coord_offset:0.0f);
-          ((path2node & flag)?coord_offset:0.0f);
+          ((octant & flag)?coord_offset:0.0f);
         flag=flag<<1;
       }
     }
@@ -226,21 +226,6 @@ class FMM_Node {
     assert(coord);
     mid.GetCoord(coord);
     depth=mid.GetDepth();
-  }
-
-  void SetParent(FMM_Node* p, int path2node_) {
-    assert(path2node_>=0 && path2node_<(1<<3));
-    assert(p==NULL?true:p->Child(path2node_)==this);
-    parent=p;
-    path2node=path2node_;
-    depth=(parent==NULL?0:parent->depth+1);
-    if(parent!=NULL) max_depth=parent->max_depth;
-  }
-
-  void SetChild(FMM_Node* c, int id) {
-    assert(id<(1<<3));
-    child[id]=c;
-    if(c!=NULL) child[id]->SetParent(this,id);
   }
 
   FMM_Node * Colleague(int index) {

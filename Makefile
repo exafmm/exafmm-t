@@ -16,6 +16,9 @@ force: main.cpp
 double: main.cpp
 	time $(CXX) -c $< -o main.o
 
+nonuniform: main.cpp
+	time $(CXX) -c $< -o main.o -DFLOAT -DNONUNIFORM
+
 link: main.o
 	$(CXX) $? $(LDFLAGS)
 
