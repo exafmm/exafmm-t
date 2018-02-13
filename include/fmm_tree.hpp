@@ -1328,18 +1328,7 @@ private:
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
-              {
-                const int* rel_coord=interacList.rel_coord[type][j];
-                const real_t* scoord=snode->Coord();
-                const real_t* tcoord=tnode->Coord();
-                real_t shift[3];
-                shift[0]=rel_coord[0]*0.5*s-(scoord[0]+1.0*s)+(tcoord[0]+0.5*s);
-                shift[1]=rel_coord[1]*0.5*s-(scoord[1]+1.0*s)+(tcoord[1]+0.5*s);
-                shift[2]=rel_coord[2]*0.5*s-(scoord[2]+1.0*s)+(tcoord[2]+0.5*s);
-                coord_shift.push_back(shift[0]);
-                coord_shift.push_back(shift[1]);
-                coord_shift.push_back(shift[2]);
-              }
+              for(int k=0; k<3; k++) coord_shift.push_back(0.0);
               interac_cnt_++;
             }
           }
@@ -1352,18 +1341,7 @@ private:
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
-              {
-                const int* rel_coord=interacList.rel_coord[type][j];
-                const real_t* scoord=snode->Coord();
-                const real_t* tcoord=tnode->Coord();
-                real_t shift[3];
-                shift[0]=rel_coord[0]*1.0*s-(scoord[0]+0.5*s)+(tcoord[0]+0.5*s);
-                shift[1]=rel_coord[1]*1.0*s-(scoord[1]+0.5*s)+(tcoord[1]+0.5*s);
-                shift[2]=rel_coord[2]*1.0*s-(scoord[2]+0.5*s)+(tcoord[2]+0.5*s);
-                coord_shift.push_back(shift[0]);
-                coord_shift.push_back(shift[1]);
-                coord_shift.push_back(shift[2]);
-              }
+              for(int k=0; k<3; k++) coord_shift.push_back(0.0);
               interac_cnt_++;
             }
           }
@@ -1376,18 +1354,7 @@ private:
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
-              {
-                const int* rel_coord=interacList.rel_coord[type][j];
-                const real_t* scoord=snode->Coord();
-                const real_t* tcoord=tnode->Coord();
-                real_t shift[3];
-                shift[0]=rel_coord[0]*0.25*s-(scoord[0]+0.25*s)+(tcoord[0]+0.5*s);
-                shift[1]=rel_coord[1]*0.25*s-(scoord[1]+0.25*s)+(tcoord[1]+0.5*s);
-                shift[2]=rel_coord[2]*0.25*s-(scoord[2]+0.25*s)+(tcoord[2]+0.5*s);
-                coord_shift.push_back(shift[0]);
-                coord_shift.push_back(shift[1]);
-                coord_shift.push_back(shift[2]);
-              }
+              for(int k=0; k<3; k++) coord_shift.push_back(0.0);
               interac_cnt_++;
             }
           }
@@ -1401,18 +1368,7 @@ private:
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
-              {
-                const int* rel_coord=interacList.rel_coord[type][j];
-                const real_t* scoord=snode->Coord();
-                const real_t* tcoord=tnode->Coord();
-                real_t shift[3];
-                shift[0]=rel_coord[0]*0.5*s-(scoord[0]+1.0*s)+(tcoord[0]+0.5*s);
-                shift[1]=rel_coord[1]*0.5*s-(scoord[1]+1.0*s)+(tcoord[1]+0.5*s);
-                shift[2]=rel_coord[2]*0.5*s-(scoord[2]+1.0*s)+(tcoord[2]+0.5*s);
-                coord_shift.push_back(shift[0]);
-                coord_shift.push_back(shift[1]);
-                coord_shift.push_back(shift[2]);
-              }
+              for(int k=0; k<3; k++) coord_shift.push_back(0.0);
               interac_cnt_++;
             }
           }
@@ -1426,18 +1382,7 @@ private:
               if(snode->pt_cnt[0]> Nsrf) continue;
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
-              {
-                const int* rel_coord=interacList.rel_coord[type][j];
-                const real_t* scoord=snode->Coord();
-                const real_t* tcoord=tnode->Coord();
-                real_t shift[3];
-                shift[0]=rel_coord[0]*0.25*s-(scoord[0]+0.25*s)+(tcoord[0]+0.5*s);
-                shift[1]=rel_coord[1]*0.25*s-(scoord[1]+0.25*s)+(tcoord[1]+0.5*s);
-                shift[2]=rel_coord[2]*0.25*s-(scoord[2]+0.25*s)+(tcoord[2]+0.5*s);
-                coord_shift.push_back(shift[0]);
-                coord_shift.push_back(shift[1]);
-                coord_shift.push_back(shift[2]);
-              }
+              for(int k=0; k<3; k++) coord_shift.push_back(0.0);
               interac_cnt_++;
             }
           }
