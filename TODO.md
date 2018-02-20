@@ -10,21 +10,24 @@
 - [ ] remove gradient kernel related stuff
 - [ ] assume source == target
 - [ ] Flatten the class hierarchy
+- [ ] Use Plummer distribution
 
 - [x] UC2UE0 -> M2M_V
 - [x] UC2UE1 -> M2M_U
 - [x] DC2DE0 -> L2L_V
 - [x] DC2DE1 -> L2L_U
-- [x] U2U -> M2M
-- [x] D2D -> L2L
-- [x] S2U -> P2M
-- [x] D2T -> L2P
-- [ ] Remove U0, U1, U2
+- [ ] U2U -> M2M
+- [ ] D2D -> L2L
+- [ ] S2U -> P2M
+- [ ] D2T -> L2P
 - [ ] W -> M2P
 - [ ] X -> P2L
+- [ ] U -> P2P
+- [ ] V -> M2L
 - [x] Real_t -> real_t
 - [ ] size_t -> int
 - [ ] Matrix -> std::vector(std::vector) for non-Real_t
+- [ ] Remove SVD5 and other SVD functions that use it
 - [ ] Remove unnecessary "{}"
 - [ ] "){" -> ") {", "}else{" -> "} else {"
 - [ ] template -> Real_t

@@ -68,9 +68,9 @@ int main(int argc, char **argv){
   srand48(0);
 #if NONUNIFORM
   for(size_t i=0; i<3*N; i++) {
-    if (i/3 < 0.1*N) src_coord.push_back(drand48()*0.5);
+    if (i/3 < 0.2*N) src_coord.push_back(drand48()*0.5);
     else {
-      if (i/3 < 0.2*N) src_coord.push_back(0.5 + drand48()*0.5);
+      if (i/3 < 0.4*N) src_coord.push_back(0.5 + drand48()*0.5);
       else src_coord.push_back(drand48());
     }
   }

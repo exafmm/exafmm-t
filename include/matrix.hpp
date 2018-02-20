@@ -703,7 +703,12 @@ public:
     wssize = (wssize>wssize1?wssize:wssize1);
     T* wsbuf;
     int err = posix_memalign((void**)&wsbuf, MEM_ALIGN, wssize*sizeof(T));
-    svd(&JOBU, &JOBVT, &m, &n, &M[0][0], &m, &tS[0][0], &tVT[0][0], &m, &tU[0][0], &k, wsbuf, &wssize, &INFO);
+#if FLOAT
+    sgesvd_(&JOBU, &JOBVT, &m, &n, &M[0][0], &m, &tS[0][0], &tVT[0][0], &m, &tU[0][0], &k, wsbuf, &wssize, &INFO);
+#else
+    dgesvd_(&JOBU, &JOBVT, &m, &n, &M[0][0], &m, &tS[0][0], &tVT[0][0], &m, &tU[0][0], &k, wsbuf, &wssize, &INFO);
+#endif
+    //svd(&JOBU, &JOBVT, &m, &n, &M[0][0], &m, &tS[0][0], &tVT[0][0], &m, &tU[0][0], &k, wsbuf, &wssize, &INFO);
     free(wsbuf);
     if(INFO!=0) std::cout<<INFO<<'\n';
     assert(INFO==0);

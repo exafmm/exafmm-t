@@ -7,17 +7,17 @@ LDFLAGS = -lfftw3 -lfftw3f -llapack -lblas
 %.o: %.cpp
 	$(CXX) -c $< -o $@
 
-potential: main.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o main.o -DFLOAT -DPOTENTIAL
+pfloat: main.cpp
+	time $(CXX) -c $< -o main.o -DFLOAT -DPOTENTIAL
 
-force: main.cpp
+pdouble: main.cpp
+	time $(CXX) -c $< -o main.o -DPOTENTIAL
+
+float: main.cpp
 	time $(CXX) -c $< -o main.o -DFLOAT
 
 double: main.cpp
 	time $(CXX) -c $< -o main.o
-
-nonuniform: main.cpp
-	time $(CXX) -c $< -o main.o -DFLOAT -DNONUNIFORM
 
 link: main.o
 	$(CXX) $? $(LDFLAGS)
@@ -31,20 +31,15 @@ cleandat:
 tags:
 	find . -name "*.cpp" -o -name "*.hpp" | xargs etags -f TAGS
 
-r4:
-	./a.out -T 4 -n 100000 -P 4 -c 64
+p4:
+	./a.out -T 8 -n 1000000 -P 4 -c 64
 
-r16:
-	./a.out -T 4 -n 100000 -P 16 -c 320
+p16:
+	./a.out -T 8 -n 1000000 -P 16 -c 320
 
 y4:
-	./a.out -T 32 -n 1000000 -P 4 -c 64
+	./a.out -T 32 -n 1000000 -P 4 64
 
 y16:
 	./a.out -T 32 -n 1000000 -P 16 -c 320
 
-e4:
-	./a.out -T 72 -n 1000000 -P 4 -c 64
-
-e16:
-	./a.out -T 72 -n 1000000 -P 16 -c 320
