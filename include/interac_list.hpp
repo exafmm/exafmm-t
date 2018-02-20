@@ -49,7 +49,7 @@ public:
     return mat->mat[type][indx0];
   }
 
-  // This is only related to U2U and D2D operator
+  // This is only related to M2M and L2L operator
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
     size_t indx0 = interac_class[type][indx];                     // indx0: class coord index
     Matrix     <real_t>& M0      = mat->mat[type][indx0];         // class coord matrix

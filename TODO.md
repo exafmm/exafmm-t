@@ -16,10 +16,10 @@
 - [x] UC2UE1 -> M2M_U
 - [x] DC2DE0 -> L2L_V
 - [x] DC2DE1 -> L2L_U
-- [ ] U2U -> M2M
-- [ ] D2D -> L2L
-- [ ] S2U -> P2M
-- [ ] D2T -> L2P
+- [x] U2U -> M2M
+- [x] D2D -> L2L
+- [x] S2U -> P2M
+- [x] D2T -> L2P
 - [ ] W -> M2P
 - [ ] X -> P2L
 - [ ] U -> P2P
