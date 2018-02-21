@@ -1,11 +1,11 @@
 [./a.out -T 8 -n 1000000 -P 4 -c 64] @ phantom
-Error      : 1.379760e-05
-U-List     : 1.095021e-01
-V-List     : 8.292794e-02
+Error      : 9.811069e-05
+U-List     : 2.820633e-01
+V-List     : 2.955503e-01
 [./a.out -T 8 -n 1000000 -P 16 -c 320] @ phantom
-Error      : 4.539913e-14
-U-List     : 9.759610e-01
-V-List     : 8.784208e-01
+Error      : 1.564420e-13
+U-List     : 3.051935e+00
+V-List     : 8.225219e+00
 [./a.out -T 32 -n 1000000 -P 4 -c 64] @ yokota06
 Error      : 9.811069e-05
 U-List     : 1.143612e-01
