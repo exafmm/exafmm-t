@@ -67,9 +67,9 @@ namespace pvfmm{
     Vector<real_t> coord_shift;
     Vector<size_t> interac_cnt;
     Vector<size_t> interac_dsp;
-    Vector<size_t> interac_cst;
+    Vector<size_t> interac_cst;    // displacement of cost
     Vector<real_t> scal[4*MAX_DEPTH];
-    Matrix<real_t> M[4];
+    Matrix<real_t> M[4];   // M is not empty for P2M, L2P, empty for other lists
   };
   struct ptSetupData{
     int level;
@@ -118,7 +118,7 @@ namespace pvfmm{
   };
 
 class FMM_Tree {
-private:
+public:
   int multipole_order;
   FMM_Node* root_node;
   std::vector<FMM_Node*> node_lst;
@@ -2119,246 +2119,275 @@ public:
 
 /* 4th Part: Evaluation */
 private:
-  void EvalListPts(SetupData& setup_data) {
+  void evalP2P(SetupData& setup_data) {
     if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
-    Profile::Tic("Host2Device",false,25);
     char* dev_buff = dev_buffer.data_ptr;
-    Profile::Toc();
-    Profile::Tic("DeviceComp",false,20);
-    {
-      ptSetupData data = setup_data.pt_setup_data;
-      {
-        InteracData& intdata = data.pt_interac_data;
-        int omp_p=omp_get_max_threads();
+    ptSetupData data = setup_data.pt_setup_data;
+    InteracData& intdata = data.pt_interac_data;
+    
+    int omp_p=omp_get_max_threads();
 #pragma omp parallel for
-        for(size_t tid=0;tid<omp_p;tid++){
-          Matrix<real_t> src_coord, src_value;
-          Matrix<real_t> trg_coord, trg_value;
-          Vector<real_t> buff;
-          {
-            size_t n=setup_data.output_data->Dim(0)*setup_data.output_data->Dim(1)*sizeof(real_t);
-            size_t thread_buff_size=n/sizeof(real_t)/omp_p;
-            buff.ReInit3(thread_buff_size, (real_t*)(dev_buff+tid*thread_buff_size*sizeof(real_t)), false);
-          }
-          size_t vcnt=0;
-          std::vector<Matrix<real_t> > vbuff(6);
-          {
-            size_t vdim_=0, vdim[6];
-            for(size_t indx=0;indx<6;indx++){
-              vdim[indx]=0;
-              switch(indx){
-                case 0:
-                  vdim[indx]=intdata.M[0].Dim(0); break;
-                case 1:
-                  assert(intdata.M[0].Dim(1)==intdata.M[1].Dim(0));
-                  vdim[indx]=intdata.M[0].Dim(1); break;
-                case 2:
-                  vdim[indx]=intdata.M[1].Dim(1); break;
-                case 3:
-                  vdim[indx]=intdata.M[2].Dim(0); break;
-                case 4:
-                  assert(intdata.M[2].Dim(1)==intdata.M[3].Dim(0));
-                  vdim[indx]=intdata.M[2].Dim(1); break;
-                case 5:
-                  vdim[indx]=intdata.M[3].Dim(1); break;
-                default:
-                  vdim[indx]=0; break;
-              }
-              vdim_+=vdim[indx];
-            }
-            if(vdim_){
-              vcnt=buff.Dim()/vdim_/2;
-              assert(vcnt>0);
-            }
-            for(size_t indx=0;indx<6;indx++){
-              vbuff[indx].ReInit(vcnt,vdim[indx],&buff[0],false);
-              buff.ReInit3(buff.Dim()-vdim[indx]*vcnt, &buff[vdim[indx]*vcnt], false);
-            }
-          }
-          size_t trg_a=0, trg_b=0;
-          if(intdata.interac_cst.Dim()){
-            Vector<size_t>& interac_cst=intdata.interac_cst;
-            size_t cost=interac_cst[interac_cst.Dim()-1];
-            trg_a=std::lower_bound(&interac_cst[0],&interac_cst[interac_cst.Dim()-1],(cost*(tid+0))/omp_p)-&interac_cst[0]+1;
-            trg_b=std::lower_bound(&interac_cst[0],&interac_cst[interac_cst.Dim()-1],(cost*(tid+1))/omp_p)-&interac_cst[0]+1;
-            if(tid==omp_p-1) trg_b=interac_cst.Dim();
-            if(tid==0) trg_a=0;
-          }
-          for(size_t trg0=trg_a;trg0<trg_b;){
-            size_t trg1_max=1;
-            if(vcnt){
-              size_t interac_cnt=intdata.interac_cnt[trg0];
-              while(trg0+trg1_max<trg_b){
-                interac_cnt+=intdata.interac_cnt[trg0+trg1_max];
-                if(interac_cnt>vcnt){
-                  interac_cnt-=intdata.interac_cnt[trg0+trg1_max];
-                  break;
-                }
-                trg1_max++;
-              }
-              assert(interac_cnt<=vcnt);
-              for(size_t k=0;k<6;k++){
-                if(vbuff[k].Dim(0)*vbuff[k].Dim(1)){
-                  vbuff[k].ReInit(interac_cnt,vbuff[k].Dim(1),vbuff[k][0],false);
-                }
-              }
-            }else{
-              trg1_max=trg_b-trg0;
-            }
-            if(intdata.M[0].Dim(0) && intdata.M[0].Dim(1) && intdata.M[1].Dim(0) && intdata.M[1].Dim(1)){
-              size_t interac_idx=0;
-              for(size_t trg1=0;trg1<trg1_max;trg1++){
-                size_t trg=trg0+trg1;
-                for(size_t i=0;i<intdata.interac_cnt[trg];i++){
-                  size_t int_id=intdata.interac_dsp[trg]+i;
-                  size_t src=intdata.in_node[int_id];
-                  src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
-                  {
-                    size_t vdim=vbuff[0].Dim(1);
-                    assert(src_value.Dim(1)==vdim);
-                    for(size_t j=0;j<vdim;j++) vbuff[0][interac_idx][j]=src_value[0][j];
-                  }
-                  size_t scal_idx=intdata.scal_idx[int_id];
-                  {
-                    Matrix<real_t>& vec=vbuff[0];
-                    Vector<real_t>& scal=intdata.scal[scal_idx*4+0];
-                    size_t scal_dim=scal.Dim();
-                    if(scal_dim){
-                      size_t vdim=vec.Dim(1);
-                      for(size_t j=0;j<vdim;j+=scal_dim){
-                        for(size_t k=0;k<scal_dim;k++){
-                          vec[interac_idx][j+k]*=scal[k];
-                        }
-                      }
-                    }
-                  }
-                  interac_idx++;
-                }
-              }
-              Matrix<real_t>::GEMM(vbuff[1],vbuff[0],intdata.M[0]);
-              Matrix<real_t>::GEMM(vbuff[2],vbuff[1],intdata.M[1]);
-              interac_idx=0;
-              for(size_t trg1=0;trg1<trg1_max;trg1++){
-                size_t trg=trg0+trg1;
-                for(size_t i=0;i<intdata.interac_cnt[trg];i++){
-                  size_t int_id=intdata.interac_dsp[trg]+i;
-                  size_t scal_idx=intdata.scal_idx[int_id];
-                  {
-                    Matrix<real_t>& vec=vbuff[2];
-                    Vector<real_t>& scal=intdata.scal[scal_idx*4+1];
-                    size_t scal_dim=scal.Dim();
-                    if(scal_dim){
-                      size_t vdim=vec.Dim(1);
-                      for(size_t j=0;j<vdim;j+=scal_dim){
-                        for(size_t k=0;k<scal_dim;k++){
-                          vec[interac_idx][j+k]*=scal[k];
-                        }
-                      }
-                    }
-                  }
-                  interac_idx++;
-                }
-              }
-            }
-            if(intdata.M[2].Dim(0) && intdata.M[2].Dim(1) && intdata.M[3].Dim(0) && intdata.M[3].Dim(1)){
-              size_t vdim=vbuff[3].Dim(0)*vbuff[3].Dim(1);
-              for(size_t i=0;i<vdim;i++) vbuff[3][0][i]=0;
-            }
-            {
-              size_t interac_idx=0;
-              for(size_t trg1=0;trg1<trg1_max;trg1++){
-                size_t trg=trg0+trg1;
-                trg_coord.ReInit(1, data.trg_coord.cnt[trg], &data.trg_coord.ptr[0][0][data.trg_coord.dsp[trg]], false);
-                trg_value.ReInit(1, data.trg_value.cnt[trg], &data.trg_value.ptr[0][0][data.trg_value.dsp[trg]], false);
-                for(size_t i=0;i<intdata.interac_cnt[trg];i++){
-                  size_t int_id=intdata.interac_dsp[trg]+i;
-                  size_t src=intdata.in_node[int_id];
-                  src_coord.ReInit(1, data.src_coord.cnt[src], &data.src_coord.ptr[0][0][data.src_coord.dsp[src]], false);
-                  src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
-                  real_t* vbuff2_ptr=(vbuff[2].Dim(0)*vbuff[2].Dim(1)?vbuff[2][interac_idx]:src_value[0]);
-                  real_t* vbuff3_ptr=(vbuff[3].Dim(0)*vbuff[3].Dim(1)?vbuff[3][interac_idx]:trg_value[0]);
-                  if(src_coord.Dim(1)){
-                    {
-                      real_t* shift=&intdata.coord_shift[int_id*3];
-                      if(shift[0]!=0 || shift[1]!=0 || shift[2]!=0){
-                        size_t vdim=src_coord.Dim(1);
-                        Vector<real_t> new_coord(vdim, &buff[0], false);
-                        assert(buff.Dim()>=vdim);
-                        for(size_t j=0;j<vdim;j+=3){
-                          for(size_t k=0;k<3;k++){
-                            new_coord[j+k]=src_coord[0][j+k]+shift[k];
-                          }
-                        }
-                        src_coord.ReInit(1, vdim, &new_coord[0], false);
-                      }
-                    }
-                    setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, vbuff2_ptr,
-                                                 trg_coord[0], trg_coord.Dim(1)/3, vbuff3_ptr);
-                  }
-                  interac_idx++;
-                }
-              }
-            }
-            if(intdata.M[2].Dim(0) && intdata.M[2].Dim(1) && intdata.M[3].Dim(0) && intdata.M[3].Dim(1)){
-              size_t interac_idx=0;
-              for(size_t trg1=0;trg1<trg1_max;trg1++){
-                size_t trg=trg0+trg1;
-                for(size_t i=0;i<intdata.interac_cnt[trg];i++){
-                  size_t int_id=intdata.interac_dsp[trg]+i;
-                  size_t scal_idx=intdata.scal_idx[int_id];
-                  {
-                    Matrix<real_t>& vec=vbuff[3];
-                    Vector<real_t>& scal=intdata.scal[scal_idx*4+2];
-                    size_t scal_dim=scal.Dim();
-                    if(scal_dim){
-                      size_t vdim=vec.Dim(1);
-                      for(size_t j=0;j<vdim;j+=scal_dim){
-                        for(size_t k=0;k<scal_dim;k++){
-                          vec[interac_idx][j+k]*=scal[k];
-                        }
-                      }
-                    }
-                  }
-                  interac_idx++;
-                }
-              }
-              Matrix<real_t>::GEMM(vbuff[4],vbuff[3],intdata.M[2]);
-              Matrix<real_t>::GEMM(vbuff[5],vbuff[4],intdata.M[3]);
-              interac_idx=0;
-              for(size_t trg1=0;trg1<trg1_max;trg1++){
-                size_t trg=trg0+trg1;
-                trg_value.ReInit(1, data.trg_value.cnt[trg], &data.trg_value.ptr[0][0][data.trg_value.dsp[trg]], false);
-                for(size_t i=0;i<intdata.interac_cnt[trg];i++){
-                  size_t int_id=intdata.interac_dsp[trg]+i;
-                  size_t scal_idx=intdata.scal_idx[int_id];
-                  {
-                    Matrix<real_t>& vec=vbuff[5];
-                    Vector<real_t>& scal=intdata.scal[scal_idx*4+3];
-                    size_t scal_dim=scal.Dim();
-                    if(scal_dim){
-                      size_t vdim=vec.Dim(1);
-                      for(size_t j=0;j<vdim;j+=scal_dim){
-                        for(size_t k=0;k<scal_dim;k++){
-                          vec[interac_idx][j+k]*=scal[k];
-                        }
-                      }
-                    }
-                  }
-                  {
-                    size_t vdim=vbuff[5].Dim(1);
-                    assert(trg_value.Dim(1)==vdim);
-                    for(size_t i=0;i<vdim;i++) trg_value[0][i]+=vbuff[5][interac_idx][i];
-                  }
-                  interac_idx++;
-                }
-              }
-            }
-            trg0+=trg1_max;
+    for(size_t tid=0;tid<omp_p;tid++) {
+      Matrix<real_t> src_coord, src_value;
+      Matrix<real_t> trg_coord, trg_value;
+      Vector<real_t> buff;
+      size_t thread_buff_size = setup_data.output_data->Dim(0)*setup_data.output_data->Dim(1) / omp_p;
+      buff.ReInit3(thread_buff_size, (real_t*)(dev_buff + tid*thread_buff_size*sizeof(real_t)), false);
+      int vcnt = 0;
+      std::vector<Matrix<real_t> > vbuff(6);
+      for(size_t indx=0;indx<6;indx++){
+        vbuff[indx].ReInit(0, 0, &buff[0],false);
+        buff.ReInit3(buff.Dim(), &buff[0], false);
+      }
+      // assign a chunk of target boxes to each thread
+      size_t trg_a=0, trg_b=0;
+      if(intdata.interac_cst.Dim()){
+        Vector<size_t>& interac_cst=intdata.interac_cst;
+        size_t cost=interac_cst[interac_cst.Dim()-1];
+        trg_a = std::lower_bound(&interac_cst[0], &interac_cst[interac_cst.Dim()-1], (cost*(tid+0))/omp_p) - &interac_cst[0]+1;
+        trg_b = std::lower_bound(&interac_cst[0], &interac_cst[interac_cst.Dim()-1], (cost*(tid+1))/omp_p) - &interac_cst[0]+1;
+        if(tid==omp_p-1) trg_b=interac_cst.Dim();
+        if(tid==0) trg_a=0;
+      }
+      for(int trg=trg_a; trg<trg_b; trg++){
+        trg_coord.ReInit(1, data.trg_coord.cnt[trg], &data.trg_coord.ptr[0][0][data.trg_coord.dsp[trg]], false);
+        trg_value.ReInit(1, data.trg_value.cnt[trg], &data.trg_value.ptr[0][0][data.trg_value.dsp[trg]], false);
+        for(size_t i=0;i<intdata.interac_cnt[trg];i++){
+          size_t int_id = intdata.interac_dsp[trg]+i;
+          size_t src = intdata.in_node[int_id];
+          src_coord.ReInit(1, data.src_coord.cnt[src], &data.src_coord.ptr[0][0][data.src_coord.dsp[src]], false);
+          src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
+          real_t* vbuff2_ptr = src_value[0];
+          real_t* vbuff3_ptr = trg_value[0];
+          if(src_coord.Dim(1)){
+            setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, vbuff2_ptr,
+                                         trg_coord[0], trg_coord.Dim(1)/3, vbuff3_ptr);
           }
         }
       }
     }
-    Profile::Toc();
+  }
+
+  void EvalListPts(SetupData& setup_data) {
+    if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
+    char* dev_buff = dev_buffer.data_ptr;
+    ptSetupData data = setup_data.pt_setup_data;
+    InteracData& intdata = data.pt_interac_data;
+    
+    int omp_p=omp_get_max_threads();
+#pragma omp parallel for
+    for(size_t tid=0;tid<omp_p;tid++) {
+      Matrix<real_t> src_coord, src_value;
+      Matrix<real_t> trg_coord, trg_value;
+
+      Vector<real_t> buff;
+      size_t thread_buff_size = setup_data.output_data->Dim(0)*setup_data.output_data->Dim(1) / omp_p;
+      buff.ReInit3(thread_buff_size, (real_t*)(dev_buff + tid*thread_buff_size*sizeof(real_t)), false);
+      int vcnt = 0;
+      std::vector<Matrix<real_t> > vbuff(6);
+      {
+        assert(intdata.M[0].Dim(1)==intdata.M[1].Dim(0));
+        assert(intdata.M[2].Dim(1)==intdata.M[3].Dim(0));
+        std::vector<int> vdim(6, 0);
+        vdim[0] = intdata.M[0].Dim(0);
+        vdim[1] = intdata.M[0].Dim(1);
+        vdim[2] = intdata.M[1].Dim(1);
+        vdim[3] = intdata.M[2].Dim(0);
+        vdim[4] = intdata.M[2].Dim(1);
+        vdim[5] = intdata.M[3].Dim(1);
+        int vdim_ = std::accumulate(vdim.begin(), vdim.end(), 0);
+
+        if(vdim_){
+          vcnt=buff.Dim()/vdim_/2;
+          assert(vcnt>0);
+        }
+        for(size_t indx=0;indx<6;indx++){
+          vbuff[indx].ReInit(vcnt,vdim[indx],&buff[0],false);
+          buff.ReInit3(buff.Dim()-vdim[indx]*vcnt, &buff[vdim[indx]*vcnt], false);
+        }
+      }
+      // assign a chunk of target boxes to each thread
+      size_t trg_a=0, trg_b=0;
+      if(intdata.interac_cst.Dim()){
+        Vector<size_t>& interac_cst=intdata.interac_cst;
+        size_t cost=interac_cst[interac_cst.Dim()-1];
+        trg_a = std::lower_bound(&interac_cst[0], &interac_cst[interac_cst.Dim()-1], (cost*(tid+0))/omp_p) - &interac_cst[0]+1;
+        trg_b = std::lower_bound(&interac_cst[0], &interac_cst[interac_cst.Dim()-1], (cost*(tid+1))/omp_p) - &interac_cst[0]+1;
+        if(tid==omp_p-1) trg_b=interac_cst.Dim();
+        if(tid==0) trg_a=0;
+      }
+      for(size_t trg0=trg_a;trg0<trg_b;){
+        size_t trg1_max=1;
+        if(vcnt){      // for P2M & L2P
+          size_t interac_cnt=intdata.interac_cnt[trg0];
+          while(trg0+trg1_max<trg_b){
+            interac_cnt+=intdata.interac_cnt[trg0+trg1_max];
+            if(interac_cnt>vcnt){
+              interac_cnt-=intdata.interac_cnt[trg0+trg1_max];
+              break;
+            }
+            trg1_max++;
+          }
+          assert(interac_cnt<=vcnt);
+          for(size_t k=0;k<6;k++){
+            if(vbuff[k].Dim(0)*vbuff[k].Dim(1)){
+              vbuff[k].ReInit(interac_cnt,vbuff[k].Dim(1),vbuff[k][0],false);
+            }
+          }
+        }else{        // for other interaction lists
+          trg1_max=trg_b-trg0;    // num of target cells for current thread
+        }
+        if(intdata.M[0].Dim(0) && intdata.M[0].Dim(1) && intdata.M[1].Dim(0) && intdata.M[1].Dim(1)){
+          size_t interac_idx=0;
+          for(size_t trg1=0;trg1<trg1_max;trg1++){
+            size_t trg=trg0+trg1;
+            for(size_t i=0;i<intdata.interac_cnt[trg];i++){
+              size_t int_id=intdata.interac_dsp[trg]+i;
+              size_t src=intdata.in_node[int_id];
+              src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
+              {
+                size_t vdim=vbuff[0].Dim(1);
+                assert(src_value.Dim(1)==vdim);
+                for(size_t j=0;j<vdim;j++) vbuff[0][interac_idx][j]=src_value[0][j];
+              }
+              size_t scal_idx=intdata.scal_idx[int_id];
+              {
+                Matrix<real_t>& vec=vbuff[0];
+                Vector<real_t>& scal=intdata.scal[scal_idx*4+0];
+                size_t scal_dim=scal.Dim();
+                if(scal_dim){
+                  size_t vdim=vec.Dim(1);
+                  for(size_t j=0;j<vdim;j+=scal_dim){
+                    for(size_t k=0;k<scal_dim;k++){
+                      vec[interac_idx][j+k]*=scal[k];
+                    }
+                  }
+                }
+              }
+              interac_idx++;
+            }
+          }
+          Matrix<real_t>::GEMM(vbuff[1],vbuff[0],intdata.M[0]);
+          Matrix<real_t>::GEMM(vbuff[2],vbuff[1],intdata.M[1]);
+          interac_idx=0;
+          for(size_t trg1=0;trg1<trg1_max;trg1++){
+            size_t trg=trg0+trg1;
+            for(size_t i=0;i<intdata.interac_cnt[trg];i++){
+              size_t int_id=intdata.interac_dsp[trg]+i;
+              size_t scal_idx=intdata.scal_idx[int_id];
+              {
+                Matrix<real_t>& vec=vbuff[2];
+                Vector<real_t>& scal=intdata.scal[scal_idx*4+1];
+                size_t scal_dim=scal.Dim();
+                if(scal_dim){
+                  size_t vdim=vec.Dim(1);
+                  for(size_t j=0;j<vdim;j+=scal_dim){
+                    for(size_t k=0;k<scal_dim;k++){
+                      vec[interac_idx][j+k]*=scal[k];
+                    }
+                  }
+                }
+              }
+              interac_idx++;
+            }
+          }
+        }
+        if(intdata.M[2].Dim(0) && intdata.M[2].Dim(1) && intdata.M[3].Dim(0) && intdata.M[3].Dim(1)){
+          size_t vdim=vbuff[3].Dim(0)*vbuff[3].Dim(1);
+          for(size_t i=0;i<vdim;i++) vbuff[3][0][i]=0;
+        }
+        {
+          size_t interac_idx=0;
+          for(size_t trg1=0;trg1<trg1_max;trg1++){
+            size_t trg=trg0+trg1;
+            trg_coord.ReInit(1, data.trg_coord.cnt[trg], &data.trg_coord.ptr[0][0][data.trg_coord.dsp[trg]], false);
+            trg_value.ReInit(1, data.trg_value.cnt[trg], &data.trg_value.ptr[0][0][data.trg_value.dsp[trg]], false);
+            for(size_t i=0;i<intdata.interac_cnt[trg];i++){
+              size_t int_id=intdata.interac_dsp[trg]+i;
+              size_t src=intdata.in_node[int_id];
+              src_coord.ReInit(1, data.src_coord.cnt[src], &data.src_coord.ptr[0][0][data.src_coord.dsp[src]], false);
+              src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
+              real_t* vbuff2_ptr=(vbuff[2].Dim(0)*vbuff[2].Dim(1)?vbuff[2][interac_idx]:src_value[0]);
+              real_t* vbuff3_ptr=(vbuff[3].Dim(0)*vbuff[3].Dim(1)?vbuff[3][interac_idx]:trg_value[0]);
+              if(src_coord.Dim(1)){
+                {
+                  real_t* shift=&intdata.coord_shift[int_id*3];
+                  if(shift[0]!=0 || shift[1]!=0 || shift[2]!=0){
+                    size_t vdim=src_coord.Dim(1);
+                    Vector<real_t> new_coord(vdim, &buff[0], false);
+                    assert(buff.Dim()>=vdim);
+                    for(size_t j=0;j<vdim;j+=3){
+                      for(size_t k=0;k<3;k++){
+                        new_coord[j+k]=src_coord[0][j+k]+shift[k];
+                      }
+                    }
+                    src_coord.ReInit(1, vdim, &new_coord[0], false);
+                  }
+                }
+                setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, vbuff2_ptr,
+                                             trg_coord[0], trg_coord.Dim(1)/3, vbuff3_ptr);
+              }
+              interac_idx++;
+            }
+          }
+        }
+        if(intdata.M[2].Dim(0) && intdata.M[2].Dim(1) && intdata.M[3].Dim(0) && intdata.M[3].Dim(1)){
+          size_t interac_idx=0;
+          for(size_t trg1=0;trg1<trg1_max;trg1++){
+            size_t trg=trg0+trg1;
+            for(size_t i=0;i<intdata.interac_cnt[trg];i++){
+              size_t int_id=intdata.interac_dsp[trg]+i;
+              size_t scal_idx=intdata.scal_idx[int_id];
+              {
+                Matrix<real_t>& vec=vbuff[3];
+                Vector<real_t>& scal=intdata.scal[scal_idx*4+2];
+                size_t scal_dim=scal.Dim();
+                if(scal_dim){
+                  size_t vdim=vec.Dim(1);
+                  for(size_t j=0;j<vdim;j+=scal_dim){
+                    for(size_t k=0;k<scal_dim;k++){
+                      vec[interac_idx][j+k]*=scal[k];
+                    }
+                  }
+                }
+              }
+              interac_idx++;
+            }
+          }
+          Matrix<real_t>::GEMM(vbuff[4],vbuff[3],intdata.M[2]);
+          Matrix<real_t>::GEMM(vbuff[5],vbuff[4],intdata.M[3]);
+          interac_idx=0;
+          for(size_t trg1=0;trg1<trg1_max;trg1++){
+            size_t trg=trg0+trg1;
+            trg_value.ReInit(1, data.trg_value.cnt[trg], &data.trg_value.ptr[0][0][data.trg_value.dsp[trg]], false);
+            for(size_t i=0;i<intdata.interac_cnt[trg];i++){
+              size_t int_id=intdata.interac_dsp[trg]+i;
+              size_t scal_idx=intdata.scal_idx[int_id];
+              {
+                Matrix<real_t>& vec=vbuff[5];
+                Vector<real_t>& scal=intdata.scal[scal_idx*4+3];
+                size_t scal_dim=scal.Dim();
+                if(scal_dim){
+                  size_t vdim=vec.Dim(1);
+                  for(size_t j=0;j<vdim;j+=scal_dim){
+                    for(size_t k=0;k<scal_dim;k++){
+                      vec[interac_idx][j+k]*=scal[k];
+                    }
+                  }
+                }
+              }
+              {
+                size_t vdim=vbuff[5].Dim(1);
+                assert(trg_value.Dim(1)==vdim);
+                for(size_t i=0;i<vdim;i++) trg_value[0][i]+=vbuff[5][interac_idx][i];
+              }
+              interac_idx++;
+            }
+          }
+        }
+        trg0+=trg1_max;
+      }
+    }
   }
 
   void EvalList(SetupData& setup_data){
@@ -2670,16 +2699,16 @@ private:
 
   void X_List(SetupData&  setup_data){
     if(!multipole_order) return;
-    EvalListPts(setup_data);
+    evalP2P(setup_data);
   }
 
   void W_List(SetupData&  setup_data){
     if(!multipole_order) return;
-    EvalListPts(setup_data);
+    evalP2P(setup_data);
   }
 
   void U_List(SetupData&  setup_data){
-    EvalListPts(setup_data);
+    evalP2P(setup_data);
   }
 
   void V_List(SetupData&  setup_data){
