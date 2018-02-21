@@ -48,6 +48,33 @@
 using namespace pvfmm;
 using namespace exafmm;
 
+// generate plummer distribution in 0 to 1 cube
+std::vector<real_t> plummer(int numBodies) {
+  srand48(0);
+  std::vector<real_t> coord;
+  int i = 0;
+  while (i < numBodies) {
+    real_t X1 = drand48();
+    real_t X2 = drand48();
+    real_t X3 = drand48();
+    real_t R = 1.0 / sqrt( (pow(X1, -2.0 / 3.0) - 1.0) );
+    if (R < 100) {
+      real_t Z = (1.0 - 2.0 * X2) * R;
+      real_t X = sqrt(R * R - Z * Z) * std::cos(2.0 * M_PI * X3);
+      real_t Y = sqrt(R * R - Z * Z) * std::sin(2.0 * M_PI * X3);
+      coord.push_back(X);
+      coord.push_back(Y);
+      coord.push_back(Z);
+      i++;
+    }
+  }
+  real_t Xmax = *std::max_element(coord.begin(), coord.end());
+  real_t Xmin = *std::max_element(coord.begin(), coord.end());
+  real_t scale = 0.5 / (std::max(fabs(Xmax), fabs(Xmin)) + 1);
+  for(int i=0; i<coord.size(); i++) coord[i] = coord[i]*scale + 0.5;
+  return coord;
+}
+
 int main(int argc, char **argv){
   Args args(argc, argv);
   omp_set_num_threads(args.threads);
@@ -66,14 +93,8 @@ int main(int argc, char **argv){
   init_data.max_pts=M;
   std::vector<real_t> src_coord, src_value;
   srand48(0);
-#if NONUNIFORM
-  for(size_t i=0; i<3*N; i++) {
-    if (i/3 < 0.2*N) src_coord.push_back(drand48()*0.5);
-    else {
-      if (i/3 < 0.4*N) src_coord.push_back(0.5 + drand48()*0.5);
-      else src_coord.push_back(drand48());
-    }
-  }
+#if PLUMMER
+  src_coord = plummer(N);
 #else
   for(size_t i=0; i<3*N; i++) src_coord.push_back(drand48());
 #endif
