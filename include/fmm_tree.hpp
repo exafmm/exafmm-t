@@ -2121,25 +2121,13 @@ public:
 private:
   void evalP2P(SetupData& setup_data) {
     if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
-    char* dev_buff = dev_buffer.data_ptr;
     ptSetupData data = setup_data.pt_setup_data;
     InteracData& intdata = data.pt_interac_data;
-    
     int omp_p=omp_get_max_threads();
 #pragma omp parallel for
     for(size_t tid=0;tid<omp_p;tid++) {
       Matrix<real_t> src_coord, src_value;
       Matrix<real_t> trg_coord, trg_value;
-      Vector<real_t> buff;
-      size_t thread_buff_size = setup_data.output_data->Dim(0)*setup_data.output_data->Dim(1) / omp_p;
-      buff.ReInit3(thread_buff_size, (real_t*)(dev_buff + tid*thread_buff_size*sizeof(real_t)), false);
-      int vcnt = 0;
-      std::vector<Matrix<real_t> > vbuff(6);
-      for(size_t indx=0;indx<6;indx++){
-        vbuff[indx].ReInit(0, 0, &buff[0],false);
-        buff.ReInit3(buff.Dim(), &buff[0], false);
-      }
-      // assign a chunk of target boxes to each thread
       size_t trg_a=0, trg_b=0;
       if(intdata.interac_cst.Dim()){
         Vector<size_t>& interac_cst=intdata.interac_cst;
@@ -2157,11 +2145,9 @@ private:
           size_t src = intdata.in_node[int_id];
           src_coord.ReInit(1, data.src_coord.cnt[src], &data.src_coord.ptr[0][0][data.src_coord.dsp[src]], false);
           src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
-          real_t* vbuff2_ptr = src_value[0];
-          real_t* vbuff3_ptr = trg_value[0];
           if(src_coord.Dim(1)){
-            setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, vbuff2_ptr,
-                                         trg_coord[0], trg_coord.Dim(1)/3, vbuff3_ptr);
+            setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, src_value[0],
+                                         trg_coord[0], trg_coord.Dim(1)/3, trg_value[0]);
           }
         }
       }
