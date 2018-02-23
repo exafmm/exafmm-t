@@ -1302,16 +1302,12 @@ private:
     {
       int omp_p=omp_get_max_threads();
       std::vector<std::vector<size_t> > in_node_(omp_p);
-      std::vector<std::vector<size_t> > scal_idx_(omp_p);
-      std::vector<std::vector<real_t> > coord_shift_(omp_p);
       std::vector<std::vector<size_t> > interac_cnt_(omp_p);
       size_t m=multipole_order;
       size_t Nsrf=(6*(m-1)*(m-1)+2);
 #pragma omp parallel for
       for(size_t tid=0;tid<omp_p;tid++){
         std::vector<size_t>& in_node    =in_node_[tid]    ;
-        std::vector<size_t>& scal_idx   =scal_idx_[tid]   ;
-        std::vector<real_t>& coord_shift=coord_shift_[tid];
         std::vector<size_t>& interac_cnt=interac_cnt_[tid]        ;
         size_t a=(nodes_out.size()*(tid+0))/omp_p;
         size_t b=(nodes_out.size()*(tid+1))/omp_p;
@@ -1327,8 +1323,6 @@ private:
               size_t snode_id=snode->node_id;
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
               in_node.push_back(snode_id);
-              scal_idx.push_back(snode->depth);
-              for(int k=0; k<3; k++) coord_shift.push_back(0.0);
               interac_cnt_++;
             }
           }
@@ -1340,8 +1334,6 @@ private:
               size_t snode_id=snode->node_id;
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
               in_node.push_back(snode_id);
-              scal_idx.push_back(snode->depth);
-              for(int k=0; k<3; k++) coord_shift.push_back(0.0);
               interac_cnt_++;
             }
           }
@@ -1353,8 +1345,6 @@ private:
               size_t snode_id=snode->node_id;
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
               in_node.push_back(snode_id);
-              scal_idx.push_back(snode->depth);
-              for(int k=0; k<3; k++) coord_shift.push_back(0.0);
               interac_cnt_++;
             }
           }
@@ -1367,8 +1357,6 @@ private:
               size_t snode_id=snode->node_id;
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
               in_node.push_back(snode_id);
-              scal_idx.push_back(snode->depth);
-              for(int k=0; k<3; k++) coord_shift.push_back(0.0);
               interac_cnt_++;
             }
           }
@@ -1381,8 +1369,6 @@ private:
               if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
               if(snode->pt_cnt[0]> Nsrf) continue;
               in_node.push_back(snode_id);
-              scal_idx.push_back(snode->depth);
-              for(int k=0; k<3; k++) coord_shift.push_back(0.0);
               interac_cnt_++;
             }
           }
@@ -1392,8 +1378,6 @@ private:
       {
         InteracData& pt_interac_data=data.pt_interac_data;
 	CopyVec(in_node_,pt_interac_data.in_node);
-	CopyVec(scal_idx_,pt_interac_data.scal_idx);
-	CopyVec(coord_shift_,pt_interac_data.coord_shift);
 	CopyVec(interac_cnt_,pt_interac_data.interac_cnt);
         {
           pvfmm::Vector<size_t>& cnt=pt_interac_data.interac_cnt;
