@@ -1775,6 +1775,7 @@ private:
         std::vector<real_t>& scal_exp=ker->trg_scal;
         scal.Resize(scal_exp.size());
         for(size_t i=0;i<scal.Dim();i++){
+  assert(scal_exp[i] == 1);
           scal[i]=powf(2.0,-scal_exp[i]*l);
         }
       }
@@ -1783,6 +1784,7 @@ private:
         std::vector<real_t>& scal_exp=ker->src_scal;
         scal.Resize(scal_exp.size());
         for(size_t i=0;i<scal.Dim();i++){
+  assert(scal_exp[i] == 0);
           scal[i]=powf(2.0,-scal_exp[i]*l);
         }
       }
@@ -1809,12 +1811,12 @@ private:
               scal_idx.push_back(snode->depth);
               {
                 const int* rel_coord=interacList.rel_coord[type][j];
+  assert(rel_coord[0] ==0 && rel_coord[1] ==0 && rel_coord[2] ==0);
                 const real_t* scoord=snode->Coord();
-                const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
-                shift[0]=rel_coord[0]*0.5*s-(scoord[0]+0.5*s)+(0+0.5*s);
-                shift[1]=rel_coord[1]*0.5*s-(scoord[1]+0.5*s)+(0+0.5*s);
-                shift[2]=rel_coord[2]*0.5*s-(scoord[2]+0.5*s)+(0+0.5*s);
+                shift[0] = -scoord[0];
+                shift[1] = -scoord[1];
+                shift[2] = -scoord[2];
                 coord_shift.push_back(shift[0]);
                 coord_shift.push_back(shift[1]);
                 coord_shift.push_back(shift[2]);
@@ -2048,22 +2050,16 @@ public:
     setup_data.resize(8*MAX_DEPTH);
     precomp_lst.resize(8);
     Profile::Tic("UListSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*0].precomp_data=&precomp_lst[0];
-      U_ListSetup(setup_data[i+MAX_DEPTH*0],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
+    setup_data[MAX_DEPTH*0].precomp_data=&precomp_lst[0];
+    U_ListSetup(setup_data[MAX_DEPTH*0],node_data_buff,node_lists,-1);
     Profile::Toc();
     Profile::Tic("WListSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*1].precomp_data=&precomp_lst[1];
-      W_ListSetup(setup_data[i+MAX_DEPTH*1],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
+    setup_data[MAX_DEPTH*1].precomp_data=&precomp_lst[1];
+    W_ListSetup(setup_data[MAX_DEPTH*1],node_data_buff,node_lists,-1);
     Profile::Toc();
     Profile::Tic("XListSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*2].precomp_data=&precomp_lst[2];
-      X_ListSetup(setup_data[i+MAX_DEPTH*2],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
+    setup_data[MAX_DEPTH*2].precomp_data=&precomp_lst[2];
+    X_ListSetup(setup_data[MAX_DEPTH*2],node_data_buff,node_lists,-1);
     Profile::Toc();
     Profile::Tic("VListSetup",false,3);
     for(size_t i=0;i<MAX_DEPTH;i++){
