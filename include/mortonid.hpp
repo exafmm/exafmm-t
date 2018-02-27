@@ -182,7 +182,7 @@ class MortonId{
 
   friend std::ostream& operator<<(std::ostream& out, const MortonId & mid);
 
- private:
+ public:
 
   uint64_t x,y,z;
   uint8_t depth;

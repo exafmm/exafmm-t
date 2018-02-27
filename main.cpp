@@ -69,7 +69,7 @@ std::vector<real_t> plummer(int numBodies) {
     }
   }
   real_t Xmax = *std::max_element(coord.begin(), coord.end());
-  real_t Xmin = *std::max_element(coord.begin(), coord.end());
+  real_t Xmin = *std::min_element(coord.begin(), coord.end());
   real_t scale = 0.5 / (std::max(fabs(Xmax), fabs(Xmin)) + 1);
   for(int i=0; i<coord.size(); i++) coord[i] = coord[i]*scale + 0.5;
   return coord;
@@ -93,7 +93,7 @@ int main(int argc, char **argv){
   init_data.max_pts=M;
   std::vector<real_t> src_coord, src_value;
   srand48(0);
-#if PLUMMER
+#if 0
   src_coord = plummer(N);
 #else
   for(size_t i=0; i<3*N; i++) src_coord.push_back(drand48());
@@ -136,8 +136,6 @@ int main(int argc, char **argv){
       nodes[i]->trg_coord = nodes[i]->pt_coord;
       nodes[i]->src_coord = nodes[i]->pt_coord;
       nodes[i]->src_value = nodes[i]->pt_value;
-      nodes[i]->trg_scatter = nodes[i]->pt_scatter;
-      nodes[i]->src_scatter = nodes[i]->pt_scatter;
     }
     Profile::Toc();
     tree.SetupFMM();

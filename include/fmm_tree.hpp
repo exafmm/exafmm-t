@@ -26,7 +26,7 @@ namespace pvfmm{
   int SrcCoord = 1, SrcValue = 2, TrgCoord = 3, TrgValue = 4,
       UpwardEquivCoord = 5, UpwardCheckCoord=6, UpwardEquivValue = 7,
       DnwardEquivCoord = 8, DnwardCheckCoord=9, DnwardEquivValue = 10;
-  
+
   struct PackedData{
     size_t len;
     Matrix<real_t>* ptr;
@@ -44,10 +44,10 @@ namespace pvfmm{
         Vector<real_t>* vec;
         switch (type) {
           case 1:  vec = &(node->src_coord); break;  // src_coord
-          case 2:  vec = &(node->src_value); break;  // src_value 
+          case 2:  vec = &(node->src_value); break;  // src_value
           case 3:  vec = &(node->trg_coord); break;  // trg_coord
           case 4:  vec = &(node->trg_value); break;  // trg_value
-          case 5:  vec = &(upwd_equiv_surf[node->depth]); break;  // upward equivalent surface coords 
+          case 5:  vec = &(upwd_equiv_surf[node->depth]); break;  // upward equivalent surface coords
           case 6:  vec = &(upwd_check_surf[node->depth]); break;  // upward check      surface coords
           case 7:  vec = &(node->fmm_data->upward_equiv); break;  // upward equivalent charges
           case 8:  vec = &(dnwd_equiv_surf[node->depth]); break;  // downward equivalent surface coords
@@ -58,7 +58,7 @@ namespace pvfmm{
         dsp[i] = vec->data_ptr - mat[0][0];
         cnt[i] = vec->Dim();
       }
-    } 
+    }
   };
 
   struct InteracData{
@@ -162,7 +162,7 @@ public:
 
 /* 1st Part: Generate precomputation matrix:
  * interface: Initialize(multiple_order, &grad_kernel)
- * Initialize Kernel, PrecompMat, InteracList members. If PrecompMat file exists, 
+ * Initialize Kernel, PrecompMat, InteracList members. If PrecompMat file exists,
  * load the binary matrix file into PrecompMat::mat; if not, calculate the matrix
  * for each operator type, save them in PrecompMat::mat and save mat in file*/
 private:
@@ -185,7 +185,7 @@ private:
     }
     for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){   // loop over all rel_coord
       Matrix<real_t>& M0=interacList.ClassMat(type, mat_indx);  // get the class_coord matrix pointer
-      Permutation<real_t>& pr=interacList.Perm_R(level, type, mat_indx);  // calculate perm_r 
+      Permutation<real_t>& pr=interacList.Perm_R(level, type, mat_indx);  // calculate perm_r
       Permutation<real_t>& pc=interacList.Perm_C(level, type, mat_indx);  // & perm_c for M2M and D2U type
       if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) Precomp(type, mat_indx);
     }
@@ -533,7 +533,7 @@ public:
 
 /* End of 1st Part: Precomputation */
 
-/* 2nd Part: Tree Construction 
+/* 2nd Part: Tree Construction
  * Interface: Initialize(init_data) */
 private:
   inline int p2oLocal(std::vector<MortonId> & nodes, std::vector<MortonId>& leaves,
@@ -730,11 +730,11 @@ public:
       Profile::Tic("ScatterPoints",true,5);
       std::vector<Vector<real_t>*> coord_lst;
       std::vector<Vector<real_t>*> value_lst;
-      std::vector<Vector<size_t>*> scatter_lst;
-      root_node->NodeDataVec(coord_lst, value_lst, scatter_lst);
+      root_node->NodeDataVec(coord_lst, value_lst);
       assert(coord_lst.size()==value_lst.size());
 
-      std::vector<size_t> scatter_index;
+      std::vector<size_t> index;
+      std::cout << coord_lst.size() << std::endl;
       for(size_t i=0;i<coord_lst.size();i++){
         if(!coord_lst[i]) continue;
         Vector<real_t>& pt_c=*coord_lst[i];
@@ -744,16 +744,8 @@ public:
         for(size_t i=0;i<pt_cnt;i++){
     	  pt_mid[i]=MortonId(pt_c[i*3+0],pt_c[i*3+1],pt_c[i*3+2],max_depth);
         }
-        SortIndex(pt_mid, scatter_index, &lin_oct[0]);
-        Forward  (pt_c, scatter_index);
-        if(value_lst[i]!=NULL){
-          Vector<real_t>& pt_v=*value_lst[i];
-          Forward(pt_v, scatter_index);
-        }
-        if(scatter_lst[i]!=NULL){
-          Vector<size_t>& pt_s=*scatter_lst[i];
-          memcpy(pt_s.data_ptr, &scatter_index[0], pt_s.Dim()*sizeof(size_t));
-        }
+        SortIndex(pt_mid, index, &lin_oct[0]);
+        Forward  (pt_c, index);
       }
       Profile::Toc();
 
@@ -832,7 +824,7 @@ private:
       parent_node=node->Parent();
       if(parent_node==NULL) return;
       int l=node->octant;         // l is octant
-      for(int i=0;i<n1;i++){           
+      for(int i=0;i<n1;i++){
         tmp_node1=parent_node->Colleague(i);  // loop over parent's colleagues
         if(tmp_node1!=NULL)
         if(!tmp_node1->IsLeaf()){
@@ -880,12 +872,12 @@ private:
           nodes[i]->pt_cnt[0] += child->pt_cnt[0];
           nodes[i]->pt_cnt[1] += child->pt_cnt[1];
         }
-      }      
+      }
     }
     // level order traversal
     std::vector<FMM_Node*> nodesLevelOrder;            // level order traversal with leafs
     std::vector<FMM_Node*> nonleafsLevelOrder;         // level order traversal without leafs
-    std::queue<FMM_Node*> nodesQueue; 
+    std::queue<FMM_Node*> nodesQueue;
     nodesQueue.push(root_node);
     while (!nodesQueue.empty()) {
       FMM_Node* curr = nodesQueue.front();
@@ -895,14 +887,14 @@ private:
       for (int i=0; i<8; i++) {
         FMM_Node* child = curr->Child(i);
         if (child!=NULL) nodesQueue.push(child);
-      } 
+      }
     }
     nodesLevelOrder.push_back(root_node);   // level 0 root is the last one instead of the first elem in pvfmm's level order TT
     // fill in node_lists
     n_list[0] = nodesLevelOrder;
     n_list[1] = nodesLevelOrder;
-    n_list[2] = nonleafsLevelOrder; 
-    n_list[3] = nonleafsLevelOrder; 
+    n_list[2] = nonleafsLevelOrder;
+    n_list[3] = nonleafsLevelOrder;
     n_list[4] = leafs;
     n_list[5] = leafs;
     n_list[6] = leafs;
@@ -932,7 +924,7 @@ private:
       vec_list[6].push_back( &dnwd_check_surf[depth] );
       vec_list[6].push_back( &dnwd_equiv_surf[depth] );
     }
-    
+
     node_data_buff.resize(vec_list.size()+1);             // FMM_Tree member node_data_buff: vec of 8 Matrices
     for(int idx=0; idx<vec_list.size(); idx++){           // loop over vec_list
       Matrix<real_t>& buff = node_data_buff[idx];         // reference to idx-th buff chunk
@@ -1279,7 +1271,7 @@ private:
     setup_data. coord_data = &buff[6];        // src & trg coords, upward/dnward check/equiv surface
     setup_data.nodes_in .clear();
     setup_data.nodes_out.clear();
-    if (level==-1) { 
+    if (level==-1) {
       setup_data.nodes_in = n_list[4];
       setup_data.nodes_out = n_list[5];
     }
@@ -1291,7 +1283,7 @@ private:
     data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, SrcValue);
     data.trg_coord = PackedData(setup_data.coord_data, setup_data.nodes_out, TrgCoord);
     data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, TrgValue);
-    
+
     // initialize leaf's node_id, can put it in other functions
     for(int i=0; i<setup_data.nodes_in.size(); i++) {
       FMM_Node* leaf = setup_data.nodes_in[i];
@@ -1510,7 +1502,7 @@ private:
     data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, DnwardEquivValue);
     std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
     std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-      
+
     {
       int omp_p=omp_get_max_threads();
       std::vector<std::vector<size_t> > in_node_(omp_p);
@@ -2142,7 +2134,7 @@ private:
     InteracData& intdata = data.pt_interac_data;
     assert(intdata.M[0].Dim(1)==intdata.M[1].Dim(0));
     assert(intdata.M[2].Dim(1)==intdata.M[3].Dim(0));
-    
+
     int omp_p=omp_get_max_threads();
 #pragma omp parallel for
     for(size_t tid=0;tid<omp_p;tid++) {
@@ -2249,7 +2241,7 @@ private:
     InteracData& intdata = data.pt_interac_data;
     assert(intdata.M[0].Dim(1)==intdata.M[1].Dim(0));
     assert(intdata.M[2].Dim(1)==intdata.M[3].Dim(0));
-    
+
     int omp_p=omp_get_max_threads();
 #pragma omp parallel for
     for(size_t tid=0;tid<omp_p;tid++) {
@@ -2305,7 +2297,7 @@ private:
           src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
           assert(src_value.Dim(1) == vbuff[0].Dim(1));
           for(size_t j=0; j<vbuff[0].Dim(1); j++) vbuff[0][trg1][j]=src_value[0][j];
-          
+
           int scal_idx=intdata.scal_idx[int_id];
           Vector<real_t>& scal=intdata.scal[scal_idx*4+0];  // level factor 2*(-l) of DE2DC matrix
           size_t scal_dim=scal.Dim();
@@ -2321,7 +2313,7 @@ private:
         // downward check potentials to downward equivalent charges
         Matrix<real_t>::GEMM(vbuff[1],vbuff[0],intdata.M[0]);
         Matrix<real_t>::GEMM(vbuff[2],vbuff[1],intdata.M[1]);
-        // downward equivalent charges to targets 
+        // downward equivalent charges to targets
         for(size_t trg1=0; trg1<trg1_max; trg1++){
           size_t trg = trg0+trg1;
           size_t int_id = intdata.interac_dsp[trg];
@@ -2352,7 +2344,7 @@ private:
     char* dev_buff = dev_buffer.data_ptr;
     ptSetupData data = setup_data.pt_setup_data;
     InteracData& intdata = data.pt_interac_data;
-    
+
     int omp_p=omp_get_max_threads();
 #pragma omp parallel for
     for(size_t tid=0;tid<omp_p;tid++) {

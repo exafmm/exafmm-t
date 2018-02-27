@@ -16,13 +16,10 @@ class FMM_Node {
   FMM_Node * colleague[27];
   Vector<real_t> pt_coord;
   Vector<real_t> pt_value;
-  Vector<size_t> pt_scatter;
   Vector<real_t> src_coord;
   Vector<real_t> src_value;
-  Vector<size_t> src_scatter;
   Vector<real_t> trg_coord;
   Vector<real_t> trg_value;
-  Vector<size_t> trg_scatter;
   size_t pt_cnt[2];
   std::vector<FMM_Node*> interac_list[Type_Count];
   FMM_Data* fmm_data;
@@ -79,17 +76,13 @@ class FMM_Node {
   }
 
   void NodeDataVec(std::vector<Vector<real_t>*>& coord,
-                   std::vector<Vector<real_t>*>& value,
-                   std::vector<Vector<size_t>*>& scatter){
+                   std::vector<Vector<real_t>*>& value){
     coord  .push_back(&pt_coord  );
     value  .push_back(&pt_value  );
-    scatter.push_back(&pt_scatter);
     coord  .push_back(&src_coord  );
     value  .push_back(&src_value  );
-    scatter.push_back(&src_scatter);
     coord  .push_back(&trg_coord  );
     value  .push_back(&trg_value  );
-    scatter.push_back(&trg_scatter);
   }
 
   void Truncate() {
@@ -129,14 +122,12 @@ class FMM_Node {
 
     std::vector<Vector<real_t>*> pt_c;
     std::vector<Vector<real_t>*> pt_v;
-    std::vector<Vector<size_t>*> pt_s;
-    NodeDataVec(pt_c, pt_v, pt_s);
+    NodeDataVec(pt_c, pt_v);
 
     std::vector<std::vector<Vector<real_t>*> > chld_pt_c(nchld);
     std::vector<std::vector<Vector<real_t>*> > chld_pt_v(nchld);
-    std::vector<std::vector<Vector<size_t>*> > chld_pt_s(nchld);
     for(size_t i=0;i<nchld;i++){
-      Child(i)->NodeDataVec(chld_pt_c[i], chld_pt_v[i], chld_pt_s[i]);
+      Child(i)->NodeDataVec(chld_pt_c[i], chld_pt_v[i]);
     }
 
     real_t* c=Coord();
@@ -180,18 +171,6 @@ class FMM_Node {
         size_t dof=vec.Dim()/npts;
         for(size_t i=0;i<nchld;i++){
           Vector<real_t>& chld_vec=*chld_pt_v[i][j];
-          chld_vec.Resize((cdata[i+1]-cdata[i])*dof);
-          for (int k=cdata[i]*dof; k<cdata[i+1]*dof; k++) {
-            chld_vec[k-cdata[i]*dof] = vec[k];
-          }
-        }
-        vec.Resize(0);
-      }
-      if(pt_s[j]){
-        Vector<size_t>& vec=*pt_s[j];
-        size_t dof=vec.Dim()/npts;
-        for(size_t i=0;i<nchld;i++){
-          Vector<size_t>& chld_vec=*chld_pt_s[i][j];
           chld_vec.Resize((cdata[i+1]-cdata[i])*dof);
           for (int k=cdata[i]*dof; k<cdata[i+1]*dof; k++) {
             chld_vec[k-cdata[i]*dof] = vec[k];

@@ -5,7 +5,7 @@
 - [x] make Precompmat members public instead of calling access functions
 - [ ] write down math equations for precomputation
 - [x] remove "ghost"
-- [ ] remove "scatter" related members and functions
+- [x] remove "scatter" related members and functions
 - [ ] use exafmm hilbert id header (if necessary)
 - [ ] remove gradient kernel related stuff
 - [ ] assume source == target
