@@ -945,6 +945,7 @@ private:
       for (int i=0; i<nvecs; i++) size[i] = vecs[i]->Dim();  // calculate Vector size
       scan(&size[0], &disp[0], nvecs);                    // calculate Vector size's displ
       size_t buff_size = size[nvecs-1] + disp[nvecs-1];   // total buff size needed
+//if(idx==0) std::cout << "buff_size 0 " << buff_size << std::endl;
       if (!buff_size) continue;
       if (buff.Dim(0)*buff.Dim(1) < buff_size) {
         buff.ReInit(1,buff_size*1.05);                    // buff is a huge 1-row matrix
@@ -2134,6 +2135,113 @@ private:
     }
   }
 
+  void P2M(SetupData& setup_data) {
+    if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
+    char* dev_buff = dev_buffer.data_ptr;
+    ptSetupData data = setup_data.pt_setup_data;
+    InteracData& intdata = data.pt_interac_data;
+    assert(intdata.M[0].Dim(1)==intdata.M[1].Dim(0));
+    assert(intdata.M[2].Dim(1)==intdata.M[3].Dim(0));
+    
+    int omp_p=omp_get_max_threads();
+#pragma omp parallel for
+    for(size_t tid=0;tid<omp_p;tid++) {
+      Matrix<real_t> src_coord, src_value;
+      Matrix<real_t> trg_coord, trg_value;
+      Vector<real_t> buff;
+      size_t thread_buff_size = setup_data.output_data->Dim(0)*setup_data.output_data->Dim(1) / omp_p;
+      buff.ReInit3(thread_buff_size, (real_t*)(dev_buff + tid*thread_buff_size*sizeof(real_t)), false);
+
+      std::vector<Matrix<real_t> > vbuff(6);
+      int vdim_ = intdata.M[2].Dim(0) + intdata.M[2].Dim(1) + intdata.M[3].Dim(1);
+      int vcnt  = buff.Dim() / vdim_ / 2;
+      {
+        std::vector<int> vdim(6, 0);
+        vdim[0] = intdata.M[0].Dim(0);
+        vdim[1] = intdata.M[0].Dim(1);
+        vdim[2] = intdata.M[1].Dim(1);
+        vdim[3] = intdata.M[2].Dim(0);
+        vdim[4] = intdata.M[2].Dim(1);
+        vdim[5] = intdata.M[3].Dim(1);
+        for(size_t indx=0;indx<6;indx++){
+          vbuff[indx].ReInit(vcnt,vdim[indx],&buff[0],false);
+          buff.ReInit3(buff.Dim()-vdim[indx]*vcnt, &buff[vdim[indx]*vcnt], false);
+        }
+      }
+      // assign a chunk of target boxes to each thread
+      size_t trg_a=0, trg_b=0;
+      if(intdata.interac_cst.Dim()){
+        Vector<size_t>& interac_cst=intdata.interac_cst;
+        size_t cost=interac_cst[interac_cst.Dim()-1];
+        trg_a = std::lower_bound(&interac_cst[0], &interac_cst[interac_cst.Dim()-1], (cost*(tid+0))/omp_p) - &interac_cst[0]+1;
+        trg_b = std::lower_bound(&interac_cst[0], &interac_cst[interac_cst.Dim()-1], (cost*(tid+1))/omp_p) - &interac_cst[0]+1;
+        if(tid==omp_p-1) trg_b=interac_cst.Dim();
+        if(tid==0) trg_a=0;
+      }
+      for(size_t trg0=trg_a; trg0<trg_b; ){
+        // calculate num of nodes evaluated per iteration based on buffer size
+        int trg1_max;
+        if(vcnt){
+          if (trg0 + vcnt < trg_b) trg1_max = vcnt;
+          else trg1_max = trg_b - trg0;
+          assert(trg1_max <= vcnt);
+          for(size_t k=0;k<6;k++){
+            if(vbuff[k].Dim(0)*vbuff[k].Dim(1)){
+              vbuff[k].ReInit(trg1_max, vbuff[k].Dim(1), vbuff[k][0], false);
+            }
+          }
+        } else trg1_max = trg_b - trg0;
+
+        vbuff[3].SetZero();    // vbuff[3]: n_trg * n_ue
+        // evaluate potential at upward check surface
+        for(size_t trg1=0; trg1<trg1_max; trg1++) {
+          size_t trg = trg0 + trg1;
+          size_t int_id = intdata.interac_dsp[trg];
+          size_t src = intdata.in_node[int_id];
+          assert(intdata.interac_cnt[trg] == 1);
+          trg_coord.ReInit(1, data.trg_coord.cnt[trg], &data.trg_coord.ptr[0][0][data.trg_coord.dsp[trg]], false);
+          trg_value.ReInit(1, data.trg_value.cnt[trg], &data.trg_value.ptr[0][0][data.trg_value.dsp[trg]], false);
+          src_coord.ReInit(1, data.src_coord.cnt[src], &data.src_coord.ptr[0][0][data.src_coord.dsp[src]], false);
+          src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
+          real_t* trg_value = vbuff[3][trg1];
+          real_t* shift = &intdata.coord_shift[int_id*3];
+          if(shift[0]!=0 || shift[1]!=0 || shift[2]!=0){
+            size_t vdim = src_coord.Dim(1);
+            Vector<real_t> new_coord(vdim, &buff[0], false);
+            assert(buff.Dim()>=vdim);
+            for(int i=0; i<src_coord.Dim(1); i++) new_coord[i] = src_coord[0][i] + shift[i%3];
+            src_coord.ReInit(1, vdim, &new_coord[0], false);
+          }
+          setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, src_value[0],
+                                       trg_coord[0], trg_coord.Dim(1)/3, trg_value);
+
+          int scal_idx = intdata.scal_idx[int_id];
+          Vector<real_t>& scal = intdata.scal[scal_idx*4+2];   // level factor 2*(-l) of UE2UC matrix
+          size_t scal_dim = scal.Dim();
+          if(scal_dim){
+            size_t vdim = vbuff[3].Dim(1);
+            for(size_t j=0;j<vdim;j+=scal_dim){
+              for(size_t k=0;k<scal_dim;k++){
+                vbuff[3][trg1][j+k]*=scal[k];
+              }
+            }
+          }
+        }
+        // upward_equiv_charge = upward_check_potential * inv(Mat_UE2UC)
+        Matrix<real_t>::GEMM(vbuff[4],vbuff[3],intdata.M[2]);
+        Matrix<real_t>::GEMM(vbuff[5],vbuff[4],intdata.M[3]);
+        // copy equivalent charge's values from buffer back to ptSetupData
+        for(size_t trg1=0; trg1<trg1_max; trg1++){
+          size_t trg = trg0+trg1;
+          trg_value.ReInit(1, data.trg_value.cnt[trg], &data.trg_value.ptr[0][0][data.trg_value.dsp[trg]], false);
+          assert(trg_value.Dim(1) == vbuff[5].Dim(1));
+          for(size_t i=0; i<trg_value.Dim(1); i++) trg_value[0][i] += vbuff[5][trg1][i];
+        }
+        trg0+=trg1_max;
+      }
+    }
+  }
+
   void EvalListPts(SetupData& setup_data) {
     if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
     char* dev_buff = dev_buffer.data_ptr;
@@ -2651,11 +2759,6 @@ private:
         }
       }
     }
-  }
-
-  void P2M(SetupData&  setup_data) {
-    if(!multipole_order) return;
-    EvalListPts(setup_data);
   }
 
   void M2M(SetupData& setup_data){
