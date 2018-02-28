@@ -724,6 +724,10 @@ public:
         }
         SortIndex(pt_mid, index);
         Forward  (pt_c, index);
+        if(value_lst[i]!=NULL){
+          Vector<real_t>& pt_v=*value_lst[i];
+          Forward(pt_v, index);
+        }
       }
       Profile::Toc();
 
