@@ -75,6 +75,19 @@ std::vector<real_t> plummer(int numBodies) {
   return coord;
 }
 
+std::vector<real_t> nonuniform(int numBodies) {
+  srand48(0);
+  std::vector<real_t> coord;
+  for(size_t i=0; i<3*numBodies; i++) {
+    if (i/3 < 0.1*numBodies) coord.push_back(drand48()*0.5);
+    else {
+      if (i/3 < 0.2*numBodies) coord.push_back(0.5 + drand48()*0.5);
+      else coord.push_back(drand48());
+    }
+  }
+  return coord;
+}
+
 int main(int argc, char **argv){
   Args args(argc, argv);
   omp_set_num_threads(args.threads);
@@ -94,7 +107,8 @@ int main(int argc, char **argv){
   std::vector<real_t> src_coord, src_value;
   srand48(0);
 #if 0
-  src_coord = plummer(N);
+  //src_coord = plummer(N);
+  src_coord = nonuniform(N);
 #else
   for(size_t i=0; i<3*N; i++) src_coord.push_back(drand48());
 #endif
