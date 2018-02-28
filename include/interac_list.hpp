@@ -2,7 +2,6 @@
 #define _PVFMM_INTERAC_LIST_HPP_
 
 namespace pvfmm{
-
 class InteracList{
 public:
   std::vector<Matrix<int> > rel_coord;

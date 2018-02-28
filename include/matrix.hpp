@@ -1,5 +1,6 @@
 #ifndef _PVFMM_MATRIX_HPP_
 #define _PVFMM_MATRIX_HPP_
+#include "profile.hpp"
 
 extern "C" {
   /*

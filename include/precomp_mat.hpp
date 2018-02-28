@@ -1,39 +1,8 @@
 #ifndef _PVFMM_PrecompMAT_HPP_
 #define _PVFMM_PrecompMAT_HPP_
+#include "pvfmm.h"
 
 namespace pvfmm{
-
-typedef enum{
-  M2M_V_Type= 0,
-  M2M_U_Type= 1,
-  L2L_V_Type= 2,
-  L2L_U_Type= 3,
-  P2M_Type  = 4,
-  M2M_Type  = 5,
-  L2L_Type  = 6,
-  L2P_Type  = 7,
-  U0_Type   = 8,
-  U1_Type   = 9,
-  U2_Type   =10,
-  V_Type    =11,
-  W_Type    =12,
-  X_Type    =13,
-  V1_Type   =14,
-  Type_Count=15
-} Mat_Type;
-
-typedef enum{
-  Scaling = 0,
-  ReflecX = 1,
-  ReflecY = 2,
-  ReflecZ = 3,
-  SwapXY  = 4,
-  SwapXZ  = 5,
-  R_Perm = 0,
-  C_Perm = 6,
-  Perm_Count=12
-} Perm_Type;
-
 class PrecompMat{
 public:
   std::vector<std::vector<Matrix<real_t> > > mat;

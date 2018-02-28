@@ -1,6 +1,7 @@
 #ifndef pvfmm_h
 #define pvfmm_h
 #include "vector.hpp"
+#include "matrix.hpp"
 
 namespace pvfmm{
 #ifndef NULL
@@ -35,6 +36,41 @@ namespace pvfmm{
 #endif
 #endif
 
+  const int SrcCoord = 1, SrcValue = 2, TrgCoord = 3, TrgValue = 4,
+            UpwardEquivCoord = 5, UpwardCheckCoord=6, UpwardEquivValue = 7,
+            DnwardEquivCoord = 8, DnwardCheckCoord=9, DnwardEquivValue = 10;
+
+  typedef enum{
+    M2M_V_Type= 0,
+    M2M_U_Type= 1,
+    L2L_V_Type= 2,
+    L2L_U_Type= 3,
+    P2M_Type  = 4,
+    M2M_Type  = 5,
+    L2L_Type  = 6,
+    L2P_Type  = 7,
+    U0_Type   = 8,
+    U1_Type   = 9,
+    U2_Type   =10,
+    V_Type    =11,
+    W_Type    =12,
+    X_Type    =13,
+    V1_Type   =14,
+    Type_Count=15
+  } Mat_Type;
+
+  typedef enum{
+    Scaling = 0,
+    ReflecX = 1,
+    ReflecY = 2,
+    ReflecZ = 3,
+    SwapXY  = 4,
+    SwapXZ  = 5,
+    R_Perm = 0,
+    C_Perm = 6,
+    Perm_Count=12
+  } Perm_Type;
+
   struct FMM_Data{
     Vector<real_t> upward_equiv;
     Vector<real_t> dnward_equiv;
@@ -45,6 +81,30 @@ namespace pvfmm{
     size_t max_pts;
     Vector<real_t> coord;
     Vector<real_t> value;
+  };
+
+  struct InteracData{
+    Vector<size_t> in_node;
+    Vector<size_t> scal_idx;
+    Vector<real_t> coord_shift;
+    Vector<size_t> interac_cnt;
+    Vector<size_t> interac_dsp;
+    Vector<size_t> interac_cst;    // displacement of cost
+    Vector<real_t> scal[4*MAX_DEPTH];
+    Matrix<real_t> M[4];   // M is not empty for P2M, L2P, empty for other lists
+  };
+
+  struct VListData {
+    size_t buff_size;
+    size_t m;
+    size_t n_blk0;
+    std::vector<real_t*> precomp_mat;
+    std::vector<std::vector<size_t> > fft_vec;
+    std::vector<std::vector<size_t> > ifft_vec;
+    std::vector<std::vector<real_t> > fft_scl;
+    std::vector<std::vector<real_t> > ifft_scl;
+    std::vector<std::vector<size_t> > interac_vec;
+    std::vector<std::vector<size_t> > interac_dsp;
   };
 
   std::vector<Vector<real_t> > upwd_check_surf;
