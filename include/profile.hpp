@@ -5,7 +5,7 @@ namespace pvfmm{
 
 class Profile{
 public:
-  
+
   static long long Add_FLOP(long long inc){
     long long orig_val=FLOP;
 #pragma omp atomic update
@@ -91,19 +91,14 @@ public:
 	double t0=t_log[i]-tt.top();tt.pop();
 	double f0=(double)(f_log[i]-ff.top())*1e-9;ff.pop();
 	double fs0=f0/t0;
-	double t_max=t0, t_min=t0, t_sum=t0, t_avg=t0;
-	double f_max=f0, f_min=f0, f_sum=f0, f_avg=f0;
-	double fs_max=fs0, fs_min=fs0, fs_sum=fs0;//, fs_avg;
-	double m_init, m_max, m_final;
+	double t_max=t0, t_min=t0, t_sum=t0;
+	double f_max=f0, f_min=f0, f_sum=f0;
+	//double m_final=(double)m_log[i]*1e-9;
+	//double m_init =(double)mm.top()*1e-9; mm.pop();
+	//double m_max  =(double)max_m_log[i]*1e-9;
+	double t_avg=t_sum/np;
+	//double f_avg=f_sum/np;
 
-	m_final=(double)m_log[i]*1e-9;
-	m_init =(double)mm.top()*1e-9; mm.pop();
-	m_max  =(double)max_m_log[i]*1e-9;
-
-	t_avg=t_sum/np;
-	f_avg=f_sum/np;
-	fs_sum=f_sum/t_max;
-  
 	if(!rank){
           if(n_log[i] == "U-List" || n_log[i] == "V-List")
 	    std::cout << n_log[i] << "     : " << t_avg << std::endl;

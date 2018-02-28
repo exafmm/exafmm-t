@@ -58,7 +58,7 @@ public:
 
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
     int level=l+128;
-    assert(level*Type_Count+type<perm_r.size());
+    assert(level*Type_Count+type<int(perm_r.size()));
     if(indx>=perm_r[level*Type_Count+type].size()){
       perm_r[level*Type_Count+type].resize(indx+1);
     }
@@ -67,7 +67,7 @@ public:
 
   Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx){
     int level=l+128;
-    assert(level*Type_Count+type<perm_c.size());
+    assert(level*Type_Count+type<int(perm_c.size()));
     if(indx>=perm_c[level*Type_Count+type].size()){
       perm_c[level*Type_Count+type].resize(indx+1);
     }
@@ -90,7 +90,7 @@ public:
     if(comp_data.size()>offset){
       char* indx_ptr=&comp_data[0]+offset;
       HeaderData& header=*(HeaderData*)indx_ptr; indx_ptr+=sizeof(HeaderData);
-      if(level==header.level){
+      if(level==int(header.level)){
 	offset+=header.total_size;
 	return offset;
       }

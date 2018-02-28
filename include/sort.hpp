@@ -175,7 +175,7 @@ namespace pvfmm{
   }
 
   template<typename T>
-  int SortIndex(const std::vector<T>& key, std::vector<size_t>& index, const T* split_key_){
+  int SortIndex(const std::vector<T>& key, std::vector<size_t>& index){
     typedef SortPair<T,size_t> Pair_t;
     std::vector<Pair_t> parray(key.size());
     long long loc_size=key.size();

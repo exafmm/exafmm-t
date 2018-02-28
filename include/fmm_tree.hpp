@@ -591,30 +591,9 @@ private:
     Profile::Toc();
 
     Profile::Tic("p2o_local", false, 10);
-    std::vector<MortonId> nodes_local(1); nodes_local[0]=MortonId();
-    p2oLocal(pt_sorted, nodes_local, maxNumPts, maxDepth, myrank==np-1);
-    Profile::Toc();
-
-    Profile::Tic("RemoveDuplicates", true, 10);
-    size_t node_cnt=nodes_local.size();
-    MortonId first_node;
-    MortonId  last_node=nodes_local[node_cnt-1];
-    size_t i=0;
-    std::vector<MortonId> node_lst;
-    if(myrank){
-      while(i<node_cnt && nodes_local[i].getDFD(maxDepth)<first_node) i++; assert(i);
-      last_node=nodes_local[i>0?i-1:0].NextId();
-
-      while(first_node<last_node){
-        while(first_node.isAncestor(last_node))
-          first_node=first_node.getDFD(first_node.GetDepth()+1);
-        if(first_node==last_node) break;
-        node_lst.push_back(first_node);
-        first_node=first_node.NextId();
-      }
-    }
-    for(;i<node_cnt;i++) node_lst.push_back(nodes_local[i]);
-    nodes=node_lst;
+    nodes.resize(1);
+    nodes[0]=MortonId();
+    p2oLocal(pt_sorted, nodes, maxNumPts, maxDepth, myrank==np-1);
     Profile::Toc();
     return 0;
   }
@@ -727,14 +706,13 @@ public:
       points2Octree(pt_mid,lin_oct,max_depth,init_data->max_pts);
       Profile::Toc();
 
-      Profile::Tic("ScatterPoints",true,5);
+      Profile::Tic("SortPoints",true,5);
       std::vector<Vector<real_t>*> coord_lst;
       std::vector<Vector<real_t>*> value_lst;
       root_node->NodeDataVec(coord_lst, value_lst);
       assert(coord_lst.size()==value_lst.size());
 
       std::vector<size_t> index;
-      std::cout << coord_lst.size() << std::endl;
       for(size_t i=0;i<coord_lst.size();i++){
         if(!coord_lst[i]) continue;
         Vector<real_t>& pt_c=*coord_lst[i];
@@ -744,30 +722,22 @@ public:
         for(size_t i=0;i<pt_cnt;i++){
     	  pt_mid[i]=MortonId(pt_c[i*3+0],pt_c[i*3+1],pt_c[i*3+2],max_depth);
         }
-        SortIndex(pt_mid, index, &lin_oct[0]);
+        SortIndex(pt_mid, index);
         Forward  (pt_c, index);
       }
       Profile::Toc();
 
       Profile::Tic("PointerTree",false,5);
-      int omp_p=omp_get_max_threads();
-      for(int i=0;i<omp_p;i++){
-        size_t idx=(lin_oct.size()*i)/omp_p;
-        FMM_Node* n=FindNode(lin_oct[idx], true);
-        assert(n->GetMortonId()==lin_oct[idx]);
-      }
-#pragma omp parallel for
-      for(int i=0;i<omp_p;i++){
-        size_t a=(lin_oct.size()* i   )/omp_p;
-        size_t b=(lin_oct.size()*(i+1))/omp_p;
-        size_t idx=a;
-        FMM_Node* n=FindNode(lin_oct[idx], false);
-        if(a==0) n=root_node;
-        while(n!=NULL && (idx<b || i==omp_p-1)){
-          MortonId dn=n->GetMortonId();
-          if(idx<b && dn.isAncestor(lin_oct[idx])){
+      int omp_p=1;
+      for(int i=0;i<1;i++){
+        size_t size=lin_oct.size();
+        size_t idx=0;
+        FMM_Node* n=root_node;
+        while(n!=NULL && idx<size){
+          MortonId mortonId=n->GetMortonId();
+          if(mortonId.isAncestor(lin_oct[idx])){
             if(n->IsLeaf()) n->Subdivide();
-          }else if(idx<b && dn==lin_oct[idx]){
+          }else if(mortonId==lin_oct[idx]){
             if(!n->IsLeaf()) n->Truncate();
             assert(n->IsLeaf());
             idx++;
