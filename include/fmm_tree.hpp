@@ -1977,18 +1977,17 @@ public:
     Profile::Toc();
     setup_data.resize(8*MAX_DEPTH);
     precomp_lst.resize(8);
+
     Profile::Tic("UListSetup",false,3);
-    setup_data[MAX_DEPTH*0].precomp_data=&precomp_lst[0];
     U_ListSetup(setup_data[MAX_DEPTH*0],node_data_buff,node_lists);
     Profile::Toc();
     Profile::Tic("WListSetup",false,3);
-    setup_data[MAX_DEPTH*1].precomp_data=&precomp_lst[1];
     W_ListSetup(setup_data[MAX_DEPTH*1],node_data_buff,node_lists);
     Profile::Toc();
     Profile::Tic("XListSetup",false,3);
-    setup_data[MAX_DEPTH*2].precomp_data=&precomp_lst[2];
     X_ListSetup(setup_data[MAX_DEPTH*2],node_data_buff,node_lists);
     Profile::Toc();
+
     Profile::Tic("VListSetup",false,3);
     for(size_t i=0;i<MAX_DEPTH;i++){
       setup_data[i+MAX_DEPTH*3].precomp_data=&precomp_lst[3];
@@ -2001,25 +2000,14 @@ public:
       L2LSetup(setup_data[i+MAX_DEPTH*4],node_data_buff,node_lists,i);
     }
     Profile::Toc();
+
     Profile::Tic("L2PSetup",false,3);
-    setup_data[MAX_DEPTH*5].precomp_data=&precomp_lst[5];
     L2PSetup(setup_data[MAX_DEPTH*5],node_data_buff,node_lists);
-    /*
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*5].precomp_data=&precomp_lst[5];
-      L2PSetup(setup_data[i+MAX_DEPTH*5],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
-    */
     Profile::Toc();
 
     Profile::Tic("P2MSetup",false,3);
-    setup_data[MAX_DEPTH*6].precomp_data=&precomp_lst[6];
     P2MSetup(setup_data[MAX_DEPTH*6],node_data_buff,node_lists);
-    /*
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*6].precomp_data=&precomp_lst[6];
-      P2MSetup(setup_data[i+MAX_DEPTH*6],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }*/
+
     Profile::Toc();
     Profile::Tic("M2MSetup",false,3);
     for(size_t i=0;i<MAX_DEPTH;i++){
