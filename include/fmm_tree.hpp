@@ -1211,22 +1211,18 @@ private:
     }
   }
 
-  void U_ListSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
+  void U_ListSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     // initialize Setup_data
-    setup_data. level = level;
     setup_data.kernel = kernel->k_s2t;
     setup_data. input_data = &buff[4];        // src_value
     setup_data.output_data = &buff[5];        // trg_value
     setup_data. coord_data = &buff[6];        // src & trg coords, upward/dnward check/equiv surface
     setup_data.nodes_in .clear();
     setup_data.nodes_out.clear();
-    if (level==-1) {
-      setup_data.nodes_in = n_list[4];
-      setup_data.nodes_out = n_list[5];
-    }
+    setup_data.nodes_in = n_list[4];
+    setup_data.nodes_out = n_list[5];
     // initialize ptSetupData
     ptSetupData data;
-    data. level = setup_data. level;
     data.kernel = setup_data.kernel;
     data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, SrcCoord);
     data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, SrcValue);
@@ -1332,10 +1328,9 @@ private:
     PtSetup(setup_data, &data);
   }
 
-  void W_ListSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
+  void W_ListSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     if(!multipole_order) return;
     {
-      setup_data. level = level;
       setup_data.kernel = kernel->k_m2t;
       setup_data. input_data = &buff[0];              // upward_equiv
       setup_data.output_data = &buff[5];              // trg_value
@@ -1344,12 +1339,11 @@ private:
       setup_data.nodes_out.clear();
       std::vector<FMM_Node*>& nodes_in =n_list[0];    // nodesLevelOrder
       std::vector<FMM_Node*>& nodes_out=n_list[5];    // leafs
-      for(size_t i=0;i<nodes_in .size();i++) if((level==-1) && nodes_in [i]->pt_cnt[0]) setup_data.nodes_in.push_back(nodes_in [i]);
-      for(size_t i=0;i<nodes_out.size();i++) if((level==-1) && nodes_out[i]->trg_coord.Dim() && nodes_out[i]->IsLeaf() ) setup_data.nodes_out.push_back(nodes_out[i]);
+      for(size_t i=0;i<nodes_in .size();i++) if(nodes_in [i]->pt_cnt[0]) setup_data.nodes_in.push_back(nodes_in [i]);
+      for(size_t i=0;i<nodes_out.size();i++) if(nodes_out[i]->trg_coord.Dim() && nodes_out[i]->IsLeaf() ) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     // initialize ptSetupData
     ptSetupData data;
-    data. level=setup_data. level;
     data.kernel=setup_data.kernel;
     data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, UpwardEquivCoord);
     data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, UpwardEquivValue);
@@ -1427,10 +1421,9 @@ private:
     PtSetup(setup_data, &data);
   }
 
-  void X_ListSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
+  void X_ListSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     if(!multipole_order) return;
     {
-      setup_data. level=level;
       setup_data.kernel=kernel->k_s2l;
       setup_data. input_data=&buff[4];         // src_value
       setup_data.output_data=&buff[1];         // dnward_equiv
@@ -1439,11 +1432,10 @@ private:
       std::vector<FMM_Node*>& nodes_out=n_list[1];
       setup_data.nodes_in .clear();
       setup_data.nodes_out.clear();
-      for(size_t i=0;i<nodes_in .size();i++) if((level==0 || level==-1) && nodes_in [i]->src_coord.Dim() &&  nodes_in [i]->IsLeaf ()) setup_data.nodes_in .push_back(nodes_in [i]);
-      for(size_t i=0;i<nodes_out.size();i++) if((level==0 || level==-1) && nodes_out[i]->pt_cnt[1]   ) setup_data.nodes_out.push_back(nodes_out[i]);
+      for(size_t i=0;i<nodes_in .size();i++) if(nodes_in [i]->src_coord.Dim() &&  nodes_in [i]->IsLeaf ()) setup_data.nodes_in .push_back(nodes_in [i]);
+      for(size_t i=0;i<nodes_out.size();i++) if(nodes_out[i]->pt_cnt[1]   ) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
-    data. level=setup_data. level;
     data.kernel=setup_data.kernel;
     data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, SrcCoord);
     data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, SrcValue);
@@ -1670,10 +1662,9 @@ private:
     Profile::Toc();
   }
 
-  void P2MSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level) {
+  void P2MSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list) {
     if(!multipole_order) return;
     {
-      setup_data. level=level;
       setup_data.kernel=kernel->k_s2m;
       setup_data. input_data=&buff[4];            // src_value
       setup_data.output_data=&buff[0];            // upward_equiv
@@ -1683,16 +1674,13 @@ private:
       setup_data.nodes_in .clear();
       setup_data.nodes_out.clear();
       for(size_t i=0;i<nodes_in .size();i++)
-        if((nodes_in [i]->depth==level || level==-1)
-  	 && nodes_in [i]->src_coord.Dim()
+        if(nodes_in [i]->src_coord.Dim()
   	 && nodes_in [i]->IsLeaf()) setup_data.nodes_in .push_back(nodes_in [i]);
       for(size_t i=0;i<nodes_out.size();i++)
-        if((nodes_out[i]->depth==level || level==-1)
-  	 && nodes_out[i]->src_coord.Dim()
+        if(nodes_out[i]->src_coord.Dim()
   	 && nodes_out[i]->IsLeaf()) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
-    data. level = setup_data. level;
     data.kernel = setup_data.kernel;
     data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, SrcCoord);
     data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, SrcValue);
@@ -1848,10 +1836,9 @@ private:
     SetupInterac(setup_data);
   }
 
-  void L2PSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
+  void L2PSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     if(!multipole_order) return;
     {
-      setup_data. level=level;
       setup_data.kernel=kernel->k_l2t;
       setup_data. input_data=&buff[1];        // dnward_equiv
       setup_data.output_data=&buff[5];        // trg_value
@@ -1860,11 +1847,10 @@ private:
       std::vector<FMM_Node*>& nodes_out=n_list[5];
       setup_data.nodes_in .clear();
       setup_data.nodes_out.clear();
-      for(size_t i=0;i<nodes_in .size();i++) if((nodes_in [i]->depth==level || level==-1) && nodes_in [i]->trg_coord.Dim() && nodes_in [i]->IsLeaf() ) setup_data.nodes_in .push_back(nodes_in [i]);
-      for(size_t i=0;i<nodes_out.size();i++) if((nodes_out[i]->depth==level || level==-1) && nodes_out[i]->trg_coord.Dim() && nodes_out[i]->IsLeaf() ) setup_data.nodes_out.push_back(nodes_out[i]);
+      for(size_t i=0;i<nodes_in .size();i++) if(nodes_in [i]->trg_coord.Dim() && nodes_in [i]->IsLeaf() ) setup_data.nodes_in .push_back(nodes_in [i]);
+      for(size_t i=0;i<nodes_out.size();i++) if(nodes_out[i]->trg_coord.Dim() && nodes_out[i]->IsLeaf() ) setup_data.nodes_out.push_back(nodes_out[i]);
     }
     ptSetupData data;
-    data. level=setup_data. level;
     data.kernel=setup_data.kernel;
     data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, DnwardEquivCoord);
     data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, DnwardEquivValue);
@@ -1993,15 +1979,15 @@ public:
     precomp_lst.resize(8);
     Profile::Tic("UListSetup",false,3);
     setup_data[MAX_DEPTH*0].precomp_data=&precomp_lst[0];
-    U_ListSetup(setup_data[MAX_DEPTH*0],node_data_buff,node_lists,-1);
+    U_ListSetup(setup_data[MAX_DEPTH*0],node_data_buff,node_lists);
     Profile::Toc();
     Profile::Tic("WListSetup",false,3);
     setup_data[MAX_DEPTH*1].precomp_data=&precomp_lst[1];
-    W_ListSetup(setup_data[MAX_DEPTH*1],node_data_buff,node_lists,-1);
+    W_ListSetup(setup_data[MAX_DEPTH*1],node_data_buff,node_lists);
     Profile::Toc();
     Profile::Tic("XListSetup",false,3);
     setup_data[MAX_DEPTH*2].precomp_data=&precomp_lst[2];
-    X_ListSetup(setup_data[MAX_DEPTH*2],node_data_buff,node_lists,-1);
+    X_ListSetup(setup_data[MAX_DEPTH*2],node_data_buff,node_lists);
     Profile::Toc();
     Profile::Tic("VListSetup",false,3);
     for(size_t i=0;i<MAX_DEPTH;i++){
@@ -2016,17 +2002,24 @@ public:
     }
     Profile::Toc();
     Profile::Tic("L2PSetup",false,3);
+    setup_data[MAX_DEPTH*5].precomp_data=&precomp_lst[5];
+    L2PSetup(setup_data[MAX_DEPTH*5],node_data_buff,node_lists);
+    /*
     for(size_t i=0;i<MAX_DEPTH;i++){
       setup_data[i+MAX_DEPTH*5].precomp_data=&precomp_lst[5];
       L2PSetup(setup_data[i+MAX_DEPTH*5],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
     }
+    */
     Profile::Toc();
 
     Profile::Tic("P2MSetup",false,3);
+    setup_data[MAX_DEPTH*6].precomp_data=&precomp_lst[6];
+    P2MSetup(setup_data[MAX_DEPTH*6],node_data_buff,node_lists);
+    /*
     for(size_t i=0;i<MAX_DEPTH;i++){
       setup_data[i+MAX_DEPTH*6].precomp_data=&precomp_lst[6];
       P2MSetup(setup_data[i+MAX_DEPTH*6],node_data_buff,node_lists,i==0?-1:MAX_DEPTH+1);
-    }
+    }*/
     Profile::Toc();
     Profile::Tic("M2MSetup",false,3);
     for(size_t i=0;i<MAX_DEPTH;i++){
