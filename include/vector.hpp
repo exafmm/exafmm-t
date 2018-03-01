@@ -2,12 +2,15 @@
 #define _PVFMM_VECTOR_HPP_
 
 namespace pvfmm{
-
 #define MEM_ALIGN 64
 template <class T>
 class Vector{
-
 public:
+  int dim;
+  int capacity;
+  bool own_data;
+  T* data_ptr;
+
   Vector(){
     dim=0;
     capacity=0;
@@ -15,7 +18,7 @@ public:
     data_ptr=NULL;
   }
 
-  Vector(size_t dim_, T* data_=NULL, bool own_data_=true){
+  Vector(int dim_, T* data_=NULL, bool own_data_=true){
     dim=dim_;
     capacity=dim;
     own_data=own_data_;
@@ -61,14 +64,14 @@ public:
     dim=0;
   }
 
-  void ReInit3(size_t dim_, T* data_, bool own_data_){
+  void ReInit3(int dim_, T* data_, bool own_data_){
     dim=dim_;
     capacity=dim;
     own_data=own_data_;
     data_ptr=data_;
   }
 
-  void Resize(size_t dim_){
+  void Resize(int dim_){
     dim=dim_;
     if(capacity<dim_){
       capacity=dim;
@@ -89,11 +92,11 @@ public:
     fclose(f1);
   }
 
-  inline size_t Dim() const{
+  inline int Dim() const{
     return dim;
   }
 
-  inline size_t Capacity() const{
+  inline int Capacity() const{
     return capacity;
   }
 
@@ -108,17 +111,12 @@ public:
     return *this;
   }
 
-  inline T& operator[](size_t j) const{
+  inline T& operator[](int j) const{
     assert(dim>0?j<dim:j==0); //TODO Change to (j<dim)
     return data_ptr[j];
   }
 
-  T* data_ptr;
 
-private:
-  size_t dim;
-  size_t capacity;
-  bool own_data;
 };
 
 }//end namespace
