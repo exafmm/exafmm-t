@@ -3,12 +3,10 @@
 #include "profile.hpp"
 
 extern "C" {
-  /*
   void sgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, float* ALPHA, float* A,
 	      int* LDA, float* B, int* LDB, float* BETA, float* C, int* LDC);
   void dgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, double* ALPHA, double* A,
 	      int* LDA, double* B, int* LDB, double* BETA, double* C, int* LDC);
-  */
   void sgesvd_(char *JOBU, char *JOBVT, int *M, int *N, float *A, int *LDA,
 	       float *S, float *U, int *LDU, float *VT, int *LDVT, float *WORK, int *LWORK, int *INFO);
   void dgesvd_(char *JOBU, char *JOBVT, int *M, int *N, double *A, int *LDA,
@@ -23,55 +21,9 @@ namespace pvfmm{
   class Matrix{
   public:
     T* data_ptr;
-    size_t dim[2];
-  private:
+    int dim[2];
     bool own_data;
 
-    static inline void gemm(char TransA, char TransB,  int M,  int N,  int K,  T alpha,  T *A,  int lda,  T *B,  int ldb,  T beta, T *C,  int ldc){
-      if((TransA=='N' || TransA=='n') && (TransB=='N' || TransB=='n')){
-        for(size_t n=0;n<N;n++){
-          for(size_t m=0;m<M;m++){
-              T AxB=0;
-              for(size_t k=0;k<K;k++){
-                AxB+=A[m+lda*k]*B[k+ldb*n];
-              }
-              C[m+ldc*n]=alpha*AxB+(beta==0?0:beta*C[m+ldc*n]);
-          }
-        }
-      }else if(TransA=='N' || TransA=='n'){
-        for(size_t n=0;n<N;n++){
-          for(size_t m=0;m<M;m++){
-              T AxB=0;
-              for(size_t k=0;k<K;k++){
-                AxB+=A[m+lda*k]*B[n+ldb*k];
-              }
-              C[m+ldc*n]=alpha*AxB+(beta==0?0:beta*C[m+ldc*n]);
-          }
-        }
-      }else if(TransB=='N' || TransB=='n'){
-        for(size_t n=0;n<N;n++){
-          for(size_t m=0;m<M;m++){
-              T AxB=0;
-              for(size_t k=0;k<K;k++){
-                AxB+=A[k+lda*m]*B[k+ldb*n];
-              }
-              C[m+ldc*n]=alpha*AxB+(beta==0?0:beta*C[m+ldc*n]);
-          }
-        }
-      }else{
-        for(size_t n=0;n<N;n++){
-          for(size_t m=0;m<M;m++){
-              T AxB=0;
-              for(size_t k=0;k<K;k++){
-                AxB+=A[k+lda*m]*B[n+ldb*k];
-              }
-              C[m+ldc*n]=alpha*AxB+(beta==0?0:beta*C[m+ldc*n]);
-          }
-        }
-      }
-    }
-
-  public:
     Matrix(){
       dim[0]=0;
       dim[1]=0;
@@ -79,7 +31,7 @@ namespace pvfmm{
       data_ptr=NULL;
     }
 
-    Matrix(size_t dim1, size_t dim2, T* data_=NULL, bool own_data_=true) {
+    Matrix(int dim1, int dim2, T* data_=NULL, bool own_data_=true) {
       dim[0]=dim1;
       dim[1]=dim2;
       own_data=own_data_;
@@ -116,7 +68,7 @@ namespace pvfmm{
     }
 
     void Swap(Matrix<T>& M){
-      size_t dim_[2]={dim[0],dim[1]};
+      int dim_[2]={dim[0],dim[1]};
       T* data_ptr_=data_ptr;
       bool own_data_=own_data;
 
@@ -131,7 +83,7 @@ namespace pvfmm{
       M.own_data=own_data_;
     }
 
-    void ReInit(size_t dim1, size_t dim2, T* data_=NULL, bool own_data_=true){
+    void ReInit(int dim1, int dim2, T* data_=NULL, bool own_data_=true){
       if(own_data_ && own_data && dim[0]*dim[1]>=dim1*dim2){
         dim[0]=dim1; dim[1]=dim2;
         if(data_) memcpy(data_ptr,data_,dim[0]*dim[1]*sizeof(T));
@@ -141,11 +93,11 @@ namespace pvfmm{
       }
     }
 
-    size_t Dim(size_t i) const{
+    int Dim(size_t i) const{
       return dim[i];
     }
 
-    void Resize(size_t i, size_t j){
+    void Resize(int i, int j){
       if(dim[0]*dim[1]>=i*j){
         dim[0]=i; dim[1]=j;
       }else ReInit(i,j);
@@ -167,7 +119,7 @@ namespace pvfmm{
       return *this;
     }
 
-    inline T* operator[](size_t i) const{
+    inline T* operator[](int i) const{
       assert(i<dim[0]);
       return &data_ptr[i*dim[1]];
     }
@@ -177,8 +129,15 @@ namespace pvfmm{
       Profile::Add_FLOP(2*(((long long)dim[0])*dim[1])*M.dim[1]);
       Matrix<T> M_r(dim[0],M.dim[1],NULL);
       if(M.Dim(0)*M.Dim(1)==0 || this->Dim(0)*this->Dim(1)==0) return M_r;
-      gemm('N','N',M.dim[1],dim[0],dim[1],
-                   1.0,M.data_ptr,M.dim[1],data_ptr,dim[1],0.0,M_r.data_ptr,M_r.dim[1]);
+      char transA = 'N', transB = 'N';
+      T alpha = 1.0, beta = 0.0;
+#if FLOAT
+      sgemm_(&transA, &transB, (int*)&M.dim[1], (int*)&dim[0], (int*)&dim[1], &alpha, M.data_ptr,
+            (int*)&M.dim[1], data_ptr, (int*)&dim[1], &beta, M_r.data_ptr, (int*)&M_r.dim[1]);
+#else
+      dgemm_(&transA, &transB, (int*)&M.dim[1], (int*)&dim[0], (int*)&dim[1], &alpha, M.data_ptr,
+            (int*)&M.dim[1], data_ptr, (int*)&dim[1], &beta, M_r.data_ptr, (int*)&M_r.dim[1]);
+#endif
       return M_r;
     }
 
@@ -187,8 +146,17 @@ namespace pvfmm{
       assert(A.dim[1]==B.dim[0]);
       assert(M_r.dim[0]==A.dim[0]);
       assert(M_r.dim[1]==B.dim[1]);
-      gemm('N','N',B.dim[1],A.dim[0],A.dim[1],
-                   1.0,B.data_ptr,B.dim[1],A.data_ptr,A.dim[1],beta,M_r.data_ptr,M_r.dim[1]);
+      char transA = 'N', transB = 'N';
+      T alpha = 1.0;
+#if FLOAT
+      sgemm_(&transA, &transB, (int*)&B.dim[1], (int*)&A.dim[0], (int*)&A.dim[1], &alpha, B.data_ptr,
+             (int*)&B.dim[1], A.data_ptr, (int*)&A.dim[1], &beta, M_r.data_ptr, (int*)&M_r.dim[1]);
+#else
+      dgemm_(&transA, &transB, (int*)&B.dim[1], (int*)&A.dim[0], (int*)&A.dim[1], &alpha, B.data_ptr,
+             (int*)&B.dim[1], A.data_ptr, (int*)&A.dim[1], &beta, M_r.data_ptr, (int*)&M_r.dim[1]);
+#endif
+      //gemm('N','N',B.dim[1],A.dim[0],A.dim[1],
+      //      1.0,B.data_ptr,B.dim[1],A.data_ptr,A.dim[1],beta,M_r.data_ptr,M_r.dim[1]);
     }
 
 #define B1 128
@@ -196,24 +164,24 @@ namespace pvfmm{
 
     Matrix<T> Transpose(){
       Matrix<T>& M=*this;
-      size_t d0=M.dim[0];
-      size_t d1=M.dim[1];
+      int d0=M.dim[0];
+      int d1=M.dim[1];
       Matrix<T> M_r(d1,d0,NULL);
 
-      const size_t blk0=((d0+B1-1)/B1);
-      const size_t blk1=((d1+B1-1)/B1);
-      const size_t blks=blk0*blk1;
-      for(size_t k=0;k<blks;k++){
-        size_t i=(k%blk0)*B1;
-        size_t j=(k/blk0)*B1;
-        size_t d0_=i+B1; if(d0_>=d0) d0_=d0;
-        size_t d1_=j+B1; if(d1_>=d1) d1_=d1;
-        for(size_t ii=i;ii<d0_;ii+=B2)
-          for(size_t jj=j;jj<d1_;jj+=B2){
-            size_t d0__=ii+B2; if(d0__>=d0) d0__=d0;
-            size_t d1__=jj+B2; if(d1__>=d1) d1__=d1;
-            for(size_t iii=ii;iii<d0__;iii++)
-              for(size_t jjj=jj;jjj<d1__;jjj++){
+      const int blk0=((d0+B1-1)/B1);
+      const int blk1=((d1+B1-1)/B1);
+      const int blks=blk0*blk1;
+      for(int k=0;k<blks;k++){
+        int i=(k%blk0)*B1;
+        int j=(k/blk0)*B1;
+        int d0_=i+B1; if(d0_>=d0) d0_=d0;
+        int d1_=j+B1; if(d1_>=d1) d1_=d1;
+        for(int ii=i;ii<d0_;ii+=B2)
+          for(int jj=j;jj<d1_;jj+=B2){
+            int d0__=ii+B2; if(d0__>=d0) d0__=d0;
+            int d1__=jj+B2; if(d1__>=d1) d1__=d1;
+            for(int iii=ii;iii<d0__;iii++)
+              for(int jjj=jj;jjj<d1__;jjj++){
                 M_r[jjj][iii]=M[iii][jjj];
               }
           }
@@ -250,7 +218,7 @@ namespace pvfmm{
       free(wsbuf);
       if(INFO!=0) std::cout<<INFO<<'\n';
       assert(INFO==0);
-      for(size_t i=1;i<k;i++){
+      for(int i=1;i<k;i++){
       tS[i][i]=tS[0][i];
       tS[0][i]=0;
       }
