@@ -1,14 +1,16 @@
 #ifndef _PVFMM_PrecompMAT_HPP_
 #define _PVFMM_PrecompMAT_HPP_
 #include "pvfmm.h"
-
+#include "interac_list.hpp"
 namespace pvfmm{
 class PrecompMat{
 public:
   std::vector<std::vector<Matrix<real_t> > > mat;
   std::vector<std::vector<Permutation<real_t> > > perm;
+  InteracList* interacList;
 
-  PrecompMat() {
+  PrecompMat(InteracList* interacList_) {
+    interacList = interacList_;
     mat.resize(Type_Count);
     for(size_t i=0;i<mat.size();i++)
       mat[i].resize(500);
@@ -25,7 +27,7 @@ public:
     }
   }
 
-  Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
+  Permutation<real_t>& getPerm_R(int l, Mat_Type type, size_t indx){
     int level=l+128;
     assert(level*Type_Count+type<int(perm_r.size()));
     if(indx>=perm_r[level*Type_Count+type].size()){
@@ -34,13 +36,67 @@ public:
     return perm_r[level*Type_Count+type][indx];
   }
 
-  Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx){
+  Permutation<real_t>& getPerm_C(int l, Mat_Type type, size_t indx){
     int level=l+128;
     assert(level*Type_Count+type<int(perm_c.size()));
     if(indx>=perm_c[level*Type_Count+type].size()){
       perm_c[level*Type_Count+type].resize(indx+1);
     }
     return perm_c[level*Type_Count+type][indx];
+  }
+  
+  // This is only related to M2M and L2L operator
+  Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
+    size_t indx0 = interacList->interac_class[type][indx];                     // indx0: class coord index
+    Matrix     <real_t>& M0      = mat[type][indx0];         // class coord matrix
+    Permutation<real_t>& row_perm = getPerm_R(l, type, indx );    // mat->perm_r[(l+128)*16+type][indx]
+    if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;             // if mat hasn't been computed, then return
+    if(row_perm.Dim()==0){                                        // if this perm_r entry hasn't been computed
+      std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];      // get perm_list of current rel_coord
+      for(int i=0;i<l;i++) p_list.push_back(Scaling);             // push back Scaling operation l times
+      Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(0));  // init row_perm to be size npts*src_dim
+      for(int i=0;i<C_Perm;i++){                                  // loop over permutation types
+	Permutation<real_t>& pr = perm[type][R_Perm + i];      // grab the handle of its mat->perm entry
+	if(!pr.Dim()) row_perm_ = Permutation<real_t>(0);           // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
+      }
+      if(row_perm_.Dim()>0)                                       // if this type & entry needs permutation
+	for(int i=p_list.size()-1; i>=0; i--){                    // loop over the operations of perm_list from end to begin
+	  //assert(type!=V_Type);
+	  Permutation<real_t>& pr = perm[type][R_Perm + p_list[i]];  // get the permutation of the operation
+	  row_perm_=pr.Transpose()*row_perm_;                     // accumulate the permutation to row_perm (perm_r in precompmat header)
+	}
+      row_perm=row_perm_;
+    }
+    return row_perm;
+  }
+
+  Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx){
+    size_t indx0 = interacList->interac_class[type][indx];
+    Matrix     <real_t>& M0      = mat[type][indx0];
+    Permutation<real_t>& col_perm = getPerm_C(l, type, indx );
+    if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
+    if(col_perm.Dim()==0){
+      std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];
+      for(int i=0;i<l;i++) p_list.push_back(Scaling);
+      Permutation<real_t> col_perm_ = Permutation<real_t>(M0.Dim(1));
+      for(int i=0;i<C_Perm;i++){
+	Permutation<real_t>& pc = perm[type][C_Perm + i];
+	if(!pc.Dim()) col_perm_ = Permutation<real_t>(0);
+      }
+      if(col_perm_.Dim()>0)
+	for(int i=p_list.size()-1; i>=0; i--){
+	  //assert(type!=V_Type);
+	  Permutation<real_t>& pc = perm[type][C_Perm + p_list[i]];
+	  col_perm_ = col_perm_*pc;
+	}
+      col_perm = col_perm_;
+    }
+    return col_perm;
+  }
+
+  Matrix<real_t>& ClassMat(Mat_Type type, size_t indx){
+    size_t indx0 = interacList->interac_class[type][indx];
+    return mat[type][indx0];
   }
 
   inline uintptr_t align_ptr(uintptr_t ptr){
@@ -83,8 +139,8 @@ public:
 	}
 
 	for(size_t l=l0;l<l1;l++){
-	  Permutation<real_t>& Pr=Perm_R(l,type,j);
-	  Permutation<real_t>& Pc=Perm_C(l,type,j);
+	  Permutation<real_t>& Pr=getPerm_R(l,type,j);
+	  Permutation<real_t>& Pc=getPerm_C(l,type,j);
 	  if(Pr.Dim()>0){
 	    mem_size+=Pr.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
 	    mem_size+=Pr.Dim()*sizeof(real_t); mem_size=align_ptr(mem_size);
@@ -123,12 +179,12 @@ public:
 	offset_indx[j][0]=data_offset; indx_ptr+=sizeof(size_t);
 	data_offset+=M.Dim(0)*M.Dim(1)*sizeof(real_t); mem_size=align_ptr(mem_size);
 	for(size_t l=l0;l<l1;l++){
-	  Permutation<real_t>& Pr=Perm_R(l,type,j);
+	  Permutation<real_t>& Pr=getPerm_R(l,type,j);
 	  offset_indx[j][1+4*(l-l0)+0]=data_offset;
 	  data_offset+=Pr.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
 	  offset_indx[j][1+4*(l-l0)+1]=data_offset;
 	  data_offset+=Pr.Dim()*sizeof(real_t); mem_size=align_ptr(mem_size);
-	  Permutation<real_t>& Pc=Perm_C(l,type,j);
+	  Permutation<real_t>& Pc=getPerm_C(l,type,j);
 	  offset_indx[j][1+4*(l-l0)+2]=data_offset;
 	  data_offset+=Pc.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
 	  offset_indx[j][1+4*(l-l0)+3]=data_offset;
@@ -149,8 +205,8 @@ public:
 	  memcpy(&comp_data[0]+offset_indx[j][0]+a*sizeof(real_t), &M[0][a], (b-a)*sizeof(real_t));
 	}
 	for(size_t l=l0;l<l1;l++){
-	  Permutation<real_t>& Pr=Perm_R(l,type,j);
-	  Permutation<real_t>& Pc=Perm_C(l,type,j);
+	  Permutation<real_t>& Pr=getPerm_R(l,type,j);
+	  Permutation<real_t>& Pc=getPerm_C(l,type,j);
 	  if(Pr.Dim()>0){
 	    size_t a=(Pr.Dim()* tid   )/omp_p;
 	    size_t b=(Pr.Dim()*(tid+1))/omp_p;

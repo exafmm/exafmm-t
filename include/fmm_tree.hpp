@@ -137,9 +137,9 @@ private:
       }
     }
     for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){   // loop over all rel_coord
-      Matrix<real_t>& M0=interacList.ClassMat(type, mat_indx);  // get the class_coord matrix pointer
-      Permutation<real_t>& pr=interacList.Perm_R(level, type, mat_indx);  // calculate perm_r
-      Permutation<real_t>& pc=interacList.Perm_C(level, type, mat_indx);  // & perm_c for M2M and D2U type
+      Matrix<real_t>& M0=mat->ClassMat(type, mat_indx);  // get the class_coord matrix pointer
+      Permutation<real_t>& pr=mat->Perm_R(level, type, mat_indx);  // calculate perm_r
+      Permutation<real_t>& pc=mat->Perm_C(level, type, mat_indx);  // & perm_c for M2M and D2U type
       if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) Precomp(type, mat_indx);
     }
   }
@@ -199,8 +199,8 @@ private:
         Matrix<real_t>& M0 = Precomp(type, class_indx);
         if(M0.Dim(0)==0 || M0.Dim(1)==0) return M_;
         //for(size_t i=0;i<Perm_Count;i++) PrecompPerm(type, (Perm_Type) i);
-        Permutation<real_t>& Pr = interacList.Perm_R(level, type, mat_indx);
-        Permutation<real_t>& Pc = interacList.Perm_C(level, type, mat_indx);
+        Permutation<real_t>& Pr = mat->Perm_R(level, type, mat_indx);
+        Permutation<real_t>& Pc = mat->Perm_C(level, type, mat_indx);
         if(Pr.Dim()>0 && Pc.Dim()>0 && M0.Dim(0)>0 && M0.Dim(1)>0) return M_;
       }
     }
@@ -422,8 +422,11 @@ public:
     multipole_order=mult_order;
     kernel=kernel_;
     assert(kernel!=NULL);
+
+    interacList.Initialize();
+
     bool save_precomp=false;
-    mat=new PrecompMat();
+    mat=new PrecompMat(&interacList);
     std::string mat_fname;
 
     std::stringstream st;
@@ -450,7 +453,6 @@ public:
     save_precomp=true;
 
     mat->LoadFile(mat_fname.c_str());
-    interacList.Initialize(mat);
     Profile::Tic("PrecompUC2UE",false,4);
     PrecompAll(M2M_V_Type);
     PrecompAll(M2M_U_Type);
@@ -826,8 +828,8 @@ private:
     n_list[5] = leafs;
     n_list[6] = leafs;
     // fill in vec_list
-    int n_ue = interacList.ClassMat(M2M_U_Type, 0).Dim(1);
-    int n_de = interacList.ClassMat(L2L_V_Type, 0).Dim(0);
+    int n_ue = mat->ClassMat(M2M_U_Type, 0).Dim(1);
+    int n_de = mat->ClassMat(L2L_V_Type, 0).Dim(0);
     for(int i=0; i<nodesLevelOrder.size(); i++) {
       FMM_Node* node = nodesLevelOrder[i];
       node->fmm_data->upward_equiv.Resize(n_ue);
@@ -879,6 +881,186 @@ private:
     }
   }
 
+  void BuildList(FMM_Node* n, Mat_Type t) {
+    std::vector<FMM_Node*>& interac_list=n->interac_list[t];
+    for (int i=0; i<interac_list.size(); i++) {
+      interac_list[i] = 0;
+    }
+    static const int n_collg=27;
+    static const int n_child=8;
+    int rel_coord[3];
+    switch (t){
+    case P2M_Type:
+      {
+	if(n->IsLeaf()) interac_list[0]=n;
+	break;
+      }
+    case M2M_Type:
+      {
+	if(n->IsLeaf()) return;
+	for(int j=0;j<n_child;j++){
+	  rel_coord[0]=-1+(j & 1?2:0);
+	  rel_coord[1]=-1+(j & 2?2:0);
+	  rel_coord[2]=-1+(j & 4?2:0);
+	  int c_hash = interacList.coord_hash(rel_coord);
+	  int idx = interacList.hash_lut[t][c_hash];
+	  FMM_Node* chld=(FMM_Node*)n->Child(j);
+	  if(idx>=0) interac_list[idx]=chld;
+	}
+	break;
+      }
+    case L2L_Type:
+      {
+	if(n->Parent()==NULL) return;
+	FMM_Node* p=(FMM_Node*)n->Parent();
+	int p2n=n->octant;
+	{
+	  rel_coord[0]=-1+(p2n & 1?2:0);
+	  rel_coord[1]=-1+(p2n & 2?2:0);
+	  rel_coord[2]=-1+(p2n & 4?2:0);
+	  int c_hash = interacList.coord_hash(rel_coord);
+	  int idx = interacList.hash_lut[t][c_hash];
+	  if(idx>=0) interac_list[idx]=p;
+	}
+	break;
+      }
+    case L2P_Type:
+      {
+	if(n->IsLeaf()) interac_list[0]=n;
+	break;
+      }
+    case U0_Type:
+      {
+	if(n->Parent()==NULL || !n->IsLeaf()) return;
+	FMM_Node* p=(FMM_Node*)n->Parent();
+	int p2n=n->octant;
+	for(int i=0;i<n_collg;i++){
+	  FMM_Node* pc=(FMM_Node*)p->Colleague(i);
+	  if(pc!=NULL && pc->IsLeaf()){
+	    rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
+	    rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
+	    rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
+	    int c_hash = interacList.coord_hash(rel_coord);
+	    int idx = interacList.hash_lut[t][c_hash];
+	    if(idx>=0) interac_list[idx] = pc;
+	  }
+	}
+	break;
+      }
+    case U1_Type:
+      {
+	if(!n->IsLeaf()) return;
+	for(int i=0;i<n_collg;i++){
+	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
+	  if(col!=NULL && col->IsLeaf()){
+            rel_coord[0]=( i %3)-1;
+            rel_coord[1]=((i/3)%3)-1;
+            rel_coord[2]=((i/9)%3)-1;
+            int c_hash = interacList.coord_hash(rel_coord);
+            int idx = interacList.hash_lut[t][c_hash];
+            if(idx>=0) interac_list[idx] = col;
+	  }
+	}
+	break;
+      }
+    case U2_Type:
+      {
+	if(!n->IsLeaf()) return;
+	for(int i=0;i<n_collg;i++){
+	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
+	  if(col!=NULL && !col->IsLeaf()){
+	    for(int j=0;j<n_child;j++){
+	      rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
+	      rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
+	      rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
+	      int c_hash = interacList.coord_hash(rel_coord);
+	      int idx = interacList.hash_lut[t][c_hash];
+	      if(idx>=0){
+		assert(col->Child(j)->IsLeaf()); //2:1 balanced
+		interac_list[idx] = (FMM_Node*)col->Child(j);
+	      }
+	    }
+	  }
+	}
+	break;
+      }
+    case V_Type:
+      {
+	if(n->Parent()==NULL) return;
+	FMM_Node* p=(FMM_Node*)n->Parent();
+	int p2n=n->octant;
+	for(int i=0;i<n_collg;i++){
+	  FMM_Node* pc=(FMM_Node*)p->Colleague(i);
+	  if(pc!=NULL?!pc->IsLeaf():0){
+	    for(int j=0;j<n_child;j++){
+	      rel_coord[0]=( i   %3)*2-2+(j & 1?1:0)-(p2n & 1?1:0);
+	      rel_coord[1]=((i/3)%3)*2-2+(j & 2?1:0)-(p2n & 2?1:0);
+	      rel_coord[2]=((i/9)%3)*2-2+(j & 4?1:0)-(p2n & 4?1:0);
+	      int c_hash = interacList.coord_hash(rel_coord);
+	      int idx=interacList.hash_lut[t][c_hash];
+	      if(idx>=0) interac_list[idx]=(FMM_Node*)pc->Child(j);
+	    }
+	  }
+	}
+	break;
+      }
+    case V1_Type:
+      {
+	if(n->IsLeaf()) return;
+	for(int i=0;i<n_collg;i++){
+	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
+	  if(col!=NULL && !col->IsLeaf()){
+            rel_coord[0]=( i %3)-1;
+            rel_coord[1]=((i/3)%3)-1;
+            rel_coord[2]=((i/9)%3)-1;
+            int c_hash = interacList.coord_hash(rel_coord);
+            int idx=interacList.hash_lut[t][c_hash];
+            if(idx>=0) interac_list[idx]=col;
+	  }
+	}
+	break;
+      }
+    case W_Type:
+      {
+	if(!n->IsLeaf()) return;
+	for(int i=0;i<n_collg;i++){
+	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
+	  if(col!=NULL && !col->IsLeaf()){
+	    for(int j=0;j<n_child;j++){
+	      rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
+	      rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
+	      rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
+	      int c_hash = interacList.coord_hash(rel_coord);
+	      int idx=interacList.hash_lut[t][c_hash];
+	      if(idx>=0) interac_list[idx]=(FMM_Node*)col->Child(j);
+	    }
+	  }
+	}
+	break;
+      }
+    case X_Type:
+      {
+	if(n->Parent()==NULL) return;
+	FMM_Node* p=(FMM_Node*)n->Parent();
+	int p2n=n->octant;
+	for(int i=0;i<n_collg;i++){
+	  FMM_Node* pc=(FMM_Node*)p->Colleague(i);
+	  if(pc!=NULL && pc->IsLeaf()){
+	    rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
+	    rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
+	    rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
+	    int c_hash = interacList.coord_hash(rel_coord);
+	    int idx=interacList.hash_lut[t][c_hash];
+	    if(idx>=0) interac_list[idx]=pc;
+	  }
+	}
+	break;
+      }
+    default:
+      break;
+    }
+  }
+
   // Fill in FMM_Node::interac_list of all nodes
   void BuildInteracLists() {
     std::vector<FMM_Node*> n_list_src;
@@ -919,7 +1101,7 @@ private:
       for(size_t i=0; i<n_list.size(); i++){
         FMM_Node* n=n_list[i];
         n->interac_list[type_lst[k]].resize(interac_cnt[k]);
-        interacList.BuildList(n,type_lst[k]);
+        BuildList(n,type_lst[k]);
       }
     }
   }
@@ -1057,7 +1239,7 @@ private:
         }
         std::vector<std::vector<size_t>> interac_dsp(n_out, std::vector<size_t>(mat_cnt));
         std::vector<size_t> interac_blk_dsp(1,0);
-        Matrix<real_t>& M0 = interacList.ClassMat(interac_type_lst[0], 0);
+        Matrix<real_t>& M0 = mat->ClassMat(interac_type_lst[0], 0);
         M_dim0=M0.Dim(0); M_dim1=M0.Dim(1);
         {
           size_t vec_size=(M_dim0+M_dim1)*sizeof(real_t);
@@ -1931,6 +2113,7 @@ private:
     }
     PtSetup(setup_data, &data);
   }
+
 public:
   void SetupFMM() {
     Profile::Tic("SetupFMM",true);{
