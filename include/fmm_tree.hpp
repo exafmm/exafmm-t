@@ -3,23 +3,6 @@
 #include "intrinsics.h"
 #include "pvfmm.h"
 #include <queue>
-#if FLOAT
-typedef fftwf_complex fft_complex;
-typedef fftwf_plan fft_plan;
-#define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c
-#define fft_plan_many_dft_c2r fftwf_plan_many_dft_c2r
-#define fft_execute_dft_r2c fftwf_execute_dft_r2c
-#define fft_execute_dft_c2r fftwf_execute_dft_c2r
-#define fft_destroy_plan fftwf_destroy_plan
-#else
-typedef fftw_complex fft_complex;
-typedef fftw_plan fft_plan;
-#define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c
-#define fft_plan_many_dft_c2r fftw_plan_many_dft_c2r
-#define fft_execute_dft_r2c fftw_execute_dft_r2c
-#define fft_execute_dft_c2r fftw_execute_dft_c2r
-#define fft_destroy_plan fftw_destroy_plan
-#endif
 #include "geometry.h"
 
 namespace pvfmm{
@@ -100,22 +83,17 @@ public:
   const Kernel* kernel;
   PrecompMat* mat;
   Vector<char> dev_buffer;
-
   InteracList interacList;
   std::vector<Matrix<real_t> > node_data_buff;   // used in CollectNodeData
   std::vector<std::vector<char> > precomp_lst;   // used in ListSetup
   std::vector<SetupData > setup_data;
 
-  fft_plan vprecomp_fftplan;
-  bool vprecomp_fft_flag;
-  fft_plan vlist_fftplan;
-  bool vlist_fft_flag;
-  fft_plan vlist_ifftplan;
-  bool vlist_ifft_flag;
-
 public:
-  FMM_Tree(int multi_order): multipole_order(multi_order), root_node(NULL), vprecomp_fft_flag(false), vlist_fft_flag(false),
-	      vlist_ifft_flag(false), mat(NULL), kernel(NULL) { }
+  FMM_Tree(int multi_order): multipole_order(multi_order), root_node(NULL), mat(NULL), kernel(NULL) {
+    vprecomp_fft_flag = false;
+    vlist_fft_flag = false;
+    vlist_ifft_flag = false; 
+  }
 
   ~FMM_Tree(){
     if(root_node!=NULL){

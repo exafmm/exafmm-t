@@ -36,6 +36,31 @@ namespace pvfmm{
 #endif
 #endif
 
+#if FLOAT
+typedef fftwf_complex fft_complex;
+typedef fftwf_plan fft_plan;
+#define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c
+#define fft_plan_many_dft_c2r fftwf_plan_many_dft_c2r
+#define fft_execute_dft_r2c fftwf_execute_dft_r2c
+#define fft_execute_dft_c2r fftwf_execute_dft_c2r
+#define fft_destroy_plan fftwf_destroy_plan
+#else
+typedef fftw_complex fft_complex;
+typedef fftw_plan fft_plan;
+#define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c
+#define fft_plan_many_dft_c2r fftw_plan_many_dft_c2r
+#define fft_execute_dft_r2c fftw_execute_dft_r2c
+#define fft_execute_dft_c2r fftw_execute_dft_c2r
+#define fft_destroy_plan fftw_destroy_plan
+#endif
+
+  fft_plan vprecomp_fftplan;
+  bool vprecomp_fft_flag;
+  fft_plan vlist_fftplan;
+  bool vlist_fft_flag;
+  fft_plan vlist_ifftplan;
+  bool vlist_ifft_flag;
+
   const int SrcCoord = 1, SrcValue = 2, TrgCoord = 3, TrgValue = 4,
             UpwardEquivCoord = 5, UpwardCheckCoord=6, UpwardEquivValue = 7,
             DnwardEquivCoord = 8, DnwardCheckCoord=9, DnwardEquivValue = 10;
