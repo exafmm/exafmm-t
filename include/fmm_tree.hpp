@@ -126,7 +126,7 @@ private:
 
   void PrecompAll(Mat_Type type, int level) {
     for(size_t i=0; i<Perm_Count; i++) {
-      PrecompPerm(type, (Perm_Type) i);
+      mat->PrecompPerm(type, (Perm_Type) i);
     }
     size_t mat_cnt=interacList.ListCount(type); // num of relative pts (rel_coord) w.r.t this type
     mat->mat[type].resize(mat_cnt);
@@ -143,52 +143,7 @@ private:
       if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) Precomp(type, mat_indx);
     }
   }
-
-  Permutation<real_t>& PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
-    Permutation<real_t>& P_ = mat->perm[type][perm_indx];
-    if(P_.Dim()!=0) return P_;
-    size_t m=multipole_order;
-    size_t p_indx=perm_indx % C_Perm;
-    Permutation<real_t> P;
-    switch (type) {
-    case M2M_Type: {
-      Vector<real_t> scal_exp;
-      Permutation<real_t> ker_perm;
-      if(perm_indx<C_Perm) {
-        ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
-        scal_exp=kernel->k_m2m->src_scal;
-      }else{
-        ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
-        scal_exp=kernel->k_m2m->src_scal;
-        for(size_t i=0;i<scal_exp.Dim();i++) scal_exp[i]=-scal_exp[i];
-      }
-      P=equiv_surf_perm(m, p_indx, ker_perm, &scal_exp);
-      break;
-    }
-    case L2L_Type: {
-      Vector<real_t> scal_exp;
-      Permutation<real_t> ker_perm;
-      if(perm_indx<C_Perm){
-        ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
-        scal_exp=kernel->k_l2l->trg_scal;
-        for(size_t i=0;i<scal_exp.Dim();i++) scal_exp[i]=-scal_exp[i];
-      }else{
-        ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
-        scal_exp=kernel->k_l2l->trg_scal;
-      }
-      P=equiv_surf_perm(m, p_indx, ker_perm, &scal_exp);
-      break;
-    }
-    default:
-      break;
-    }
-#pragma omp critical (PRECOMP_MATRIX_PTS)
-    {
-      if(P_.Dim()==0) P_=P;
-    }
-    return P_;
-  }
-
+  
   Matrix<real_t>& Precomp(Mat_Type type, size_t mat_indx) {
     int level = 0;
     Matrix<real_t>& M_ = mat->mat[type][mat_indx];
@@ -426,7 +381,7 @@ public:
     interacList.Initialize();
 
     bool save_precomp=false;
-    mat=new PrecompMat(&interacList);
+    mat=new PrecompMat(&interacList, mult_order, kernel_);
     std::string mat_fname;
 
     std::stringstream st;

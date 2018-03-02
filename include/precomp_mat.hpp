@@ -1,15 +1,23 @@
 #ifndef _PVFMM_PrecompMAT_HPP_
 #define _PVFMM_PrecompMAT_HPP_
 #include "pvfmm.h"
+#include "kernel.hpp"
 #include "interac_list.hpp"
+#include "geometry.h"
 namespace pvfmm{
 class PrecompMat{
 public:
   std::vector<std::vector<Matrix<real_t> > > mat;
   std::vector<std::vector<Permutation<real_t> > > perm;
+  std::vector<std::vector<Permutation<real_t> > > perm_r;
+  std::vector<std::vector<Permutation<real_t> > > perm_c;
   InteracList* interacList;
+  int multipole_order;
+  const Kernel* kernel;
 
-  PrecompMat(InteracList* interacList_) {
+  PrecompMat(InteracList* interacList_, int multipole_order_, const Kernel* kernel_) {
+    multipole_order = multipole_order_;
+    kernel = kernel_;
     interacList = interacList_;
     mat.resize(Type_Count);
     for(size_t i=0;i<mat.size();i++)
@@ -99,6 +107,51 @@ public:
     return mat[type][indx0];
   }
 
+  Permutation<real_t>& PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
+    Permutation<real_t>& P_ = perm[type][perm_indx];
+    if(P_.Dim()!=0) return P_;
+    size_t m=multipole_order;         //
+    size_t p_indx=perm_indx % C_Perm;
+    Permutation<real_t> P;
+    switch (type) {
+    case M2M_Type: {
+      Vector<real_t> scal_exp;
+      Permutation<real_t> ker_perm;
+      if(perm_indx<C_Perm) {
+        ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
+        scal_exp=kernel->k_m2m->src_scal;
+      }else{
+        ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
+        scal_exp=kernel->k_m2m->src_scal;
+        for(size_t i=0;i<scal_exp.Dim();i++) scal_exp[i]=-scal_exp[i];
+      }
+      P=equiv_surf_perm(m, p_indx, ker_perm, &scal_exp);
+      break;
+    }
+    case L2L_Type: {
+      Vector<real_t> scal_exp;
+      Permutation<real_t> ker_perm;
+      if(perm_indx<C_Perm){
+        ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
+        scal_exp=kernel->k_l2l->trg_scal;
+        for(size_t i=0;i<scal_exp.Dim();i++) scal_exp[i]=-scal_exp[i];
+      }else{
+        ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
+        scal_exp=kernel->k_l2l->trg_scal;
+      }
+      P=equiv_surf_perm(m, p_indx, ker_perm, &scal_exp);
+      break;
+    }
+    default:
+      break;
+    }
+#pragma omp critical (PRECOMP_MATRIX_PTS)
+    {
+      if(P_.Dim()==0) P_=P;
+    }
+    return P_;
+  }
+  
   inline uintptr_t align_ptr(uintptr_t ptr){
     static uintptr_t     ALIGN_MINUS_ONE=MEM_ALIGN-1;
     static uintptr_t NOT_ALIGN_MINUS_ONE=~ALIGN_MINUS_ONE;
@@ -341,10 +394,6 @@ public:
   }
 
 #undef MY_FREAD
-
- private:
-  std::vector<std::vector<Permutation<real_t> > > perm_r;
-  std::vector<std::vector<Permutation<real_t> > > perm_c;
 };
 
 }//end namespace
