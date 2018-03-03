@@ -113,35 +113,10 @@ public:
 
   }
 
-/* 1st Part: Generate precomputation matrix:
- * interface: Initialize(multiple_order, &grad_kernel)
- * Initialize Kernel, PrecompMat, InteracList members. If PrecompMat file exists,
- * load the binary matrix file into PrecompMat::mat; if not, calculate the matrix
- * for each operator type, save them in PrecompMat::mat and save mat in file*/
 private:
   void PrecompAll(Mat_Type type) {
     for(int level=0; level<MAX_DEPTH; level++)
-      PrecompAll(type, level);
-  }
-
-  void PrecompAll(Mat_Type type, int level) {
-    for(size_t i=0; i<Perm_Count; i++) {
-      mat->PrecompPerm(type, (Perm_Type) i);
-    }
-    size_t mat_cnt=interacList.ListCount(type); // num of relative pts (rel_coord) w.r.t this type
-    mat->mat[type].resize(mat_cnt);
-    // if (level==0) std::cout << "Mat Type: " << type << " rel_coord count:  " << mat_cnt << std::endl;
-    for(size_t i=0; i<mat_cnt; i++) {           // i is index of rel_coord
-      if(interacList.interac_class[type][i] == i) { // if i-th coord is a class_coord
-        mat->Precomp(type, i);                       // calculate operator matrix of class_coord
-      }
-    }
-    for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){   // loop over all rel_coord
-      Matrix<real_t>& M0=mat->ClassMat(type, mat_indx);  // get the class_coord matrix pointer
-      Permutation<real_t>& pr=mat->Perm_R(level, type, mat_indx);  // calculate perm_r
-      Permutation<real_t>& pc=mat->Perm_C(level, type, mat_indx);  // & perm_c for M2M and D2U type
-      if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) mat->Precomp(type, mat_indx);
-    }
+      mat->PrecompAll(type, level);
   }
 
 public:
@@ -877,7 +852,7 @@ private:
       std::vector<Mat_Type>& interac_type_lst=setup_data.interac_type;
       for(size_t type_indx=0; type_indx<interac_type_lst.size(); type_indx++){
         Mat_Type& interac_type=interac_type_lst[type_indx];
-        PrecompAll(interac_type, level);
+        mat->PrecompAll(interac_type, level);
         precomp_offset=mat->CompactData(level, interac_type, precomp_data, precomp_offset);
       }
     }

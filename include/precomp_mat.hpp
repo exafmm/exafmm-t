@@ -376,6 +376,26 @@ public:
     return M_;
   }
   
+  void PrecompAll(Mat_Type type, int level) {
+    for(size_t i=0; i<Perm_Count; i++) {
+      PrecompPerm(type, (Perm_Type) i);
+    }
+    size_t mat_cnt=interacList->ListCount(type); // num of relative pts (rel_coord) w.r.t this type
+    mat[type].resize(mat_cnt);
+    // if (level==0) std::cout << "Mat Type: " << type << " rel_coord count:  " << mat_cnt << std::endl;
+    for(size_t i=0; i<mat_cnt; i++) {           // i is index of rel_coord
+      if(interacList->interac_class[type][i] == i) { // if i-th coord is a class_coord
+        Precomp(type, i);                       // calculate operator matrix of class_coord
+      }
+    }
+    for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){   // loop over all rel_coord
+      Matrix<real_t>& M0 = ClassMat(type, mat_indx);  // get the class_coord matrix pointer
+      Permutation<real_t>& pr = Perm_R(level, type, mat_indx);  // calculate perm_r
+      Permutation<real_t>& pc = Perm_C(level, type, mat_indx);  // & perm_c for M2M and D2U type
+      if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) Precomp(type, mat_indx);
+    }
+  }
+
   inline uintptr_t align_ptr(uintptr_t ptr){
     static uintptr_t     ALIGN_MINUS_ONE=MEM_ALIGN-1;
     static uintptr_t NOT_ALIGN_MINUS_ONE=~ALIGN_MINUS_ONE;
