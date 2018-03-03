@@ -4,6 +4,7 @@
 #include "kernel.hpp"
 #include "interac_list.hpp"
 #include "geometry.h"
+#include "profile.hpp"
 namespace pvfmm{
 class PrecompMat{
 public:
@@ -33,6 +34,63 @@ public:
       perm_r[i].resize(500);
       perm_c[i].resize(500);
     }
+
+    Profile::Tic("InitFMM_Pts",true);{
+    bool save_precomp=false;
+    std::string mat_fname;
+    std::stringstream st;
+    if(!st.str().size()){
+      char* pvfmm_dir = getenv ("PVFMM_DIR");
+      if(pvfmm_dir) st << pvfmm_dir;
+    }
+#ifndef STAT_MACROS_BROKEN
+    if(st.str().size()){
+      struct stat stat_buff;
+      if(stat(st.str().c_str(), &stat_buff) || !S_ISDIR(stat_buff.st_mode)){
+        std::cout<<"error: path not found: "<<st.str()<<'\n';
+        exit(0);
+      }
+    }
+#endif
+    if(st.str().size()) st<<'/';
+    st<< "Precomp_" << kernel->ker_name.c_str() << "_m" << multipole_order;
+    if(sizeof(real_t)==8) st<<"";
+    else if(sizeof(real_t)==4) st<<"_f";
+    else st<<"_t"<<sizeof(real_t);
+    st<<".data";
+    mat_fname=st.str();
+    save_precomp=true;
+
+    LoadFile(mat_fname.c_str());
+    Profile::Tic("PrecompUC2UE",false,4);
+    PrecompAll(M2M_V_Type);
+    PrecompAll(M2M_U_Type);
+    Profile::Toc();
+    Profile::Tic("PrecompDC2DE",false,4);
+    PrecompAll(L2L_V_Type);
+    PrecompAll(L2L_U_Type);
+    Profile::Toc();
+    Profile::Tic("PrecompM2M",false,4);
+    PrecompAll(M2M_Type);
+    Profile::Toc();
+    Profile::Tic("PrecompL2L",false,4);
+    PrecompAll(L2L_Type);
+    Profile::Toc();
+    if(save_precomp){
+      Profile::Tic("Save2File",false,4);
+      FILE* f=fopen(mat_fname.c_str(),"r");
+      if(f==NULL) { //File does not exists.
+        Save2File(mat_fname.c_str());
+      }else fclose(f);
+      Profile::Toc();
+    }
+    Profile::Tic("PrecompV",false,4);
+    PrecompAll(V_Type);
+    Profile::Toc();
+    Profile::Tic("PrecompV1",false,4);
+    PrecompAll(V1_Type);
+    Profile::Toc();
+    }Profile::Toc();
   }
 
   Permutation<real_t>& getPerm_R(int l, Mat_Type type, size_t indx){

@@ -133,18 +133,18 @@ int main(int argc, char **argv){
 
   InteracList interacList;
   interacList.Initialize();
-  Kernel potn_ker=BuildKernel<potentialP2P>("laplace"    , std::pair<int,int>(1,1));
-  Kernel grad_ker=BuildKernel<gradientP2P >("laplace_grad", std::pair<int,int>(1,3),
+  Kernel potn_ker = BuildKernel<potentialP2P>("laplace"    , std::pair<int,int>(1,1));
+  Kernel grad_ker = BuildKernel<gradientP2P >("laplace_grad", std::pair<int,int>(1,3),
 					     &potn_ker, &potn_ker, NULL, &potn_ker, &potn_ker, NULL, &potn_ker, NULL);
 #if POTENTIAL
-  potn_ker.Initialize(false);
-  FMM_Tree tree(mult_order, &potn_ker, &interacList);
-  tree.Initialize();
+  Kernel * kernel = &potn_ker; 
 #else
-  grad_ker.Initialize(false);
-  FMM_Tree tree(mult_order, &grad_ker, &interacList);
-  tree.Initialize();
+  Kernel * kernel = &grad_ker; 
 #endif
+  kernel->Initialize(false);
+  PrecompMat pmat(&interacList, mult_order, kernel);
+  FMM_Tree tree(mult_order, kernel, &interacList, &pmat);
+
   for(size_t it=0;it<2;it++){
     Profile::Tic("TotalTime",true);
     tree.Initialize(&init_data);

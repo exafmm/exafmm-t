@@ -90,9 +90,9 @@ public:
   std::vector<SetupData > setup_data;
 
 public:
-  FMM_Tree(int multi_order, const Kernel* kernel_, InteracList* interacList_): 
-    multipole_order(multi_order), kernel(kernel_), interacList(interacList_),
-    root_node(NULL), mat(NULL) {
+  FMM_Tree(int multi_order, const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_): 
+    multipole_order(multi_order), kernel(kernel_), interacList(interacList_), mat(mat_),
+    root_node(NULL) {
     vprecomp_fft_flag = false;
     vlist_fft_flag = false;
     vlist_ifft_flag = false; 
@@ -100,7 +100,6 @@ public:
 
   ~FMM_Tree(){
     if(root_node!=NULL) delete root_node;
-    if(mat!=NULL) { delete mat; mat=NULL; }
     if(vprecomp_fft_flag) fft_destroy_plan(vprecomp_fftplan);
     if(vlist_fft_flag) fft_destroy_plan(vlist_fftplan);
     if(vlist_ifft_flag) fft_destroy_plan(vlist_ifftplan);
@@ -108,69 +107,7 @@ public:
     vlist_ifft_flag = false;
   }
 
-public:
-  void Initialize() {
-    Profile::Tic("InitFMM_Pts",true);{
-    bool save_precomp=false;
-    mat=new PrecompMat(interacList, multipole_order, kernel);
-    std::string mat_fname;
-
-    std::stringstream st;
-    if(!st.str().size()){
-      char* pvfmm_dir = getenv ("PVFMM_DIR");
-      if(pvfmm_dir) st << pvfmm_dir;
-    }
-#ifndef STAT_MACROS_BROKEN
-    if(st.str().size()){
-      struct stat stat_buff;
-      if(stat(st.str().c_str(), &stat_buff) || !S_ISDIR(stat_buff.st_mode)){
-        std::cout<<"error: path not found: "<<st.str()<<'\n';
-        exit(0);
-      }
-    }
-#endif
-    if(st.str().size()) st<<'/';
-    st<< "Precomp_" << kernel->ker_name.c_str() << "_m" << multipole_order;
-    if(sizeof(real_t)==8) st<<"";
-    else if(sizeof(real_t)==4) st<<"_f";
-    else st<<"_t"<<sizeof(real_t);
-    st<<".data";
-    mat_fname=st.str();
-    save_precomp=true;
-
-    mat->LoadFile(mat_fname.c_str());
-    Profile::Tic("PrecompUC2UE",false,4);
-    mat->PrecompAll(M2M_V_Type);
-    mat->PrecompAll(M2M_U_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompDC2DE",false,4);
-    mat->PrecompAll(L2L_V_Type);
-    mat->PrecompAll(L2L_U_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompM2M",false,4);
-    mat->PrecompAll(M2M_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompL2L",false,4);
-    mat->PrecompAll(L2L_Type);
-    Profile::Toc();
-    if(save_precomp){
-      Profile::Tic("Save2File",false,4);
-      FILE* f=fopen(mat_fname.c_str(),"r");
-      if(f==NULL) { //File does not exists.
-        mat->Save2File(mat_fname.c_str());
-      }else fclose(f);
-      Profile::Toc();
-    }
-    Profile::Tic("PrecompV",false,4);
-    mat->PrecompAll(V_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompV1",false,4);
-    mat->PrecompAll(V1_Type);
-    Profile::Toc();
-    }Profile::Toc();
-  }
-
-/* 2nd Part: Tree Construction
+/* 1st Part: Tree Construction
  * Interface: Initialize(init_data) */
 private:
   inline int p2oLocal(std::vector<MortonId> & nodes, std::vector<MortonId>& leaves,
@@ -399,9 +336,9 @@ public:
     }
     Profile::Toc();
   }
-/* End of 2nd Part: Tree Construction */
+/* End of 1nd Part: Tree Construction */
 
-/* 3rd Part: Setup FMM */
+/* 2nd Part: Setup FMM */
 private:
   void SetColleagues(FMM_Node* node=NULL) {
     int n1=27;
@@ -1861,9 +1798,9 @@ public:
     ClearFMMData();
     }Profile::Toc();
   }
-/* End of 3rd Part: Setup FMM */
+/* End of 2nd Part: Setup FMM */
 
-/* 4th Part: Evaluation */
+/* 3rd Part: Evaluation */
 private:
   void evalP2P(SetupData& setup_data) {
     if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
@@ -2545,7 +2482,7 @@ public:
     }
     Profile::Toc();
   }
-/* End of 4th part: Evaluation */
+/* End of 3rd part: Evaluation */
 
   void CheckFMMOutput(std::string t_name){
     int np=omp_get_max_threads();
@@ -2615,11 +2552,4 @@ public:
 };
 
 }//end namespace
-
-#undef fft_plan_many_dft_r2c
-#undef fft_plan_many_dft_c2r
-#undef fft_execute_dft_r2c
-#undef fft_execute_dft_c2r
-#undef fft_destroy_plan
-
 #endif //_PVFMM_FMM_TREE_HPP_
