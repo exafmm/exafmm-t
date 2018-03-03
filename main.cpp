@@ -97,9 +97,6 @@ int main(int argc, char **argv){
   int depth = 15;
   Profile::Enable(true);
   Profile::Tic("FMM_Test",true);
-  Kernel potn_ker=BuildKernel<potentialP2P>("laplace"    , std::pair<int,int>(1,1));
-  Kernel grad_ker=BuildKernel<gradientP2P >("laplace_grad", std::pair<int,int>(1,3),
-					     &potn_ker, &potn_ker, NULL, &potn_ker, &potn_ker, NULL, &potn_ker, NULL);
 
   InitData init_data;
   init_data.max_depth=depth;
@@ -134,11 +131,19 @@ int main(int argc, char **argv){
     dnwd_equiv_surf[depth] = d_equiv_surf(m,c,depth);
   }
 
-  FMM_Tree tree(mult_order);
+  InteracList interacList;
+  interacList.Initialize();
+  Kernel potn_ker=BuildKernel<potentialP2P>("laplace"    , std::pair<int,int>(1,1));
+  Kernel grad_ker=BuildKernel<gradientP2P >("laplace_grad", std::pair<int,int>(1,3),
+					     &potn_ker, &potn_ker, NULL, &potn_ker, &potn_ker, NULL, &potn_ker, NULL);
 #if POTENTIAL
-  tree.Initialize(mult_order, &potn_ker);
+  potn_ker.Initialize(false);
+  FMM_Tree tree(mult_order, &potn_ker, &interacList);
+  tree.Initialize();
 #else
-  tree.Initialize(mult_order, &grad_ker);
+  grad_ker.Initialize(false);
+  FMM_Tree tree(mult_order, &grad_ker, &interacList);
+  tree.Initialize();
 #endif
   for(size_t it=0;it<2;it++){
     Profile::Tic("TotalTime",true);

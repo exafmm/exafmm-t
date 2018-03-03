@@ -84,49 +84,35 @@ public:
   const Kernel* kernel;
   PrecompMat* mat;
   Vector<char> dev_buffer;
-  InteracList interacList;
+  InteracList* interacList;
   std::vector<Matrix<real_t> > node_data_buff;   // used in CollectNodeData
   std::vector<std::vector<char> > precomp_lst;   // used in ListSetup
   std::vector<SetupData > setup_data;
 
 public:
-  FMM_Tree(int multi_order): multipole_order(multi_order), root_node(NULL), mat(NULL), kernel(NULL) {
+  FMM_Tree(int multi_order, const Kernel* kernel_, InteracList* interacList_): 
+    multipole_order(multi_order), kernel(kernel_), interacList(interacList_),
+    root_node(NULL), mat(NULL) {
     vprecomp_fft_flag = false;
     vlist_fft_flag = false;
     vlist_ifft_flag = false; 
   }
 
   ~FMM_Tree(){
-    if(root_node!=NULL){
-      delete root_node;
-    }
-    if(mat!=NULL){
-      delete mat;
-      mat=NULL;
-    }
+    if(root_node!=NULL) delete root_node;
+    if(mat!=NULL) { delete mat; mat=NULL; }
     if(vprecomp_fft_flag) fft_destroy_plan(vprecomp_fftplan);
-    {
-      if(vlist_fft_flag ) fft_destroy_plan(vlist_fftplan );
-      if(vlist_ifft_flag) fft_destroy_plan(vlist_ifftplan);
-      vlist_fft_flag =false;
-      vlist_ifft_flag=false;
-    }
-
+    if(vlist_fft_flag) fft_destroy_plan(vlist_fftplan);
+    if(vlist_ifft_flag) fft_destroy_plan(vlist_ifftplan);
+    vlist_fft_flag = false;
+    vlist_ifft_flag = false;
   }
 
 public:
-  void Initialize(int mult_order, const Kernel* kernel_) {
+  void Initialize() {
     Profile::Tic("InitFMM_Pts",true);{
-    bool verbose=false;
-    if(kernel_) kernel_->Initialize(verbose);
-    multipole_order=mult_order;
-    kernel=kernel_;
-    assert(kernel!=NULL);
-
-    interacList.Initialize();
-
     bool save_precomp=false;
-    mat=new PrecompMat(&interacList, mult_order, kernel_);
+    mat=new PrecompMat(interacList, multipole_order, kernel);
     std::string mat_fname;
 
     std::stringstream st;
@@ -144,7 +130,7 @@ public:
     }
 #endif
     if(st.str().size()) st<<'/';
-    st<< "Precomp_" << kernel->ker_name.c_str() << "_m" <<mult_order;
+    st<< "Precomp_" << kernel->ker_name.c_str() << "_m" << multipole_order;
     if(sizeof(real_t)==8) st<<"";
     else if(sizeof(real_t)==4) st<<"_f";
     else st<<"_t"<<sizeof(real_t);
@@ -598,8 +584,8 @@ private:
 	  rel_coord[0]=-1+(j & 1?2:0);
 	  rel_coord[1]=-1+(j & 2?2:0);
 	  rel_coord[2]=-1+(j & 4?2:0);
-	  int c_hash = interacList.coord_hash(rel_coord);
-	  int idx = interacList.hash_lut[t][c_hash];
+	  int c_hash = interacList->coord_hash(rel_coord);
+	  int idx = interacList->hash_lut[t][c_hash];
 	  FMM_Node* chld=(FMM_Node*)n->Child(j);
 	  if(idx>=0) interac_list[idx]=chld;
 	}
@@ -614,8 +600,8 @@ private:
 	  rel_coord[0]=-1+(p2n & 1?2:0);
 	  rel_coord[1]=-1+(p2n & 2?2:0);
 	  rel_coord[2]=-1+(p2n & 4?2:0);
-	  int c_hash = interacList.coord_hash(rel_coord);
-	  int idx = interacList.hash_lut[t][c_hash];
+	  int c_hash = interacList->coord_hash(rel_coord);
+	  int idx = interacList->hash_lut[t][c_hash];
 	  if(idx>=0) interac_list[idx]=p;
 	}
 	break;
@@ -636,8 +622,8 @@ private:
 	    rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
 	    rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
 	    rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
-	    int c_hash = interacList.coord_hash(rel_coord);
-	    int idx = interacList.hash_lut[t][c_hash];
+	    int c_hash = interacList->coord_hash(rel_coord);
+	    int idx = interacList->hash_lut[t][c_hash];
 	    if(idx>=0) interac_list[idx] = pc;
 	  }
 	}
@@ -652,8 +638,8 @@ private:
             rel_coord[0]=( i %3)-1;
             rel_coord[1]=((i/3)%3)-1;
             rel_coord[2]=((i/9)%3)-1;
-            int c_hash = interacList.coord_hash(rel_coord);
-            int idx = interacList.hash_lut[t][c_hash];
+            int c_hash = interacList->coord_hash(rel_coord);
+            int idx = interacList->hash_lut[t][c_hash];
             if(idx>=0) interac_list[idx] = col;
 	  }
 	}
@@ -669,8 +655,8 @@ private:
 	      rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
 	      rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
 	      rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
-	      int c_hash = interacList.coord_hash(rel_coord);
-	      int idx = interacList.hash_lut[t][c_hash];
+	      int c_hash = interacList->coord_hash(rel_coord);
+	      int idx = interacList->hash_lut[t][c_hash];
 	      if(idx>=0){
 		assert(col->Child(j)->IsLeaf()); //2:1 balanced
 		interac_list[idx] = (FMM_Node*)col->Child(j);
@@ -692,8 +678,8 @@ private:
 	      rel_coord[0]=( i   %3)*2-2+(j & 1?1:0)-(p2n & 1?1:0);
 	      rel_coord[1]=((i/3)%3)*2-2+(j & 2?1:0)-(p2n & 2?1:0);
 	      rel_coord[2]=((i/9)%3)*2-2+(j & 4?1:0)-(p2n & 4?1:0);
-	      int c_hash = interacList.coord_hash(rel_coord);
-	      int idx=interacList.hash_lut[t][c_hash];
+	      int c_hash = interacList->coord_hash(rel_coord);
+	      int idx=interacList->hash_lut[t][c_hash];
 	      if(idx>=0) interac_list[idx]=(FMM_Node*)pc->Child(j);
 	    }
 	  }
@@ -709,8 +695,8 @@ private:
             rel_coord[0]=( i %3)-1;
             rel_coord[1]=((i/3)%3)-1;
             rel_coord[2]=((i/9)%3)-1;
-            int c_hash = interacList.coord_hash(rel_coord);
-            int idx=interacList.hash_lut[t][c_hash];
+            int c_hash = interacList->coord_hash(rel_coord);
+            int idx=interacList->hash_lut[t][c_hash];
             if(idx>=0) interac_list[idx]=col;
 	  }
 	}
@@ -726,8 +712,8 @@ private:
 	      rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
 	      rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
 	      rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
-	      int c_hash = interacList.coord_hash(rel_coord);
-	      int idx=interacList.hash_lut[t][c_hash];
+	      int c_hash = interacList->coord_hash(rel_coord);
+	      int idx=interacList->hash_lut[t][c_hash];
 	      if(idx>=0) interac_list[idx]=(FMM_Node*)col->Child(j);
 	    }
 	  }
@@ -745,8 +731,8 @@ private:
 	    rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
 	    rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
 	    rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
-	    int c_hash = interacList.coord_hash(rel_coord);
-	    int idx=interacList.hash_lut[t][c_hash];
+	    int c_hash = interacList->coord_hash(rel_coord);
+	    int idx=interacList->hash_lut[t][c_hash];
 	    if(idx>=0) interac_list[idx]=pc;
 	  }
 	}
@@ -788,7 +774,7 @@ private:
     std::vector<size_t> interac_cnt(type_lst.size());  // num of rel_coord of different operators
     std::vector<size_t> interac_dsp(type_lst.size(),0);
     for(size_t i=0;i<type_lst.size();i++){
-      interac_cnt[i]=interacList.ListCount(type_lst[i]);
+      interac_cnt[i]=interacList->ListCount(type_lst[i]);
     }
     scan(&interac_cnt[0],&interac_dsp[0],type_lst.size());
 #pragma omp parallel for
@@ -873,7 +859,7 @@ private:
       size_t buff_size=1024l*1024l*1024l;
       if(n_out && n_in) for(size_t type_indx=0; type_indx<interac_type_lst.size(); type_indx++){
         Mat_Type& interac_type=interac_type_lst[type_indx];
-        size_t mat_cnt=interacList.ListCount(interac_type);
+        size_t mat_cnt=interacList->ListCount(interac_type);
         Matrix<size_t> precomp_data_offset;
         {
           struct HeaderData{
@@ -962,7 +948,7 @@ private:
               interac_dsp_-=offset;
               assert(interac_dsp_*vec_size<=buff_size);
             }
-            interac_mat.push_back(precomp_data_offset[interacList.interac_class[interac_type][j]][0]);
+            interac_mat.push_back(precomp_data_offset[interacList->interac_class[interac_type][j]][0]);
             interac_cnt.push_back(interac_dsp_-interac_dsp[0][j]);
           }
           interac_blk.push_back(mat_cnt-interac_blk_dsp.back());
@@ -1243,7 +1229,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.rel_coord[type][j];
+                const int* rel_coord=interacList->rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -1334,7 +1320,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.rel_coord[type][j];
+                const int* rel_coord=interacList->rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -1398,7 +1384,7 @@ private:
     if(n_out>0 && n_in >0){
       size_t precomp_offset=0;
       Mat_Type& interac_type=setup_data.interac_type[0];
-      size_t mat_cnt=interacList.ListCount(interac_type);
+      size_t mat_cnt=interacList->ListCount(interac_type);
       std::vector<real_t*> precomp_mat;
       {
         for(size_t mat_id=0;mat_id<mat_cnt;mat_id++){
@@ -1596,7 +1582,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.rel_coord[type][j];
+                const int* rel_coord=interacList->rel_coord[type][j];
   assert(rel_coord[0] ==0 && rel_coord[1] ==0 && rel_coord[2] ==0);
                 const real_t* scoord=snode->Coord();
                 real_t shift[3];
@@ -1764,7 +1750,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList.rel_coord[type][j];
+                const int* rel_coord=interacList->rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
