@@ -4,6 +4,7 @@
 #include "pvfmm.h"
 #include <queue>
 #include "geometry.h"
+#include "precomp_mat.hpp"
 
 namespace pvfmm{
   struct PackedData{
@@ -113,16 +114,9 @@ public:
 
   }
 
-private:
-  void PrecompAll(Mat_Type type) {
-    for(int level=0; level<MAX_DEPTH; level++)
-      mat->PrecompAll(type, level);
-  }
-
 public:
   void Initialize(int mult_order, const Kernel* kernel_) {
     Profile::Tic("InitFMM_Pts",true);{
-    int rank=0;
     bool verbose=false;
     if(kernel_) kernel_->Initialize(verbose);
     multipole_order=mult_order;
@@ -160,39 +154,35 @@ public:
 
     mat->LoadFile(mat_fname.c_str());
     Profile::Tic("PrecompUC2UE",false,4);
-    PrecompAll(M2M_V_Type);
-    PrecompAll(M2M_U_Type);
+    mat->PrecompAll(M2M_V_Type);
+    mat->PrecompAll(M2M_U_Type);
     Profile::Toc();
     Profile::Tic("PrecompDC2DE",false,4);
-    PrecompAll(L2L_V_Type);
-    PrecompAll(L2L_U_Type);
+    mat->PrecompAll(L2L_V_Type);
+    mat->PrecompAll(L2L_U_Type);
     Profile::Toc();
     Profile::Tic("PrecompM2M",false,4);
-    PrecompAll(M2M_Type);
+    mat->PrecompAll(M2M_Type);
     Profile::Toc();
     Profile::Tic("PrecompL2L",false,4);
-    PrecompAll(L2L_Type);
+    mat->PrecompAll(L2L_Type);
     Profile::Toc();
     if(save_precomp){
       Profile::Tic("Save2File",false,4);
-      if(!rank){
-        FILE* f=fopen(mat_fname.c_str(),"r");
-        if(f==NULL) { //File does not exists.
-          mat->Save2File(mat_fname.c_str());
-        }else fclose(f);
-      }
+      FILE* f=fopen(mat_fname.c_str(),"r");
+      if(f==NULL) { //File does not exists.
+        mat->Save2File(mat_fname.c_str());
+      }else fclose(f);
       Profile::Toc();
     }
     Profile::Tic("PrecompV",false,4);
-    PrecompAll(V_Type);
+    mat->PrecompAll(V_Type);
     Profile::Toc();
     Profile::Tic("PrecompV1",false,4);
-    PrecompAll(V1_Type);
+    mat->PrecompAll(V1_Type);
     Profile::Toc();
     }Profile::Toc();
   }
-
-/* End of 1st Part: Precomputation */
 
 /* 2nd Part: Tree Construction
  * Interface: Initialize(init_data) */
