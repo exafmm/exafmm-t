@@ -765,7 +765,6 @@ private:
       std::vector<Mat_Type>& interac_type_lst=setup_data.interac_type;
       for(size_t type_indx=0; type_indx<interac_type_lst.size(); type_indx++){
         Mat_Type& interac_type=interac_type_lst[type_indx];
-        mat->PrecompAll(interac_type, level);
         precomp_offset=mat->CompactData(level, interac_type, precomp_data, precomp_offset);
       }
     }

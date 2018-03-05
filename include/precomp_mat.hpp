@@ -116,7 +116,7 @@ public:
     size_t indx0 = interacList->interac_class[type][indx];                     // indx0: class coord index
     Matrix     <real_t>& M0      = mat[type][indx0];         // class coord matrix
     Permutation<real_t>& row_perm = getPerm_R(l, type, indx );    // mat->perm_r[(l+128)*16+type][indx]
-    if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;             // if mat hasn't been computed, then return
+    //if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;             // if mat hasn't been computed, then return
     if(row_perm.Dim()==0){                                        // if this perm_r entry hasn't been computed
       std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];      // get perm_list of current rel_coord
       for(int i=0;i<l;i++) p_list.push_back(Scaling);             // push back Scaling operation l times
@@ -125,7 +125,7 @@ public:
 	Permutation<real_t>& pr = perm[type][R_Perm + i];      // grab the handle of its mat->perm entry
 	if(!pr.Dim()) row_perm_ = Permutation<real_t>(0);           // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
       }
-      if(row_perm_.Dim()>0)                                       // if this type & entry needs permutation
+      if(row_perm_.Dim()>0)                                      // if this type & entry needs permutation
 	for(int i=p_list.size()-1; i>=0; i--){                    // loop over the operations of perm_list from end to begin
 	  //assert(type!=V_Type);
 	  Permutation<real_t>& pr = perm[type][R_Perm + p_list[i]];  // get the permutation of the operation
@@ -168,7 +168,7 @@ public:
   Permutation<real_t>& PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
     Permutation<real_t>& P_ = perm[type][perm_indx];
     if(P_.Dim()!=0) return P_;
-    size_t m=multipole_order;         //
+    size_t m=multipole_order;
     size_t p_indx=perm_indx % C_Perm;
     Permutation<real_t> P;
     switch (type) {
@@ -203,10 +203,7 @@ public:
     default:
       break;
     }
-#pragma omp critical (PRECOMP_MATRIX_PTS)
-    {
-      if(P_.Dim()==0) P_=P;
-    }
+    if(P_.Dim()==0) P_=P;
     return P_;
   }
   
@@ -214,17 +211,6 @@ public:
     int level = 0;
     Matrix<real_t>& M_ = mat[type][mat_indx];
     if(M_.Dim(0)!=0 && M_.Dim(1)!=0) return M_;
-    else{
-      size_t class_indx = interacList->interac_class[type][mat_indx];
-      if(class_indx!=mat_indx){
-        Matrix<real_t>& M0 = Precomp(type, class_indx);
-        if(M0.Dim(0)==0 || M0.Dim(1)==0) return M_;
-        //for(size_t i=0;i<Perm_Count;i++) PrecompPerm(type, (Perm_Type) i);
-        Permutation<real_t>& Pr = Perm_R(level, type, mat_indx);
-        Permutation<real_t>& Pc = Perm_C(level, type, mat_indx);
-        if(Pr.Dim()>0 && Pc.Dim()>0 && M0.Dim(0)>0 && M0.Dim(1)>0) return M_;
-      }
-    }
     Matrix<real_t> M;
     switch (type){
     case M2M_V_Type:{
@@ -433,30 +419,27 @@ public:
     }
     return M_;
   }
-  
-  void PrecompAll(Mat_Type type, int level) {
-    for(size_t i=0; i<Perm_Count; i++) {
-      PrecompPerm(type, (Perm_Type) i);
-    }
-    size_t mat_cnt=interacList->ListCount(type); // num of relative pts (rel_coord) w.r.t this type
-    mat[type].resize(mat_cnt);
-    // if (level==0) std::cout << "Mat Type: " << type << " rel_coord count:  " << mat_cnt << std::endl;
-    for(size_t i=0; i<mat_cnt; i++) {           // i is index of rel_coord
-      if(interacList->interac_class[type][i] == i) { // if i-th coord is a class_coord
-        Precomp(type, i);                       // calculate operator matrix of class_coord
-      }
-    }
-    for(size_t mat_indx=0;mat_indx<mat_cnt;mat_indx++){   // loop over all rel_coord
-      Matrix<real_t>& M0 = ClassMat(type, mat_indx);  // get the class_coord matrix pointer
-      Permutation<real_t>& pr = Perm_R(level, type, mat_indx);  // calculate perm_r
-      Permutation<real_t>& pc = Perm_C(level, type, mat_indx);  // & perm_c for M2M and D2U type
-      if(pr.Dim()!=M0.Dim(0) || pc.Dim()!=M0.Dim(1)) Precomp(type, mat_indx);
-    }
-  }
 
   void PrecompAll(Mat_Type type) {
-    for(int level=0; level<MAX_DEPTH; level++)
-      PrecompAll(type, level);
+    int mat_cnt=interacList->ListCount(type); // num of relative pts (rel_coord) w.r.t this type
+    mat[type].resize(mat_cnt);
+    if (type == M2M_Type || type == L2L_Type) {
+      for(int perm_idx=0; perm_idx<Perm_Count; perm_idx++) PrecompPerm(type, (Perm_Type) perm_idx);
+      for(int i=0; i<mat_cnt; i++) {           // i is index of rel_coord
+        if(interacList->interac_class[type][i] == i) { // if i-th coord is a class_coord
+          Precomp(type, i);                       // calculate operator matrix of class_coord
+        }
+      }
+      for(int mat_idx=0; mat_idx<mat_cnt; mat_idx++) {
+        for(int level=0; level<MAX_DEPTH; level++) {
+          Perm_R(level, type, mat_idx);  // calculate perm_r
+          Perm_C(level, type, mat_idx);  // & perm_c for M2M and D2U type
+        }
+      }
+    } else {
+      for(int mat_idx=0; mat_idx<mat_cnt; mat_idx++)
+        Precomp(type, mat_idx);
+    }
   }
 
   inline uintptr_t align_ptr(uintptr_t ptr){
