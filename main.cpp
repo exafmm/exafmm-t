@@ -140,7 +140,7 @@ int main(int argc, char **argv){
 #else
   Kernel * kernel = &grad_ker; 
 #endif
-  kernel->Initialize(false);
+  kernel->Initialize();
   PrecompMat pmat(&interacList, mult_order, kernel);
   FMM_Tree tree(mult_order, kernel, &interacList, &pmat);
 

@@ -13,7 +13,6 @@ struct Kernel{
   Ker_t ker_poten;
 
   mutable bool init;
-  mutable bool scale_invar;
   mutable std::vector<real_t> src_scal;
   mutable std::vector<real_t> trg_scal;
   mutable std::vector<Permutation<real_t> > perm_vec;
@@ -34,7 +33,6 @@ struct Kernel{
     ker_poten=poten;
  
     init=false;
-    scale_invar=true;
     src_scal.resize(ker_dim[0], 0.); 
     trg_scal.resize(ker_dim[1], 0.); 
     perm_vec.resize(Perm_Count);
@@ -51,7 +49,7 @@ struct Kernel{
     k_l2t=NULL;
   }
 
-  void Initialize(bool verbose=false) const{
+  void Initialize() const{
     if(init) return;
     init = true;
     // hardcoded src & trg scal here, since they are constants for Laplace based on the original code
@@ -78,14 +76,14 @@ struct Kernel{
     assert(k_m2l->ker_dim[1]==k_l2l->ker_dim[1]);
     assert(k_s2t->ker_dim[1]==k_m2t->ker_dim[1]);
     assert(k_s2t->ker_dim[1]==k_l2t->ker_dim[1]);
-    k_s2m->Initialize(verbose);
-    k_s2l->Initialize(verbose);
-    k_s2t->Initialize(verbose);
-    k_m2m->Initialize(verbose);
-    k_m2l->Initialize(verbose);
-    k_m2t->Initialize(verbose);
-    k_l2l->Initialize(verbose);
-    k_l2t->Initialize(verbose);
+    k_s2m->Initialize();
+    k_s2l->Initialize();
+    k_s2t->Initialize();
+    k_m2m->Initialize();
+    k_m2l->Initialize();
+    k_m2t->Initialize();
+    k_l2l->Initialize();
+    k_l2t->Initialize();
   }
 
   //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)
