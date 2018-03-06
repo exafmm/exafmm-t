@@ -139,6 +139,8 @@ typedef fftw_plan fft_plan;
 
   class SetupData;    // forward declaration
   std::vector<SetupData> setup_data(8*MAX_DEPTH);
-  std::vector<std::vector<char> > precomp_lst(8);   // used in ListSetup
+  std::vector<std::vector<char> > precomp_lst(8);
+  std::vector<Matrix<real_t> > node_data_buff;
+  Vector<char> dev_buffer;
 }
 #endif //_PVFMM_COMMON_HPP_

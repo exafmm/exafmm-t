@@ -80,12 +80,10 @@ class FMM_Tree {
 public:
   int multipole_order;
   FMM_Node* root_node;
-  std::vector<FMM_Node*> node_lst;
   const Kernel* kernel;
-  PrecompMat* mat;
-  Vector<char> dev_buffer;
   InteracList* interacList;
-  std::vector<Matrix<real_t> > node_data_buff;   // used in CollectNodeData
+  PrecompMat* mat;
+  std::vector<FMM_Node*> node_lst;
 
 public:
   FMM_Tree(int multi_order, const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_): 
