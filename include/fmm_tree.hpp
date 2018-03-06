@@ -86,8 +86,6 @@ public:
   Vector<char> dev_buffer;
   InteracList* interacList;
   std::vector<Matrix<real_t> > node_data_buff;   // used in CollectNodeData
-  std::vector<std::vector<char> > precomp_lst;   // used in ListSetup
-  std::vector<SetupData > setup_data;
 
 public:
   FMM_Tree(int multi_order, const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_): 
@@ -1754,8 +1752,6 @@ public:
     Profile::Tic("BuildLists",false,3);
     BuildInteracLists();
     Profile::Toc();
-    setup_data.resize(8*MAX_DEPTH);
-    precomp_lst.resize(8);
 
     Profile::Tic("UListSetup",false,3);
     U_ListSetup(setup_data[MAX_DEPTH*0],node_data_buff,node_lists);

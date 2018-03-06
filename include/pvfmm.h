@@ -136,5 +136,9 @@ typedef fftw_plan fft_plan;
   std::vector<Vector<real_t> > upwd_equiv_surf;
   std::vector<Vector<real_t> > dnwd_check_surf;
   std::vector<Vector<real_t> > dnwd_equiv_surf;
+
+  class SetupData;    // forward declaration
+  std::vector<SetupData> setup_data(8*MAX_DEPTH);
+  std::vector<std::vector<char> > precomp_lst(8);   // used in ListSetup
 }
 #endif //_PVFMM_COMMON_HPP_
