@@ -162,54 +162,47 @@ void potentialP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<r
 //! Laplace gradient P2P -r/(4*pi*|r|^3) with matrix interface, gradients saved in trg_value matrix
 // source & target coord matrix size: 3 by N
 void gradientP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
-#define SRC_BLK 500
-  size_t VecLen=sizeof(vec_t)/sizeof(real_t);
-  real_t nwtn_scal=1;
-  for(int i=0;i<2;i++){
-    nwtn_scal=2*nwtn_scal*nwtn_scal*nwtn_scal;
-  }
-  const real_t zero = 0;
-  const real_t OOFP = -1.0/(4*nwtn_scal*nwtn_scal*nwtn_scal*M_PI);
-  size_t src_cnt_=src_coord.Dim(1);
-  size_t trg_cnt_=trg_coord.Dim(1);
-  for(size_t sblk=0;sblk<src_cnt_;sblk+=SRC_BLK){
-    size_t src_cnt=src_cnt_-sblk;
-    if(src_cnt>SRC_BLK) src_cnt=SRC_BLK;
-    for(size_t t=0;t<trg_cnt_;t+=VecLen){
-      vec_t tx=load_intrin(&trg_coord[0][t]);
-      vec_t ty=load_intrin(&trg_coord[1][t]);
-      vec_t tz=load_intrin(&trg_coord[2][t]);
-      vec_t tv0=zero_intrin(zero);
-      vec_t tv1=zero_intrin(zero);
-      vec_t tv2=zero_intrin(zero);
-      for(size_t s=sblk;s<sblk+src_cnt;s++){
-        vec_t dx=sub_intrin(tx,set_intrin(src_coord[0][s]));
-        vec_t dy=sub_intrin(ty,set_intrin(src_coord[1][s]));
-        vec_t dz=sub_intrin(tz,set_intrin(src_coord[2][s]));
-        vec_t sv=              set_intrin(src_value[0][s]) ;
-        vec_t r2=        mul_intrin(dx,dx) ;
-        r2=add_intrin(r2,mul_intrin(dy,dy));
-        r2=add_intrin(r2,mul_intrin(dz,dz));
-        vec_t rinv=rsqrt_intrin2(r2);
-        vec_t r3inv=mul_intrin(mul_intrin(rinv,rinv),rinv);
-        sv=mul_intrin(sv,r3inv);
-        tv0=add_intrin(tv0,mul_intrin(sv,dx));
-        tv1=add_intrin(tv1,mul_intrin(sv,dy));
-        tv2=add_intrin(tv2,mul_intrin(sv,dz));
-      }
-      vec_t oofp=set_intrin(OOFP);
-      tv0=add_intrin(mul_intrin(tv0,oofp),load_intrin(&trg_value[0][t]));
-      tv1=add_intrin(mul_intrin(tv1,oofp),load_intrin(&trg_value[1][t]));
-      tv2=add_intrin(mul_intrin(tv2,oofp),load_intrin(&trg_value[2][t]));
-      store_intrin(&trg_value[0][t],tv0);
-      store_intrin(&trg_value[1][t],tv1);
-      store_intrin(&trg_value[2][t],tv2);
+  simdvec zero((real_t)0);
+  const real_t OOFP = -1.0/(4*16*16*16*M_PI);
+  simdvec oofp(OOFP);
+  int src_cnt = src_coord.Dim(1);
+  int trg_cnt = trg_coord.Dim(1);
+  for(int t=0; t<trg_cnt; t+=NSIMD){
+    simdvec tx(&trg_coord[0][t], (int)sizeof(real_t));
+    simdvec ty(&trg_coord[1][t], (int)sizeof(real_t));
+    simdvec tz(&trg_coord[2][t], (int)sizeof(real_t));
+    simdvec tv0(zero);
+    simdvec tv1(zero);
+    simdvec tv2(zero);
+    for(int s=0; s<src_cnt; s++){
+      simdvec sx(src_coord[0][s]);
+      sx = tx - sx;
+      simdvec sy(src_coord[1][s]);
+      sy = ty - sy;
+      simdvec sz(src_coord[2][s]);
+      sz = tz - sz;
+      simdvec r2(zero);
+      r2 = r2 + sx*sx;
+      r2 = r2 + sy*sy;
+      r2 = r2 + sz*sz;
+      simdvec invR = rsqrt(r2);
+      simdvec invR3 = (invR*invR) * invR;
+      simdvec sv(src_value[0][s]);
+      sv = invR3 * sv;
+      tv0 = tv0 + sv*sx;
+      tv1 = tv1 + sv*sy;
+      tv2 = tv2 + sv*sz;
+    }
+    tv0 = tv0 * oofp;
+    tv1 = tv1 * oofp;
+    tv2 = tv2 * oofp;
+    for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
+      trg_value[0][t+k] = tv0[k];
+      trg_value[1][t+k] = tv1[k];
+      trg_value[2][t+k] = tv2[k];
     }
   }
-  {
-    Profile::Add_FLOP((long long)trg_cnt_*(long long)src_cnt_*27);
-  }
-#undef SRC_BLK
+  Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*27);
 }
 
 //! Wrap around the above P2P functions with matrix interface to provide array interface

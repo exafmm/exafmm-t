@@ -18,35 +18,17 @@ namespace pvfmm{
 
 #if FLOAT
   typedef float real_t;
-#if defined __AVX__
-  typedef __m256 vec_t;
-#elif defined __SSE3__
-  typedef __m128 vec_t;
-#else
-  typedef real_t vec_t;
-#endif
-#else
-  typedef double real_t;
-#if defined __AVX__
-  typedef __m256d vec_t;
-#elif defined __SSE3__
-  typedef __m128d vec_t;
-#else
-  typedef real_t vec_t;
-#endif
-#endif
-
-#if FLOAT
-typedef fftwf_complex fft_complex;
-typedef fftwf_plan fft_plan;
+  typedef fftwf_complex fft_complex;
+  typedef fftwf_plan fft_plan;
 #define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c
 #define fft_plan_many_dft_c2r fftwf_plan_many_dft_c2r
 #define fft_execute_dft_r2c fftwf_execute_dft_r2c
 #define fft_execute_dft_c2r fftwf_execute_dft_c2r
 #define fft_destroy_plan fftwf_destroy_plan
 #else
-typedef fftw_complex fft_complex;
-typedef fftw_plan fft_plan;
+  typedef double real_t;
+  typedef fftw_complex fft_complex;
+  typedef fftw_plan fft_plan;
 #define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c
 #define fft_plan_many_dft_c2r fftw_plan_many_dft_c2r
 #define fft_execute_dft_r2c fftw_execute_dft_r2c
