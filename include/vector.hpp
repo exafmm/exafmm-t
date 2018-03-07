@@ -80,24 +80,8 @@ public:
     }
   }
 
-  void Write(const char* fname){
-    FILE* f1=fopen(fname,"wb+");
-    if(f1==NULL){
-      std::cout<<"Unable to open file for writing:"<<fname<<'\n';
-      return;
-    }
-    int dim_=dim;
-    fwrite(&dim_,sizeof(int),2,f1);
-    fwrite(data_ptr,sizeof(T),dim,f1);
-    fclose(f1);
-  }
-
   inline int Dim() const{
     return dim;
-  }
-
-  inline int Capacity() const{
-    return capacity;
   }
 
   void SetZero(){
@@ -115,10 +99,7 @@ public:
     assert(dim>0?j<dim:j==0); //TODO Change to (j<dim)
     return data_ptr[j];
   }
-
-
 };
-
 }//end namespace
 
 #endif //_PVFMM_VECTOR_HPP_

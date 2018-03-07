@@ -27,11 +27,11 @@
 - [x] Real_t -> real_t
 - [ ] size_t -> int
 - [ ] Matrix -> std::vector(std::vector) for non-Real_t
-- [ ] Remove SVD5 and other SVD functions that use it
+- [x] Remove SVD5 and other SVD functions that use it
 - [ ] Remove unnecessary "{}"
 - [ ] "){" -> ") {", "}else{" -> "} else {"
 - [ ] template -> Real_t
-- [ ] vec.h <- kernel, fmm_tree
+- [x] vec.h <- kernel, fmm_tree
 - [ ] Vector -> std::vector
   - dev_buffer
   - rm ReInit
