@@ -126,9 +126,8 @@ Kernel BuildKernel(const char* name, std::pair<int,int> k_dim,
 //! Laplace potential P2P 1/(4*pi*|r|) with matrix interface, potentials saved in trg_value matrix
 // source & target coord matrix size: 3 by N
 void potentialP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
-  //const real_t zero = 0;
   simdvec zero((real_t)0);
-  const real_t OOFP = 1.0/(16*4*M_PI);
+  const real_t OOFP = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
   simdvec oofp(OOFP);
   int src_cnt = src_coord.Dim(1);
   int trg_cnt = trg_coord.Dim(1);
@@ -149,13 +148,7 @@ void potentialP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<r
       r2 = r2 + sx*sx;
       r2 = r2 + sy*sy;
       r2 = r2 + sz*sz;
-      //simdvec invR(rsqrt(r2));
-      /*
-      invR = rsqrt(r2);
-      invR &= r2 > zero;
-      */
-      vec_t rinv = rsqrt_intrin2(r2.data);
-      simdvec invR(rinv); 
+      simdvec invR = rsqrt(r2);
       tv = tv + invR*sv;
     }
     tv = tv * oofp;

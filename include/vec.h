@@ -913,16 +913,17 @@ namespace pvfmm {
     }
     friend vec rsqrt(const vec & v) {                           // Reciprocal square root
 #if EXAFMM_VEC_NEWTON                                           // Switch on Newton-Raphson correction
-      vec temp = vec(_mm256_rsqrt_ps(v.data));
+      //vec temp = vec(_mm256_rsqrt_ps(v.data));
       // temp *= (temp * temp * v - 3.0f) * (-0.5f);
-      return temp;
-#else
-      //vec one = 1;
-      //return vec(_mm256_div_ps(one.data,_mm256_sqrt_ps(v.data)));
-      __m256 rinv = rsqrt_approx(v.data);
-      rsqrt_newton(rinv, v.data, float(3));
-      rsqrt_newton(rinv, v.data, float(12));
+      //return temp;
+      __m256 r2 = v.data;
+      __m256 rinv = rsqrt_approx(r2);
+      rsqrt_newton(rinv, r2, float(3));
+      rsqrt_newton(rinv, r2, float(12));
       return vec(rinv);
+#else
+      vec one = 1;
+      return vec(_mm256_div_ps(one.data,_mm256_sqrt_ps(v.data)));
 #endif
     }
   };
