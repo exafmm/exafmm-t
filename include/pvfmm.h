@@ -2,7 +2,7 @@
 #define pvfmm_h
 #include "vector.hpp"
 #include "matrix.hpp"
-
+#include "vec.h"
 namespace pvfmm{
 #ifndef NULL
 #define NULL 0
@@ -54,13 +54,16 @@ typedef fftw_plan fft_plan;
 #define fft_destroy_plan fftw_destroy_plan
 #endif
 
+  //! SIMD vector types for AVX512, AVX, and SSE
+  const int NSIMD = SIMD_BYTES / int(sizeof(real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
+  typedef vec<NSIMD,real_t> simdvec;                   //!< SIMD vector type
+
   fft_plan vprecomp_fftplan;
   bool vprecomp_fft_flag;
   fft_plan vlist_fftplan;
   bool vlist_fft_flag;
   fft_plan vlist_ifftplan;
   bool vlist_ifft_flag;
-
   const int SrcCoord = 1, SrcValue = 2, TrgCoord = 3, TrgValue = 4,
             UpwardEquivCoord = 5, UpwardCheckCoord=6, UpwardEquivValue = 7,
             DnwardEquivCoord = 8, DnwardCheckCoord=9, DnwardEquivValue = 10;

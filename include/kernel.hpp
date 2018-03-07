@@ -1,7 +1,8 @@
 #ifndef _PVFMM_FMM_KERNEL_HPP_
 #define _PVFMM_FMM_KERNEL_HPP_
 #include "intrinsics.h"
-
+#include "vec.h"
+#include "pvfmm.h"
 namespace pvfmm {
 struct Kernel{
   public:
@@ -125,44 +126,44 @@ Kernel BuildKernel(const char* name, std::pair<int,int> k_dim,
 //! Laplace potential P2P 1/(4*pi*|r|) with matrix interface, potentials saved in trg_value matrix
 // source & target coord matrix size: 3 by N
 void potentialP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<real_t>& trg_coord, Matrix<real_t>& trg_value){
-#define SRC_BLK 1000
-  size_t VecLen=sizeof(vec_t)/sizeof(real_t);
-  real_t nwtn_scal=1;
-  for(int i=0;i<2;i++){
-    nwtn_scal = 2*nwtn_scal*nwtn_scal*nwtn_scal;
-  }
-  const real_t zero = 0;
-  const real_t OOFP = 1.0/(4*nwtn_scal*M_PI);
-  size_t src_cnt_=src_coord.Dim(1);
-  size_t trg_cnt_=trg_coord.Dim(1);
-  for(size_t sblk=0;sblk<src_cnt_;sblk+=SRC_BLK){
-    size_t src_cnt=src_cnt_-sblk;
-    if(src_cnt>SRC_BLK) src_cnt=SRC_BLK;
-    for(size_t t=0;t<trg_cnt_;t+=VecLen){
-      vec_t tx=load_intrin(&trg_coord[0][t]);
-      vec_t ty=load_intrin(&trg_coord[1][t]);
-      vec_t tz=load_intrin(&trg_coord[2][t]);
-      vec_t tv=zero_intrin(zero);
-      for(size_t s=sblk;s<sblk+src_cnt;s++){
-        vec_t dx=sub_intrin(tx,set_intrin(src_coord[0][s]));
-        vec_t dy=sub_intrin(ty,set_intrin(src_coord[1][s]));
-        vec_t dz=sub_intrin(tz,set_intrin(src_coord[2][s]));
-        vec_t sv=              set_intrin(src_value[0][s]) ;
-        vec_t r2=        mul_intrin(dx,dx) ;
-        r2=add_intrin(r2,mul_intrin(dy,dy));
-        r2=add_intrin(r2,mul_intrin(dz,dz));
-        vec_t rinv=rsqrt_intrin2(r2);
-        tv=add_intrin(tv,mul_intrin(rinv,sv));
-      }
-      vec_t oofp=set_intrin(OOFP);
-      tv=add_intrin(mul_intrin(tv,oofp),load_intrin(&trg_value[0][t]));
-      store_intrin(&trg_value[0][t],tv);
+  //const real_t zero = 0;
+  simdvec zero((real_t)0);
+  const real_t OOFP = 1.0/(16*4*M_PI);
+  simdvec oofp(OOFP);
+  int src_cnt = src_coord.Dim(1);
+  int trg_cnt = trg_coord.Dim(1);
+  for(int t=0; t<trg_cnt; t+=NSIMD){
+    simdvec tx(&trg_coord[0][t], (int)sizeof(real_t));
+    simdvec ty(&trg_coord[1][t], (int)sizeof(real_t));
+    simdvec tz(&trg_coord[2][t], (int)sizeof(real_t));
+    simdvec tv(zero);
+    for(int s=0; s<src_cnt; s++){
+      simdvec sx(src_coord[0][s]);
+      sx = sx - tx;
+      simdvec sy(src_coord[1][s]);
+      sy = sy - ty;
+      simdvec sz(src_coord[2][s]);
+      sz = sz - tz;
+      simdvec sv(src_value[0][s]);
+      simdvec r2(zero);
+      r2 = r2 + sx*sx;
+      r2 = r2 + sy*sy;
+      r2 = r2 + sz*sz;
+      //simdvec invR(rsqrt(r2));
+      /*
+      invR = rsqrt(r2);
+      invR &= r2 > zero;
+      */
+      vec_t rinv = rsqrt_intrin2(r2.data);
+      simdvec invR(rinv); 
+      tv = tv + invR*sv;
+    }
+    tv = tv * oofp;
+    for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
+      trg_value[0][t+k] = tv[k];
     }
   }
-  {
-    Profile::Add_FLOP((long long)trg_cnt_*(long long)src_cnt_*20);
-  }
-#undef SRC_BLK
+  Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*20);
 }
 
 //! Laplace gradient P2P -r/(4*pi*|r|^3) with matrix interface, gradients saved in trg_value matrix
