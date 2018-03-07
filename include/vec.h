@@ -928,6 +928,19 @@ namespace pvfmm {
     }
   };
 
+  inline __m128 rsqrt_approx(const __m128& r2){
+    return _mm_andnot_ps(_mm_cmpeq_ps(r2,_mm_setzero_ps()),_mm_rsqrt_ps(r2));
+  }
+
+  inline __m256d rsqrt_approx(const __m256d& r2){
+    return _mm256_cvtps_pd(rsqrt_approx(_mm256_cvtpd_ps(r2)));
+  }
+
+  inline void rsqrt_newton(__m256d& rinv, const __m256d& r2, const double& nwtn_const){
+      rinv = _mm256_mul_pd(rinv,_mm256_sub_pd(_mm256_set_pd(nwtn_const, nwtn_const, nwtn_const, nwtn_const),
+                                              _mm256_mul_pd(r2,_mm256_mul_pd(rinv,rinv))));
+  }
+
   template<>
   class vec<4,double> {
   private:
@@ -1045,10 +1058,15 @@ namespace pvfmm {
     }
     friend vec rsqrt(const vec & v) {                           // Reciprocal square root
 #if EXAFMM_VEC_NEWTON                                           // Switch on Newton-Raphson correction
-      vec temp = vec(_mm256_cvtps_pd(_mm_rsqrt_ps(_mm256_cvtpd_ps(v.data))));
-      temp *= (temp * temp * v - 3.0f) * (-0.5f);
+      //vec temp = vec(_mm256_cvtps_pd(_mm_rsqrt_ps(_mm256_cvtpd_ps(v.data))));
       //temp *= (temp * temp * v - 3.0f) * (-0.5f);
-      return temp;
+      //temp *= (temp * temp * v - 3.0f) * (-0.5f);
+      //return temp;
+      __m256d r2 = v.data;
+      __m256d rinv = rsqrt_approx(r2);
+      rsqrt_newton(rinv, r2, double(3));
+      rsqrt_newton(rinv, r2, double(12));
+      return vec(rinv);
 #else
       vec one = 1;
       return vec(_mm256_div_pd(one.data,_mm256_sqrt_pd(v.data)));
