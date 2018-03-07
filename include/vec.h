@@ -798,7 +798,7 @@ namespace pvfmm {
 
   template<>
   class vec<8,float> {
-  public:
+  private:
     union {
       __m256 data;
       float array[8];

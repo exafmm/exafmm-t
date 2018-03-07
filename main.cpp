@@ -113,17 +113,18 @@ int main(int argc, char **argv){
   init_data.value=src_value;
 
   // initialize equiv surface coords for all levels
-  size_t m=mult_order;
+  int m=mult_order;
+  int numSurfCoords = 6*(m-1)*(m-1) + 2;
   upwd_check_surf.resize(MAX_DEPTH);
   upwd_equiv_surf.resize(MAX_DEPTH);
   dnwd_check_surf.resize(MAX_DEPTH);
   dnwd_equiv_surf.resize(MAX_DEPTH);
   for(size_t depth=0;depth<MAX_DEPTH;depth++){
-    real_t c[3]={0.0,0.0,0.0};
-    upwd_check_surf[depth].Resize((6*(m-1)*(m-1)+2)*3);
-    upwd_equiv_surf[depth].Resize((6*(m-1)*(m-1)+2)*3);
-    dnwd_check_surf[depth].Resize((6*(m-1)*(m-1)+2)*3);
-    dnwd_equiv_surf[depth].Resize((6*(m-1)*(m-1)+2)*3);
+    real_t c[3] = {0.0};
+    upwd_check_surf[depth].Resize(numSurfCoords*3);
+    upwd_equiv_surf[depth].Resize(numSurfCoords*3);
+    dnwd_check_surf[depth].Resize(numSurfCoords*3);
+    dnwd_equiv_surf[depth].Resize(numSurfCoords*3);
     upwd_check_surf[depth] = u_check_surf(m,c,depth);
     upwd_equiv_surf[depth] = u_equiv_surf(m,c,depth);
     dnwd_check_surf[depth] = d_check_surf(m,c,depth);

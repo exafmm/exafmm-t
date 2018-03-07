@@ -173,7 +173,7 @@ public:
     Permutation<real_t> P;
     switch (type) {
     case M2M_Type: {
-      Vector<real_t> scal_exp;
+      std::vector<real_t> scal_exp;
       Permutation<real_t> ker_perm;
       if(perm_indx<C_Perm) {
         ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
@@ -181,23 +181,23 @@ public:
       }else{
         ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
         scal_exp=kernel->k_m2m->src_scal;
-        for(size_t i=0;i<scal_exp.Dim();i++) scal_exp[i]=-scal_exp[i];
+        for(size_t i=0; i<scal_exp.size(); i++) scal_exp[i]=-scal_exp[i];
       }
-      P=equiv_surf_perm(m, p_indx, ker_perm, &scal_exp);
+      P=equiv_surf_perm(m, p_indx, ker_perm, scal_exp);
       break;
     }
     case L2L_Type: {
-      Vector<real_t> scal_exp;
+      std::vector<real_t> scal_exp;
       Permutation<real_t> ker_perm;
       if(perm_indx<C_Perm){
         ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
         scal_exp=kernel->k_l2l->trg_scal;
-        for(size_t i=0;i<scal_exp.Dim();i++) scal_exp[i]=-scal_exp[i];
+        for(size_t i=0; i<scal_exp.size(); i++) scal_exp[i]=-scal_exp[i];
       }else{
         ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
         scal_exp=kernel->k_l2l->trg_scal;
       }
-      P=equiv_surf_perm(m, p_indx, ker_perm, &scal_exp);
+      P=equiv_surf_perm(m, p_indx, ker_perm, scal_exp);
       break;
     }
     default:
@@ -320,12 +320,12 @@ public:
       Matrix<real_t> M_c2e0=Precomp(L2L_V_Type,0);
       Matrix<real_t> M_c2e1=Precomp(L2L_U_Type,0);
       Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
-      Vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
-      Permutation<real_t> P=equiv_surf_perm(multipole_order, Scaling, ker_perm, &scal_exp);
+      std::vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
+      Permutation<real_t> P=equiv_surf_perm(multipole_order, Scaling, ker_perm, scal_exp);
       M_c2e0=P*M_c2e0;
       ker_perm=kernel->k_l2l->perm_vec[0     +Scaling];
       scal_exp=kernel->k_l2l->src_scal;
-      P=equiv_surf_perm(multipole_order, Scaling, ker_perm, &scal_exp);
+      P=equiv_surf_perm(multipole_order, Scaling, ker_perm, scal_exp);
       M_c2e1=M_c2e1*P;
       M=M_c2e0*(M_c2e1*M_pe2c);
       break;

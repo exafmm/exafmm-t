@@ -87,7 +87,7 @@ namespace pvfmm {
     return grid;
   }
 
-  Permutation<real_t> equiv_surf_perm(size_t m, size_t p_indx, const Permutation<real_t>& ker_perm, const Vector<real_t>* scal_exp=NULL){
+  Permutation<real_t> equiv_surf_perm(size_t m, size_t p_indx, const Permutation<real_t>& ker_perm, std::vector<real_t>& scal_exp){
     real_t eps=1e-10;
     int dof=ker_perm.Dim();
 
@@ -126,11 +126,11 @@ namespace pvfmm {
       }
     }
 
-    if(scal_exp && p_indx==Scaling) {
-      assert(dof==scal_exp->Dim());
-      Vector<real_t> scal(scal_exp->Dim());
-      for(size_t i=0;i<scal.Dim();i++){
-        scal[i]=powf(2.0,(*scal_exp)[i]);
+    if(p_indx==Scaling) {
+      assert(dof==scal_exp.size());
+      std::vector<real_t> scal(scal_exp.size());
+      for(size_t i=0;i<scal.size();i++){
+        scal[i]=powf(2.0, scal_exp[i]);
       }
       for(int j=0;j<n_trg;j++){
         for(int i=0;i<dof;i++){
