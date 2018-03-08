@@ -1161,7 +1161,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList->rel_coord[type][j];
+                ivec3& rel_coord=interacList->rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -1252,7 +1252,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList->rel_coord[type][j];
+                ivec3& rel_coord=interacList->rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];
@@ -1514,7 +1514,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList->rel_coord[type][j];
+                ivec3& rel_coord=interacList->rel_coord[type][j];
   assert(rel_coord[0] ==0 && rel_coord[1] ==0 && rel_coord[2] ==0);
                 const real_t* scoord=snode->Coord();
                 real_t shift[3];
@@ -1682,7 +1682,7 @@ private:
               in_node.push_back(snode_id);
               scal_idx.push_back(snode->depth);
               {
-                const int* rel_coord=interacList->rel_coord[type][j];
+                ivec3& rel_coord=interacList->rel_coord[type][j];
                 const real_t* scoord=snode->Coord();
                 const real_t* tcoord=tnode->Coord();
                 real_t shift[3];

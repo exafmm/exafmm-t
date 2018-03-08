@@ -292,7 +292,7 @@ public:
       std::vector<real_t> check_surf=u_check_surf(multipole_order,c,level);
       size_t n_uc=check_surf.size()/3;
       real_t s=powf(0.5,(level+2));
-      int* coord=interacList->rel_coord[type][mat_indx];
+      ivec3& coord = interacList->rel_coord[type][mat_indx];
       real_t child_coord[3]={(coord[0]+1)*s,(coord[1]+1)*s,(coord[2]+1)*s};
       std::vector<real_t> equiv_surf=u_equiv_surf(multipole_order,child_coord,level+1);
       size_t n_ue=equiv_surf.size()/3;
@@ -308,7 +308,7 @@ public:
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_l2l->ker_dim;
       real_t s=powf(0.5,level+1);
-      int* coord=interacList->rel_coord[type][mat_indx];
+      ivec3& coord=interacList->rel_coord[type][mat_indx];
       real_t c[3]={(coord[0]+1)*s,(coord[1]+1)*s,(coord[2]+1)*s};
       std::vector<real_t> check_surf=d_check_surf(multipole_order,c,level);
       size_t n_dc=check_surf.size()/3;
@@ -337,7 +337,7 @@ public:
       int n3 =n1*n1*n1;
       int n3_=n1*n1*(n1/2+1);
       real_t s=powf(0.5,level);
-      int* coord2=interacList->rel_coord[type][mat_indx];
+      ivec3& coord2=interacList->rel_coord[type][mat_indx];
       real_t coord_diff[3]={coord2[0]*s,coord2[1]*s,coord2[2]*s};
       std::vector<real_t> r_trg(3,0.0);
       std::vector<real_t> conv_poten(n3*ker_dim[0]*ker_dim[1]);
@@ -384,14 +384,14 @@ public:
       Vector<real_t*> M_ptr(chld_cnt*chld_cnt);
       for(size_t i=0;i<chld_cnt*chld_cnt;i++) M_ptr[i]=&zero_vec[0];
 
-      int* rel_coord_=interacList->rel_coord[V1_Type][mat_indx];
+      ivec3& rel_coord_=interacList->rel_coord[V1_Type][mat_indx];
       for(int j1=0;j1<chld_cnt;j1++)
         for(int j2=0;j2<chld_cnt;j2++){
           int rel_coord[3]={rel_coord_[0]*2-(j1/1)%2+(j2/1)%2,
                             rel_coord_[1]*2-(j1/2)%2+(j2/2)%2,
                             rel_coord_[2]*2-(j1/4)%2+(j2/4)%2};
           for(size_t k=0;k<mat_cnt;k++){
-            int* ref_coord=interacList->rel_coord[V_Type][k];
+            ivec3& ref_coord=interacList->rel_coord[V_Type][k];
             if(ref_coord[0]==rel_coord[0] &&
                ref_coord[1]==rel_coord[1] &&
                ref_coord[2]==rel_coord[2]){

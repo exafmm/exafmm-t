@@ -36,6 +36,7 @@ namespace pvfmm{
 #define fft_destroy_plan fftw_destroy_plan
 #endif
 
+  typedef vec<3,int> ivec3;                            //!< Vector of 3 int types
   //! SIMD vector types for AVX512, AVX, and SSE
   const int NSIMD = SIMD_BYTES / int(sizeof(real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
   typedef vec<NSIMD,real_t> simdvec;                   //!< SIMD vector type
