@@ -50,15 +50,22 @@ namespace pvfmm{
     InteracData pt_interac_data;
   };
 
-  struct SetupData {
+  struct SetupBase {
     const Kernel* kernel;
     std::vector<FMM_Node*> nodes_in ;
     std::vector<FMM_Node*> nodes_out;
-    Matrix<real_t>* coord_data;
     Matrix<real_t>* input_data;
     Matrix<real_t>* output_data;
-    ptSetupData pt_setup_data;
+  };
 
+  // U, X, W lists & P2M & L2P Setup
+  struct BodiesSetup : SetupBase {
+    Matrix<real_t>* coord_data;
+    ptSetupData pt_setup_data;
+  };
+
+  // M2M & L2L Setup
+  struct CellsSetup : SetupBase {
     int level;
     size_t M_dim0;
     size_t M_dim1;
@@ -70,9 +77,15 @@ namespace pvfmm{
     std::vector<size_t> interac_mat;
     std::vector<size_t>  input_perm;
     std::vector<size_t> output_perm;
-
-    VListData vlist_data;
     std::vector<char>* precomp_data;
+  };
+  
+  // M2L Setup
+  struct M2LSetup : SetupBase {
+    Mat_Type interac_type;
+    std::vector<Vector<real_t>*> input_vector;
+    std::vector<Vector<real_t>*> output_vector;
+    VListData vlist_data;
   };
 
 class FMM_Tree {
@@ -83,6 +96,11 @@ public:
   InteracList* interacList;
   PrecompMat* mat;
   std::vector<FMM_Node*> node_lst;
+  BodiesSetup U_data, W_data, X_data;
+  BodiesSetup P2M_data, L2P_data;
+  std::vector<CellsSetup> M2M_data;
+  std::vector<CellsSetup> L2L_data;
+  M2LSetup M2L_data;
 
 public:
   FMM_Tree(int multi_order, const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_): 
@@ -374,7 +392,6 @@ private:
           for(int j=0;j<n2;j++){
             tmp_node2=tmp_node1->Child(j);    // loop over parent's colleages child
             if(tmp_node2!=NULL){
-
               bool flag=true;
               int a=1,b=1,new_indx=0;
               for(int k=0;k<3;k++){
@@ -721,7 +738,7 @@ private:
   }
 
   // Initialize ptSetupData::pt_interac_data.interac_cst, then save ptSetupData in setup_data
-  void PtSetup(SetupData& setup_data, ptSetupData* data_){
+  void PtSetup(BodiesSetup& setup_data, ptSetupData* data_){
     ptSetupData& data = *data_;
     if(data.pt_interac_data.interac_cnt.Dim()){
       InteracData& intdata=data.pt_interac_data;
@@ -750,7 +767,7 @@ private:
     }
   }
 
-  void SetupPrecomp(SetupData& setup_data){
+  void SetupPrecomp(CellsSetup& setup_data){
     if(setup_data.precomp_data==NULL || setup_data.level>MAX_DEPTH) return;
     Profile::Tic("SetupPrecomp",true,25);
     size_t precomp_offset=0;
@@ -761,7 +778,7 @@ private:
     Profile::Toc();
   }
 
-  void SetupInterac(SetupData& setup_data){
+  void SetupInterac(CellsSetup& setup_data){
     int level=setup_data.level;
     Mat_Type& interac_type = setup_data.interac_type;
     std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
@@ -942,19 +959,19 @@ private:
 #pragma omp parallel for
     for(int j=0;j<omp_p;j++){
       Matrix<real_t>* mat;
-      mat=setup_data[0+MAX_DEPTH*1]. input_data;
+      mat=W_data. input_data;
       if(mat && mat->Dim(0)*mat->Dim(1)){
         size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
         size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
         memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
       }
-      mat=setup_data[0+MAX_DEPTH*2].output_data;
+      mat=X_data.output_data;
       if(mat && mat->Dim(0)*mat->Dim(1)){
         size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
         size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
         memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
       }
-      mat=setup_data[0+MAX_DEPTH*0].output_data;
+      mat=U_data.output_data;
       if(mat && mat->Dim(0)*mat->Dim(1)){
         size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
         size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
@@ -978,7 +995,7 @@ private:
     }
   }
 
-  void U_ListSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+  void U_ListSetup(BodiesSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     // initialize Setup_data
     setup_data.kernel = kernel->k_s2t;
     setup_data. input_data = &buff[4];        // src_value
@@ -1093,7 +1110,7 @@ private:
     PtSetup(setup_data, &data);
   }
 
-  void W_ListSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+  void W_ListSetup(BodiesSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     {
       setup_data.kernel = kernel->k_m2t;
       setup_data. input_data = &buff[0];              // upward_equiv
@@ -1185,7 +1202,7 @@ private:
     PtSetup(setup_data, &data);
   }
 
-  void X_ListSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+  void X_ListSetup(BodiesSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     if(!multipole_order) return;
     {
       setup_data.kernel=kernel->k_s2l;
@@ -1278,7 +1295,7 @@ private:
     PtSetup(setup_data, &data);
   }
 
-  void V_ListSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+  void V_ListSetup(M2LSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     if(!multipole_order) return;
     {
       setup_data.kernel=kernel->k_m2l;
@@ -1425,7 +1442,7 @@ private:
     Profile::Toc();
   }
 
-  void P2MSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list) {
+  void P2MSetup(BodiesSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list) {
     if(!multipole_order) return;
     {
       setup_data.kernel=kernel->k_s2m;
@@ -1545,7 +1562,7 @@ private:
     PtSetup(setup_data, &data);
   }
 
-  void M2MSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
+  void M2MSetup(CellsSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
     if(!multipole_order) return;
     {
       setup_data.level=level;
@@ -1571,7 +1588,7 @@ private:
     SetupInterac(setup_data);
   }
 
-  void L2LSetup(SetupData& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
+  void L2LSetup(CellsSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
     if(!multipole_order) return;
     {
       setup_data.level=level;
@@ -1597,7 +1614,7 @@ private:
     SetupInterac(setup_data);
   }
 
-  void L2PSetup(SetupData&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+  void L2PSetup(BodiesSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     if(!multipole_order) return;
     {
       setup_data.kernel=kernel->k_l2t;
@@ -1734,45 +1751,49 @@ public:
     CollectNodeData(all_nodes, node_data_buff, node_lists);
     Profile::Toc();
 
+    M2M_data.resize(MAX_DEPTH);
+    L2L_data.resize(MAX_DEPTH);
+
     Profile::Tic("BuildLists",false,3);
     BuildInteracLists();
     Profile::Toc();
 
     Profile::Tic("UListSetup",false,3);
-    U_ListSetup(setup_data[MAX_DEPTH*0],node_data_buff,node_lists);
+    U_ListSetup(U_data, node_data_buff, node_lists);
     Profile::Toc();
     Profile::Tic("WListSetup",false,3);
-    W_ListSetup(setup_data[MAX_DEPTH*1],node_data_buff,node_lists);
+    W_ListSetup(W_data, node_data_buff, node_lists);
     Profile::Toc();
     Profile::Tic("XListSetup",false,3);
-    X_ListSetup(setup_data[MAX_DEPTH*2],node_data_buff,node_lists);
+    X_ListSetup(X_data, node_data_buff, node_lists);
     Profile::Toc();
 
     Profile::Tic("VListSetup",false,3);
-    V_ListSetup(setup_data[MAX_DEPTH*3],node_data_buff,node_lists);
+    V_ListSetup(M2L_data, node_data_buff, node_lists);
     Profile::Toc();
 
     Profile::Tic("L2LSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*4].precomp_data=&precomp_lst[4];
-      L2LSetup(setup_data[i+MAX_DEPTH*4],node_data_buff,node_lists,i);
+    for(int i=0;i<MAX_DEPTH;i++){
+      L2L_data[i].precomp_data = &L2L_precomp_lst;
+      L2LSetup(L2L_data[i], node_data_buff, node_lists, i);
     }
     Profile::Toc();
 
     Profile::Tic("L2PSetup",false,3);
-    L2PSetup(setup_data[MAX_DEPTH*5],node_data_buff,node_lists);
+    L2PSetup(L2P_data, node_data_buff, node_lists);
     Profile::Toc();
 
     Profile::Tic("P2MSetup",false,3);
-    P2MSetup(setup_data[MAX_DEPTH*6],node_data_buff,node_lists);
-
+    P2MSetup(P2M_data, node_data_buff, node_lists);
     Profile::Toc();
+
     Profile::Tic("M2MSetup",false,3);
     for(size_t i=0;i<MAX_DEPTH;i++){
-      setup_data[i+MAX_DEPTH*7].precomp_data=&precomp_lst[7];
-      M2MSetup(setup_data[i+MAX_DEPTH*7],node_data_buff,node_lists,i);
+      M2M_data[i].precomp_data = &M2M_precomp_lst;
+      M2MSetup(M2M_data[i], node_data_buff, node_lists, i);
     }
     Profile::Toc();
+
     ClearFMMData();
     }Profile::Toc();
   }
@@ -1780,7 +1801,7 @@ public:
 
 /* 3rd Part: Evaluation */
 private:
-  void evalP2P(SetupData& setup_data) {
+  void evalP2P(BodiesSetup& setup_data) {
     if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
     ptSetupData data = setup_data.pt_setup_data;
     InteracData& intdata = data.pt_interac_data;
@@ -1815,7 +1836,7 @@ private:
     }
   }
 
-  void P2M(SetupData& setup_data) {
+  void P2M(BodiesSetup& setup_data) {
     if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
     char* dev_buff = dev_buffer.data_ptr;
     ptSetupData data = setup_data.pt_setup_data;
@@ -1922,7 +1943,7 @@ private:
     }
   }
 
-  void L2P(SetupData& setup_data) {
+  void L2P(BodiesSetup& setup_data) {
     if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
     char* dev_buff = dev_buffer.data_ptr;
     ptSetupData data = setup_data.pt_setup_data;
@@ -2027,7 +2048,7 @@ private:
     }
   }
 
-  void EvalList(SetupData& setup_data){
+  void EvalList(CellsSetup& setup_data){
     if(setup_data.interac_cnt.empty()){
       return;
     }
@@ -2324,30 +2345,29 @@ private:
     }
   }
 
-  void M2M(SetupData& setup_data){
+  void M2M(CellsSetup& setup_data){
     if(!multipole_order) return;
     EvalList(setup_data);
   }
 
-  void X_List(SetupData&  setup_data){
+  void X_List(BodiesSetup&  setup_data){
     if(!multipole_order) return;
     evalP2P(setup_data);
   }
 
-  void W_List(SetupData&  setup_data){
+  void W_List(BodiesSetup&  setup_data){
     if(!multipole_order) return;
     evalP2P(setup_data);
   }
 
-  void U_List(SetupData&  setup_data){
+  void U_List(BodiesSetup&  setup_data){
     evalP2P(setup_data);
   }
 
-  void V_List(SetupData&  setup_data){
+  void V_List(M2LSetup&  setup_data){
     if(!multipole_order) return;
     int np=1;
     Profile::Tic("Host2Device",false,25);
-    int level=setup_data.level;
     int dim0=setup_data.input_data->dim[0];
     int dim1=setup_data.input_data->dim[1];
     size_t buff_size=*((size_t*)&setup_data.vlist_data.buff_size);
@@ -2392,7 +2412,7 @@ private:
   }
 
 
-  void L2L(SetupData& setup_data){
+  void L2L(CellsSetup& setup_data){
     if(!multipole_order) return;
     EvalList(setup_data);
   }
@@ -2405,11 +2425,11 @@ private:
       if(n->depth>depth) depth=n->depth;
     }
     Profile::Tic("P2M",false,5);
-    P2M(setup_data[MAX_DEPTH*6]);
+    P2M(P2M_data);
     Profile::Toc();
     Profile::Tic("M2M",false,5);
     for(int i=depth-1; i>=0; i--){
-      M2M(setup_data[i+MAX_DEPTH*7]);
+      M2M(M2M_data[i]);
     }
     Profile::Toc();
   }
@@ -2426,24 +2446,24 @@ private:
     }
     Profile::Toc();
     Profile::Tic("X-List",false,5);
-    X_List(setup_data[MAX_DEPTH*2]);
+    X_List(X_data);
     Profile::Toc();
     Profile::Tic("W-List",false,5);
-    W_List(setup_data[MAX_DEPTH*1]);
+    W_List(W_data);
     Profile::Toc();
     Profile::Tic("U-List",false,5);
-    U_List(setup_data[MAX_DEPTH*0]);
+    U_List(U_data);
     Profile::Toc();
     Profile::Tic("V-List",false,5);
-    V_List(setup_data[MAX_DEPTH*3]);
+    V_List(M2L_data);
     Profile::Toc();
     Profile::Tic("L2L",false,5);
     for(size_t i=0; i<=depth; i++) {
-      L2L(setup_data[i+MAX_DEPTH*4]);
+      L2L(L2L_data[i]);
     }
     Profile::Toc();
     Profile::Tic("L2P",false,5);
-    L2P(setup_data[MAX_DEPTH*5]);
+    L2P(L2P_data);
     Profile::Toc();
   }
 
