@@ -448,21 +448,14 @@ public:
     return ((ptr+ALIGN_MINUS_ONE) & NOT_ALIGN_MINUS_ONE);
   }
 
-  size_t CompactData(int level, Mat_Type type, std::vector<char>& comp_data, size_t offset=0){
+  size_t CompactData(int level, Mat_Type type, std::vector<char>& comp_data){
     struct HeaderData{
       size_t total_size;
       size_t      level;
       size_t   mat_cnt ;
       size_t  max_depth;
     };
-    if(comp_data.size()>offset){
-      char* indx_ptr=&comp_data[0]+offset;
-      HeaderData& header=*(HeaderData*)indx_ptr; indx_ptr+=sizeof(HeaderData);
-      if(level==int(header.level)){
-	offset+=header.total_size;
-	return offset;
-      }
-    }
+
     std::vector<Matrix<real_t> >& mat_ = mat[type];
     size_t mat_cnt=mat_.size();
     size_t indx_size=0;
@@ -495,28 +488,16 @@ public:
 	}
       }
     }
-    if(comp_data.size()<offset+indx_size+mem_size){
-      std::vector<char> old_data;
-      if(offset>0) old_data=comp_data;
-      comp_data.resize(offset+indx_size+mem_size);
-      if(offset>0){
-#pragma omp parallel for
-	for(int tid=0;tid<omp_p;tid++){
-	  size_t a=(offset*(tid+0))/omp_p;
-	  size_t b=(offset*(tid+1))/omp_p;
-	  memcpy(&comp_data[0]+a, &old_data[0]+a, b-a);
-	}
-      }
-    }
+    if(comp_data.size() < indx_size+mem_size) comp_data.resize(indx_size+mem_size);
     {
-      char* indx_ptr=&comp_data[0]+offset;
+      char* indx_ptr=&comp_data[0];
       HeaderData& header=*(HeaderData*)indx_ptr; indx_ptr+=sizeof(HeaderData);
       Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
       header.total_size=indx_size+mem_size;
       header.     level=level             ;
       header.  mat_cnt = mat_cnt          ;
       header. max_depth=l1-l0             ;
-      size_t data_offset=offset+indx_size;
+      size_t data_offset = indx_size;
       for(size_t j=0;j<mat_cnt;j++){
 	Matrix     <real_t>& M = mat[type][j];
 	offset_indx[j][0]=data_offset; indx_ptr+=sizeof(size_t);
@@ -537,7 +518,7 @@ public:
     }
 #pragma omp parallel for
     for(int tid=0;tid<omp_p;tid++){
-      char* indx_ptr=&comp_data[0]+offset;
+      char* indx_ptr=&comp_data[0];
       indx_ptr+=sizeof(HeaderData);
       Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
       for(size_t j=0;j<mat_cnt;j++){
@@ -565,7 +546,7 @@ public:
 	}
       }
     }
-    return offset+indx_size+mem_size;
+    return indx_size+mem_size;
   }
 
   void Save2File(const char* fname, bool replace=false){

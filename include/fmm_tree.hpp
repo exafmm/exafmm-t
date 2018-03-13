@@ -774,7 +774,7 @@ private:
     int level=setup_data.level;
     std::vector<char>& precomp_data=*setup_data.precomp_data;
     Mat_Type& interac_type = setup_data.interac_type;
-    precomp_offset=mat->CompactData(level, interac_type, precomp_data, precomp_offset);
+    precomp_offset=mat->CompactData(level, interac_type, precomp_data);
     Profile::Toc();
   }
 
@@ -802,7 +802,7 @@ private:
       size_t buff_size=1024l*1024l*1024l;
       if(n_out && n_in) {
         size_t mat_cnt=interacList->ListCount(interac_type);
-        Matrix<size_t> precomp_data_offset;
+        std::vector<std::vector<size_t> > precomp_data_offset;
         {
           struct HeaderData{
             size_t total_size;
@@ -813,7 +813,12 @@ private:
           std::vector<char>& precomp_data=*setup_data.precomp_data;
           char* indx_ptr=&precomp_data[0]+precomp_offset;
           HeaderData& header=*(HeaderData*)indx_ptr;indx_ptr+=sizeof(HeaderData);
-          precomp_data_offset.ReInit(header.mat_cnt,(1+(2+2)*header.max_depth), (size_t*)indx_ptr, false);
+
+          int size = 1 + (2+2)*header.max_depth;
+          for(int i=0; i<header.mat_cnt; i++) {
+            std::vector<size_t> temp_data((size_t*)indx_ptr + i*size, (size_t*)indx_ptr + (i+1)*size);
+            precomp_data_offset.push_back(temp_data);
+          }
           precomp_offset+=header.total_size;
         }
         FMM_Node*** src_interac_list = new FMM_Node** [n_in];
@@ -1802,7 +1807,6 @@ public:
 /* 3rd Part: Evaluation */
 private:
   void evalP2P(BodiesSetup& setup_data) {
-    if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
     ptSetupData data = setup_data.pt_setup_data;
     InteracData& intdata = data.pt_interac_data;
     int omp_p=omp_get_max_threads();
