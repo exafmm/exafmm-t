@@ -38,10 +38,6 @@ public:
     InitList(5,5,2,X_Type);
   }
 
-  size_t ListCount(Mat_Type t){
-    return rel_coord[t].size();
-  }
-
   void InitList(int max_r, int min_r, int step, Mat_Type t){
     const int max_hash = 2000;
     int n1 = (max_r*2)/step+1;

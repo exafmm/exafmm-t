@@ -723,7 +723,7 @@ private:
     std::vector<size_t> interac_cnt(type_lst.size());  // num of rel_coord of different operators
     std::vector<size_t> interac_dsp(type_lst.size(),0);
     for(size_t i=0;i<type_lst.size();i++){
-      interac_cnt[i]=interacList->ListCount(type_lst[i]);
+      interac_cnt[i]=interacList->rel_coord[type_lst[i]].size();
     }
     scan(&interac_cnt[0],&interac_dsp[0],type_lst.size());
 #pragma omp parallel for
@@ -796,7 +796,7 @@ private:
       size_t M_dim0=0, M_dim1=0;
       size_t buff_size=1024l*1024l*1024l;
       if(n_out && n_in) {
-        size_t mat_cnt=interacList->ListCount(interac_type);
+        size_t mat_cnt=interacList->rel_coord[interac_type].size();
         std::vector<std::vector<size_t> > precomp_data_offset;
         {
           std::vector<char>& precomp_data=*setup_data.precomp_data;
@@ -1316,7 +1316,7 @@ private:
     if(n_out>0 && n_in >0){
       size_t precomp_offset=0;
       Mat_Type& interac_type = setup_data.interac_type;
-      size_t mat_cnt=interacList->ListCount(interac_type);
+      size_t mat_cnt = interacList->rel_coord[interac_type].size();
       std::vector<real_t*> precomp_mat;
       for(size_t mat_id=0;mat_id<mat_cnt;mat_id++){
         Matrix<real_t>& M = mat->mat[interac_type][mat_id];

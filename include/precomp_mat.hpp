@@ -370,7 +370,7 @@ public:
     case V1_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_m2l->ker_dim;
-      size_t mat_cnt =interacList->ListCount( V_Type);
+      size_t mat_cnt =interacList->rel_coord[V_Type].size();
       for(size_t k=0;k<mat_cnt;k++) Precomp(V_Type, k);
 
       const size_t chld_cnt=1UL<<3;
@@ -421,7 +421,7 @@ public:
   }
 
   void PrecompAll(Mat_Type type) {
-    int mat_cnt=interacList->ListCount(type); // num of relative pts (rel_coord) w.r.t this type
+    int mat_cnt = interacList->rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
     mat[type].resize(mat_cnt);
     if (type == M2M_Type || type == L2L_Type) {
       for(int perm_idx=0; perm_idx<Perm_Count; perm_idx++) PrecompPerm(type, (Perm_Type) perm_idx);
