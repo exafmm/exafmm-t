@@ -1568,54 +1568,52 @@ private:
   }
 
   void M2MSetup(CellsSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
-    if(!multipole_order) return;
-    {
-      setup_data.level=level;
-      setup_data.kernel=kernel->k_m2m;
-      setup_data.interac_type = M2M_Type;
-      setup_data. input_data=&buff[0];
-      setup_data.output_data=&buff[0];
-      std::vector<FMM_Node*>& nodes_in =n_list[0];
-      std::vector<FMM_Node*>& nodes_out=n_list[0];
-      setup_data.nodes_in .clear();
-      setup_data.nodes_out.clear();
-      for(FMM_Node* node : nodes_in)
-        if(node->depth==level+1 && node->pt_cnt[0]) setup_data.nodes_in.push_back(node);
-      for(FMM_Node* node : nodes_out)
-        if(node->depth==level && node->pt_cnt[0]) setup_data.nodes_out.push_back(node);
-    }
-    std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
-    std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    std::vector<Vector<real_t>*>&  input_vector=setup_data. input_vector;  input_vector.clear();
-    std::vector<Vector<real_t>*>& output_vector=setup_data.output_vector; output_vector.clear();
-    for(FMM_Node* node : nodes_in) input_vector.push_back(&(node->FMMData())->upward_equiv);
-    for(FMM_Node* node : nodes_out) output_vector.push_back(&(node->FMMData())->upward_equiv);
+    setup_data.level = level;
+    setup_data.kernel = kernel->k_m2m;
+    setup_data.interac_type = M2M_Type;
+    setup_data.input_data = &buff[0];
+    setup_data.output_data = &buff[0];
+
+    setup_data.nodes_in.clear();
+    setup_data.nodes_out.clear();
+    std::vector<FMM_Node*>& nodes_in = n_list[0];
+    std::vector<FMM_Node*>& nodes_out = n_list[0];
+    for(FMM_Node* node : nodes_in)
+      if(node->depth==level+1 && node->pt_cnt[0]) setup_data.nodes_in.push_back(node);
+    for(FMM_Node* node : nodes_out)
+      if(node->depth==level && node->pt_cnt[0]) setup_data.nodes_out.push_back(node);
+
+    setup_data.input_vector.clear();
+    setup_data.output_vector.clear();
+    for(FMM_Node* node : setup_data.nodes_in)
+      setup_data.input_vector.push_back(&(node->FMMData())->upward_equiv);
+    for(FMM_Node* node : setup_data.nodes_out)
+      setup_data.output_vector.push_back(&(node->FMMData())->upward_equiv);
     SetupInterac(setup_data);
   }
 
   void L2LSetup(CellsSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
-    if(!multipole_order) return;
-    {
-      setup_data.level=level;
-      setup_data.kernel=kernel->k_l2l;
-      setup_data.interac_type = L2L_Type;
-      setup_data. input_data=&buff[1];
-      setup_data.output_data=&buff[1];
-      std::vector<FMM_Node*>& nodes_in =n_list[1];
-      std::vector<FMM_Node*>& nodes_out=n_list[1];
-      setup_data.nodes_in .clear();
-      setup_data.nodes_out.clear();
-      for(FMM_Node* node : nodes_in)
-        if(node->depth==level-1 && node->pt_cnt[1]) setup_data.nodes_in.push_back(node);
-      for(FMM_Node* node : nodes_out)
-        if(node->depth==level && node->pt_cnt[1]) setup_data.nodes_out.push_back(node);
-    }
-    std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
-    std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    std::vector<Vector<real_t>*>&  input_vector=setup_data. input_vector;  input_vector.clear();
-    std::vector<Vector<real_t>*>& output_vector=setup_data.output_vector; output_vector.clear();
-    for(FMM_Node* node : nodes_in) input_vector.push_back(&(node->FMMData())->dnward_equiv);
-    for(FMM_Node* node : nodes_out) output_vector.push_back(&(node->FMMData())->dnward_equiv);
+    setup_data.level = level;
+    setup_data.kernel = kernel->k_l2l;
+    setup_data.interac_type = L2L_Type;
+    setup_data.input_data = &buff[1];
+    setup_data.output_data = &buff[1];
+
+    setup_data.nodes_in.clear();
+    setup_data.nodes_out.clear();
+    std::vector<FMM_Node*>& nodes_in =n_list[1];
+    std::vector<FMM_Node*>& nodes_out=n_list[1];
+    for(FMM_Node* node : nodes_in)
+      if(node->depth==level-1 && node->pt_cnt[1]) setup_data.nodes_in.push_back(node);
+    for(FMM_Node* node : nodes_out)
+      if(node->depth==level && node->pt_cnt[1]) setup_data.nodes_out.push_back(node);
+
+    setup_data.input_vector.clear();
+    setup_data.output_vector.clear();
+    for(FMM_Node* node : setup_data.nodes_in)
+      setup_data.input_vector.push_back(&(node->FMMData())->dnward_equiv);
+    for(FMM_Node* node : setup_data.nodes_out)
+      setup_data.output_vector.push_back(&(node->FMMData())->dnward_equiv);
     SetupInterac(setup_data);
   }
 
