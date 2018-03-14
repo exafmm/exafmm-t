@@ -794,28 +794,19 @@ private:
       std::vector<size_t>  input_perm;
       std::vector<size_t> output_perm;
       size_t M_dim0=0, M_dim1=0;
-      size_t precomp_offset=0;
       size_t buff_size=1024l*1024l*1024l;
       if(n_out && n_in) {
         size_t mat_cnt=interacList->ListCount(interac_type);
         std::vector<std::vector<size_t> > precomp_data_offset;
         {
-          struct HeaderData{
-            size_t total_size;
-            size_t      level;
-            size_t   mat_cnt ;
-            size_t  max_depth;
-          };
           std::vector<char>& precomp_data=*setup_data.precomp_data;
-          char* indx_ptr=&precomp_data[0]+precomp_offset;
-          HeaderData& header=*(HeaderData*)indx_ptr;indx_ptr+=sizeof(HeaderData);
-
-          int size = 1 + (2+2)*header.max_depth;
-          for(int i=0; i<header.mat_cnt; i++) {
+          char* indx_ptr=&precomp_data[0];
+          const int l1_l0 = 128;
+          int size = 1 + (2+2)*l1_l0;    // matches the definition in CompactData
+          for(int i=0; i<mat_cnt; i++) {
             std::vector<size_t> temp_data((size_t*)indx_ptr + i*size, (size_t*)indx_ptr + (i+1)*size);
             precomp_data_offset.push_back(temp_data);
           }
-          precomp_offset+=header.total_size;
         }
         FMM_Node*** src_interac_list = new FMM_Node** [n_in];
         for (int i=0; i<n_in; i++) {

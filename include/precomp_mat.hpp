@@ -443,12 +443,6 @@ public:
   }
 
   size_t CompactData(int level, Mat_Type type, std::vector<char>& comp_data){
-    struct HeaderData{
-      size_t total_size;
-      size_t      level;
-      size_t   mat_cnt ;
-      size_t  max_depth;
-    };
     std::vector<Matrix<real_t> >& mat_ = mat[type];
     size_t mat_cnt=mat_.size();
     size_t indx_size=0;
@@ -456,7 +450,6 @@ public:
     size_t l0=0;
     size_t l1=128;
     {
-      indx_size+=sizeof(HeaderData);
       indx_size+=mat_cnt*(1+(2+2)*(l1-l0))*sizeof(size_t);
       for(size_t j=0;j<mat_cnt;j++){
 	Matrix     <real_t>& M = mat[type][j];
@@ -466,11 +459,10 @@ public:
 	for(size_t l=l0;l<l1;l++){
 	  Permutation<real_t>& Pr=getPerm_R(l,type,j);
 	  Permutation<real_t>& Pc=getPerm_C(l,type,j);
+          assert(Pr.Dim() == Pc.Dim());
 	  if(Pr.Dim()>0){
 	    mem_size+=Pr.Dim()*sizeof(size_t);
 	    mem_size+=Pr.Dim()*sizeof(real_t);
-	  }
-	  if(Pc.Dim()>0){
 	    mem_size+=Pc.Dim()*sizeof(size_t);
 	    mem_size+=Pc.Dim()*sizeof(real_t);
 	  }
@@ -480,17 +472,12 @@ public:
     if(comp_data.size() < indx_size+mem_size) comp_data.resize(indx_size+mem_size);
     {
       char* indx_ptr=&comp_data[0];
-      HeaderData& header=*(HeaderData*)indx_ptr; indx_ptr+=sizeof(HeaderData);
       Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
-      header.total_size=indx_size+mem_size;
-      header.     level=level             ;
-      header.  mat_cnt = mat_cnt          ;
-      header. max_depth=l1-l0             ;
       size_t data_offset = indx_size;
       for(size_t j=0;j<mat_cnt;j++){
 	Matrix     <real_t>& M = mat[type][j];
 	offset_indx[j][0]=data_offset; indx_ptr+=sizeof(size_t);
-	data_offset+=M.Dim(0)*M.Dim(1)*sizeof(real_t);
+	data_offset += M.Dim(0)*M.Dim(1)*sizeof(real_t);
 	for(size_t l=l0;l<l1;l++){
 	  Permutation<real_t>& Pr=getPerm_R(l,type,j);
 	  offset_indx[j][1+4*(l-l0)+0]=data_offset;
@@ -506,7 +493,6 @@ public:
       }
     }
     char* indx_ptr=&comp_data[0];
-    indx_ptr+=sizeof(HeaderData);
     Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
     for(size_t j=0;j<mat_cnt;j++){
       Matrix     <real_t>& M = mat[type][j];
