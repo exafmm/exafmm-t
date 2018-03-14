@@ -442,12 +442,6 @@ public:
     }
   }
 
-  inline uintptr_t align_ptr(uintptr_t ptr){
-    static uintptr_t     ALIGN_MINUS_ONE=MEM_ALIGN-1;
-    static uintptr_t NOT_ALIGN_MINUS_ONE=~ALIGN_MINUS_ONE;
-    return ((ptr+ALIGN_MINUS_ONE) & NOT_ALIGN_MINUS_ONE);
-  }
-
   size_t CompactData(int level, Mat_Type type, std::vector<char>& comp_data){
     struct HeaderData{
       size_t total_size;
@@ -455,35 +449,30 @@ public:
       size_t   mat_cnt ;
       size_t  max_depth;
     };
-
     std::vector<Matrix<real_t> >& mat_ = mat[type];
     size_t mat_cnt=mat_.size();
     size_t indx_size=0;
     size_t mem_size=0;
-    int omp_p=omp_get_max_threads();
     size_t l0=0;
     size_t l1=128;
     {
       indx_size+=sizeof(HeaderData);
       indx_size+=mat_cnt*(1+(2+2)*(l1-l0))*sizeof(size_t);
-      indx_size=align_ptr(indx_size);
-
       for(size_t j=0;j<mat_cnt;j++){
 	Matrix     <real_t>& M = mat[type][j];
 	if(M.Dim(0)>0 && M.Dim(1)>0){
-	  mem_size+=M.Dim(0)*M.Dim(1)*sizeof(real_t); mem_size=align_ptr(mem_size);
+	  mem_size+=M.Dim(0)*M.Dim(1)*sizeof(real_t);
 	}
-
 	for(size_t l=l0;l<l1;l++){
 	  Permutation<real_t>& Pr=getPerm_R(l,type,j);
 	  Permutation<real_t>& Pc=getPerm_C(l,type,j);
 	  if(Pr.Dim()>0){
-	    mem_size+=Pr.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
-	    mem_size+=Pr.Dim()*sizeof(real_t); mem_size=align_ptr(mem_size);
+	    mem_size+=Pr.Dim()*sizeof(size_t);
+	    mem_size+=Pr.Dim()*sizeof(real_t);
 	  }
 	  if(Pc.Dim()>0){
-	    mem_size+=Pc.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
-	    mem_size+=Pc.Dim()*sizeof(real_t); mem_size=align_ptr(mem_size);
+	    mem_size+=Pc.Dim()*sizeof(size_t);
+	    mem_size+=Pc.Dim()*sizeof(real_t);
 	  }
 	}
       }
@@ -501,49 +490,39 @@ public:
       for(size_t j=0;j<mat_cnt;j++){
 	Matrix     <real_t>& M = mat[type][j];
 	offset_indx[j][0]=data_offset; indx_ptr+=sizeof(size_t);
-	data_offset+=M.Dim(0)*M.Dim(1)*sizeof(real_t); mem_size=align_ptr(mem_size);
+	data_offset+=M.Dim(0)*M.Dim(1)*sizeof(real_t);
 	for(size_t l=l0;l<l1;l++){
 	  Permutation<real_t>& Pr=getPerm_R(l,type,j);
 	  offset_indx[j][1+4*(l-l0)+0]=data_offset;
-	  data_offset+=Pr.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
+	  data_offset+=Pr.Dim()*sizeof(size_t);
 	  offset_indx[j][1+4*(l-l0)+1]=data_offset;
-	  data_offset+=Pr.Dim()*sizeof(real_t); mem_size=align_ptr(mem_size);
+	  data_offset+=Pr.Dim()*sizeof(real_t);
 	  Permutation<real_t>& Pc=getPerm_C(l,type,j);
 	  offset_indx[j][1+4*(l-l0)+2]=data_offset;
-	  data_offset+=Pc.Dim()*sizeof(size_t); mem_size=align_ptr(mem_size);
+	  data_offset+=Pc.Dim()*sizeof(size_t);
 	  offset_indx[j][1+4*(l-l0)+3]=data_offset;
-	  data_offset+=Pc.Dim()*sizeof(real_t); mem_size=align_ptr(mem_size);
+	  data_offset+=Pc.Dim()*sizeof(real_t);
 	}
       }
     }
-#pragma omp parallel for
-    for(int tid=0;tid<omp_p;tid++){
-      char* indx_ptr=&comp_data[0];
-      indx_ptr+=sizeof(HeaderData);
-      Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
-      for(size_t j=0;j<mat_cnt;j++){
-	Matrix     <real_t>& M = mat[type][j];
-	if(M.Dim(0)>0 && M.Dim(1)>0){
-	  size_t a=(M.Dim(0)*M.Dim(1)* tid   )/omp_p;
-	  size_t b=(M.Dim(0)*M.Dim(1)*(tid+1))/omp_p;
-	  memcpy(&comp_data[0]+offset_indx[j][0]+a*sizeof(real_t), &M[0][a], (b-a)*sizeof(real_t));
-	}
-	for(size_t l=l0;l<l1;l++){
-	  Permutation<real_t>& Pr=getPerm_R(l,type,j);
-	  Permutation<real_t>& Pc=getPerm_C(l,type,j);
-	  if(Pr.Dim()>0){
-	    size_t a=(Pr.Dim()* tid   )/omp_p;
-	    size_t b=(Pr.Dim()*(tid+1))/omp_p;
-	    memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+0]+a*sizeof(size_t), &Pr.perm[a], (b-a)*sizeof(size_t));
-	    memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+1]+a*sizeof(real_t), &Pr.scal[a], (b-a)*sizeof(real_t));
-	  }
-	  if(Pc.Dim()>0){
-	    size_t a=(Pc.Dim()* tid   )/omp_p;
-	    size_t b=(Pc.Dim()*(tid+1))/omp_p;
-	    memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+2]+a*sizeof(size_t), &Pc.perm[a], (b-a)*sizeof(size_t));
-	    memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+3]+a*sizeof(real_t), &Pc.scal[a], (b-a)*sizeof(real_t));
-	  }
-	}
+    char* indx_ptr=&comp_data[0];
+    indx_ptr+=sizeof(HeaderData);
+    Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
+    for(size_t j=0;j<mat_cnt;j++){
+      Matrix     <real_t>& M = mat[type][j];
+      if(M.Dim(0)>0 && M.Dim(1)>0)
+        memcpy(&comp_data[0]+offset_indx[j][0], &M[0][0], M.Dim(0)*M.Dim(1)*sizeof(real_t));
+      for(size_t l=l0;l<l1;l++){
+        Permutation<real_t>& Pr=getPerm_R(l,type,j);
+        Permutation<real_t>& Pc=getPerm_C(l,type,j);
+        if(Pr.Dim()>0){
+          memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+0], &Pr.perm[0], Pr.Dim()*sizeof(size_t));
+          memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+1], &Pr.scal[0], Pr.Dim()*sizeof(real_t));
+        }
+        if(Pc.Dim()>0){
+          memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+2], &Pc.perm[0], Pc.Dim()*sizeof(size_t));
+          memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+3], &Pc.scal[0], Pc.Dim()*sizeof(real_t));
+        }
       }
     }
     return indx_size+mem_size;
