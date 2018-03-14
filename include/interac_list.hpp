@@ -7,7 +7,7 @@ class InteracList{
 public:
   std::vector<std::vector<ivec3> > rel_coord;
   std::vector<std::vector<int> > hash_lut;     // coord_hash -> index in rel_coord
-  std::vector<std::vector<size_t> > interac_class;  // index -> index of abs_coord of the same class
+  std::vector<std::vector<int> > interac_class;  // index -> index of abs_coord of the same class
   std::vector<std::vector<std::vector<Perm_Type> > > perm_list; // index -> list of permutations needed in order to change from abs_coord to rel_coord
 
   InteracList(){}
@@ -42,7 +42,7 @@ public:
     const int max_hash = 2000;
     int n1 = (max_r*2)/step+1;
     int n2 = (min_r*2)/step-1;
-    size_t count=n1*n1*n1-(min_r>0?n2*n2*n2:0);
+    int count=n1*n1*n1-(min_r>0?n2*n2*n2:0);
     std::vector<ivec3>& M=rel_coord[t];
     M.resize(count);
     hash_lut[t].assign(max_hash, -1);
@@ -59,14 +59,14 @@ public:
 	  }
     // class count -> class count displacement
     scan(&class_size_hash[0], &class_disp_hash[0], max_hash);
-    size_t count_=0;
+    int count_=0;
     for(int k=-max_r;k<=max_r;k+=step)
       for(int j=-max_r;j<=max_r;j+=step)
 	for(int i=-max_r;i<=max_r;i+=step)
 	  if(abs(i)>=min_r || abs(j)>=min_r || abs(k) >= min_r){
 	    int c[3]={i,j,k};
 	    int& idx=class_disp_hash[class_hash(c)]; // idx is the displ of current class
-	    for(size_t l=0;l<3;l++) M[idx][l]=c[l];  // store the sorted coords
+	    for(int l=0;l<3;l++) M[idx][l]=c[l];  // store the sorted coords
 	    hash_lut[t][coord_hash(c)]=idx;          // store mapping: hash -> index in rel_coord
 	    count_++;
 	    idx++;
@@ -74,7 +74,7 @@ public:
     assert(count_==count);
     interac_class[t].resize(count);
     perm_list[t].resize(count);
-    for(size_t j=0;j<count;j++){         // j is now the index of sorted rel_coord
+    for(int j=0;j<count;j++){         // j is now the index of sorted rel_coord
       if(M[j][0]<0) perm_list[t][j].push_back(ReflecX);
       if(M[j][1]<0) perm_list[t][j].push_back(ReflecY);
       if(M[j][2]<0) perm_list[t][j].push_back(ReflecZ);
