@@ -768,13 +768,9 @@ private:
   }
 
   void SetupPrecomp(CellsSetup& setup_data){
-    if(setup_data.precomp_data==NULL || setup_data.level>MAX_DEPTH) return;
+    assert(setup_data.precomp_data && setup_data.level < MAX_DEPTH);
     Profile::Tic("SetupPrecomp",true,25);
-    size_t precomp_offset=0;
-    int level=setup_data.level;
-    std::vector<char>& precomp_data=*setup_data.precomp_data;
-    Mat_Type& interac_type = setup_data.interac_type;
-    precomp_offset=mat->CompactData(level, interac_type, precomp_data);
+    mat->CompactData(setup_data.level, setup_data.interac_type, *setup_data.precomp_data);
     Profile::Toc();
   }
 
