@@ -1,17 +1,22 @@
 ###TODO
 -------------
-- [x] remove surf_coord & surf_value from FMM_Node
-- [ ] remove unnecessary/unused permutation type
-- [x] make Precompmat members public instead of calling access functions
+- [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution
+- [ ] Vector -> std::vector with customized allocator 
+- [ ] decide whether to keep permutation type
+- [ ] simplify precompmat header
+  - simplify CompactData for M2M & L2L:
+    vector<char> comp_data -> vector<real_t> mat, Pr_scal, Pc_scal, vector<int> offset, Pr_perm, Pc_perm
+  - generate M2M_V_Type & M2M_U_Type in a single run, same for L2L_V & L2L_U
+- [ ] split fmm_tree header -> tree_construction, eval_setup, eval
+  - remove circular dependency of classes, use forward declaration if necessary
+- [ ] Flatten the class hierarchy
 - [ ] write down math equations for precomputation
+
+- [x] remove surf_coord & surf_value from FMM_Node
+- [x] make Precompmat members public instead of calling access functions
 - [x] remove "ghost"
 - [x] remove "scatter" related members and functions
-- [ ] use exafmm hilbert id header (if necessary)
-- [ ] remove gradient kernel related stuff
-- [ ] assume source == target
-- [ ] Flatten the class hierarchy
-- [ ] Use Plummer distribution
-
+- [x] Real_t -> real_t
 - [x] UC2UE0 -> M2M_V
 - [x] UC2UE1 -> M2M_U
 - [x] DC2DE0 -> L2L_V
@@ -24,7 +29,7 @@
 - [ ] X -> P2L
 - [ ] U -> P2P
 - [ ] V -> M2L
-- [x] Real_t -> real_t
+- [ ] assume source == target
 - [ ] size_t -> int
 - [ ] Matrix -> std::vector(std::vector) for non-Real_t
 - [x] Remove SVD5 and other SVD functions that use it
