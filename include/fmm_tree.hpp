@@ -808,39 +808,19 @@ private:
             precomp_data_offset.push_back(temp_data);
           }
         }
-        FMM_Node*** src_interac_list = new FMM_Node** [n_in];
-        for (int i=0; i<n_in; i++) {
-          src_interac_list[i] = new FMM_Node* [mat_cnt];
-          for (int j=0; j<mat_cnt; j++) {
-            src_interac_list[i][j] = NULL;
+        std::vector<std::vector<FMM_Node*> > trg_interac_list;
+        for(FMM_Node*& node_out : setup_data.nodes_out) {
+          std::vector<FMM_Node*>& interact_nodes = node_out->interac_list[interac_type];
+          for(FMM_Node*& interact_node : interact_nodes) {
+            if(interact_node != NULL) interact_node->node_id = n_in;
           }
+          trg_interac_list.push_back(interact_nodes);
         }
-        FMM_Node*** trg_interac_list = new FMM_Node** [n_out];
-        for (int i=0; i<n_out; i++) {
-          trg_interac_list[i] = new FMM_Node* [mat_cnt];
-          for (int j=0; j<mat_cnt; j++) {
-            trg_interac_list[i][j] = NULL;
-          }
-        }
-#pragma omp parallel for
-        for(size_t i=0;i<n_out;i++){
-          if((level==-1 || nodes_out[i]->depth==level)){
-            std::vector<FMM_Node*>& lst=nodes_out[i]->interac_list[interac_type];
-            for (int l=0; l<lst.size(); l++) {
-              trg_interac_list[i][l] = lst[l];
-            }
-            assert(lst.size()==mat_cnt);
-          }
-        }
-#pragma omp parallel for
-        for(size_t i=0;i<n_out;i++){
-          for(size_t j=0;j<mat_cnt;j++)
-          if(trg_interac_list[i][j]!=NULL){
-            trg_interac_list[i][j]->node_id=n_in;
-          }
-        }
-#pragma omp parallel for
-        for(size_t i=0;i<n_in ;i++) nodes_in[i]->node_id=i;
+        int i = 0;
+        for(FMM_Node*& node_in : setup_data.nodes_in) node_in->node_id = i++;
+
+        std::vector<std::vector<FMM_Node*> > src_interac_list(setup_data.nodes_in.size());
+        for(auto& nodes : src_interac_list) nodes.resize(mat_cnt, NULL);
 #pragma omp parallel for
         for(size_t i=0;i<n_out;i++){
           for(size_t j=0;j<mat_cnt;j++){
@@ -923,14 +903,6 @@ private:
             }
           }
         }
-        for (int i=0; i<n_in; i++) {
-          delete[] src_interac_list[i];
-        }
-        delete[] src_interac_list;
-        for (int i=0; i<n_out; i++) {
-          delete[] trg_interac_list[i];
-        }
-        delete[] trg_interac_list;
       }
 
       if(dev_buffer.Dim()<buff_size) dev_buffer.Resize(buff_size);
