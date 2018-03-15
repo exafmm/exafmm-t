@@ -786,6 +786,12 @@ private:
     size_t n_in =nodes_in .size();
     size_t n_out=nodes_out.size();
     if(setup_data.precomp_data->size()==0) SetupPrecomp(setup_data);
+
+    Matrix<real_t>& M0 = mat->ClassMat(interac_type, 0);
+    int M_dim0 = M0.Dim(0);
+    int M_dim1 = M0.Dim(1);
+    size_t mat_cnt=interacList->rel_coord[interac_type].size();
+
     Profile::Tic("Interac-Data",true,25);
     {
       std::vector<size_t> interac_mat;
@@ -793,10 +799,8 @@ private:
       std::vector<size_t> interac_blk;
       std::vector<size_t>  input_perm;
       std::vector<size_t> output_perm;
-      size_t M_dim0=0, M_dim1=0;
-      size_t buff_size=1024l*1024l*1024l;
+      size_t buff_size = 1024l*1024l*1024l;      // 1G buffer
       if(n_out && n_in) {
-        size_t mat_cnt=interacList->rel_coord[interac_type].size();
         std::vector<std::vector<size_t> > precomp_data_offset;
         {
           std::vector<char>& precomp_data=*setup_data.precomp_data;
@@ -808,103 +812,66 @@ private:
             precomp_data_offset.push_back(temp_data);
           }
         }
-        std::vector<std::vector<FMM_Node*> > trg_interac_list;
-        for(FMM_Node*& node_out : setup_data.nodes_out) {
-          std::vector<FMM_Node*>& interact_nodes = node_out->interac_list[interac_type];
-          for(FMM_Node*& interact_node : interact_nodes) {
-            if(interact_node != NULL) interact_node->node_id = n_in;
-          }
-          trg_interac_list.push_back(interact_nodes);
-        }
         int i = 0;
-        for(FMM_Node*& node_in : setup_data.nodes_in) node_in->node_id = i++;
-
+        for(FMM_Node* node_in : setup_data.nodes_in) node_in->node_id = i++;
+        std::vector<std::vector<FMM_Node*> > trg_interac_list(setup_data.nodes_out.size());  // n_out*mat_cnt FMM_Node pointers
         std::vector<std::vector<FMM_Node*> > src_interac_list(setup_data.nodes_in.size());
         for(auto& nodes : src_interac_list) nodes.resize(mat_cnt, NULL);
+        
 #pragma omp parallel for
-        for(size_t i=0;i<n_out;i++){
-          for(size_t j=0;j<mat_cnt;j++){
-            if(trg_interac_list[i][j]!=NULL){
-              if(trg_interac_list[i][j]->node_id==n_in){
-                trg_interac_list[i][j]=NULL;
-              }else{
-                src_interac_list[trg_interac_list[i][j]->node_id][j]=nodes_out[i];
-              }
+        for(int i=0; i<n_out; i++) {           // build index mapping bwt nodes_in & nodes_out
+          std::vector<FMM_Node*>& interact_nodes = nodes_out[i]->interac_list[interac_type];
+          assert(interact_nodes.size() == mat_cnt);
+          trg_interac_list[i] = interact_nodes;
+          for(int j=0; j<mat_cnt; j++) {
+            if(trg_interac_list[i][j] != NULL) {
+              src_interac_list[trg_interac_list[i][j]->node_id][j] = nodes_out[i];
             }
           }
         }
-        std::vector<std::vector<size_t>> interac_dsp(n_out, std::vector<size_t>(mat_cnt));
         std::vector<size_t> interac_blk_dsp(1,0);
-        Matrix<real_t>& M0 = mat->ClassMat(interac_type, 0);
-        M_dim0=M0.Dim(0); M_dim1=M0.Dim(1);
-        {
-          size_t vec_size=(M_dim0+M_dim1)*sizeof(real_t);
-          for(size_t j=0;j<mat_cnt;j++){
-            size_t vec_cnt=0;
-            for(size_t i=0;i<n_out;i++){
-              if(trg_interac_list[i][j]!=NULL) vec_cnt++;
-            }
-            if(buff_size<vec_cnt*vec_size)
-              buff_size=vec_cnt*vec_size;
+        interac_blk_dsp.push_back(mat_cnt);
+        interac_blk.push_back(mat_cnt);
+        
+        size_t interac_dsp_=0;
+        std::vector<std::vector<size_t>> interac_dsp(n_out, std::vector<size_t>(mat_cnt));
+        for(size_t j=0;j<mat_cnt;j++){
+          for(size_t i=0;i<n_out;i++){
+            interac_dsp[i][j]=interac_dsp_;
+            if(trg_interac_list[i][j]!=NULL) interac_dsp_++;
           }
-          size_t interac_dsp_=0;
-          for(size_t j=0;j<mat_cnt;j++){
-            for(size_t i=0;i<n_out;i++){
-              interac_dsp[i][j]=interac_dsp_;
-              if(trg_interac_list[i][j]!=NULL) interac_dsp_++;
-            }
-            if(interac_dsp_*vec_size>buff_size) {
-              interac_blk.push_back(j-interac_blk_dsp.back());
-              interac_blk_dsp.push_back(j);
+          interac_mat.push_back(precomp_data_offset[interacList->interac_class[interac_type][j]][0]);
+          interac_cnt.push_back(interac_dsp_-interac_dsp[0][j]);
+        }
+        assert((M_dim0+M_dim1)*sizeof(real_t) * interac_dsp_ < buff_size);    // assert the buffer size we need is smaller than 1G
 
-              size_t offset=interac_dsp[0][j];
-              for(size_t i=0;i<n_out;i++) interac_dsp[i][j]-=offset;
-              interac_dsp_-=offset;
-              assert(interac_dsp_*vec_size<=buff_size);
-            }
-            interac_mat.push_back(precomp_data_offset[interacList->interac_class[interac_type][j]][0]);
-            interac_cnt.push_back(interac_dsp_-interac_dsp[0][j]);
-          }
-          interac_blk.push_back(mat_cnt-interac_blk_dsp.back());
-          interac_blk_dsp.push_back(mat_cnt);
-        }
-        {
-          size_t vec_size=M_dim0;
-          for(size_t i=0;i<n_out;i++) nodes_out[i]->node_id=i;
-          for(size_t k=1;k<interac_blk_dsp.size();k++){
-            for(size_t i=0;i<n_in ;i++){
-              for(size_t j=interac_blk_dsp[k-1];j<interac_blk_dsp[k];j++){
-                FMM_Node* trg_node=src_interac_list[i][j];
-                if(trg_node!=NULL && trg_node->node_id<n_out){
-                  size_t depth=trg_node->depth;
-                  input_perm .push_back(precomp_data_offset[j][1+4*depth+0]);
-                  input_perm .push_back(precomp_data_offset[j][1+4*depth+1]);
-                  input_perm .push_back(interac_dsp[trg_node->node_id][j]*vec_size*sizeof(real_t));
-                  input_perm .push_back((size_t)(& input_vector[i][0][0]- input_data[0]));
-                  assert(input_vector[i]->Dim()==vec_size);
-                }
-              }
+        for(size_t i=0; i<n_out; i++) nodes_out[i]->node_id = i;
+        for(size_t i=0; i<n_in ; i++) {
+          for(size_t j=0; j<mat_cnt; j++) {
+            FMM_Node* trg_node=src_interac_list[i][j];
+            if(trg_node != NULL) {
+              size_t depth=trg_node->depth;
+              input_perm .push_back(precomp_data_offset[j][1+4*depth+0]);
+              input_perm .push_back(precomp_data_offset[j][1+4*depth+1]);
+              input_perm .push_back(interac_dsp[trg_node->node_id][j]*M_dim0*sizeof(real_t));
+              input_perm .push_back((size_t)(& input_vector[i][0][0]- input_data[0]));
+              assert(input_vector[i]->Dim() == M_dim0);
             }
           }
         }
-        {
-          size_t vec_size=M_dim1;
-          for(size_t k=1;k<interac_blk_dsp.size();k++){
-            for(size_t i=0;i<n_out;i++){
-              for(size_t j=interac_blk_dsp[k-1];j<interac_blk_dsp[k];j++){
-                if(trg_interac_list[i][j]!=NULL){
-                  size_t depth=nodes_out[i]->depth;
-                  output_perm.push_back(precomp_data_offset[j][1+4*depth+2]);
-                  output_perm.push_back(precomp_data_offset[j][1+4*depth+3]);
-                  output_perm.push_back(interac_dsp[i][j]*vec_size*sizeof(real_t));
-                  output_perm.push_back((size_t)(&output_vector[i][0][0]-output_data[0]));
-                }
-              }
+
+        for(size_t i=0; i<n_out; i++) {
+          for(size_t j=0; j<mat_cnt; j++) {
+            if(trg_interac_list[i][j] != NULL) {
+              size_t depth=nodes_out[i]->depth;
+              output_perm.push_back(precomp_data_offset[j][1+4*depth+2]);
+              output_perm.push_back(precomp_data_offset[j][1+4*depth+3]);
+              output_perm.push_back(interac_dsp[i][j]*M_dim1*sizeof(real_t));
+              output_perm.push_back((size_t)(&output_vector[i][0][0]-output_data[0]));
             }
           }
         }
       }
-
       if(dev_buffer.Dim()<buff_size) dev_buffer.Resize(buff_size);
       setup_data.M_dim0 = M_dim0;
       setup_data.M_dim1 = M_dim1;
