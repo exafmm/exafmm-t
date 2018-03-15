@@ -72,7 +72,6 @@ namespace pvfmm{
     Mat_Type interac_type;
     std::vector<Vector<real_t>*> input_vector;
     std::vector<Vector<real_t>*> output_vector;
-    std::vector<size_t> interac_blk;
     std::vector<size_t> interac_cnt;
     std::vector<size_t> interac_mat;
     std::vector<size_t>  input_perm;
@@ -796,7 +795,6 @@ private:
     {
       std::vector<size_t> interac_mat;
       std::vector<size_t> interac_cnt;
-      std::vector<size_t> interac_blk;
       std::vector<size_t>  input_perm;
       std::vector<size_t> output_perm;
       size_t buff_size = 1024l*1024l*1024l;      // 1G buffer
@@ -829,9 +827,6 @@ private:
             }
           }
         }
-        std::vector<size_t> interac_blk_dsp(1,0);
-        interac_blk_dsp.push_back(mat_cnt);
-        interac_blk.push_back(mat_cnt);
         
         size_t interac_dsp_=0;
         std::vector<std::vector<size_t>> interac_dsp(n_out, std::vector<size_t>(mat_cnt));
@@ -875,7 +870,6 @@ private:
       if(dev_buffer.Dim()<buff_size) dev_buffer.Resize(buff_size);
       setup_data.M_dim0 = M_dim0;
       setup_data.M_dim1 = M_dim1;
-      setup_data.interac_blk = interac_blk;
       setup_data.interac_cnt = interac_cnt;
       setup_data.interac_mat = interac_mat;
       setup_data.input_perm = input_perm;
@@ -1977,91 +1971,74 @@ private:
   }
 
   void EvalList(CellsSetup& setup_data){
-    if(setup_data.interac_cnt.empty()){
-      return;
-    }
-    Profile::Tic("Host2Device",false,25);
+    if(setup_data.interac_cnt.empty()) return;
     char* buff = dev_buffer.data_ptr;
     char* precomp_data = &(*setup_data.precomp_data)[0];
     real_t* input_data = setup_data.input_data->data_ptr;
     real_t* output_data = setup_data.output_data->data_ptr;
-    Profile::Toc();
+    size_t mat_cnt = interacList->rel_coord[setup_data.interac_type].size();
     Profile::Tic("DeviceComp",false,20);
     {
       size_t M_dim0 = setup_data.M_dim0;
       size_t M_dim1 = setup_data.M_dim1;
-      Vector<size_t> interac_blk = setup_data.interac_blk;
       Vector<size_t> interac_cnt = setup_data.interac_cnt;
       Vector<size_t> interac_mat = setup_data.interac_mat;
       Vector<size_t>  input_perm = setup_data.input_perm;
       Vector<size_t> output_perm = setup_data.output_perm;
-      {
-        int omp_p=omp_get_max_threads();
-        size_t interac_indx=0;
-        size_t interac_blk_dsp=0;
-        for(size_t k=0;k<interac_blk.Dim();k++){
-          size_t vec_cnt=0;
-          for(size_t j=interac_blk_dsp;j<interac_blk_dsp+interac_blk[k];j++) vec_cnt+=interac_cnt[j];
-          if(vec_cnt==0){
-            interac_blk_dsp += interac_blk[k];
-            continue;
-          }
-          char* buff_in =buff;
-          char* buff_out=buff+vec_cnt*M_dim0*sizeof(real_t);
+
+      int omp_p=omp_get_max_threads();
+      size_t vec_cnt=0;
+      for(size_t j=0; j<mat_cnt; j++) vec_cnt += interac_cnt[j];
+      char* buff_in =buff;
+      char* buff_out=buff+vec_cnt*M_dim0*sizeof(real_t);
+
 #pragma omp parallel for
-          for(int tid=0;tid<omp_p;tid++){
-            size_t a=( tid   *vec_cnt)/omp_p;
-            size_t b=((tid+1)*vec_cnt)/omp_p;
-            for(size_t i=a;i<b;i++){
-              const size_t*  perm=(size_t*)(precomp_data+input_perm[(interac_indx+i)*4+0]);
-              const real_t*  scal=(real_t*)(precomp_data+input_perm[(interac_indx+i)*4+1]);
-              const real_t* v_in =(real_t*)(  input_data+input_perm[(interac_indx+i)*4+3]);
-              real_t*       v_out=(real_t*)(     buff_in+input_perm[(interac_indx+i)*4+2]);
-              for(size_t j=0;j<M_dim0;j++ ){
-                v_out[j]=v_in[perm[j]]*scal[j];
-              }
-            }
-          }
-          size_t vec_cnt0=0;
-          for(size_t j=interac_blk_dsp;j<interac_blk_dsp+interac_blk[k];){
-            size_t vec_cnt1=0;
-            size_t interac_mat0=interac_mat[j];
-            for(;j<interac_blk_dsp+interac_blk[k] && interac_mat[j]==interac_mat0;j++) vec_cnt1+=interac_cnt[j];
-            Matrix<real_t> M(M_dim0, M_dim1, (real_t*)(precomp_data+interac_mat0), false);
+      for(size_t i=0; i<vec_cnt; i++) {
+        const size_t*  perm=(size_t*)(precomp_data+input_perm[i*4+0]);
+        const real_t*  scal=(real_t*)(precomp_data+input_perm[i*4+1]);
+        const real_t* v_in =(real_t*)(  input_data+input_perm[i*4+3]);
+        real_t*       v_out=(real_t*)(     buff_in+input_perm[i*4+2]);
+        for(size_t j=0; j<M_dim0; j++) {
+          v_out[j] = v_in[perm[j]]*scal[j];
+        }
+      }
+
+      size_t vec_cnt0=0;
+      for(size_t j=0; j<mat_cnt; ){
+        size_t vec_cnt1=0;
+        size_t interac_mat0=interac_mat[j];
+        for(; j<mat_cnt && interac_mat[j]==interac_mat0; j++) vec_cnt1+=interac_cnt[j];
+        Matrix<real_t> M(M_dim0, M_dim1, (real_t*)(precomp_data+interac_mat0), false);
 #pragma omp parallel for
-            for(int tid=0;tid<omp_p;tid++){
-              size_t a=(vec_cnt1*(tid  ))/omp_p;
-              size_t b=(vec_cnt1*(tid+1))/omp_p;
-              Matrix<real_t> Ms(b-a, M_dim0, (real_t*)(buff_in +M_dim0*vec_cnt0*sizeof(real_t))+M_dim0*a, false);
-              Matrix<real_t> Mt(b-a, M_dim1, (real_t*)(buff_out+M_dim1*vec_cnt0*sizeof(real_t))+M_dim1*a, false);
-              Matrix<real_t>::GEMM(Mt,Ms,M);
-            }
-            vec_cnt0+=vec_cnt1;
-          }
+        for(int tid=0;tid<omp_p;tid++){
+          size_t a=(vec_cnt1*(tid  ))/omp_p;
+          size_t b=(vec_cnt1*(tid+1))/omp_p;
+          Matrix<real_t> Ms(b-a, M_dim0, (real_t*)(buff_in +M_dim0*vec_cnt0*sizeof(real_t))+M_dim0*a, false);
+          Matrix<real_t> Mt(b-a, M_dim1, (real_t*)(buff_out+M_dim1*vec_cnt0*sizeof(real_t))+M_dim1*a, false);
+          Matrix<real_t>::GEMM(Mt,Ms,M);
+        }
+        vec_cnt0+=vec_cnt1;
+      }
 #pragma omp parallel for
-          for(int tid=0;tid<omp_p;tid++){
-            size_t a=( tid   *vec_cnt)/omp_p;
-            size_t b=((tid+1)*vec_cnt)/omp_p;
-            if(tid>      0 && a<vec_cnt){
-              size_t out_ptr=output_perm[(interac_indx+a)*4+3];
-              if(tid>      0) while(a<vec_cnt && out_ptr==output_perm[(interac_indx+a)*4+3]) a++;
-            }
-            if(tid<omp_p-1 && b<vec_cnt){
-              size_t out_ptr=output_perm[(interac_indx+b)*4+3];
-              if(tid<omp_p-1) while(b<vec_cnt && out_ptr==output_perm[(interac_indx+b)*4+3]) b++;
-            }
-            for(size_t i=a;i<b;i++){ // Compute permutations.
-              const size_t*  perm=(size_t*)(precomp_data+output_perm[(interac_indx+i)*4+0]);
-              const real_t*  scal=(real_t*)(precomp_data+output_perm[(interac_indx+i)*4+1]);
-              const real_t* v_in =(real_t*)(    buff_out+output_perm[(interac_indx+i)*4+2]);
-              real_t*       v_out=(real_t*)( output_data+output_perm[(interac_indx+i)*4+3]);
-              for(size_t j=0;j<M_dim1;j++ ){
-                v_out[j]+=v_in[perm[j]]*scal[j];
-              }
-            }
+      for(int tid=0;tid<omp_p;tid++){
+        size_t a=( tid   *vec_cnt)/omp_p;
+        size_t b=((tid+1)*vec_cnt)/omp_p;
+        if(tid>      0 && a<vec_cnt){
+          size_t out_ptr=output_perm[a*4+3];
+          if(tid>      0) while(a<vec_cnt && out_ptr==output_perm[a*4+3]) a++;
+        }
+        if(tid<omp_p-1 && b<vec_cnt){
+          size_t out_ptr=output_perm[b*4+3];
+          if(tid<omp_p-1) while(b<vec_cnt && out_ptr==output_perm[b*4+3]) b++;
+        }
+        for(size_t i=a;i<b;i++){ // Compute permutations.
+          const size_t*  perm=(size_t*)(precomp_data+output_perm[i*4+0]);
+          const real_t*  scal=(real_t*)(precomp_data+output_perm[i*4+1]);
+          const real_t* v_in =(real_t*)(    buff_out+output_perm[i*4+2]);
+          real_t*       v_out=(real_t*)( output_data+output_perm[i*4+3]);
+          for(size_t j=0;j<M_dim1;j++ ){
+            v_out[j]+=v_in[perm[j]]*scal[j];
           }
-          interac_indx+=vec_cnt;
-          interac_blk_dsp+=interac_blk[k];
         }
       }
     }
