@@ -1,5 +1,6 @@
 #ifndef pvfmm_h
 #define pvfmm_h
+#include "align.h"
 #include "vector.hpp"
 #include "matrix.hpp"
 #include "vec.h"
@@ -40,6 +41,8 @@ namespace pvfmm{
   //! SIMD vector types for AVX512, AVX, and SSE
   const int NSIMD = SIMD_BYTES / int(sizeof(real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
   typedef vec<NSIMD,real_t> simdvec;                   //!< SIMD vector type
+  typedef AlignedAllocator<real_t, MEM_ALIGN> RealAllocator;
+  typedef std::vector<real_t, RealAllocator> RealVec;
 
   fft_plan vprecomp_fftplan;
   bool vprecomp_fft_flag;
