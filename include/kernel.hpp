@@ -211,84 +211,39 @@ void gradientP2P(Matrix<real_t>& src_coord, Matrix<real_t>& src_value, Matrix<re
 void laplaceP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt, real_t* v_trg, bool grad=false){
 int SRC_DIM = 1;
 int TRG_DIM = (grad) ? 3 : 1;
-#if FLOAT
-  int VecLen=8;
-#else
-  int VecLen=4;
-#endif
-#define STACK_BUFF_SIZE 4096
-  real_t stack_buff[STACK_BUFF_SIZE+MEM_ALIGN];
+
   real_t* buff=NULL;
   Matrix<real_t> src_coord;
   Matrix<real_t> src_value;
   Matrix<real_t> trg_coord;
   Matrix<real_t> trg_value;
   {
-    size_t src_cnt_, trg_cnt_;
-    src_cnt_=((src_cnt+VecLen-1)/VecLen)*VecLen;
-    trg_cnt_=((trg_cnt+VecLen-1)/VecLen)*VecLen;
-    size_t buff_size=src_cnt_*(3+SRC_DIM)+
-                     trg_cnt_*(3+TRG_DIM);
-    if(buff_size>STACK_BUFF_SIZE){
-      int err = posix_memalign((void**)&buff, MEM_ALIGN, buff_size*sizeof(real_t));
-    }
-    real_t* buff_ptr=buff;
-    if(!buff_ptr){
-      uintptr_t ptr=(uintptr_t)stack_buff;
-      static uintptr_t     ALIGN_MINUS_ONE=MEM_ALIGN-1;
-      static uintptr_t NOT_ALIGN_MINUS_ONE=~ALIGN_MINUS_ONE;
-      ptr=((ptr+ALIGN_MINUS_ONE) & NOT_ALIGN_MINUS_ONE);
-      buff_ptr=(real_t*)ptr;
-    }
-    src_coord.ReInit(3, src_cnt_,buff_ptr,false);  buff_ptr+=3*src_cnt_;
-    src_value.ReInit(  SRC_DIM, src_cnt_,buff_ptr,false);  buff_ptr+=  SRC_DIM*src_cnt_;
-    trg_coord.ReInit(3, trg_cnt_,buff_ptr,false);  buff_ptr+=3*trg_cnt_;
-    trg_value.ReInit(  TRG_DIM, trg_cnt_,buff_ptr,false);
-    {
-      size_t i=0;
-      for(   ;i<src_cnt ;i++){
-        for(size_t j=0;j<3;j++){
-          src_coord[j][i]=r_src[i*3+j];
-        }
-      }
-      for(   ;i<src_cnt_;i++){
-        for(size_t j=0;j<3;j++){
-          src_coord[j][i]=0;
-        }
+    size_t buff_size = src_cnt*(3+SRC_DIM) + trg_cnt*(3+TRG_DIM);
+    int err = posix_memalign((void**)&buff, MEM_ALIGN, buff_size*sizeof(real_t));
+real_t* buff_ptr = buff;
+
+    src_coord.ReInit(3, src_cnt,buff_ptr,false);  buff_ptr+=3*src_cnt;
+    src_value.ReInit(  SRC_DIM, src_cnt,buff_ptr,false);  buff_ptr+=  SRC_DIM*src_cnt;
+    trg_coord.ReInit(3, trg_cnt,buff_ptr,false);  buff_ptr+=3*trg_cnt;
+    trg_value.ReInit(  TRG_DIM, trg_cnt,buff_ptr,false);
+    for(int i=0;i<src_cnt ;i++){
+      for(size_t j=0;j<3;j++){
+        src_coord[j][i]=r_src[i*3+j];
       }
     }
-    {
-      size_t i=0;
-      for(   ;i<src_cnt ;i++){
-        for(size_t j=0;j<SRC_DIM;j++){
-          src_value[j][i]=v_src[i*SRC_DIM+j];
-        }
-      }
-      for(   ;i<src_cnt_;i++){
-        for(size_t j=0;j<SRC_DIM;j++){
-          src_value[j][i]=0;
-        }
+    for(int i=0;i<src_cnt ;i++){
+      for(size_t j=0;j<SRC_DIM;j++){
+        src_value[j][i]=v_src[i*SRC_DIM+j];
       }
     }
-    {
-      size_t i=0;
-      for(   ;i<trg_cnt ;i++){
-        for(size_t j=0;j<3;j++){
-          trg_coord[j][i]=r_trg[i*3+j];
-        }
-      }
-      for(   ;i<trg_cnt_;i++){
-        for(size_t j=0;j<3;j++){
-          trg_coord[j][i]=0;
-        }
+    for(int i=0;i<trg_cnt ;i++){
+      for(size_t j=0;j<3;j++){
+        trg_coord[j][i]=r_trg[i*3+j];
       }
     }
-    {
-      size_t i=0;
-      for(   ;i<trg_cnt_;i++){
-        for(size_t j=0;j<TRG_DIM;j++){
-          trg_value[j][i]=0;
-        }
+    for(int i=0;i<trg_cnt;i++){
+      for(size_t j=0;j<TRG_DIM;j++){
+        trg_value[j][i]=0;
       }
     }
   }
@@ -303,6 +258,7 @@ int TRG_DIM = (grad) ? 3 : 1;
   }
   if(buff){
     free(buff);
+//std::cout << "use buff" << std::endl;
   }
 }
 
