@@ -2389,36 +2389,33 @@ public:
 
   void CheckFMMOutput(std::string t_name){
     int np=omp_get_max_threads();
-    int myrank=0, p=1;
 
     std::vector<real_t> src_coord;
     std::vector<real_t> src_value;
     FMM_Node* n=root_node;
     while(n!=NULL){
       if(n->IsLeaf()){
-        pvfmm::Vector<real_t>& coord_vec=n->src_coord;
-        pvfmm::Vector<real_t>& value_vec=n->src_value;
+        Vector<real_t>& coord_vec=n->src_coord;
+        Vector<real_t>& value_vec=n->src_value;
         for(size_t i=0;i<coord_vec.Dim();i++) src_coord.push_back(coord_vec[i]);
         for(size_t i=0;i<value_vec.Dim();i++) src_value.push_back(value_vec[i]);
       }
       n=static_cast<FMM_Node*>(PreorderNxt(n));
     }
-    long long src_cnt=src_coord.size()/3;
-    long long val_cnt=src_value.size();
-    if(src_cnt==0) return;
-    int dof=val_cnt/src_cnt/kernel->ker_dim[0];
-    int trg_dof=dof*kernel->ker_dim[1];
+    size_t src_cnt = src_coord.size()/3;
+
+    int trg_dof = kernel->ker_dim[1];
     std::vector<real_t> trg_coord;
     std::vector<real_t> trg_poten_fmm;
+    size_t step_size = 1 + src_cnt*src_cnt*1e-9;
+    n = root_node;
     long long trg_iter=0;
-    size_t step_size=1+src_cnt*src_cnt*1e-9/p;
-    n=root_node;
     while(n!=NULL){
       if(n->IsLeaf()){
-        pvfmm::Vector<real_t>& coord_vec=n->trg_coord;
-        pvfmm::Vector<real_t>& poten_vec=n->trg_value;
-        for(size_t i=0;i<coord_vec.Dim()/3          ;i++){
-          if(trg_iter%step_size==0){
+        Vector<real_t>& coord_vec=n->trg_coord;
+        Vector<real_t>& poten_vec=n->trg_value;
+        for(size_t i=0; i<coord_vec.Dim()/3; i++){
+          if(trg_iter%step_size == 0){
             for(int j=0;j<3        ;j++) trg_coord    .push_back(coord_vec[i*3        +j]);
             for(int j=0;j<trg_dof  ;j++) trg_poten_fmm.push_back(poten_vec[i*trg_dof  +j]);
           }
@@ -2427,11 +2424,11 @@ public:
       }
       n=static_cast<FMM_Node*>(PreorderNxt(n));
     }
-    int trg_cnt=trg_coord.size()/3;
-    if(trg_cnt==0) return;
+    size_t trg_cnt = trg_coord.size()/3;
+
     std::vector<real_t> trg_poten_dir(trg_cnt*trg_dof ,0);
     pvfmm::Profile::Tic("N-Body Direct",false,1);
-    #pragma omp parallel for
+#pragma omp parallel for
     for(int i=0;i<np;i++){
       size_t a=(i*trg_cnt)/np;
       size_t b=((i+1)*trg_cnt)/np;
@@ -2447,10 +2444,15 @@ public:
         if(err>max_err) max_err=err;
         if(max>max_) max_=max;
       }
-      if(!myrank){
         std::cout<<"Error      : "<<std::scientific<<max_err/max_<<'\n';
-      }
     }
+    real_t trg_diff = 0, trg_norm = 0.;
+    assert(trg_poten_dir.size() == trg_poten_fmm.size());
+    for(size_t i=0; i<trg_poten_fmm.size(); i++) {
+      trg_diff += (trg_poten_dir[i]-trg_poten_fmm[i])*(trg_poten_dir[i]-trg_poten_fmm[i]);
+      trg_norm += trg_poten_dir[i] * trg_poten_dir[i];
+    }
+    std::cout << "L2 Error   : " << std::scientific << sqrt(trg_diff/trg_norm) << std::endl;
   }
 };
 

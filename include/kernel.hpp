@@ -96,14 +96,12 @@ struct Kernel{
   //                            ...]
   void BuildMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) const{
     memset(k_out, 0, src_cnt*ker_dim[0]*trg_cnt*ker_dim[1]*sizeof(real_t));
-    for(int i=0;i<src_cnt;i++)
-      for(int j=0;j<ker_dim[0];j++){
-	std::vector<real_t> v_src(ker_dim[0],0);
-	v_src[j]=1.0;
+    for(int i=0;i<src_cnt;i++) {
+	std::vector<real_t> v_src(1,1);
         // do P2P: i-th source
 	ker_poten(&r_src[i*3], 1, &v_src[0], r_trg, trg_cnt,
-		  &k_out[(i*ker_dim[0]+j)*trg_cnt*ker_dim[1]]);
-      }
+		  &k_out[i*trg_cnt]);
+    }
   }
 };
 
