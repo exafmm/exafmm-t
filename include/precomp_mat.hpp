@@ -249,7 +249,8 @@ public:
         for(size_t i=0;i<S.Dim(0);i++) S[i][i]=(S[i][i]>eps*max_S*4?1.0/S[i][i]:0.0);
         M_c2e0=V.Transpose()*S;
       }
-      
+      mat[M2M_V_Type][0] = M_c2e0;
+      mat[M2M_U_Type][0] = M_c2e1;
       M=(M_ce2c*M_c2e0)*M_c2e1;
       break;
     }
@@ -289,6 +290,8 @@ public:
         for(size_t i=0;i<S.Dim(0);i++) S[i][i]=(S[i][i]>eps*max_S*4?1.0/S[i][i]:0.0);
         M_c2e0=V.Transpose()*S;
       } 
+      mat[L2L_V_Type][0] = M_c2e0;
+      mat[L2L_U_Type][0] = M_c2e1;
 
       Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
       std::vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
