@@ -691,47 +691,18 @@ private:
     }
   }
 
-  // Fill in FMM_Node::interac_list of all nodes
+  // Fill in interac_list of all nodes, assume sources == target for simplicity
   void BuildInteracLists() {
-    std::vector<FMM_Node*> n_list_src;
-    std::vector<FMM_Node*> n_list_trg;
-    {
-      std::vector<FMM_Node*>& nodes=GetNodeList();
-      for(size_t i=0;i<nodes.size();i++){
-        if(nodes[i]->pt_cnt[0]){
-          n_list_src.push_back(nodes[i]);
-        }
-        if(nodes[i]->pt_cnt[1]){
-          n_list_trg.push_back(nodes[i]);
-        }
-      }
-    }
-    size_t node_cnt=std::max(n_list_src.size(),n_list_trg.size());
-    std::vector<Mat_Type> type_lst;
-    std::vector<std::vector<FMM_Node*>*> type_node_lst;
-    type_lst.push_back(P2M_Type); type_node_lst.push_back(&n_list_src);
-    type_lst.push_back(M2M_Type); type_node_lst.push_back(&n_list_src);
-    type_lst.push_back(L2L_Type); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(L2P_Type); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(U0_Type ); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(U1_Type ); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(U2_Type ); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(W_Type  ); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(X_Type  ); type_node_lst.push_back(&n_list_trg);
-    type_lst.push_back(V1_Type ); type_node_lst.push_back(&n_list_trg);
-    std::vector<size_t> interac_cnt(type_lst.size());  // num of rel_coord of different operators
-    std::vector<size_t> interac_dsp(type_lst.size(),0);
-    for(size_t i=0;i<type_lst.size();i++){
-      interac_cnt[i]=interacList->rel_coord[type_lst[i]].size();
-    }
-    scan(&interac_cnt[0],&interac_dsp[0],type_lst.size());
+    std::vector<FMM_Node*>& nodes = GetNodeList();
+    std::vector<Mat_Type> interactionTypes = {P2M_Type, M2M_Type, L2L_Type, L2P_Type, U0_Type,
+                                              U1_Type, U2_Type, W_Type, X_Type, V1_Type};
+    for(Mat_Type& type : interactionTypes) {
+      int numRelCoord = interacList->rel_coord[type].size();  // num of possible relative positions
 #pragma omp parallel for
-    for(size_t k=0; k<type_lst.size(); k++){           // loop over mat_types
-      std::vector<FMM_Node*>& n_list=*type_node_lst[k];  // num of nodes involved
-      for(size_t i=0; i<n_list.size(); i++){
-        FMM_Node* n=n_list[i];
-        n->interac_list[type_lst[k]].resize(interac_cnt[k]);
-        BuildList(n,type_lst[k]);
+      for(size_t i=0; i<nodes.size(); i++) {
+        FMM_Node* node = nodes[i];
+        node->interac_list[type].resize(numRelCoord);
+        BuildList(node, type);
       }
     }
   }
@@ -1242,7 +1213,6 @@ private:
     std::vector<Vector<real_t>*>& output_vector=setup_data.output_vector; output_vector.clear();
     for(FMM_Node* node : nodes_in)  input_vector.push_back(&(node->Child(0)->FMMData())->upward_equiv);
     for(FMM_Node* node : nodes_out) output_vector.push_back(&(node->Child(0)->FMMData())->dnward_equiv);
-    real_t eps=1e-10;
     size_t n_in =nodes_in .size();
     size_t n_out=nodes_out.size();
     Profile::Tic("Interac-Data",true,25);
