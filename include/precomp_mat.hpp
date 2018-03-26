@@ -352,10 +352,8 @@ public:
       size_t M_dim=n1*n1*(n1/2+1);
       size_t n3=n1*n1*n1;
 
-      Vector<real_t> zero_vec(M_dim*ker_dim[0]*ker_dim[1]*2);
-      zero_vec.SetZero();
-
-      Vector<real_t*> M_ptr(chld_cnt*chld_cnt);
+      std::vector<real_t> zero_vec(M_dim*ker_dim[0]*ker_dim[1]*2, 0);
+      std::vector<real_t*> M_ptr(chld_cnt*chld_cnt);
       for(size_t i=0;i<chld_cnt*chld_cnt;i++) M_ptr[i]=&zero_vec[0];
 
       ivec3& rel_coord_=interacList->rel_coord[V1_Type][mat_indx];
