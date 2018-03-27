@@ -18,9 +18,11 @@ public:
 
   PrecompMat(InteracList* interacList_, int multipole_order_, const Kernel* kernel_):
     multipole_order(multipole_order_), kernel(kernel_), interacList(interacList_) {
-    mat.resize(Type_Count);
-    for(size_t i=0; i<mat.size(); i++)
-      mat[i].resize(500);
+    mat.resize(PrecomputationType);
+    for(int type; type<PrecomputationType; type++) {
+      int numRelCoords = interacList->rel_coord[type].size();
+      mat[type].resize(numRelCoords);
+    }
     perm.resize(Type_Count);
     for(size_t i=0;i<Type_Count;i++){
       perm[i].resize(Perm_Count);
@@ -384,7 +386,6 @@ public:
 
   void PrecompAll(Mat_Type type) {
     int mat_cnt = interacList->rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
-    mat[type].resize(mat_cnt);
     if (type == M2M_Type || type == L2L_Type) {
       for(int perm_idx=0; perm_idx<Perm_Count; perm_idx++) PrecompPerm(type, (Perm_Type) perm_idx);
       for(int i=0; i<mat_cnt; i++) {           // i is index of rel_coord
@@ -487,7 +488,7 @@ public:
     int typeSize = sizeof(real_t);
     fwrite(&typeSize, sizeof(int), 1, f);    // save real_t's size for loading
 
-    for (int i=0; i<mat.size(); i++) {
+    for (int i=0; i<PrecomputationType; i++) {
       int numRelCoords = mat[i].size();
       fwrite(&numRelCoords, sizeof(int), 1, f);
       for (int j=0; j<numRelCoords; j++) {
@@ -533,7 +534,7 @@ public:
     char* f_ptr = f_data;
     int typeSize = *(int*)f_ptr; f_ptr += sizeof(int);
     assert(typeSize == sizeof(real_t));
-    for(int i=0; i<mat.size(); i++){
+    for(int i=0; i<PrecomputationType; i++){
       int numRelCoords = *(int*)f_ptr; f_ptr += sizeof(int);
       for(int j=0; j<numRelCoords; j++){
         Matrix<real_t>& M = mat[i][j];

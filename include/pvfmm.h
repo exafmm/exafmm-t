@@ -59,19 +59,20 @@ namespace pvfmm{
     M2M_U_Type= 1,
     L2L_V_Type= 2,
     L2L_U_Type= 3,
-    P2M_Type  = 4,
-    M2M_Type  = 5,
-    L2L_Type  = 6,
-    L2P_Type  = 7,
-    U0_Type   = 8,
-    U1_Type   = 9,
-    U2_Type   =10,
-    V_Type    =11,
-    W_Type    =12,
-    X_Type    =13,
-    V1_Type   =14,
-    Type_Count=15
+    M2M_Type  = 4,
+    L2L_Type  = 5,
+    V_Type    = 6,
+    V1_Type   = 7,
+    P2M_Type  = 8,
+    L2P_Type  = 9,
+    U0_Type   = 10,
+    U1_Type   = 11,
+    U2_Type   = 12,
+    W_Type    = 13,
+    X_Type    = 14,
+    Type_Count= 15
   } Mat_Type;
+  const int PrecomputationType = 8;   // first 8 types need precomputation
 
   typedef enum{
     Scaling = 0,
