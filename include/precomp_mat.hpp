@@ -16,14 +16,11 @@ public:
   int multipole_order;
   const Kernel* kernel;
 
-  PrecompMat(InteracList* interacList_, int multipole_order_, const Kernel* kernel_) {
-    multipole_order = multipole_order_;
-    kernel = kernel_;
-    interacList = interacList_;
+  PrecompMat(InteracList* interacList_, int multipole_order_, const Kernel* kernel_):
+    multipole_order(multipole_order_), kernel(kernel_), interacList(interacList_) {
     mat.resize(Type_Count);
-    for(size_t i=0;i<mat.size();i++)
+    for(size_t i=0; i<mat.size(); i++)
       mat[i].resize(500);
-
     perm.resize(Type_Count);
     for(size_t i=0;i<Type_Count;i++){
       perm[i].resize(Perm_Count);
@@ -62,14 +59,6 @@ public:
     save_precomp=true;
 
     LoadFile(mat_fname.c_str());
-    Profile::Tic("PrecompUC2UE",false,4);
-    PrecompAll(M2M_V_Type);
-    PrecompAll(M2M_U_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompDC2DE",false,4);
-    PrecompAll(L2L_V_Type);
-    PrecompAll(L2L_U_Type);
-    Profile::Toc();
     Profile::Tic("PrecompM2M",false,4);
     PrecompAll(M2M_Type);
     Profile::Toc();
@@ -90,7 +79,8 @@ public:
     Profile::Tic("PrecompV1",false,4);
     PrecompAll(V1_Type);
     Profile::Toc();
-    }Profile::Toc();
+    }
+    Profile::Toc();
   }
 
   Permutation<real_t>& getPerm_R(int l, Mat_Type type, size_t indx){
@@ -487,29 +477,26 @@ public:
   }
 
   void Save2File(const char* fname, bool replace=false){
-    FILE* f=fopen(fname,"r");
+    FILE* f = fopen(fname,"rb");
     if(f!=NULL) {
       fclose(f);
       if(!replace) return;
     }
-    f=fopen(fname,"wb");
+    f = fopen(fname,"wb");
     if(f==NULL) return;
-    int tmp;
-    tmp=sizeof(real_t);
-    fwrite(&tmp,sizeof(int),1,f);
-    tmp=1;
-    fwrite(&tmp,sizeof(int),1,f);
-    for(size_t i=0;i<mat.size();i++){
-      int n=mat[i].size();
-      fwrite(&n,sizeof(int),1,f);
-      for(int j=0;j<n;j++){
-	Matrix<real_t>& M=mat[i][j];
-	int n1=M.Dim(0);
-	fwrite(&n1,sizeof(int),1,f);
-	int n2=M.Dim(1);
-	fwrite(&n2,sizeof(int),1,f);
-	if(n1*n2>0)
-	  fwrite(&M[0][0],sizeof(real_t),n1*n2,f);
+    int typeSize = sizeof(real_t);
+    fwrite(&typeSize, sizeof(int), 1, f);    // save real_t's size for loading
+
+    for (int i=0; i<mat.size(); i++) {
+      int numRelCoords = mat[i].size();
+      fwrite(&numRelCoords, sizeof(int), 1, f);
+      for (int j=0; j<numRelCoords; j++) {
+	Matrix<real_t>& M = mat[i][j];
+	int dim1 = M.Dim(0), dim2 = M.Dim(1);
+	fwrite(&dim1, sizeof(int), 1, f);
+	fwrite(&dim2, sizeof(int), 1, f);
+	if (dim1*dim2)
+          fwrite(&M[0][0], sizeof(real_t), dim1*dim2, f);
       }
     }
     fclose(f);
@@ -524,80 +511,42 @@ public:
 
   void LoadFile(const char* fname){
     Profile::Tic("LoadMatrices",true,3);
-    Profile::Tic("ReadFile",true,4);
-    size_t f_size=0;
-    char* f_data=NULL;
+    FILE* f = fopen(fname, "rb");
+    size_t f_size = 0;
+    char* f_data = NULL;
 
-    FILE* f=fopen(fname,"rb");
-    if(f==NULL){
-      f_size=0;
+    if (f == NULL)
       std::cout << "No existing precomputation matrix file" << std::endl;
-    }else{
+    else {
       struct stat fileStat;
-      if(stat(fname,&fileStat) < 0) f_size=0;
-      else f_size=fileStat.st_size;
+      if (stat(fname, &fileStat) == 0) f_size = fileStat.st_size;
     }
-    if(f_size>0){
-      f_data= new char [f_size];
-      fseek (f, 0, SEEK_SET);
-      MY_FREAD(f_data,sizeof(char),f_size,f);
+
+    if (!f_size) return;
+    else {
+      f_data = new char [f_size];
+      fseek(f, 0, SEEK_SET);
+      MY_FREAD(f_data, sizeof(char), f_size, f);
       fclose(f);
     }
 
-    Profile::Toc();
-    Profile::Tic("Broadcast",true,4);
-    if(f_size==0){
-      Profile::Toc();
-      Profile::Toc();
-      return;
-    }
-    if(f_data==NULL) f_data=new char [f_size];
-    char* f_ptr=f_data;
-    int max_send_size=1000000000;
-    while(f_size>0){
-      if(f_size>(size_t)max_send_size){
-	f_size-=max_send_size;
-	f_ptr+=max_send_size;
-      }else{
-	f_size=0;
-      }
-    }
-    f_ptr=f_data;
-    {
-      int tmp;
-      tmp=*(int*)f_ptr; f_ptr+=sizeof(int);
-      assert(tmp==sizeof(real_t));
-      tmp=*(int*)f_ptr; f_ptr+=sizeof(int);
-      size_t mat_size=(size_t)Type_Count*1;
-      if(mat.size()<mat_size){
-	mat.resize(mat_size);
-      }
-      for(size_t i=0;i<mat_size;i++){
-	int n;
-	n=*(int*)f_ptr; f_ptr+=sizeof(int);
-	if(mat[i].size()<(size_t)n)
-	  mat[i].resize(n);
-	for(int j=0;j<n;j++){
-	  Matrix<real_t>& M=mat[i][j];
-	  int n1;
-	  n1=*(int*)f_ptr; f_ptr+=sizeof(int);
-	  int n2;
-	  n2=*(int*)f_ptr; f_ptr+=sizeof(int);
-	  if(n1*n2>0){
-	    M.Resize(n1,n2);
-	    memcpy(&M[0][0], f_ptr, sizeof(real_t)*n1*n2); f_ptr+=sizeof(real_t)*n1*n2;
-	  }
-	}
-      }
-      perm_r.resize(256*Type_Count);
-      perm_c.resize(256*Type_Count);
-      for(size_t i=0;i<perm_r.size();i++){
-	perm_r[i].resize(500);
-	perm_c[i].resize(500);
+    char* f_ptr = f_data;
+    int typeSize = *(int*)f_ptr; f_ptr += sizeof(int);
+    assert(typeSize == sizeof(real_t));
+    for(int i=0; i<mat.size(); i++){
+      int numRelCoords = *(int*)f_ptr; f_ptr += sizeof(int);
+      for(int j=0; j<numRelCoords; j++){
+        Matrix<real_t>& M = mat[i][j];
+        int dim1 = *(int*)f_ptr; f_ptr += sizeof(int);
+        int dim2 = *(int*)f_ptr; f_ptr += sizeof(int);       
+        if (dim1*dim2) {
+          M.Resize(dim1, dim2);
+          memcpy(&M[0][0], f_ptr, sizeof(real_t)*dim1*dim2);
+          f_ptr += sizeof(real_t) * dim1 * dim2;
+        }
       }
     }
     delete[] f_data;
-    Profile::Toc();
     Profile::Toc();
   }
 
