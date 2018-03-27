@@ -34,54 +34,37 @@ public:
       perm_c[i].resize(500);
     }
 
-    Profile::Tic("InitFMM_Pts",true);{
-    bool save_precomp=false;
-    std::string mat_fname;
-    std::stringstream st;
-    if(!st.str().size()){
-      char* pvfmm_dir = getenv ("PVFMM_DIR");
-      if(pvfmm_dir) st << pvfmm_dir;
-    }
-#ifndef STAT_MACROS_BROKEN
-    if(st.str().size()){
-      struct stat stat_buff;
-      if(stat(st.str().c_str(), &stat_buff) || !S_ISDIR(stat_buff.st_mode)){
-        std::cout<<"error: path not found: "<<st.str()<<'\n';
-        exit(0);
-      }
-    }
-#endif
-    if(st.str().size()) st<<'/';
-    st<< "Precomp_" << kernel->ker_name.c_str() << "_m" << multipole_order;
-    if(sizeof(real_t)==8) st<<"";
-    else if(sizeof(real_t)==4) st<<"_f";
-    else st<<"_t"<<sizeof(real_t);
-    st<<".data";
-    mat_fname=st.str();
-    save_precomp=true;
+    Profile::Tic("InitFMM_Pts",true);
 
-    LoadFile(mat_fname.c_str());
+    std::stringstream ss;
+    const char* realType = sizeof(real_t) == 8 ? "_d" : "_f";
+    ss << "Precomp_" << kernel->ker_name.c_str() << "_m" << multipole_order << realType <<".data";
+    const char* fname = ss.str().c_str();
+
+    Profile::Tic("LoadMatrices",true,3);
+    LoadFile(fname);
+    Profile::Toc();
+
     Profile::Tic("PrecompM2M",false,4);
     PrecompAll(M2M_Type);
     Profile::Toc();
     Profile::Tic("PrecompL2L",false,4);
     PrecompAll(L2L_Type);
     Profile::Toc();
-    if(save_precomp){
-      Profile::Tic("Save2File",false,4);
-      FILE* f=fopen(mat_fname.c_str(),"r");
-      if(f==NULL) { //File does not exists.
-        Save2File(mat_fname.c_str());
-      }else fclose(f);
-      Profile::Toc();
-    }
+
+    Profile::Tic("Save2File",false,4);
+    FILE* f = fopen(fname,"r");
+    if(f==NULL) Save2File(fname);
+    else fclose(f);
+    Profile::Toc();
+
     Profile::Tic("PrecompV",false,4);
     PrecompAll(V_Type);
     Profile::Toc();
     Profile::Tic("PrecompV1",false,4);
     PrecompAll(V1_Type);
     Profile::Toc();
-    }
+
     Profile::Toc();
   }
 
@@ -511,7 +494,6 @@ public:
     } }
 
   void LoadFile(const char* fname){
-    Profile::Tic("LoadMatrices",true,3);
     FILE* f = fopen(fname, "rb");
     size_t f_size = 0;
     char* f_data = NULL;
@@ -548,7 +530,6 @@ public:
       }
     }
     delete[] f_data;
-    Profile::Toc();
   }
 
 #undef MY_FREAD
