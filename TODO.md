@@ -1,5 +1,6 @@
 ###TODO
 -------------
+- [ ] OpenMP dynamic
 - [x] RealVec in P2P
 - [ ] Remove M2M, L2L precomputation for all levels
 - [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution
