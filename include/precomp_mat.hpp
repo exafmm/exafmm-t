@@ -39,10 +39,10 @@ public:
     std::stringstream ss;
     const char* realType = sizeof(real_t) == 8 ? "_d" : "_f";
     ss << "Precomp_" << kernel->ker_name.c_str() << "_m" << multipole_order << realType <<".data";
-    const char* fname = ss.str().c_str();
+    std::string fname = ss.str();
 
     Profile::Tic("LoadMatrices",true,3);
-    LoadFile(fname);
+    LoadFile(fname.c_str());
     Profile::Toc();
 
     Profile::Tic("PrecompM2M",false,4);
@@ -53,8 +53,10 @@ public:
     Profile::Toc();
 
     Profile::Tic("Save2File",false,4);
-    FILE* f = fopen(fname,"r");
-    if(f==NULL) Save2File(fname);
+    FILE* f = fopen(fname.c_str(),"r");
+    if(f==NULL) {
+      Save2File(fname.c_str());
+    }
     else fclose(f);
     Profile::Toc();
 
@@ -87,7 +89,7 @@ public:
   }
   
   // This is only related to M2M and L2L operator
-  Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
+  void Perm_R(int l, Mat_Type type, size_t indx){
     size_t indx0 = interacList->interac_class[type][indx];                     // indx0: class coord index
     Matrix     <real_t>& M0      = mat[type][indx0];         // class coord matrix
     Permutation<real_t>& row_perm = getPerm_R(l, type, indx );    // mat->perm_r[(l+128)*16+type][indx]
@@ -97,25 +99,25 @@ public:
       for(int i=0;i<l;i++) p_list.push_back(Scaling);             // push back Scaling operation l times
       Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(0));  // init row_perm to be size npts*src_dim
       for(int i=0;i<C_Perm;i++){                                  // loop over permutation types
-	Permutation<real_t>& pr = perm[type][R_Perm + i];      // grab the handle of its mat->perm entry
-	if(!pr.Dim()) row_perm_ = Permutation<real_t>(0);           // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
+        Permutation<real_t>& pr = perm[type][R_Perm + i];      // grab the handle of its mat->perm entry
+        if(!pr.Dim()) row_perm_ = Permutation<real_t>(0);           // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
       }
       if(row_perm_.Dim()>0)                                      // if this type & entry needs permutation
-	for(int i=p_list.size()-1; i>=0; i--){                    // loop over the operations of perm_list from end to begin
-	  //assert(type!=V_Type);
-	  Permutation<real_t>& pr = perm[type][R_Perm + p_list[i]];  // get the permutation of the operation
-	  row_perm_=pr.Transpose()*row_perm_;                     // accumulate the permutation to row_perm (perm_r in precompmat header)
-	}
+      for(int i=p_list.size()-1; i>=0; i--){                    // loop over the operations of perm_list from end to begin
+        //assert(type!=V_Type);
+        Permutation<real_t>& pr = perm[type][R_Perm + p_list[i]];  // get the permutation of the operation
+        row_perm_=pr.Transpose()*row_perm_;                     // accumulate the permutation to row_perm (perm_r in precompmat header)
+      }
       row_perm=row_perm_;
     }
-    return row_perm;
+    // return row_perm;
   }
 
-  Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx){
+  void Perm_C(int l, Mat_Type type, size_t indx){
     size_t indx0 = interacList->interac_class[type][indx];
     Matrix     <real_t>& M0      = mat[type][indx0];
     Permutation<real_t>& col_perm = getPerm_C(l, type, indx );
-    if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
+    // if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
     if(col_perm.Dim()==0){
       std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];
       for(int i=0;i<l;i++) p_list.push_back(Scaling);
@@ -132,7 +134,7 @@ public:
 	}
       col_perm = col_perm_;
     }
-    return col_perm;
+    // return col_perm;
   }
 
   Matrix<real_t>& ClassMat(Mat_Type type, size_t indx){
@@ -421,21 +423,21 @@ public:
       Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
       size_t data_offset = indx_size;
       for(size_t j=0;j<mat_cnt;j++){
-	Matrix     <real_t>& M = mat[type][j];
-	offset_indx[j][0]=data_offset; indx_ptr+=sizeof(size_t);
-	data_offset += M.Dim(0)*M.Dim(1)*sizeof(real_t);
-	for(size_t l=l0;l<l1;l++){
-	  Permutation<real_t>& Pr=getPerm_R(l,type,j);
-	  offset_indx[j][1+4*(l-l0)+0]=data_offset;
-	  data_offset+=Pr.Dim()*sizeof(size_t);
-	  offset_indx[j][1+4*(l-l0)+1]=data_offset;
-	  data_offset+=Pr.Dim()*sizeof(real_t);
-	  Permutation<real_t>& Pc=getPerm_C(l,type,j);
-	  offset_indx[j][1+4*(l-l0)+2]=data_offset;
-	  data_offset+=Pc.Dim()*sizeof(size_t);
-	  offset_indx[j][1+4*(l-l0)+3]=data_offset;
-	  data_offset+=Pc.Dim()*sizeof(real_t);
-	}
+        Matrix     <real_t>& M = mat[type][j];
+        offset_indx[j][0]=data_offset; indx_ptr+=sizeof(size_t);
+        data_offset += M.Dim(0)*M.Dim(1)*sizeof(real_t);
+        for(size_t l=l0;l<l1;l++){
+          Permutation<real_t>& Pr=getPerm_R(l,type,j);
+          offset_indx[j][1+4*(l-l0)+0]=data_offset;
+          data_offset+=Pr.Dim()*sizeof(size_t);
+          offset_indx[j][1+4*(l-l0)+1]=data_offset;
+          data_offset+=Pr.Dim()*sizeof(real_t);
+          Permutation<real_t>& Pc=getPerm_C(l,type,j);
+          offset_indx[j][1+4*(l-l0)+2]=data_offset;
+          data_offset+=Pc.Dim()*sizeof(size_t);
+          offset_indx[j][1+4*(l-l0)+3]=data_offset;
+          data_offset+=Pc.Dim()*sizeof(real_t);
+        }
       }
     }
     char* indx_ptr=&comp_data[0];
