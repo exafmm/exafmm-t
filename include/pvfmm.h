@@ -86,16 +86,11 @@ namespace pvfmm{
     Perm_Count=12
   } Perm_Type;
 
-  struct FMM_Data{
-    Vector<real_t> upward_equiv;
-    Vector<real_t> dnward_equiv;
-  };
-
   struct InitData {
     int max_depth;
     size_t max_pts;
-    Vector<real_t> coord;
-    Vector<real_t> value;
+    std::vector<real_t> coord;
+    std::vector<real_t> value;
   };
 
   struct InteracData{

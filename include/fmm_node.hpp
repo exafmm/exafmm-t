@@ -20,17 +20,15 @@ class FMM_Node {
   Vector<real_t> src_value;
   Vector<real_t> trg_coord;
   Vector<real_t> trg_value;
+  Vector<real_t> upward_equiv;
+  Vector<real_t> dnward_equiv;
   size_t pt_cnt[2];
   std::vector<FMM_Node*> interac_list[Type_Count];
-  FMM_Data* fmm_data;
 
   FMM_Node() : depth(0), max_depth(MAX_DEPTH), parent(NULL), child(NULL) {
-    fmm_data=NULL;
   }
 
   ~FMM_Node(){
-    if(fmm_data!=NULL) delete fmm_data;
-    fmm_data=NULL;
     if(!child) return;
     int n=(1UL<<3);
     for(int i=0;i<n;i++){
@@ -96,13 +94,8 @@ class FMM_Node {
     child=NULL;
   }
 
-  FMM_Data*& FMMData() {
-    return fmm_data;
-  }
-
   FMM_Node* NewNode() {
     FMM_Node* n=new FMM_Node();
-    if(fmm_data!=NULL) n->fmm_data=new FMM_Data();
     n->max_depth=max_depth;
     n->max_pts=max_pts;
     return n;

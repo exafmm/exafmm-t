@@ -29,10 +29,10 @@ namespace pvfmm{
           case 4:  vec = &(node->trg_value); break;  // trg_value
           case 5:  vec = &(upwd_equiv_surf[node->depth]); break;  // upward equivalent surface coords
           case 6:  vec = &(upwd_check_surf[node->depth]); break;  // upward check      surface coords
-          case 7:  vec = &(node->fmm_data->upward_equiv); break;  // upward equivalent charges
+          case 7:  vec = &(node->upward_equiv); break;  // upward equivalent charges
           case 8:  vec = &(dnwd_equiv_surf[node->depth]); break;  // downward equivalent surface coords
           case 9:  vec = &(dnwd_check_surf[node->depth]); break;  // downward check      surface coords
-          case 10: vec = &(node->fmm_data->dnward_equiv); break;  // downward equivalent charges
+          case 10: vec = &(node->dnward_equiv); break;  // downward equivalent charges
           default: assert(0 && "PackedData type has to be an integer from 1 to 10");
         }
         dsp[i] = vec->data_ptr - mat[0][0];
@@ -338,13 +338,6 @@ public:
         }
       }
       Profile::Toc();
-      Profile::Tic("InitFMMData",true,5);
-      std::vector<FMM_Node*>& nodes=GetNodeList();
-#pragma omp parallel for
-      for(size_t i=0;i<nodes.size();i++){
-        if(nodes[i]->FMMData()==NULL) nodes[i]->FMMData()=new FMM_Data();
-      }
-      Profile::Toc();
     }
     Profile::Toc();
   }
@@ -462,10 +455,10 @@ private:
     int n_de = mat->ClassMat(L2L_V_Type, 0).Dim(0);
     for(int i=0; i<nodesLevelOrder.size(); i++) {
       FMM_Node* node = nodesLevelOrder[i];
-      node->fmm_data->upward_equiv.Resize(n_ue);
-      node->fmm_data->dnward_equiv.Resize(n_de);
-      vec_list[0].push_back( &(node->fmm_data->upward_equiv) );
-      vec_list[1].push_back( &(node->fmm_data->dnward_equiv) );
+      node->upward_equiv.Resize(n_ue);
+      node->dnward_equiv.Resize(n_de);
+      vec_list[0].push_back( &(node->upward_equiv) );
+      vec_list[1].push_back( &(node->dnward_equiv) );
     }
     int trg_dof = kernel->ker_dim[1];
     for(int i=0; i<leafs.size(); i++) {
@@ -1178,8 +1171,8 @@ private:
     std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
     std::vector<Vector<real_t>*>&  input_vector=setup_data. input_vector;  input_vector.clear();
     std::vector<Vector<real_t>*>& output_vector=setup_data.output_vector; output_vector.clear();
-    for(FMM_Node* node : nodes_in)  input_vector.push_back(&(node->Child(0)->FMMData())->upward_equiv);
-    for(FMM_Node* node : nodes_out) output_vector.push_back(&(node->Child(0)->FMMData())->dnward_equiv);
+    for(FMM_Node* node : nodes_in)  input_vector.push_back(&(node->Child(0)->upward_equiv));
+    for(FMM_Node* node : nodes_out) output_vector.push_back(&(node->Child(0)->dnward_equiv));
     size_t n_in =nodes_in .size();
     size_t n_out=nodes_out.size();
     Profile::Tic("Interac-Data",true,25);
@@ -1443,9 +1436,9 @@ private:
     setup_data.input_vector.clear();
     setup_data.output_vector.clear();
     for(FMM_Node* node : setup_data.nodes_in)
-      setup_data.input_vector.push_back(&(node->FMMData())->upward_equiv);
+      setup_data.input_vector.push_back(&(node->upward_equiv));
     for(FMM_Node* node : setup_data.nodes_out)
-      setup_data.output_vector.push_back(&(node->FMMData())->upward_equiv);
+      setup_data.output_vector.push_back(&(node->upward_equiv));
     SetupInterac(setup_data);
   }
 
@@ -1468,9 +1461,9 @@ private:
     setup_data.input_vector.clear();
     setup_data.output_vector.clear();
     for(FMM_Node* node : setup_data.nodes_in)
-      setup_data.input_vector.push_back(&(node->FMMData())->dnward_equiv);
+      setup_data.input_vector.push_back(&(node->dnward_equiv));
     for(FMM_Node* node : setup_data.nodes_out)
-      setup_data.output_vector.push_back(&(node->FMMData())->dnward_equiv);
+      setup_data.output_vector.push_back(&(node->dnward_equiv));
     SetupInterac(setup_data);
   }
 
