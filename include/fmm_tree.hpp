@@ -734,7 +734,7 @@ private:
         {
           std::vector<char>& precomp_data=*setup_data.precomp_data;
           char* indx_ptr=&precomp_data[0];
-          const int l1_l0 = 128;
+          const int l1_l0 = MAX_DEPTH;
           int size = 1 + (2+2)*l1_l0;    // matches the definition in CompactData
           for(int i=0; i<mat_cnt; i++) {
             std::vector<size_t> temp_data((size_t*)indx_ptr + i*size, (size_t*)indx_ptr + (i+1)*size);

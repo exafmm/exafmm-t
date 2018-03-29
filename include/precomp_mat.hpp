@@ -23,15 +23,18 @@ public:
       int numRelCoords = interacList->rel_coord[type].size();
       mat[type].resize(numRelCoords);
     }
+
     perm.resize(Type_Count);
     for(size_t i=0;i<Type_Count;i++){
       perm[i].resize(Perm_Count);
     }
-    perm_r.resize(256*Type_Count);
-    perm_c.resize(256*Type_Count);
-    for(size_t i=0;i<perm_r.size();i++){
-      perm_r[i].resize(500);
-      perm_c[i].resize(500);
+
+    perm_r.resize(MAX_DEPTH*Type_Count);
+    perm_c.resize(MAX_DEPTH*Type_Count);
+    int numRelCoords = interacList->rel_coord[M2M_Type].size();
+    for(size_t i=0; i<perm_r.size(); i++){
+      perm_r[i].resize(numRelCoords);
+      perm_c[i].resize(numRelCoords);
     }
 
     Profile::Tic("InitFMM_Pts",true);
@@ -71,21 +74,11 @@ public:
   }
 
   Permutation<real_t>& getPerm_R(int l, Mat_Type type, size_t indx){
-    int level=l+128;
-    assert(level*Type_Count+type<int(perm_r.size()));
-    if(indx>=perm_r[level*Type_Count+type].size()){
-      perm_r[level*Type_Count+type].resize(indx+1);
-    }
-    return perm_r[level*Type_Count+type][indx];
+    return perm_r[l*Type_Count+type][indx];
   }
 
   Permutation<real_t>& getPerm_C(int l, Mat_Type type, size_t indx){
-    int level=l+128;
-    assert(level*Type_Count+type<int(perm_c.size()));
-    if(indx>=perm_c[level*Type_Count+type].size()){
-      perm_c[level*Type_Count+type].resize(indx+1);
-    }
-    return perm_c[level*Type_Count+type][indx];
+    return perm_c[l*Type_Count+type][indx];
   }
   
   // This is only related to M2M and L2L operator
@@ -396,7 +389,7 @@ public:
     size_t indx_size=0;
     size_t mem_size=0;
     size_t l0=0;
-    size_t l1=128;
+    size_t l1= MAX_DEPTH;
     {
       indx_size+=mat_cnt*(1+(2+2)*(l1-l0))*sizeof(size_t);
       for(size_t j=0;j<mat_cnt;j++){
