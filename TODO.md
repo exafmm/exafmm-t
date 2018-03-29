@@ -1,8 +1,14 @@
 ###TODO
 -------------
+- [ ] W -> M2P
+- [ ] X -> P2L
+- [ ] U -> P2P
+- [ ] V -> M2L
 - [ ] OpenMP dynamic
-- [x] RealVec in P2P
+- [ ] Clean P2P in fmm_tree
+- [ ] Add P2M, L2P to TIME
 - [ ] Remove M2M, L2L precomputation for all levels
+
 - [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution
 - [ ] Vector -> std::vector with customized allocator 
 - [ ] decide whether to keep permutation type
@@ -14,7 +20,7 @@
   - remove circular dependency of classes, use forward declaration if necessary
 - [ ] Flatten the class hierarchy
 - [ ] write down math equations for precomputation
-
+- [x] RealVec in P2P
 - [x] remove surf_coord & surf_value from FMM_Node
 - [x] make Precompmat members public instead of calling access functions
 - [x] remove "ghost"
@@ -28,10 +34,6 @@
 - [x] D2D -> L2L
 - [x] S2U -> P2M
 - [x] D2T -> L2P
-- [ ] W -> M2P
-- [ ] X -> P2L
-- [ ] U -> P2P
-- [ ] V -> M2L
 - [ ] assume source == target
 - [ ] size_t -> int
 - [ ] Matrix -> std::vector(std::vector) for non-Real_t
