@@ -82,7 +82,7 @@ public:
   }
   
   // This is only related to M2M and L2L operator
-  void Perm_R(int l, Mat_Type type, size_t indx){
+  Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
     size_t indx0 = interacList->interac_class[type][indx];                     // indx0: class coord index
     Matrix     <real_t>& M0      = mat[type][indx0];         // class coord matrix
     Permutation<real_t>& row_perm = getPerm_R(l, type, indx );    // mat->perm_r[(l+128)*16+type][indx]
@@ -103,31 +103,31 @@ public:
       }
       row_perm=row_perm_;
     }
-    // return row_perm;
+    return row_perm;
   }
 
-  void Perm_C(int l, Mat_Type type, size_t indx){
+  Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx){
     size_t indx0 = interacList->interac_class[type][indx];
     Matrix     <real_t>& M0      = mat[type][indx0];
     Permutation<real_t>& col_perm = getPerm_C(l, type, indx );
-    // if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
+    if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
     if(col_perm.Dim()==0){
       std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];
       for(int i=0;i<l;i++) p_list.push_back(Scaling);
       Permutation<real_t> col_perm_ = Permutation<real_t>(M0.Dim(1));
       for(int i=0;i<C_Perm;i++){
-	Permutation<real_t>& pc = perm[type][C_Perm + i];
-	if(!pc.Dim()) col_perm_ = Permutation<real_t>(0);
+        Permutation<real_t>& pc = perm[type][C_Perm + i];
+        if(!pc.Dim()) col_perm_ = Permutation<real_t>(0);
       }
       if(col_perm_.Dim()>0)
-	for(int i=p_list.size()-1; i>=0; i--){
-	  //assert(type!=V_Type);
-	  Permutation<real_t>& pc = perm[type][C_Perm + p_list[i]];
-	  col_perm_ = col_perm_*pc;
-	}
+      for(int i=p_list.size()-1; i>=0; i--){
+        //assert(type!=V_Type);
+        Permutation<real_t>& pc = perm[type][C_Perm + p_list[i]];
+        col_perm_ = col_perm_*pc;
+      }
       col_perm = col_perm_;
     }
-    // return col_perm;
+    return col_perm;
   }
 
   Matrix<real_t>& ClassMat(Mat_Type type, size_t indx){
@@ -135,9 +135,9 @@ public:
     return mat[type][indx0];
   }
 
-  Permutation<real_t>& PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
+  void PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
     Permutation<real_t>& P_ = perm[type][perm_indx];
-    if(P_.Dim()!=0) return P_;
+    if(P_.Dim()!=0) return;
     size_t m=multipole_order;
     size_t p_indx=perm_indx % C_Perm;
     Permutation<real_t> P;
@@ -148,10 +148,18 @@ public:
       if(perm_indx<C_Perm) {
         ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
         scal_exp=kernel->k_m2m->src_scal;
+        // for(size_t i=0; i<scal_exp.size(); i++){
+        //   std::cout << scal_exp[i] << " , ";
+        // }
+        // std::cout << "  p_indx: " << p_indx << std::endl;
       }else{
         ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
         scal_exp=kernel->k_m2m->src_scal;
-        for(size_t i=0; i<scal_exp.size(); i++) scal_exp[i]=-scal_exp[i];
+        // for(size_t i=0; i<scal_exp.size(); i++){
+        // scal_exp[i]=-scal_exp[i];
+        // std::cout << scal_exp[i] << " , ";
+        // }
+        // std::cout << "  p_indx: " << p_indx << std::endl;
       }
       P=equiv_surf_perm(m, p_indx, ker_perm, scal_exp);
       break;
@@ -163,9 +171,17 @@ public:
         ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
         scal_exp=kernel->k_l2l->trg_scal;
         for(size_t i=0; i<scal_exp.size(); i++) scal_exp[i]=-scal_exp[i];
+        // for(size_t i=0; i<scal_exp.size(); i++){
+        //   std::cout << scal_exp[i] << " , ";
+        // }
+        // std::cout << "  p_indx: " << p_indx << std::endl;
       }else{
         ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
         scal_exp=kernel->k_l2l->trg_scal;
+        // for(size_t i=0; i<scal_exp.size(); i++){
+        //   std::cout << scal_exp[i] << " , ";
+        // }
+        // std::cout << "  p_indx: " << p_indx << std::endl;
       }
       P=equiv_surf_perm(m, p_indx, ker_perm, scal_exp);
       break;
@@ -174,7 +190,6 @@ public:
       break;
     }
     if(P_.Dim()==0) P_=P;
-    return P_;
   }
   
   Matrix<real_t>& Precomp(Mat_Type type, size_t mat_indx) {
@@ -371,10 +386,25 @@ public:
           Precomp(type, i);                       // calculate operator matrix of class_coord
         }
       }
+      // for(int mat_idx=0; mat_idx<mat_cnt; mat_idx++) {
+      //   for(int level=0; level<MAX_DEPTH; level++) {
+      //     Perm_R(level, type, mat_idx);  // calculate perm_r
+      //     Perm_C(level, type, mat_idx);  // & perm_c for M2M and D2U type
+      //   }
+      // }
+
       for(int mat_idx=0; mat_idx<mat_cnt; mat_idx++) {
-        for(int level=0; level<MAX_DEPTH; level++) {
-          Perm_R(level, type, mat_idx);  // calculate perm_r
-          Perm_C(level, type, mat_idx);  // & perm_c for M2M and D2U type
+        Permutation<real_t>& perm_r0 = Perm_R(0, type, mat_idx);
+        Permutation<real_t>& perm_c0 = Perm_C(0, type, mat_idx);
+        for(int level=1; level<MAX_DEPTH; level++) {
+          Permutation<real_t>& temp_r = getPerm_R(level, type, mat_idx);
+          Permutation<real_t>& temp_c = getPerm_C(level, type, mat_idx);
+          temp_r = perm_r0;
+          temp_c = perm_c0;
+          if(type == L2L_Type) {
+            temp_r.scal = std::vector<real_t>(temp_r.scal.size(), pow(0.5, level));
+            temp_c.scal = std::vector<real_t>(temp_c.scal.size(), pow(2, level));
+          }
         }
       }
     } else {
@@ -393,21 +423,21 @@ public:
     {
       indx_size+=mat_cnt*(1+(2+2)*(l1-l0))*sizeof(size_t);
       for(size_t j=0;j<mat_cnt;j++){
-	Matrix     <real_t>& M = mat[type][j];
-	if(M.Dim(0)>0 && M.Dim(1)>0){
-	  mem_size+=M.Dim(0)*M.Dim(1)*sizeof(real_t);
-	}
-	for(size_t l=l0;l<l1;l++){
-	  Permutation<real_t>& Pr=getPerm_R(l,type,j);
-	  Permutation<real_t>& Pc=getPerm_C(l,type,j);
+        Matrix     <real_t>& M = mat[type][j];
+        if(M.Dim(0)>0 && M.Dim(1)>0){
+          mem_size+=M.Dim(0)*M.Dim(1)*sizeof(real_t);
+        }
+        for(size_t l=l0;l<l1;l++){
+          Permutation<real_t>& Pr=getPerm_R(l,type,j);
+          Permutation<real_t>& Pc=getPerm_C(l,type,j);
           assert(Pr.Dim() == Pc.Dim());
-	  if(Pr.Dim()>0){
-	    mem_size+=Pr.Dim()*sizeof(size_t);
-	    mem_size+=Pr.Dim()*sizeof(real_t);
-	    mem_size+=Pc.Dim()*sizeof(size_t);
-	    mem_size+=Pc.Dim()*sizeof(real_t);
-	  }
-	}
+          if(Pr.Dim()>0){
+            mem_size+=Pr.Dim()*sizeof(size_t);
+            mem_size+=Pr.Dim()*sizeof(real_t);
+            mem_size+=Pc.Dim()*sizeof(size_t);
+            mem_size+=Pc.Dim()*sizeof(real_t);
+          }
+        }
       }
     }
     if(comp_data.size() < indx_size+mem_size) comp_data.resize(indx_size+mem_size);
