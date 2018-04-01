@@ -58,7 +58,7 @@ namespace pvfmm{
     Matrix<real_t>* output_data;
   };
 
-  // U, X, W lists & P2M & L2P Setup
+  // U, P2L, M2P lists & P2M & L2P Setup
   struct BodiesSetup : SetupBase {
     Matrix<real_t>* coord_data;
     ptSetupData pt_setup_data;
@@ -95,7 +95,7 @@ public:
   InteracList* interacList;
   PrecompMat* mat;
   std::vector<FMM_Node*> node_lst;
-  BodiesSetup U_data, W_data, X_data;
+  BodiesSetup U_data, M2P_data, P2L_data;
   BodiesSetup P2M_data, L2P_data;
   std::vector<CellsSetup> M2M_data;
   std::vector<CellsSetup> L2L_data;
@@ -616,7 +616,7 @@ private:
 	  }
 	}
 	break;
-      case W_Type:
+      case M2P_Type:
 	if(!n->IsLeaf()) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
@@ -632,7 +632,7 @@ private:
 	  }
 	}
 	break;
-      case X_Type:
+      case P2L_Type:
 	if(p == NULL) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* pc=(FMM_Node*)p->Colleague(i);
@@ -655,7 +655,7 @@ private:
   void BuildInteracLists() {
     std::vector<FMM_Node*>& nodes = GetNodeList();
     std::vector<Mat_Type> interactionTypes = {P2M_Type, M2M_Type, L2L_Type, L2P_Type, U0_Type,
-                                              U1_Type, U2_Type, W_Type, X_Type, V1_Type};
+                                              U1_Type, U2_Type, M2P_Type, P2L_Type, V1_Type};
     for(Mat_Type& type : interactionTypes) {
       int numRelCoord = interacList->rel_coord[type].size();  // num of possible relative positions
 #pragma omp parallel for
@@ -815,13 +815,13 @@ private:
 #pragma omp parallel for
     for(int j=0;j<omp_p;j++){
       Matrix<real_t>* mat;
-      mat=W_data. input_data;
+      mat=M2P_data. input_data;
       if(mat && mat->Dim(0)*mat->Dim(1)){
         size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
         size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
         memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
       }
-      mat=X_data.output_data;
+      mat=P2L_data.output_data;
       if(mat && mat->Dim(0)*mat->Dim(1)){
         size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
         size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
@@ -925,7 +925,7 @@ private:
             }
           }
           {
-            Mat_Type type=X_Type;
+            Mat_Type type=P2L_Type;
             std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
             if(tnode->pt_cnt[1]<=Nsrf)
             for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
@@ -937,7 +937,7 @@ private:
             }
           }
           {
-            Mat_Type type=W_Type;
+            Mat_Type type=M2P_Type;
             std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
             for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
               FMM_Node* snode=intlst[j];
@@ -966,7 +966,7 @@ private:
     PtSetup(setup_data, &data);
   }
 
-  void W_ListSetup(BodiesSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+  void M2P_ListSetup(BodiesSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     {
       setup_data.kernel = kernel->k_m2t;
       setup_data. input_data = &buff[0];              // upward_equiv
@@ -1014,7 +1014,7 @@ private:
           real_t s=powf(0.5,tnode->depth);
           size_t interac_cnt_=0;
           {
-            Mat_Type type=W_Type;
+            Mat_Type type=M2P_Type;
             std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
             for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
               FMM_Node* snode=intlst[j];
@@ -1058,7 +1058,7 @@ private:
     PtSetup(setup_data, &data);
   }
 
-  void X_ListSetup(BodiesSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+  void P2L_ListSetup(BodiesSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     if(!multipole_order) return;
     {
       setup_data.kernel=kernel->k_s2l;
@@ -1108,7 +1108,7 @@ private:
           real_t s=powf(0.5,tnode->depth);
           size_t interac_cnt_=0;
           {
-            Mat_Type type=X_Type;
+            Mat_Type type=P2L_Type;
             std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
             for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
               FMM_Node* snode=intlst[j];
@@ -1614,11 +1614,11 @@ public:
     Profile::Tic("UListSetup",false,3);
     U_ListSetup(U_data, node_data_buff, node_lists);
     Profile::Toc();
-    Profile::Tic("WListSetup",false,3);
-    W_ListSetup(W_data, node_data_buff, node_lists);
+    Profile::Tic("M2PListSetup",false,3);
+    M2P_ListSetup(M2P_data, node_data_buff, node_lists);
     Profile::Toc();
     Profile::Tic("XListSetup",false,3);
-    X_ListSetup(X_data, node_data_buff, node_lists);
+    P2L_ListSetup(P2L_data, node_data_buff, node_lists);
     Profile::Toc();
 
     Profile::Tic("VListSetup",false,3);
@@ -2185,12 +2185,12 @@ private:
     EvalList(setup_data);
   }
 
-  void X_List(BodiesSetup&  setup_data){
+  void P2L_List(BodiesSetup&  setup_data){
     if(!multipole_order) return;
     evalP2P(setup_data);
   }
 
-  void W_List(BodiesSetup&  setup_data){
+  void M2P_List(BodiesSetup&  setup_data){
     if(!multipole_order) return;
     evalP2P(setup_data);
   }
@@ -2280,11 +2280,11 @@ private:
       if(n->depth>depth) depth=n->depth;
     }
     Profile::Toc();
-    Profile::Tic("X-List",false,5);
-    X_List(X_data);
+    Profile::Tic("P2L-List",false,5);
+    P2L_List(P2L_data);
     Profile::Toc();
-    Profile::Tic("W-List",false,5);
-    W_List(W_data);
+    Profile::Tic("M2P-List",false,5);
+    M2P_List(M2P_data);
     Profile::Toc();
     Profile::Tic("U-List",false,5);
     U_List(U_data);

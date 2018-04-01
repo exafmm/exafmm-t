@@ -68,8 +68,8 @@ namespace pvfmm{
     U0_Type   = 10,
     U1_Type   = 11,
     U2_Type   = 12,
-    W_Type    = 13,
-    X_Type    = 14,
+    M2P_Type  = 13,
+    P2L_Type    = 14,
     Type_Count= 15
   } Mat_Type;
   const int PrecomputationType = 8;   // first 8 types need precomputation

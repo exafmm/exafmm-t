@@ -34,8 +34,8 @@ public:
 
     InitList(3,2,1,V_Type);
     InitList(1,1,1,V1_Type);
-    InitList(5,5,2,W_Type);
-    InitList(5,5,2,X_Type);
+    InitList(5,5,2,M2P_Type);
+    InitList(5,5,2,P2L_Type);
   }
 
   void InitList(int max_r, int min_r, int step, Mat_Type t){

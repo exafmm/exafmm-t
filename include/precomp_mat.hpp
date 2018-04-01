@@ -148,18 +148,9 @@ public:
       if(perm_indx<C_Perm) {
         ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
         scal_exp=kernel->k_m2m->src_scal;
-        // for(size_t i=0; i<scal_exp.size(); i++){
-        //   std::cout << scal_exp[i] << " , ";
-        // }
-        // std::cout << "  p_indx: " << p_indx << std::endl;
       }else{
         ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
         scal_exp=kernel->k_m2m->src_scal;
-        // for(size_t i=0; i<scal_exp.size(); i++){
-        // scal_exp[i]=-scal_exp[i];
-        // std::cout << scal_exp[i] << " , ";
-        // }
-        // std::cout << "  p_indx: " << p_indx << std::endl;
       }
       P=equiv_surf_perm(m, p_indx, ker_perm, scal_exp);
       break;
@@ -171,17 +162,9 @@ public:
         ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
         scal_exp=kernel->k_l2l->trg_scal;
         for(size_t i=0; i<scal_exp.size(); i++) scal_exp[i]=-scal_exp[i];
-        // for(size_t i=0; i<scal_exp.size(); i++){
-        //   std::cout << scal_exp[i] << " , ";
-        // }
-        // std::cout << "  p_indx: " << p_indx << std::endl;
       }else{
         ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
         scal_exp=kernel->k_l2l->trg_scal;
-        // for(size_t i=0; i<scal_exp.size(); i++){
-        //   std::cout << scal_exp[i] << " , ";
-        // }
-        // std::cout << "  p_indx: " << p_indx << std::endl;
       }
       P=equiv_surf_perm(m, p_indx, ker_perm, scal_exp);
       break;
