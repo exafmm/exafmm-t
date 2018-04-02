@@ -2195,8 +2195,37 @@ private:
     evalP2P(setup_data);
   }
 
+  /*
   void U_List(BodiesSetup&  setup_data){
     evalP2P(setup_data);
+  }*/
+
+  void U_List(BodiesSetup& setup_data) {
+    // assume sources == targets
+    int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
+    std::vector<FMM_Node*>& targets = setup_data.nodes_in;
+    std::vector<Mat_Type> types = {U0_Type, U1_Type, U2_Type, P2L_Type, M2P_Type};
+#pragma omp parallel for
+    for(int i=0; i<targets.size(); i++) {
+      FMM_Node* target = targets[i];
+      for(int k=0; k<types.size(); k++) {
+        Mat_Type type = types[k];
+        std::vector<FMM_Node*>& sources = target->interac_list[type];
+        if (type == P2L_Type)
+          if (target->pt_cnt[1] > numSurfCoords)
+            continue;
+        for(int j=0; j<sources.size(); j++) {
+          FMM_Node* source = sources[j];
+          if (source != NULL) {
+            if (type == M2P_Type)
+              if (source->pt_cnt[0] > numSurfCoords)
+                continue;
+            kernel->ker_poten(&(source->src_coord[0]), source->pt_cnt[0], &(source->src_value[0]),
+                              &(target->trg_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
+          }
+        }
+      }
+    }
   }
 
   void V_List(M2LSetup&  setup_data){
