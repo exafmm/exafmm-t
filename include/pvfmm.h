@@ -126,5 +126,8 @@ namespace pvfmm{
   std::vector<char> L2L_precomp_lst;
   std::vector<Matrix<real_t> > node_data_buff;
   Vector<char> dev_buffer;
+
+  class FMM_Node;
+  std::vector<FMM_Node*> leafs, nonleafs;
 }
 #endif //_PVFMM_COMMON_HPP_

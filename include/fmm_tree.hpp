@@ -407,7 +407,8 @@ private:
     n_list.resize(7);
     std::vector<std::vector<Vector<real_t>* > > vec_list(7);      // vec of vecs of pointers
     // post-order traversal
-    std::vector<FMM_Node*> leafs, nonleafs;                       // input "nodes" is post-order
+    leafs.clear();
+    nonleafs.clear();                       // input "nodes" is post-order
     for (int i=0; i<nodes.size(); i++) {
       if (nodes[i]->IsLeaf()) {
         leafs.push_back(nodes[i]);
@@ -2190,9 +2191,9 @@ private:
     evalP2P(setup_data);
   }
 
-  void P2P(BodiesSetup& setup_data) {
+  void P2P() {
     int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
-    std::vector<FMM_Node*>& targets = setup_data.nodes_out;   // leafs, assume sources == targets
+    std::vector<FMM_Node*>& targets = leafs;   // leafs, assume sources == targets
     std::vector<Mat_Type> types = {U0_Type, U1_Type, U2_Type, P2L_Type, M2P_Type};
 #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
@@ -2217,9 +2218,9 @@ private:
     }
   }
 
-  void M2P(BodiesSetup& setup_data){
+  void M2P(){
     int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
-    std::vector<FMM_Node*>& targets = setup_data.nodes_out;  // leafs
+    std::vector<FMM_Node*>& targets = leafs;  // leafs
 #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       FMM_Node* target = targets[i];
@@ -2329,10 +2330,10 @@ private:
     P2L_List(P2L_data);
     Profile::Toc();
     Profile::Tic("M2P-List",false,5);
-    M2P(M2P_data);
+    M2P();
     Profile::Toc();
     Profile::Tic("U-List",false,5);
-    P2P(U_data);
+    P2P();
     Profile::Toc();
     Profile::Tic("V-List",false,5);
     V_List(M2L_data);
