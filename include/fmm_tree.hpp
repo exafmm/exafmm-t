@@ -95,7 +95,7 @@ public:
   InteracList* interacList;
   PrecompMat* mat;
   std::vector<FMM_Node*> node_lst;
-  BodiesSetup U_data, M2P_data, P2L_data;
+  BodiesSetup P2L_data;
   BodiesSetup P2M_data, L2P_data;
   std::vector<CellsSetup> M2M_data;
   std::vector<CellsSetup> L2L_data;
@@ -811,30 +811,14 @@ private:
   }
 
   void ClearFMMData() {
-    Profile::Tic("ClearFMMData",true);
-    int omp_p=omp_get_max_threads();
-#pragma omp parallel for
-    for(int j=0;j<omp_p;j++){
-      Matrix<real_t>* mat;
-      mat=M2P_data. input_data;
-      if(mat && mat->Dim(0)*mat->Dim(1)){
-        size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
-        size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
-        memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
-      }
-      mat=P2L_data.output_data;
-      if(mat && mat->Dim(0)*mat->Dim(1)){
-        size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
-        size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
-        memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
-      }
-      mat=U_data.output_data;
-      if(mat && mat->Dim(0)*mat->Dim(1)){
-        size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
-        size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
-        memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
-      }
-    }
+    Profile::Tic("ClearFMMData",true);    
+    Matrix<real_t>* mat;
+    mat = &node_data_buff[0];   // clear upward equiv charges
+    memset(&(*mat)[0][0], 0, mat->Dim(0)*mat->Dim(1)*sizeof(real_t));
+    mat = &node_data_buff[1];   // clear downward equiv charges
+    memset(&(*mat)[0][0], 0, mat->Dim(0)*mat->Dim(1)*sizeof(real_t));
+    mat = &node_data_buff[5];   // clear target's potential
+    memset(&(*mat)[0][0], 0, mat->Dim(0)*mat->Dim(1)*sizeof(real_t));
     Profile::Toc();
   }
 
@@ -850,213 +834,6 @@ private:
     for(size_t tid=0;tid<omp_p;tid++){
       memcpy(&vec[0]+vec_dsp[tid],&vec_[tid][0],vec_[tid].size()*sizeof(ElemType));
     }
-  }
-
-  void U_ListSetup(BodiesSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
-    // initialize Setup_data
-    setup_data.kernel = kernel->k_s2t;
-    setup_data. input_data = &buff[4];        // src_value
-    setup_data.output_data = &buff[5];        // trg_value
-    setup_data. coord_data = &buff[6];        // src & trg coords, upward/dnward check/equiv surface
-    setup_data.nodes_in .clear();
-    setup_data.nodes_out.clear();
-    setup_data.nodes_in = n_list[4];
-    setup_data.nodes_out = n_list[5];
-    // initialize ptSetupData
-    ptSetupData data;
-    data.kernel = setup_data.kernel;
-    data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, SrcCoord);
-    data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, SrcValue);
-    data.trg_coord = PackedData(setup_data.coord_data, setup_data.nodes_out, TrgCoord);
-    data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, TrgValue);
-
-    // initialize leaf's node_id, can put it in other functions
-    int i = 0;
-    for(FMM_Node* leaf : setup_data.nodes_in) leaf->node_id = i++;
-
-    std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
-    std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    {
-      int omp_p=omp_get_max_threads();
-      std::vector<std::vector<size_t> > in_node_(omp_p);
-      std::vector<std::vector<size_t> > interac_cnt_(omp_p);
-      size_t m=multipole_order;
-      size_t Nsrf=(6*(m-1)*(m-1)+2);
-#pragma omp parallel for
-      for(size_t tid=0;tid<omp_p;tid++){
-        std::vector<size_t>& in_node    =in_node_[tid]    ;
-        std::vector<size_t>& interac_cnt=interac_cnt_[tid]        ;
-        size_t a=(nodes_out.size()*(tid+0))/omp_p;
-        size_t b=(nodes_out.size()*(tid+1))/omp_p;
-        for(size_t i=a;i<b;i++){
-          FMM_Node* tnode=nodes_out[i];
-          real_t s=powf(0.5,tnode->depth);
-          size_t interac_cnt_=0;
-          {
-            Mat_Type type=U0_Type;
-            std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
-            for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
-              FMM_Node* snode=intlst[j];
-              size_t snode_id=snode->node_id;
-              if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
-              in_node.push_back(snode_id);
-              interac_cnt_++;
-            }
-          }
-          {
-            Mat_Type type=U1_Type;
-            std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
-            for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
-              FMM_Node* snode=intlst[j];
-              size_t snode_id=snode->node_id;
-              if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
-              in_node.push_back(snode_id);
-              interac_cnt_++;
-            }
-          }
-          {
-            Mat_Type type=U2_Type;
-            std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
-            for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
-              FMM_Node* snode=intlst[j];
-              size_t snode_id=snode->node_id;
-              if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
-              in_node.push_back(snode_id);
-              interac_cnt_++;
-            }
-          }
-          {
-            Mat_Type type=P2L_Type;
-            std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
-            if(tnode->pt_cnt[1]<=Nsrf)
-            for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
-              FMM_Node* snode=intlst[j];
-              size_t snode_id=snode->node_id;
-              if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
-              in_node.push_back(snode_id);
-              interac_cnt_++;
-            }
-          }
-          {
-            Mat_Type type=M2P_Type;
-            std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
-            for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
-              FMM_Node* snode=intlst[j];
-              size_t snode_id=snode->node_id;
-              if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
-              if(snode->pt_cnt[0]> Nsrf) continue;
-              in_node.push_back(snode_id);
-              interac_cnt_++;
-            }
-          }
-          interac_cnt.push_back(interac_cnt_);
-        }
-      }
-      {
-        InteracData& pt_interac_data=data.pt_interac_data;
-	CopyVec(in_node_,pt_interac_data.in_node);
-	CopyVec(interac_cnt_,pt_interac_data.interac_cnt);
-        {
-          pvfmm::Vector<size_t>& cnt=pt_interac_data.interac_cnt;
-          pvfmm::Vector<size_t>& dsp=pt_interac_data.interac_dsp;
-          dsp.Resize(cnt.Dim()); if(dsp.Dim()) dsp[0]=0;
-          scan(&cnt[0],&dsp[0],dsp.Dim());
-        }
-      }
-    }
-    PtSetup(setup_data, &data);
-  }
-
-  void M2P_ListSetup(BodiesSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
-    {
-      setup_data.kernel = kernel->k_m2t;
-      setup_data. input_data = &buff[0];              // upward_equiv
-      setup_data.output_data = &buff[5];              // trg_value
-      setup_data. coord_data = &buff[6];              // src & trg coords, upward/dnward check/equiv surface
-      setup_data.nodes_in .clear();
-      setup_data.nodes_out.clear();
-      std::vector<FMM_Node*>& nodes_in =n_list[0];    // nodesLevelOrder
-      std::vector<FMM_Node*>& nodes_out=n_list[5];    // leafs
-      for(FMM_Node* node : nodes_in)
-        if (node->pt_cnt[0]) setup_data.nodes_in.push_back(node);
-      for(FMM_Node* node : nodes_out)
-        if (node->trg_coord.Dim() && node->IsLeaf()) setup_data.nodes_out.push_back(node);
-    }
-    // initialize ptSetupData
-    ptSetupData data;
-    data.kernel=setup_data.kernel;
-    data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, UpwardEquivCoord);
-    data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, UpwardEquivValue);
-    data.trg_coord = PackedData(setup_data.coord_data, setup_data.nodes_out, TrgCoord);
-    data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, TrgValue);
-
-    int i = 0;
-    for(FMM_Node* node : setup_data.nodes_in) node->node_id = i++;
-    std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
-    std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    {
-      int omp_p=omp_get_max_threads();
-      std::vector<std::vector<size_t> > in_node_(omp_p);
-      std::vector<std::vector<size_t> > scal_idx_(omp_p);
-      std::vector<std::vector<real_t> > coord_shift_(omp_p);
-      std::vector<std::vector<size_t> > interac_cnt_(omp_p);
-      size_t m=multipole_order;
-      size_t Nsrf=(6*(m-1)*(m-1)+2);
-#pragma omp parallel for
-      for(size_t tid=0;tid<omp_p;tid++){
-        std::vector<size_t>& in_node    =in_node_[tid]    ;
-        std::vector<size_t>& scal_idx   =scal_idx_[tid]   ;
-        std::vector<real_t>& coord_shift=coord_shift_[tid];
-        std::vector<size_t>& interac_cnt=interac_cnt_[tid]        ;
-        size_t a=(nodes_out.size()*(tid+0))/omp_p;
-        size_t b=(nodes_out.size()*(tid+1))/omp_p;
-        for(size_t i=a;i<b;i++){
-          FMM_Node* tnode=nodes_out[i];
-          real_t s=powf(0.5,tnode->depth);
-          size_t interac_cnt_=0;
-          {
-            Mat_Type type=M2P_Type;
-            std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
-            for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
-              FMM_Node* snode=intlst[j];
-              size_t snode_id=snode->node_id;
-              if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
-              if(snode->IsLeaf() && snode->pt_cnt[0]<=Nsrf) continue;
-              in_node.push_back(snode_id);
-              scal_idx.push_back(snode->depth);
-              {
-                ivec3& rel_coord=interacList->rel_coord[type][j];
-                const real_t* scoord=snode->Coord();
-                const real_t* tcoord=tnode->Coord();
-                real_t shift[3];
-                shift[0]=rel_coord[0]*0.25*s-(0+0.25*s)+(tcoord[0]+0.5*s);
-                shift[1]=rel_coord[1]*0.25*s-(0+0.25*s)+(tcoord[1]+0.5*s);
-                shift[2]=rel_coord[2]*0.25*s-(0+0.25*s)+(tcoord[2]+0.5*s);
-                coord_shift.push_back(shift[0]);
-                coord_shift.push_back(shift[1]);
-                coord_shift.push_back(shift[2]);
-              }
-              interac_cnt_++;
-            }
-          }
-          interac_cnt.push_back(interac_cnt_);
-        }
-      }
-      {
-        InteracData& pt_interac_data=data.pt_interac_data;
-	CopyVec(in_node_,pt_interac_data.in_node);
-	CopyVec(scal_idx_,pt_interac_data.scal_idx);
-	CopyVec(coord_shift_,pt_interac_data.coord_shift);
-	CopyVec(interac_cnt_,pt_interac_data.interac_cnt);
-        {
-          pvfmm::Vector<size_t>& cnt=pt_interac_data.interac_cnt;
-          pvfmm::Vector<size_t>& dsp=pt_interac_data.interac_dsp;
-          dsp.Resize(cnt.Dim()); if(dsp.Dim()) dsp[0]=0;
-          scan(&cnt[0],&dsp[0],dsp.Dim());
-        }
-      }
-    }
-    PtSetup(setup_data, &data);
   }
 
   void P2L_ListSetup(BodiesSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
@@ -1612,12 +1389,6 @@ public:
     BuildInteracLists();
     Profile::Toc();
 
-    Profile::Tic("UListSetup",false,3);
-    U_ListSetup(U_data, node_data_buff, node_lists);
-    Profile::Toc();
-    Profile::Tic("M2PListSetup",false,3);
-    M2P_ListSetup(M2P_data, node_data_buff, node_lists);
-    Profile::Toc();
     Profile::Tic("XListSetup",false,3);
     P2L_ListSetup(P2L_data, node_data_buff, node_lists);
     Profile::Toc();
