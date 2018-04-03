@@ -2190,20 +2190,9 @@ private:
     evalP2P(setup_data);
   }
 
-  void M2P_List(BodiesSetup&  setup_data){
-    if(!multipole_order) return;
-    evalP2P(setup_data);
-  }
-
-  /*
-  void U_List(BodiesSetup&  setup_data){
-    evalP2P(setup_data);
-  }*/
-
-  void U_List(BodiesSetup& setup_data) {
-    // assume sources == targets
+  void P2P(BodiesSetup& setup_data) {
     int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
-    std::vector<FMM_Node*>& targets = setup_data.nodes_in;
+    std::vector<FMM_Node*>& targets = setup_data.nodes_out;   // leafs, assume sources == targets
     std::vector<Mat_Type> types = {U0_Type, U1_Type, U2_Type, P2L_Type, M2P_Type};
 #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
@@ -2220,9 +2209,36 @@ private:
             if (type == M2P_Type)
               if (source->pt_cnt[0] > numSurfCoords)
                 continue;
-            kernel->ker_poten(&(source->src_coord[0]), source->pt_cnt[0], &(source->src_value[0]),
-                              &(target->trg_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
+            kernel->k_s2t->ker_poten(&(source->src_coord[0]), source->pt_cnt[0], &(source->src_value[0]),
+                                     &(target->trg_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
           }
+        }
+      }
+    }
+  }
+
+  void M2P(BodiesSetup& setup_data){
+    int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
+    std::vector<FMM_Node*>& targets = setup_data.nodes_out;  // leafs
+#pragma omp parallel for
+    for(int i=0; i<targets.size(); i++) {
+      FMM_Node* target = targets[i];
+      std::vector<FMM_Node*>& sources = target->interac_list[M2P_Type];
+      for(int j=0; j<sources.size(); j++) {
+        FMM_Node* source = sources[j];
+        if (source != NULL) {
+          if (source->IsLeaf() && source->pt_cnt[0]<numSurfCoords)
+            continue;
+          std::vector<real_t> sourceEquivCoord(numSurfCoords*3);
+          int level = source->depth;
+          // source cell's equiv coord = relative equiv coord + cell's origin
+          for(int k=0; k<numSurfCoords; k++) {
+            sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->coord[0];
+            sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
+            sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
+          }
+          kernel->k_m2t->ker_poten(&sourceEquivCoord[0], numSurfCoords, &(source->upward_equiv[0]),
+                                   &(target->trg_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
         }
       }
     }
@@ -2313,10 +2329,10 @@ private:
     P2L_List(P2L_data);
     Profile::Toc();
     Profile::Tic("M2P-List",false,5);
-    M2P_List(M2P_data);
+    M2P(M2P_data);
     Profile::Toc();
     Profile::Tic("U-List",false,5);
-    U_List(U_data);
+    P2P(U_data);
     Profile::Toc();
     Profile::Tic("V-List",false,5);
     V_List(M2L_data);
