@@ -129,5 +129,6 @@ namespace pvfmm{
 
   class FMM_Node;
   std::vector<FMM_Node*> leafs, nonleafs;
+  std::vector<FMM_Node*> nodesLevelOrder, nonleafsLevelOrder;
 }
 #endif //_PVFMM_COMMON_HPP_
