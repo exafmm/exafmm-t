@@ -130,5 +130,6 @@ namespace pvfmm{
   class FMM_Node;
   std::vector<FMM_Node*> leafs, nonleafs;
   std::vector<FMM_Node*> nodesLevelOrder, nonleafsLevelOrder;
+  int LEVEL;     // depth of octree
 }
 #endif //_PVFMM_COMMON_HPP_

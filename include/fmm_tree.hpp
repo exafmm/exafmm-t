@@ -1278,7 +1278,9 @@ public:
     Profile::Tic("CollectNodeData",false,3);
     FMM_Node* n = PostorderFirst();
     std::vector<FMM_Node*> all_nodes;
+    LEVEL = 0;
     while(n!=NULL){
+      LEVEL = n->depth > LEVEL ? n->depth : LEVEL;
       n->pt_cnt[0]=0;
       n->pt_cnt[1]=0;
       all_nodes.push_back(n);        // all_nodes: postorder tree traversal
@@ -1960,51 +1962,35 @@ private:
   }
 
   void UpwardPass() {
-    int depth=0;
-    std::vector<FMM_Node*>& nodes=GetNodeList();
-    for(size_t i=0;i<nodes.size();i++){
-      FMM_Node* n=nodes[i];
-      if(n->depth>depth) depth=n->depth;
-    }
-    Profile::Tic("P2M",false,5);
+    Profile::Tic("P2M", false, 5);
     P2M(P2M_data);
     Profile::Toc();
-    Profile::Tic("M2M",false,5);
-    for(int i=depth-1; i>=0; i--){
+    Profile::Tic("M2M", false, 5);
+    for(int i=LEVEL-1; i>=0; i--){
       M2M(M2M_data[i]);
     }
     Profile::Toc();
   }
 
   void DownwardPass() {
-    Profile::Tic("Setup",true,3);
-    std::vector<FMM_Node*> leaf_nodes;
-    int depth=0;
-    std::vector<FMM_Node*>& nodes=GetNodeList();
-    for(size_t i=0;i<nodes.size();i++){
-      FMM_Node* n=nodes[i];
-      if(n->IsLeaf()) leaf_nodes.push_back(n);
-      if(n->depth>depth) depth=n->depth;
-    }
-    Profile::Toc();
-    Profile::Tic("P2L-List",false,5);
+    Profile::Tic("P2L", false, 5);
     P2L();
     Profile::Toc();
-    Profile::Tic("M2P-List",false,5);
+    Profile::Tic("M2P", false, 5);
     M2P();
     Profile::Toc();
-    Profile::Tic("U-List",false,5);
+    Profile::Tic("P2P", false, 5);
     P2P();
     Profile::Toc();
-    Profile::Tic("V-List",false,5);
+    Profile::Tic("M2L", false, 5);
     V_List(M2L_data);
     Profile::Toc();
-    Profile::Tic("L2L",false,5);
-    for(size_t i=0; i<=depth; i++) {
+    Profile::Tic("L2L", false, 5);
+    for(size_t i=0; i<=LEVEL; i++) {
       L2L(L2L_data[i]);
     }
     Profile::Toc();
-    Profile::Tic("L2P",false,5);
+    Profile::Tic("L2P", false, 5);
     L2P(L2P_data);
     Profile::Toc();
   }
@@ -2012,14 +1998,12 @@ private:
 public:
   void RunFMM() {
     Profile::Tic("RunFMM",true);
-    {
-      Profile::Tic("UpwardPass",false,2);
-      UpwardPass();
-      Profile::Toc();
-      Profile::Tic("DownwardPass",true,2);
-      DownwardPass();
-      Profile::Toc();
-    }
+    Profile::Tic("UpwardPass",false,2);
+    UpwardPass();
+    Profile::Toc();
+    Profile::Tic("DownwardPass",true,2);
+    DownwardPass();
+    Profile::Toc();
     Profile::Toc();
   }
 /* End of 3rd part: Evaluation */

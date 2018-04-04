@@ -100,7 +100,9 @@ public:
 	//double f_avg=f_sum/np;
 
 	if(!rank){
-          if(n_log[i] == "U-List" || n_log[i] == "V-List")
+          if(n_log[i] == "P2M" || n_log[i] == "M2M" || n_log[i] == "P2L"
+          || n_log[i] == "M2P" || n_log[i] == "P2P" || n_log[i] == "M2L"
+          || n_log[i] == "L2L" || n_log[i] == "L2P")
 	    std::cout << n_log[i] << "     : " << t_avg << std::endl;
 	}
 	level--;
