@@ -1830,7 +1830,7 @@ private:
   void P2P() {
     int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
     std::vector<FMM_Node*>& targets = leafs;   // leafs, assume sources == targets
-    std::vector<Mat_Type> types = {U0_Type, U1_Type, U2_Type, P2L_Type, M2P_Type};
+    std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type, P2L_Type, M2P_Type};
 #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       FMM_Node* target = targets[i];
@@ -1881,8 +1881,31 @@ private:
     }
   }
 
-  void P2P_List(BodiesSetup&  setup_data){
-    evalP2P(setup_data);
+  void P2L() {
+    int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
+    std::vector<FMM_Node*>& targets = nodesLevelOrder;
+#pragma omp parallel for
+    for(int i=0; i<targets.size(); i++) {
+      FMM_Node* target = targets[i];
+      if (target->IsLeaf() && target->pt_cnt[1]<=numSurfCoords)
+        continue;
+      std::vector<FMM_Node*>& sources = target->interac_list[P2L_Type];
+      for(int j=0; j<sources.size(); j++) {
+        FMM_Node* source = sources[j];
+        if (source != NULL) {
+          std::vector<real_t> targetCheckCoord(numSurfCoords*3);
+          int level = target->depth;
+          // target cell's check coord = relative check coord + cell's origin
+          for(int k=0; k<numSurfCoords; k++) {
+            targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
+            targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
+            targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
+          }
+          kernel->k_s2l->ker_poten(&(source->src_coord[0]), source->pt_cnt[0], &(source->src_value[0]),
+                                   &targetCheckCoord[0], numSurfCoords, &(target->dnward_equiv[0]));
+        }
+      }
+    }
   }
 
   void M2L_List(M2LSetup&  setup_data){
