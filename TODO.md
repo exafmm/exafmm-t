@@ -4,8 +4,8 @@
 - [ ] X -> P2L
 - [ ] U -> P2P
 - [ ] V -> M2L
-- [ ] OpenMP dynamic
-- [ ] Clean P2P in fmm_tree
+- [x] OpenMP dynamic
+- [x] Clean P2P in fmm_tree
 - [ ] Add P2M, L2P to TIME
 - [ ] Remove M2M, L2L precomputation for all levels
 
