@@ -843,8 +843,8 @@ private:
       setup_data. input_data=&buff[4];         // src_value
       setup_data.output_data=&buff[1];         // dnward_equiv
       setup_data. coord_data=&buff[6];         // src & trg coords, upward & downward equiv
-      std::vector<FMM_Node*>& nodes_in =n_list[4];
-      std::vector<FMM_Node*>& nodes_out=n_list[1];
+      std::vector<FMM_Node*>& nodes_in =n_list[4];    // leafs
+      std::vector<FMM_Node*>& nodes_out=n_list[1];    // allnodes
       setup_data.nodes_in .clear();
       setup_data.nodes_out.clear();
       for(FMM_Node* node : nodes_in)
@@ -1426,40 +1426,6 @@ public:
 
 /* 3rd Part: Evaluation */
 private:
-  void evalP2P(BodiesSetup& setup_data) {
-    ptSetupData data = setup_data.pt_setup_data;
-    InteracData& intdata = data.pt_interac_data;
-    int omp_p=omp_get_max_threads();
-#pragma omp parallel for
-    for(size_t tid=0;tid<omp_p;tid++) {
-      Matrix<real_t> src_coord, src_value;
-      Matrix<real_t> trg_coord, trg_value;
-      size_t trg_a=0, trg_b=0;
-      if(intdata.interac_cst.Dim()){
-        Vector<size_t>& interac_cst=intdata.interac_cst;
-        size_t cost=interac_cst[interac_cst.Dim()-1];
-        trg_a = std::lower_bound(&interac_cst[0], &interac_cst[interac_cst.Dim()-1], (cost*(tid+0))/omp_p) - &interac_cst[0]+1;
-        trg_b = std::lower_bound(&interac_cst[0], &interac_cst[interac_cst.Dim()-1], (cost*(tid+1))/omp_p) - &interac_cst[0]+1;
-        if(tid==omp_p-1) trg_b=interac_cst.Dim();
-        if(tid==0) trg_a=0;
-      }
-      for(int trg=trg_a; trg<trg_b; trg++){
-        trg_coord.ReInit(1, data.trg_coord.cnt[trg], &data.trg_coord.ptr[0][0][data.trg_coord.dsp[trg]], false);
-        trg_value.ReInit(1, data.trg_value.cnt[trg], &data.trg_value.ptr[0][0][data.trg_value.dsp[trg]], false);
-        for(size_t i=0;i<intdata.interac_cnt[trg];i++){
-          size_t int_id = intdata.interac_dsp[trg]+i;
-          size_t src = intdata.in_node[int_id];
-          src_coord.ReInit(1, data.src_coord.cnt[src], &data.src_coord.ptr[0][0][data.src_coord.dsp[src]], false);
-          src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
-          if(src_coord.Dim(1)){
-            setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, src_value[0],
-                                         trg_coord[0], trg_coord.Dim(1)/3, trg_value[0]);
-          }
-        }
-      }
-    }
-  }
-
   void P2M(BodiesSetup& setup_data) {
     if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
     char* dev_buff = dev_buffer.data_ptr;
@@ -1957,11 +1923,6 @@ private:
     EvalList(setup_data);
   }
 
-  void P2L_List(BodiesSetup&  setup_data){
-    if(!multipole_order) return;
-    evalP2P(setup_data);
-  }
-
   void P2P() {
     int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
     std::vector<FMM_Node*>& targets = leafs;   // leafs, assume sources == targets
@@ -1999,7 +1960,7 @@ private:
       for(int j=0; j<sources.size(); j++) {
         FMM_Node* source = sources[j];
         if (source != NULL) {
-          if (source->IsLeaf() && source->pt_cnt[0]<numSurfCoords)
+          if (source->IsLeaf() && source->pt_cnt[0]<=numSurfCoords)
             continue;
           std::vector<real_t> sourceEquivCoord(numSurfCoords*3);
           int level = source->depth;
@@ -2011,6 +1972,34 @@ private:
           }
           kernel->k_m2t->ker_poten(&sourceEquivCoord[0], numSurfCoords, &(source->upward_equiv[0]),
                                    &(target->trg_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
+        }
+      }
+    }
+  }
+
+  void P2L(BodiesSetup& setup_data) {
+    int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
+    //std::vector<FMM_Node*>& targets = &nodes_lists[1];
+    std::vector<FMM_Node*>& targets = setup_data.nodes_out;
+#pragma omp parallel for
+    for(int i=0; i<targets.size(); i++) {
+      FMM_Node* target = targets[i];
+      if (target->IsLeaf() && target->pt_cnt[1]<=numSurfCoords)
+        continue;
+      std::vector<FMM_Node*>& sources = target->interac_list[P2L_Type];
+      for(int j=0; j<sources.size(); j++) {
+        FMM_Node* source = sources[j];
+        if (source != NULL) {
+          std::vector<real_t> targetCheckCoord(numSurfCoords*3);
+          int level = target->depth;
+          // target cell's check coord = relative check coord + cell's origin
+          for(int k=0; k<numSurfCoords; k++) {
+            targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
+            targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
+            targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
+          }
+          kernel->k_s2l->ker_poten(&(source->src_coord[0]), source->pt_cnt[0], &(source->src_value[0]), 
+                                   &targetCheckCoord[0], numSurfCoords, &(target->dnward_equiv[0]));
         }
       }
     }
@@ -2098,7 +2087,7 @@ private:
     }
     Profile::Toc();
     Profile::Tic("P2L-List",false,5);
-    P2L_List(P2L_data);
+    P2L(P2L_data);
     Profile::Toc();
     Profile::Tic("M2P-List",false,5);
     M2P();
