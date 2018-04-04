@@ -58,7 +58,7 @@ namespace pvfmm{
     Matrix<real_t>* output_data;
   };
 
-  // P2M & L2P Setup
+  // L2P Setup
   struct BodiesSetup : SetupBase {
     Matrix<real_t>* coord_data;
     ptSetupData pt_setup_data;
@@ -94,7 +94,7 @@ public:
   InteracList* interacList;
   PrecompMat* mat;
   std::vector<FMM_Node*> node_lst;
-  BodiesSetup P2M_data, L2P_data;
+  BodiesSetup L2P_data;
   std::vector<CellsSetup> M2M_data;
   std::vector<CellsSetup> L2L_data;
   M2LSetup M2L_data;
@@ -979,126 +979,6 @@ private:
     Profile::Toc();
   }
 
-  void P2MSetup(BodiesSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list) {
-    if(!MULTIPOLE_ORDER) return;
-    {
-      setup_data.kernel=kernel->k_s2m;
-      setup_data. input_data=&buff[4];            // src_value
-      setup_data.output_data=&buff[0];            // upward_equiv
-      setup_data. coord_data=&buff[6];
-      std::vector<FMM_Node*>& nodes_in =n_list[4];
-      std::vector<FMM_Node*>& nodes_out=n_list[0];
-      setup_data.nodes_in .clear();
-      setup_data.nodes_out.clear();
-      for(FMM_Node* node : nodes_in) 
-        if(node->src_coord.Dim() && node->IsLeaf()) setup_data.nodes_in.push_back(node);
-      for(FMM_Node* node : nodes_out)
-        if(node->src_coord.Dim() && node->IsLeaf()) setup_data.nodes_out.push_back(node);
-    }
-    ptSetupData data;
-    data.kernel = setup_data.kernel;
-    data.src_coord = PackedData(setup_data.coord_data, setup_data.nodes_in, SrcCoord);
-    data.src_value = PackedData(setup_data.input_data, setup_data.nodes_in, SrcValue);
-    data.trg_coord = PackedData(setup_data.coord_data, setup_data.nodes_out, UpwardCheckCoord);
-    data.trg_value = PackedData(setup_data.output_data, setup_data.nodes_out, UpwardEquivValue);
-
-    int i = 0;
-    for(FMM_Node* node : setup_data.nodes_in) node->node_id = i++;
-    std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
-    std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    {
-      int omp_p=omp_get_max_threads();
-      std::vector<std::vector<size_t> > in_node_(omp_p);
-      std::vector<std::vector<size_t> > scal_idx_(omp_p);
-      std::vector<std::vector<real_t> > coord_shift_(omp_p);
-      std::vector<std::vector<size_t> > interac_cnt_(omp_p);
-      const Kernel* ker=kernel->k_m2m;
-      for(size_t l=0;l<MAX_DEPTH;l++){
-        Vector<real_t>& scal=data.pt_interac_data.scal[l*4+2];
-        std::vector<real_t>& scal_exp=ker->trg_scal;
-        scal.Resize(scal_exp.size());
-        for(size_t i=0;i<scal.Dim();i++){
-  assert(scal_exp[i] == 1);
-          scal[i]=powf(2.0,-scal_exp[i]*l);
-        }
-      }
-      for(size_t l=0;l<MAX_DEPTH;l++){
-        Vector<real_t>& scal=data.pt_interac_data.scal[l*4+3];
-        std::vector<real_t>& scal_exp=ker->src_scal;
-        scal.Resize(scal_exp.size());
-        for(size_t i=0;i<scal.Dim();i++){
-  assert(scal_exp[i] == 0);
-          scal[i]=powf(2.0,-scal_exp[i]*l);
-        }
-      }
-#pragma omp parallel for
-      for(size_t tid=0;tid<omp_p;tid++){
-        std::vector<size_t>& in_node    =in_node_[tid]    ;
-        std::vector<size_t>& scal_idx   =scal_idx_[tid]   ;
-        std::vector<real_t>& coord_shift=coord_shift_[tid];
-        std::vector<size_t>& interac_cnt=interac_cnt_[tid];
-        size_t a=(nodes_out.size()*(tid+0))/omp_p;
-        size_t b=(nodes_out.size()*(tid+1))/omp_p;
-        for(size_t i=a;i<b;i++){
-          FMM_Node* tnode=nodes_out[i];
-          real_t s=powf(0.5,tnode->depth);
-          size_t interac_cnt_=0;
-          {
-            Mat_Type type=P2M_Type;
-            std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
-            for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
-              FMM_Node* snode=intlst[j];
-              size_t snode_id=snode->node_id;
-              if(snode_id>=nodes_in.size() || nodes_in[snode_id]!=snode) continue;
-              in_node.push_back(snode_id);
-              scal_idx.push_back(snode->depth);
-              {
-                ivec3& rel_coord=interacList->rel_coord[type][j];
-  assert(rel_coord[0] ==0 && rel_coord[1] ==0 && rel_coord[2] ==0);
-                const real_t* scoord=snode->Coord();
-                real_t shift[3];
-                shift[0] = -scoord[0];
-                shift[1] = -scoord[1];
-                shift[2] = -scoord[2];
-                coord_shift.push_back(shift[0]);
-                coord_shift.push_back(shift[1]);
-                coord_shift.push_back(shift[2]);
-              }
-              interac_cnt_++;
-            }
-          }
-          interac_cnt.push_back(interac_cnt_);
-        }
-      }
-      {
-        InteracData& pt_interac_data=data.pt_interac_data;
-	CopyVec(in_node_,pt_interac_data.in_node);
-	CopyVec(scal_idx_,pt_interac_data.scal_idx);
-	CopyVec(coord_shift_,pt_interac_data.coord_shift);
-	CopyVec(interac_cnt_,pt_interac_data.interac_cnt);
-        {
-          pvfmm::Vector<size_t>& cnt=pt_interac_data.interac_cnt;
-          pvfmm::Vector<size_t>& dsp=pt_interac_data.interac_dsp;
-          dsp.Resize(cnt.Dim()); if(dsp.Dim()) dsp[0]=0;
-          scan(&cnt[0],&dsp[0],dsp.Dim());
-        }
-      }
-      {
-        InteracData& pt_interac_data=data.pt_interac_data;
-        pvfmm::Vector<size_t>& cnt=pt_interac_data.interac_cnt;
-        pvfmm::Vector<size_t>& dsp=pt_interac_data.interac_dsp;
-        if(cnt.Dim() && cnt[cnt.Dim()-1]+dsp[dsp.Dim()-1]){
-          data.pt_interac_data.M[2] = mat->mat[M2M_V_Type][0];
-          data.pt_interac_data.M[3] = mat->mat[M2M_U_Type][0];
-        }else{
-          data.pt_interac_data.M[2].ReInit(0,0);
-          data.pt_interac_data.M[3].ReInit(0,0);
-        }
-      }
-    }
-    PtSetup(setup_data, &data);
-  }
-
   void M2MSetup(CellsSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
     setup_data.level = level;
     setup_data.kernel = kernel->k_m2m;
@@ -1310,10 +1190,6 @@ public:
     L2PSetup(L2P_data, node_data_buff, node_lists);
     Profile::Toc();
 
-    Profile::Tic("P2MSetup",false,3);
-    P2MSetup(P2M_data, node_data_buff, node_lists);
-    Profile::Toc();
-
     Profile::Tic("M2MSetup",false,3);
     for(size_t i=0;i<MAX_DEPTH;i++){
       M2M_data[i].precomp_data = &M2M_precomp_lst;
@@ -1328,109 +1204,27 @@ public:
 
 /* 3rd Part: Evaluation */
 private:
-  void P2M(BodiesSetup& setup_data) {
-    if(setup_data.kernel->ker_dim[0]*setup_data.kernel->ker_dim[1]==0) return;
-    char* dev_buff = dev_buffer.data_ptr;
-    ptSetupData data = setup_data.pt_setup_data;
-    InteracData& intdata = data.pt_interac_data;
-    assert(intdata.M[0].Dim(1)==intdata.M[1].Dim(0));
-    assert(intdata.M[2].Dim(1)==intdata.M[3].Dim(0));
-
-    int omp_p=omp_get_max_threads();
+  void P2M() { 
 #pragma omp parallel for
-    for(size_t tid=0;tid<omp_p;tid++) {
-      Matrix<real_t> src_coord, src_value;
-      Matrix<real_t> trg_coord, trg_value;
-      Vector<real_t> buff;
-      size_t thread_buff_size = setup_data.output_data->Dim(0)*setup_data.output_data->Dim(1) / omp_p;
-      buff.ReInit3(thread_buff_size, (real_t*)(dev_buff + tid*thread_buff_size*sizeof(real_t)), false);
-
-      std::vector<Matrix<real_t> > vbuff(6);
-      int vdim_ = intdata.M[2].Dim(0) + intdata.M[2].Dim(1) + intdata.M[3].Dim(1);
-      int vcnt  = buff.Dim() / vdim_ / 2;
-      {
-        std::vector<int> vdim(6, 0);
-        vdim[0] = intdata.M[0].Dim(0);
-        vdim[1] = intdata.M[0].Dim(1);
-        vdim[2] = intdata.M[1].Dim(1);
-        vdim[3] = intdata.M[2].Dim(0);
-        vdim[4] = intdata.M[2].Dim(1);
-        vdim[5] = intdata.M[3].Dim(1);
-        for(size_t indx=0;indx<6;indx++){
-          vbuff[indx].ReInit(vcnt,vdim[indx],&buff[0],false);
-          buff.ReInit3(buff.Dim()-vdim[indx]*vcnt, &buff[vdim[indx]*vcnt], false);
-        }
+    for(int i=0; i<leafs.size(); i++) {
+      FMM_Node* leaf = leafs[i];
+      int level = leaf->depth;
+      real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix
+      std::vector<real_t> checkCoord(NSURF*3);
+      for(int k=0; k<NSURF; k++) {
+        checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->coord[0];
+        checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
+        checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
       }
-      // assign a chunk of target boxes to each thread
-      size_t trg_a=0, trg_b=0;
-      if(intdata.interac_cst.Dim()){
-        Vector<size_t>& interac_cst=intdata.interac_cst;
-        size_t cost=interac_cst[interac_cst.Dim()-1];
-        trg_a = std::lower_bound(&interac_cst[0], &interac_cst[interac_cst.Dim()-1], (cost*(tid+0))/omp_p) - &interac_cst[0]+1;
-        trg_b = std::lower_bound(&interac_cst[0], &interac_cst[interac_cst.Dim()-1], (cost*(tid+1))/omp_p) - &interac_cst[0]+1;
-        if(tid==omp_p-1) trg_b=interac_cst.Dim();
-        if(tid==0) trg_a=0;
-      }
-      for(size_t trg0=trg_a; trg0<trg_b; ){
-        // calculate num of nodes evaluated per iteration based on buffer size
-        int trg1_max;
-        if(vcnt){
-          if (trg0 + vcnt < trg_b) trg1_max = vcnt;
-          else trg1_max = trg_b - trg0;
-          assert(trg1_max <= vcnt);
-          for(size_t k=0;k<6;k++){
-            if(vbuff[k].Dim(0)*vbuff[k].Dim(1)){
-              vbuff[k].ReInit(trg1_max, vbuff[k].Dim(1), vbuff[k][0], false);
-            }
-          }
-        } else trg1_max = trg_b - trg0;
-
-        vbuff[3].SetZero();    // vbuff[3]: n_trg * n_ue
-        // evaluate potential at upward check surface
-        for(size_t trg1=0; trg1<trg1_max; trg1++) {
-          size_t trg = trg0 + trg1;
-          size_t int_id = intdata.interac_dsp[trg];
-          size_t src = intdata.in_node[int_id];
-          assert(intdata.interac_cnt[trg] == 1);
-          trg_coord.ReInit(1, data.trg_coord.cnt[trg], &data.trg_coord.ptr[0][0][data.trg_coord.dsp[trg]], false);
-          trg_value.ReInit(1, data.trg_value.cnt[trg], &data.trg_value.ptr[0][0][data.trg_value.dsp[trg]], false);
-          src_coord.ReInit(1, data.src_coord.cnt[src], &data.src_coord.ptr[0][0][data.src_coord.dsp[src]], false);
-          src_value.ReInit(1, data.src_value.cnt[src], &data.src_value.ptr[0][0][data.src_value.dsp[src]], false);
-          real_t* trg_value = vbuff[3][trg1];
-          real_t* shift = &intdata.coord_shift[int_id*3];
-          if(shift[0]!=0 || shift[1]!=0 || shift[2]!=0){
-            size_t vdim = src_coord.Dim(1);
-            Vector<real_t> new_coord(vdim, &buff[0], false);
-            assert(buff.Dim()>=vdim);
-            for(int i=0; i<src_coord.Dim(1); i++) new_coord[i] = src_coord[0][i] + shift[i%3];
-            src_coord.ReInit(1, vdim, &new_coord[0], false);
-          }
-          setup_data.kernel->ker_poten(src_coord[0], src_coord.Dim(1)/3, src_value[0],
-                                       trg_coord[0], trg_coord.Dim(1)/3, trg_value);
-
-          int scal_idx = intdata.scal_idx[int_id];
-          Vector<real_t>& scal = intdata.scal[scal_idx*4+2];   // level factor 2*(-l) of UE2UC matrix
-          size_t scal_dim = scal.Dim();
-          if(scal_dim){
-            size_t vdim = vbuff[3].Dim(1);
-            for(size_t j=0;j<vdim;j+=scal_dim){
-              for(size_t k=0;k<scal_dim;k++){
-                vbuff[3][trg1][j+k]*=scal[k];
-              }
-            }
-          }
-        }
-        // upward_equiv_charge = upward_check_potential * inv(Mat_UE2UC)
-        Matrix<real_t>::GEMM(vbuff[4],vbuff[3],intdata.M[2]);
-        Matrix<real_t>::GEMM(vbuff[5],vbuff[4],intdata.M[3]);
-        // copy equivalent charge's values from buffer back to ptSetupData
-        for(size_t trg1=0; trg1<trg1_max; trg1++){
-          size_t trg = trg0+trg1;
-          trg_value.ReInit(1, data.trg_value.cnt[trg], &data.trg_value.ptr[0][0][data.trg_value.dsp[trg]], false);
-          assert(trg_value.Dim(1) == vbuff[5].Dim(1));
-          for(size_t i=0; i<trg_value.Dim(1); i++) trg_value[0][i] += vbuff[5][trg1][i];
-        }
-        trg0+=trg1_max;
+      kernel->k_s2m->ker_poten(&(leaf->src_coord[0]), leaf->pt_cnt[0], &(leaf->src_value[0]),
+                               &checkCoord[0], NSURF, &(leaf->upward_equiv[0]));  // save check potentials in upward_equiv temporarily
+      Matrix<real_t> check(1, NSURF, &(leaf->upward_equiv[0]), true);  // check surface potential
+      Matrix<real_t> buffer(1, NSURF);
+      Matrix<real_t>::GEMM(buffer, check, mat->mat[M2M_V_Type][0]);
+      Matrix<real_t> equiv(1, NSURF);  // equivalent surface charge
+      Matrix<real_t>::GEMM(equiv, buffer, mat->mat[M2M_U_Type][0]);
+      for(int k=0; k<NSURF; k++) {
+        leaf->upward_equiv[k] = scal * equiv[0][k];
       }
     }
   }
@@ -1958,7 +1752,7 @@ private:
 
   void UpwardPass() {
     Profile::Tic("P2M", false, 5);
-    P2M(P2M_data);
+    P2M();
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
     for(int i=LEVEL-1; i>=0; i--){
