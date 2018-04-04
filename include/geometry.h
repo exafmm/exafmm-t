@@ -45,54 +45,54 @@ namespace pvfmm {
     return coord;
   }
 
-  std::vector<real_t> u_check_surf(int p, real_t* c, int depth){
+  std::vector<real_t> u_check_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
     real_t coord[3]={(real_t)(c[0]-r*1.95),(real_t)(c[1]-r*1.95),(real_t)(c[2]-r*1.95)};
-    return surface(p,coord,2.95,depth);
+    return surface(MULTIPOLE_ORDER,coord,2.95,depth);
   }
 
-  std::vector<real_t> u_equiv_surf(int p, real_t* c, int depth){
+  std::vector<real_t> u_equiv_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
     real_t coord[3]={(real_t)(c[0]-r*0.05),(real_t)(c[1]-r*0.05),(real_t)(c[2]-r*0.05)};
-    return surface(p,coord,1.05,depth);
+    return surface(MULTIPOLE_ORDER,coord,1.05,depth);
   }
 
-  std::vector<real_t> d_check_surf(int p, real_t* c, int depth){
+  std::vector<real_t> d_check_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
     real_t coord[3]={(real_t)(c[0]-r*0.05),(real_t)(c[1]-r*0.05),(real_t)(c[2]-r*0.05)};
-    return surface(p,coord,1.05,depth);
+    return surface(MULTIPOLE_ORDER,coord,1.05,depth);
   }
 
-  std::vector<real_t> d_equiv_surf(int p, real_t* c, int depth){
+  std::vector<real_t> d_equiv_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
     real_t coord[3]={(real_t)(c[0]-r*1.95),(real_t)(c[1]-r*1.95),(real_t)(c[2]-r*1.95)};
-    return surface(p,coord,2.95,depth);
+    return surface(MULTIPOLE_ORDER,coord,2.95,depth);
   }
 
-  std::vector<real_t> conv_grid(int p, real_t* c, int depth){
+  std::vector<real_t> conv_grid(real_t* c, int depth){
     real_t r=powf(0.5,depth);
     real_t a=r*1.05;
     real_t coord[3]={c[0],c[1],c[2]};
-    int n1=p*2;
+    int n1=MULTIPOLE_ORDER*2;
     int n2=n1*n1;
     int n3=n1*n1*n1;
     std::vector<real_t> grid(n3*3);
     for(int i=0;i<n1;i++)
     for(int j=0;j<n1;j++)
     for(int k=0;k<n1;k++){
-      grid[(i+n1*j+n2*k)*3+0]=(i-p)*a/(p-1)+coord[0];
-      grid[(i+n1*j+n2*k)*3+1]=(j-p)*a/(p-1)+coord[1];
-      grid[(i+n1*j+n2*k)*3+2]=(k-p)*a/(p-1)+coord[2];
+      grid[(i+n1*j+n2*k)*3+0]=(i-MULTIPOLE_ORDER)*a/(MULTIPOLE_ORDER-1)+coord[0];
+      grid[(i+n1*j+n2*k)*3+1]=(j-MULTIPOLE_ORDER)*a/(MULTIPOLE_ORDER-1)+coord[1];
+      grid[(i+n1*j+n2*k)*3+2]=(k-MULTIPOLE_ORDER)*a/(MULTIPOLE_ORDER-1)+coord[2];
     }
     return grid;
   }
 
-  Permutation<real_t> equiv_surf_perm(size_t m, size_t p_indx, const Permutation<real_t>& ker_perm, std::vector<real_t>& scal_exp){
+  Permutation<real_t> equiv_surf_perm(size_t p_indx, const Permutation<real_t>& ker_perm, std::vector<real_t>& scal_exp){
     real_t eps=1e-10;
     int dof=ker_perm.Dim();
 
     real_t c[3]={-0.5,-0.5,-0.5};
-    std::vector<real_t> trg_coord=d_check_surf(m,c,0);
+    std::vector<real_t> trg_coord=d_check_surf(c,0);
     int n_trg=trg_coord.size()/3;
 
     Permutation<real_t> P=Permutation<real_t>(n_trg*dof);

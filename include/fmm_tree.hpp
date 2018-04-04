@@ -89,7 +89,6 @@ namespace pvfmm{
 
 class FMM_Tree {
 public:
-  int multipole_order;
   FMM_Node* root_node;
   const Kernel* kernel;
   InteracList* interacList;
@@ -101,8 +100,8 @@ public:
   M2LSetup M2L_data;
 
 public:
-  FMM_Tree(int multi_order, const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_): 
-    multipole_order(multi_order), kernel(kernel_), interacList(interacList_), mat(mat_),
+  FMM_Tree(const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_): 
+    kernel(kernel_), interacList(interacList_), mat(mat_),
     root_node(NULL) {
     m2l_precomp_fft_flag = false;
     m2l_list_fft_flag = false;
@@ -836,7 +835,7 @@ private:
   }
 
   void M2L_ListSetup(M2LSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
-    if(!multipole_order) return;
+    if(!MULTIPOLE_ORDER) return;
     {
       setup_data.kernel=kernel->k_m2l;
       setup_data.interac_type = M2L_Type;
@@ -869,12 +868,11 @@ private:
         Matrix<real_t>& M = mat->mat[interac_type][mat_id];
         precomp_mat.push_back(&M[0][0]);
       }
-      size_t m=multipole_order;
       size_t ker_dim0=setup_data.kernel->ker_dim[0];
       size_t ker_dim1=setup_data.kernel->ker_dim[1];
       size_t fftsize;
       {
-        size_t n1=m*2;
+        size_t n1=MULTIPOLE_ORDER*2;
         size_t n2=n1*n1;
         size_t n3_=n2*(n1/2+1);
         size_t chld_cnt=1UL<<3;
@@ -968,7 +966,7 @@ private:
         }
       }
       setup_data.m2l_list_data.buff_size   = buff_size;
-      setup_data.m2l_list_data.m           = m;
+      setup_data.m2l_list_data.m           = MULTIPOLE_ORDER;
       setup_data.m2l_list_data.n_blk0      = n_blk0;
       setup_data.m2l_list_data.precomp_mat = precomp_mat;
       setup_data.m2l_list_data.fft_vec     = fft_vec;
@@ -982,7 +980,7 @@ private:
   }
 
   void P2MSetup(BodiesSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list) {
-    if(!multipole_order) return;
+    if(!MULTIPOLE_ORDER) return;
     {
       setup_data.kernel=kernel->k_s2m;
       setup_data. input_data=&buff[4];            // src_value
@@ -1152,7 +1150,7 @@ private:
   }
 
   void L2PSetup(BodiesSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
-    if(!multipole_order) return;
+    if(!MULTIPOLE_ORDER) return;
     {
       setup_data.kernel=kernel->k_l2t;
       setup_data. input_data=&buff[1];        // dnward_equiv
@@ -1823,12 +1821,11 @@ private:
   }
 
   void M2M(CellsSetup& setup_data){
-    if(!multipole_order) return;
+    if(!MULTIPOLE_ORDER) return;
     EvalList(setup_data);
   }
 
   void P2P() {
-    int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
     std::vector<FMM_Node*>& targets = leafs;   // leafs, assume sources == targets
     std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type, P2L_Type, M2P_Type};
 #pragma omp parallel for
@@ -1838,13 +1835,13 @@ private:
         Mat_Type type = types[k];
         std::vector<FMM_Node*>& sources = target->interac_list[type];
         if (type == P2L_Type)
-          if (target->pt_cnt[1] > numSurfCoords)
+          if (target->pt_cnt[1] > NSURF)
             continue;
         for(int j=0; j<sources.size(); j++) {
           FMM_Node* source = sources[j];
           if (source != NULL) {
             if (type == M2P_Type)
-              if (source->pt_cnt[0] > numSurfCoords)
+              if (source->pt_cnt[0] > NSURF)
                 continue;
             kernel->k_s2t->ker_poten(&(source->src_coord[0]), source->pt_cnt[0], &(source->src_value[0]),
                                      &(target->trg_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
@@ -1855,7 +1852,6 @@ private:
   }
 
   void M2P(){
-    int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
     std::vector<FMM_Node*>& targets = leafs;  // leafs
 #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
@@ -1864,17 +1860,17 @@ private:
       for(int j=0; j<sources.size(); j++) {
         FMM_Node* source = sources[j];
         if (source != NULL) {
-          if (source->IsLeaf() && source->pt_cnt[0]<=numSurfCoords)
+          if (source->IsLeaf() && source->pt_cnt[0]<=NSURF)
             continue;
-          std::vector<real_t> sourceEquivCoord(numSurfCoords*3);
+          std::vector<real_t> sourceEquivCoord(NSURF*3);
           int level = source->depth;
           // source cell's equiv coord = relative equiv coord + cell's origin
-          for(int k=0; k<numSurfCoords; k++) {
+          for(int k=0; k<NSURF; k++) {
             sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->coord[0];
             sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
             sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
           }
-          kernel->k_m2t->ker_poten(&sourceEquivCoord[0], numSurfCoords, &(source->upward_equiv[0]),
+          kernel->k_m2t->ker_poten(&sourceEquivCoord[0], NSURF, &(source->upward_equiv[0]),
                                    &(target->trg_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
         }
       }
@@ -1882,34 +1878,33 @@ private:
   }
 
   void P2L() {
-    int numSurfCoords = 6*(multipole_order-1)*(multipole_order-1) + 2;
     std::vector<FMM_Node*>& targets = nodesLevelOrder;
 #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       FMM_Node* target = targets[i];
-      if (target->IsLeaf() && target->pt_cnt[1]<=numSurfCoords)
+      if (target->IsLeaf() && target->pt_cnt[1]<=NSURF)
         continue;
       std::vector<FMM_Node*>& sources = target->interac_list[P2L_Type];
       for(int j=0; j<sources.size(); j++) {
         FMM_Node* source = sources[j];
         if (source != NULL) {
-          std::vector<real_t> targetCheckCoord(numSurfCoords*3);
+          std::vector<real_t> targetCheckCoord(NSURF*3);
           int level = target->depth;
           // target cell's check coord = relative check coord + cell's origin
-          for(int k=0; k<numSurfCoords; k++) {
+          for(int k=0; k<NSURF; k++) {
             targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
             targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
             targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
           }
           kernel->k_s2l->ker_poten(&(source->src_coord[0]), source->pt_cnt[0], &(source->src_value[0]),
-                                   &targetCheckCoord[0], numSurfCoords, &(target->dnward_equiv[0]));
+                                   &targetCheckCoord[0], NSURF, &(target->dnward_equiv[0]));
         }
       }
     }
   }
 
   void M2L_List(M2LSetup&  setup_data){
-    if(!multipole_order) return;
+    if(!MULTIPOLE_ORDER) return;
     int np=1;
     Profile::Tic("Host2Device",false,25);
     int dim0=setup_data.input_data->dim[0];
@@ -1957,7 +1952,7 @@ private:
 
 
   void L2L(CellsSetup& setup_data){
-    if(!multipole_order) return;
+    if(!MULTIPOLE_ORDER) return;
     EvalList(setup_data);
   }
 

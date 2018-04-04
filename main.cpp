@@ -78,7 +78,8 @@ int main(int argc, char **argv){
   omp_set_num_threads(args.threads);
   size_t N = args.numBodies;
   size_t M = args.ncrit;
-  int mult_order = args.PP;
+  MULTIPOLE_ORDER = args.PP;
+  NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   int depth = 15;
   Profile::Enable(true);
   Profile::Tic("FMM_Test",true);
@@ -99,22 +100,20 @@ int main(int argc, char **argv){
   init_data.value=src_value;
 
   // initialize equiv surface coords for all levels
-  int m=mult_order;
-  int numSurfCoords = 6*(m-1)*(m-1) + 2;
   upwd_check_surf.resize(MAX_DEPTH);
   upwd_equiv_surf.resize(MAX_DEPTH);
   dnwd_check_surf.resize(MAX_DEPTH);
   dnwd_equiv_surf.resize(MAX_DEPTH);
   for(size_t depth=0;depth<MAX_DEPTH;depth++){
     real_t c[3] = {0.0};
-    upwd_check_surf[depth].Resize(numSurfCoords*3);
-    upwd_equiv_surf[depth].Resize(numSurfCoords*3);
-    dnwd_check_surf[depth].Resize(numSurfCoords*3);
-    dnwd_equiv_surf[depth].Resize(numSurfCoords*3);
-    upwd_check_surf[depth] = u_check_surf(m,c,depth);
-    upwd_equiv_surf[depth] = u_equiv_surf(m,c,depth);
-    dnwd_check_surf[depth] = d_check_surf(m,c,depth);
-    dnwd_equiv_surf[depth] = d_equiv_surf(m,c,depth);
+    upwd_check_surf[depth].Resize(NSURF*3);
+    upwd_equiv_surf[depth].Resize(NSURF*3);
+    dnwd_check_surf[depth].Resize(NSURF*3);
+    dnwd_equiv_surf[depth].Resize(NSURF*3);
+    upwd_check_surf[depth] = u_check_surf(c,depth);
+    upwd_equiv_surf[depth] = u_equiv_surf(c,depth);
+    dnwd_check_surf[depth] = d_check_surf(c,depth);
+    dnwd_equiv_surf[depth] = d_equiv_surf(c,depth);
   }
 
   InteracList interacList;
@@ -128,8 +127,8 @@ int main(int argc, char **argv){
   Kernel * kernel = &grad_ker; 
 #endif
   kernel->Initialize();
-  PrecompMat pmat(&interacList, mult_order, kernel);
-  FMM_Tree tree(mult_order, kernel, &interacList, &pmat);
+  PrecompMat pmat(&interacList, kernel);
+  FMM_Tree tree(kernel, &interacList, &pmat);
 
   for(size_t it=0;it<2;it++){
     Profile::Tic("TotalTime",true);

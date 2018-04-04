@@ -13,11 +13,11 @@ public:
   std::vector<std::vector<Permutation<real_t> > > perm_r;
   std::vector<std::vector<Permutation<real_t> > > perm_c;
   InteracList* interacList;
-  int multipole_order;
+  // int MULTIPOLE_ORDER;
   const Kernel* kernel;
 
-  PrecompMat(InteracList* interacList_, int multipole_order_, const Kernel* kernel_):
-    multipole_order(multipole_order_), kernel(kernel_), interacList(interacList_) {
+  PrecompMat(InteracList* interacList_, const Kernel* kernel_):
+    kernel(kernel_), interacList(interacList_) {
     mat.resize(PrecomputationType);
     for(int type; type<PrecomputationType; type++) {
       int numRelCoords = interacList->rel_coord[type].size();
@@ -41,7 +41,7 @@ public:
 
     std::stringstream ss;
     const char* realType = sizeof(real_t) == 8 ? "_d" : "_f";
-    ss << "Precomp_" << kernel->ker_name.c_str() << "_m" << multipole_order << realType <<".data";
+    ss << "Precomp_" << kernel->ker_name.c_str() << "_m" << MULTIPOLE_ORDER << realType <<".data";
     std::string fname = ss.str();
 
     Profile::Tic("LoadMatrices",true,3);
@@ -138,7 +138,7 @@ public:
   void PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
     Permutation<real_t>& P_ = perm[type][perm_indx];
     if(P_.Dim()!=0) return;
-    size_t m=multipole_order;
+    // size_t m=MULTIPOLE_ORDER;
     size_t p_indx=perm_indx % C_Perm;
     Permutation<real_t> P;
     switch (type) {
@@ -152,7 +152,7 @@ public:
         ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
         scal_exp=kernel->k_m2m->src_scal;
       }
-      P=equiv_surf_perm(m, p_indx, ker_perm, scal_exp);
+      P=equiv_surf_perm(p_indx, ker_perm, scal_exp);
       break;
     }
     case L2L_Type: {
@@ -166,7 +166,7 @@ public:
         ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
         scal_exp=kernel->k_l2l->trg_scal;
       }
-      P=equiv_surf_perm(m, p_indx, ker_perm, scal_exp);
+      P=equiv_surf_perm(p_indx, ker_perm, scal_exp);
       break;
     }
     default:
@@ -182,27 +182,27 @@ public:
     Matrix<real_t> M;
     switch (type){
     case M2M_Type:{
-      if(!multipole_order) break;
+      if(!MULTIPOLE_ORDER) break;
       const int* ker_dim=kernel->k_m2m->ker_dim;
       real_t c[3]={0,0,0};
-      std::vector<real_t> check_surf=u_check_surf(multipole_order,c,level);
+      std::vector<real_t> check_surf=u_check_surf(c,level);
       size_t n_uc=check_surf.size()/3;
       real_t s=powf(0.5,(level+2));
       ivec3& coord = interacList->rel_coord[type][mat_indx];
       real_t child_coord[3]={(coord[0]+1)*s,(coord[1]+1)*s,(coord[2]+1)*s};
-      std::vector<real_t> equiv_surf=u_equiv_surf(multipole_order,child_coord,level+1);
+      std::vector<real_t> equiv_surf=u_equiv_surf(child_coord,level+1);
       size_t n_ue=equiv_surf.size()/3;
       Matrix<real_t> M_ce2c(n_ue*ker_dim[0],n_uc*ker_dim[1]);
       kernel->k_m2m->BuildMatrix(&equiv_surf[0], n_ue,
                                  &check_surf[0], n_uc, &(M_ce2c[0][0]));
       // caculate M2M_U and M2M_V
       Matrix<real_t> M_c2e0, M_c2e1;
-      if(multipole_order != 0) {
+      if(MULTIPOLE_ORDER != 0) {
         const int* ker_dim=kernel->k_m2m->ker_dim;
         real_t c[3]={0,0,0};
-        std::vector<real_t> uc_coord=u_check_surf(multipole_order,c,level);
+        std::vector<real_t> uc_coord=u_check_surf(c,level);
         size_t n_uc=uc_coord.size()/3;
-        std::vector<real_t> ue_coord=u_equiv_surf(multipole_order,c,level);
+        std::vector<real_t> ue_coord=u_equiv_surf(c,level);
         size_t n_ue=ue_coord.size()/3;
         Matrix<real_t> M_e2c(n_ue*ker_dim[0],n_uc*ker_dim[1]);
         kernel->k_m2m->BuildMatrix(&ue_coord[0], n_ue, &uc_coord[0], n_uc, &(M_e2c[0][0]));
@@ -223,27 +223,27 @@ public:
       break;
     }
     case L2L_Type:{
-      if(!multipole_order) break;
+      if(!MULTIPOLE_ORDER) break;
       const int* ker_dim=kernel->k_l2l->ker_dim;
       real_t s=powf(0.5,level+1);
       ivec3& coord=interacList->rel_coord[type][mat_indx];
       real_t c[3]={(coord[0]+1)*s,(coord[1]+1)*s,(coord[2]+1)*s};
-      std::vector<real_t> check_surf=d_check_surf(multipole_order,c,level);
+      std::vector<real_t> check_surf=d_check_surf(c,level);
       size_t n_dc=check_surf.size()/3;
       real_t parent_coord[3]={0,0,0};
-      std::vector<real_t> equiv_surf=d_equiv_surf(multipole_order,parent_coord,level-1);
+      std::vector<real_t> equiv_surf=d_equiv_surf(parent_coord,level-1);
       size_t n_de=equiv_surf.size()/3;
       Matrix<real_t> M_pe2c(n_de*ker_dim[0],n_dc*ker_dim[1]);
       kernel->k_l2l->BuildMatrix(&equiv_surf[0], n_de, &check_surf[0], n_dc, &(M_pe2c[0][0]));
 
       // caculate L2L_U and L2L_V
       Matrix<real_t> M_c2e0, M_c2e1;
-      if(multipole_order != 0 ) {
+      if(MULTIPOLE_ORDER != 0 ) {
         const int* ker_dim=kernel->k_l2l->ker_dim;
         real_t c[3]={0,0,0};
-        std::vector<real_t> check_surf=d_check_surf(multipole_order,c,level);
+        std::vector<real_t> check_surf=d_check_surf(c,level);
         size_t n_ch=check_surf.size()/3;
-        std::vector<real_t> equiv_surf=d_equiv_surf(multipole_order,c,level);
+        std::vector<real_t> equiv_surf=d_equiv_surf(c,level);
         size_t n_eq=equiv_surf.size()/3;
         Matrix<real_t> M_e2c(n_eq*ker_dim[0],n_ch*ker_dim[1]);
         kernel->k_l2l->BuildMatrix(&equiv_surf[0], n_eq, &check_surf[0], n_ch, &(M_e2c[0][0]));
@@ -263,19 +263,19 @@ public:
 
       Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
       std::vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
-      Permutation<real_t> P=equiv_surf_perm(multipole_order, Scaling, ker_perm, scal_exp);
+      Permutation<real_t> P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
       M_c2e0=P*M_c2e0;
       ker_perm=kernel->k_l2l->perm_vec[0     +Scaling];
       scal_exp=kernel->k_l2l->src_scal;
-      P=equiv_surf_perm(multipole_order, Scaling, ker_perm, scal_exp);
+      P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
       M_c2e1=M_c2e1*P;
       M=M_c2e0*(M_c2e1*M_pe2c);
       break;
     }
     case M2L_Helper_Type:{
-      if(!multipole_order) break;
+      if(!MULTIPOLE_ORDER) break;
       const int* ker_dim=kernel->k_m2l->ker_dim;
-      int n1=multipole_order*2;
+      int n1=MULTIPOLE_ORDER*2;
       int n3 =n1*n1*n1;
       int n3_=n1*n1*(n1/2+1);
       real_t s=powf(0.5,level);
@@ -283,7 +283,7 @@ public:
       real_t coord_diff[3]={coord2[0]*s,coord2[1]*s,coord2[2]*s};
       std::vector<real_t> r_trg(3,0.0);
       std::vector<real_t> conv_poten(n3*ker_dim[0]*ker_dim[1]);
-      std::vector<real_t> conv_coord=conv_grid(multipole_order,coord_diff,level);
+      std::vector<real_t> conv_coord=conv_grid(coord_diff,level);
       kernel->k_m2l->BuildMatrix(&conv_coord[0],n3,&r_trg[0],1,&conv_poten[0]);
       Matrix<real_t> M_conv(n3,ker_dim[0]*ker_dim[1],&conv_poten[0],false);
       M_conv=M_conv.Transpose();
@@ -310,13 +310,13 @@ public:
       break;
     }
     case M2L_Type:{
-      if(!multipole_order) break;
+      if(!MULTIPOLE_ORDER) break;
       const int* ker_dim=kernel->k_m2l->ker_dim;
       size_t mat_cnt =interacList->rel_coord[M2L_Helper_Type].size();
       for(size_t k=0;k<mat_cnt;k++) Precomp(M2L_Helper_Type, k);
 
       const size_t chld_cnt=1UL<<3;
-      size_t n1=multipole_order*2;
+      size_t n1=MULTIPOLE_ORDER*2;
       size_t M_dim=n1*n1*(n1/2+1);
       size_t n3=n1*n1*n1;
 
