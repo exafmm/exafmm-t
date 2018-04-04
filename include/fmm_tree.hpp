@@ -58,7 +58,7 @@ namespace pvfmm{
     Matrix<real_t>* output_data;
   };
 
-  // U, P2L, M2P lists & P2M & L2P Setup
+  // P2P, P2L, M2P lists & P2M & L2P Setup
   struct BodiesSetup : SetupBase {
     Matrix<real_t>* coord_data;
     ptSetupData pt_setup_data;
@@ -84,7 +84,7 @@ namespace pvfmm{
     Mat_Type interac_type;
     std::vector<Vector<real_t>*> input_vector;
     std::vector<Vector<real_t>*> output_vector;
-    VListData vlist_data;
+    M2LListData m2l_list_data;
   };
 
 class FMM_Tree {
@@ -95,7 +95,7 @@ public:
   InteracList* interacList;
   PrecompMat* mat;
   std::vector<FMM_Node*> node_lst;
-  BodiesSetup U_data, M2P_data, P2L_data;
+  BodiesSetup P2P_data, M2P_data, P2L_data;
   BodiesSetup P2M_data, L2P_data;
   std::vector<CellsSetup> M2M_data;
   std::vector<CellsSetup> L2L_data;
@@ -105,18 +105,18 @@ public:
   FMM_Tree(int multi_order, const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_): 
     multipole_order(multi_order), kernel(kernel_), interacList(interacList_), mat(mat_),
     root_node(NULL) {
-    vprecomp_fft_flag = false;
-    vlist_fft_flag = false;
-    vlist_ifft_flag = false; 
+    m2l_precomp_fft_flag = false;
+    m2l_list_fft_flag = false;
+    m2l_list_ifft_flag = false; 
   }
 
   ~FMM_Tree(){
     if(root_node!=NULL) delete root_node;
-    if(vprecomp_fft_flag) fft_destroy_plan(vprecomp_fftplan);
-    if(vlist_fft_flag) fft_destroy_plan(vlist_fftplan);
-    if(vlist_ifft_flag) fft_destroy_plan(vlist_ifftplan);
-    vlist_fft_flag = false;
-    vlist_ifft_flag = false;
+    if(m2l_precomp_fft_flag) fft_destroy_plan(m2l_precomp_fftplan);
+    if(m2l_list_fft_flag) fft_destroy_plan(m2l_list_fftplan);
+    if(m2l_list_ifft_flag) fft_destroy_plan(m2l_list_ifftplan);
+    m2l_list_fft_flag = false;
+    m2l_list_ifft_flag = false;
   }
 
 /* 1st Part: Tree Construction
@@ -539,7 +539,7 @@ private:
         idx = interacList->hash_lut[t][c_hash];
         if(idx>=0) interac_list[idx]=p;
 	break;
-      case U0_Type:
+      case P2P0_Type:
 	if(p == NULL || !n->IsLeaf()) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* pc = p->Colleague(i);
@@ -553,7 +553,7 @@ private:
 	  }
 	}
 	break;
-      case U1_Type:
+      case P2P1_Type:
 	if(!n->IsLeaf()) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
@@ -567,7 +567,7 @@ private:
 	  }
 	}
 	break;
-      case U2_Type:
+      case P2P2_Type:
 	if(!n->IsLeaf()) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
@@ -586,7 +586,7 @@ private:
 	  }
 	}
 	break;
-      case V_Type:
+      case M2L_Helper_Type:
 	if(p == NULL) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* pc=(FMM_Node*)p->Colleague(i);
@@ -602,7 +602,7 @@ private:
 	  }
 	}
 	break;
-      case V1_Type:
+      case M2L_Type:
 	if(n->IsLeaf()) return;
 	for(int i=0;i<n_collg;i++){
 	  FMM_Node* col=(FMM_Node*)n->Colleague(i);
@@ -654,8 +654,8 @@ private:
   // Fill in interac_list of all nodes, assume sources == target for simplicity
   void BuildInteracLists() {
     std::vector<FMM_Node*>& nodes = GetNodeList();
-    std::vector<Mat_Type> interactionTypes = {P2M_Type, M2M_Type, L2L_Type, L2P_Type, U0_Type,
-                                              U1_Type, U2_Type, M2P_Type, P2L_Type, V1_Type};
+    std::vector<Mat_Type> interactionTypes = {P2M_Type, M2M_Type, L2L_Type, L2P_Type, P2P0_Type,
+                                              P2P1_Type, P2P2_Type, M2P_Type, P2L_Type, M2L_Type};
     for(Mat_Type& type : interactionTypes) {
       int numRelCoord = interacList->rel_coord[type].size();  // num of possible relative positions
 #pragma omp parallel for
@@ -827,7 +827,7 @@ private:
         size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
         memset(&(*mat)[0][a],0,(b-a)*sizeof(real_t));
       }
-      mat=U_data.output_data;
+      mat=P2P_data.output_data;
       if(mat && mat->Dim(0)*mat->Dim(1)){
         size_t a=(mat->Dim(0)*mat->Dim(1)*(j+0))/omp_p;
         size_t b=(mat->Dim(0)*mat->Dim(1)*(j+1))/omp_p;
@@ -851,7 +851,7 @@ private:
     }
   }
 
-  void U_ListSetup(BodiesSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+  void P2P_ListSetup(BodiesSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     // initialize Setup_data
     setup_data.kernel = kernel->k_s2t;
     setup_data. input_data = &buff[4];        // src_value
@@ -892,7 +892,7 @@ private:
           real_t s=powf(0.5,tnode->depth);
           size_t interac_cnt_=0;
           {
-            Mat_Type type=U0_Type;
+            Mat_Type type=P2P0_Type;
             std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
             for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
               FMM_Node* snode=intlst[j];
@@ -903,7 +903,7 @@ private:
             }
           }
           {
-            Mat_Type type=U1_Type;
+            Mat_Type type=P2P1_Type;
             std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
             for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
               FMM_Node* snode=intlst[j];
@@ -914,7 +914,7 @@ private:
             }
           }
           {
-            Mat_Type type=U2_Type;
+            Mat_Type type=P2P2_Type;
             std::vector<FMM_Node*>& intlst=tnode->interac_list[type];
             for(size_t j=0;j<intlst.size();j++) if(intlst[j]){
               FMM_Node* snode=intlst[j];
@@ -1151,11 +1151,11 @@ private:
     PtSetup(setup_data, &data);
   }
 
-  void V_ListSetup(M2LSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+  void M2L_ListSetup(M2LSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     if(!multipole_order) return;
     {
       setup_data.kernel=kernel->k_m2l;
-      setup_data.interac_type = V1_Type;
+      setup_data.interac_type = M2L_Type;
       setup_data. input_data=&buff[0];
       setup_data.output_data=&buff[1];
       std::vector<FMM_Node*>& nodes_in =n_list[2];
@@ -1283,16 +1283,16 @@ private:
           }
         }
       }
-      setup_data.vlist_data.buff_size   = buff_size;
-      setup_data.vlist_data.m           = m;
-      setup_data.vlist_data.n_blk0      = n_blk0;
-      setup_data.vlist_data.precomp_mat = precomp_mat;
-      setup_data.vlist_data.fft_vec     = fft_vec;
-      setup_data.vlist_data.ifft_vec    = ifft_vec;
-      setup_data.vlist_data.fft_scl     = fft_scl;
-      setup_data.vlist_data.ifft_scl    = ifft_scl;
-      setup_data.vlist_data.interac_vec = interac_vec;
-      setup_data.vlist_data.interac_dsp = interac_dsp;
+      setup_data.m2l_list_data.buff_size   = buff_size;
+      setup_data.m2l_list_data.m           = m;
+      setup_data.m2l_list_data.n_blk0      = n_blk0;
+      setup_data.m2l_list_data.precomp_mat = precomp_mat;
+      setup_data.m2l_list_data.fft_vec     = fft_vec;
+      setup_data.m2l_list_data.ifft_vec    = ifft_vec;
+      setup_data.m2l_list_data.fft_scl     = fft_scl;
+      setup_data.m2l_list_data.ifft_scl    = ifft_scl;
+      setup_data.m2l_list_data.interac_vec = interac_vec;
+      setup_data.m2l_list_data.interac_dsp = interac_dsp;
     }
     Profile::Toc();
   }
@@ -1611,18 +1611,18 @@ public:
     BuildInteracLists();
     Profile::Toc();
 
-    Profile::Tic("UListSetup",false,3);
-    U_ListSetup(U_data, node_data_buff, node_lists);
+    Profile::Tic("P2PListSetup",false,3);
+    P2P_ListSetup(P2P_data, node_data_buff, node_lists);
     Profile::Toc();
     Profile::Tic("M2PListSetup",false,3);
     M2P_ListSetup(M2P_data, node_data_buff, node_lists);
     Profile::Toc();
-    Profile::Tic("XListSetup",false,3);
+    Profile::Tic("P2LListSetup",false,3);
     P2L_ListSetup(P2L_data, node_data_buff, node_lists);
     Profile::Toc();
 
-    Profile::Tic("VListSetup",false,3);
-    V_ListSetup(M2L_data, node_data_buff, node_lists);
+    Profile::Tic("M2LListSetup",false,3);
+    M2L_ListSetup(M2L_data, node_data_buff, node_lists);
     Profile::Toc();
 
     Profile::Tic("L2LSetup",false,3);
@@ -1975,7 +1975,7 @@ private:
     Profile::Toc();
   }
 
-  void VListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp,
+  void M2LListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp,
                      std::vector<size_t>& interac_vec, std::vector<real_t*>& precomp_mat, Vector<real_t>& fft_in, Vector<real_t>& fft_out){
     size_t chld_cnt=1UL<<3;
     size_t fftsize_in =M_dim*chld_cnt*2;
@@ -2074,18 +2074,18 @@ private:
       }
     }
     {
-      if(!vlist_fft_flag){
+      if(!m2l_list_fft_flag){
         int err, nnn[3]={(int)n1,(int)n1,(int)n1};
         real_t *fftw_in, *fftw_out;
         err = posix_memalign((void**)&fftw_in,  MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
         err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
-        vlist_fftplan = fft_plan_many_dft_r2c(3,nnn,chld_cnt,
+        m2l_list_fftplan = fft_plan_many_dft_r2c(3,nnn,chld_cnt,
 					      (real_t*)fftw_in, NULL, 1, n3,
 					      (fft_complex*)(fftw_out),NULL, 1, n3_,
 					      FFTW_ESTIMATE);
         free(fftw_in );
         free(fftw_out);
-        vlist_fft_flag=true;
+        m2l_list_fft_flag=true;
       }
     }
     {
@@ -2105,7 +2105,7 @@ private:
             for(int j0=0;j0<(int)chld_cnt;j0++)
               upward_equiv_fft[idx+j0*n3]=upward_equiv[j0][k]*fft_scal[node_idx];
           }
-          fft_execute_dft_r2c(vlist_fftplan, (real_t*)&upward_equiv_fft[0], (fft_complex*)&buffer[0]);
+          fft_execute_dft_r2c(m2l_list_fftplan, (real_t*)&upward_equiv_fft[0], (fft_complex*)&buffer[0]);
           for(size_t j=0;j<n3_;j++)
           for(size_t k=0;k<chld_cnt;k++){
             upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
@@ -2138,18 +2138,18 @@ private:
       }
     }
     {
-      if(!vlist_ifft_flag){
+      if(!m2l_list_ifft_flag){
         int err, nnn[3]={(int)n1,(int)n1,(int)n1};
         real_t *fftw_in, *fftw_out;
         err = posix_memalign((void**)&fftw_in,  MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
         err = posix_memalign((void**)&fftw_out, MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
-        vlist_ifftplan = fft_plan_many_dft_c2r(3,nnn,chld_cnt,
+        m2l_list_ifftplan = fft_plan_many_dft_c2r(3,nnn,chld_cnt,
 					       (fft_complex*)fftw_in, NULL, 1, n3_,
 					       (real_t*)(fftw_out),NULL, 1, n3,
 					       FFTW_ESTIMATE);
         free(fftw_in);
         free(fftw_out);
-        vlist_ifft_flag=true;
+        m2l_list_ifft_flag=true;
       }
     }
     {
@@ -2169,7 +2169,7 @@ private:
             buffer0[2*(n3_*k+j)+0]=dnward_check_fft[2*(chld_cnt*j+k)+0];
             buffer0[2*(n3_*k+j)+1]=dnward_check_fft[2*(chld_cnt*j+k)+1];
           }
-          fft_execute_dft_c2r(vlist_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
+          fft_execute_dft_c2r(m2l_list_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
           for(size_t k=0;k<n;k++){
             size_t idx=map[k];
             for(int j0=0;j0<(int)chld_cnt;j0++)
@@ -2195,39 +2195,39 @@ private:
     evalP2P(setup_data);
   }
 
-  void U_List(BodiesSetup&  setup_data){
+  void P2P_List(BodiesSetup&  setup_data){
     evalP2P(setup_data);
   }
 
-  void V_List(M2LSetup&  setup_data){
+  void M2L_List(M2LSetup&  setup_data){
     if(!multipole_order) return;
     int np=1;
     Profile::Tic("Host2Device",false,25);
     int dim0=setup_data.input_data->dim[0];
     int dim1=setup_data.input_data->dim[1];
-    size_t buff_size=*((size_t*)&setup_data.vlist_data.buff_size);
+    size_t buff_size=*((size_t*)&setup_data.m2l_list_data.buff_size);
     if(dev_buffer.Dim()<buff_size) dev_buffer.Resize(buff_size);
     char * buff=dev_buffer.data_ptr;
-    VListData vlist_data=setup_data.vlist_data;
+    M2LListData m2l_list_data=setup_data.m2l_list_data;
     real_t * input_data=setup_data.input_data->data_ptr;
     real_t * output_data=setup_data.output_data->data_ptr;
     Profile::Toc();
-    buff_size     = vlist_data.buff_size;
-    size_t m      = vlist_data.m;
-    size_t n_blk0 = vlist_data.n_blk0;
+    buff_size     = m2l_list_data.buff_size;
+    size_t m      = m2l_list_data.m;
+    size_t n_blk0 = m2l_list_data.n_blk0;
     size_t n1 = m * 2;
     size_t n2 = n1 * n1;
     size_t n3_ = n2 * (n1 / 2 + 1);
     size_t chld_cnt = 8;
     size_t fftsize = 2 * n3_ * chld_cnt;
     size_t M_dim = n3_;
-    std::vector<real_t*> precomp_mat = vlist_data.precomp_mat;
-    std::vector<std::vector<size_t> >  fft_vec = vlist_data.fft_vec;
-    std::vector<std::vector<size_t> > ifft_vec = vlist_data.ifft_vec;
-    std::vector<std::vector<real_t> >  fft_scl = vlist_data.fft_scl;
-    std::vector<std::vector<real_t> > ifft_scl = vlist_data.ifft_scl;
-    std::vector<std::vector<size_t> > interac_vec = vlist_data.interac_vec;
-    std::vector<std::vector<size_t> > interac_dsp = vlist_data.interac_dsp;
+    std::vector<real_t*> precomp_mat = m2l_list_data.precomp_mat;
+    std::vector<std::vector<size_t> >  fft_vec = m2l_list_data.fft_vec;
+    std::vector<std::vector<size_t> > ifft_vec = m2l_list_data.ifft_vec;
+    std::vector<std::vector<real_t> >  fft_scl = m2l_list_data.fft_scl;
+    std::vector<std::vector<real_t> > ifft_scl = m2l_list_data.ifft_scl;
+    std::vector<std::vector<size_t> > interac_vec = m2l_list_data.interac_vec;
+    std::vector<std::vector<size_t> > interac_dsp = m2l_list_data.interac_dsp;
     int omp_p=omp_get_max_threads();
     for(size_t blk0=0;blk0<n_blk0;blk0++){
       size_t n_in = fft_vec[blk0].size();
@@ -2240,7 +2240,7 @@ private:
       Vector<real_t>  buffer(buffer_dim, (real_t*)(buff+(input_dim+output_dim)*sizeof(real_t)),false);
       Vector<real_t>  input_data_(dim0*dim1,input_data,false);
       FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0],  input_data_, fft_in, buffer);
-      VListHadamard(M_dim, interac_dsp[blk0], interac_vec[blk0], precomp_mat, fft_in, fft_out);
+      M2LListHadamard(M_dim, interac_dsp[blk0], interac_vec[blk0], precomp_mat, fft_in, fft_out);
       Vector<real_t> output_data_(dim0*dim1, output_data, false);
       FFT_Check2Equiv(m, ifft_vec[blk0], ifft_scl[blk0], fft_out, output_data_, buffer);
     }
@@ -2287,10 +2287,10 @@ private:
     M2P_List(M2P_data);
     Profile::Toc();
     Profile::Tic("U-List",false,5);
-    U_List(U_data);
+    P2P_List(P2P_data);
     Profile::Toc();
     Profile::Tic("V-List",false,5);
-    V_List(M2L_data);
+    M2L_List(M2L_data);
     Profile::Toc();
     Profile::Tic("L2L",false,5);
     for(size_t i=0; i<=depth; i++) {

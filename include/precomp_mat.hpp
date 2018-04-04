@@ -64,10 +64,10 @@ public:
     Profile::Toc();
 
     Profile::Tic("PrecompV",false,4);
-    PrecompAll(V_Type);
+    // PrecompAll(M2L_Helper_Type);
     Profile::Toc();
-    Profile::Tic("PrecompV1",false,4);
-    PrecompAll(V1_Type);
+    Profile::Tic("PrecompM2L",false,4);
+    PrecompAll(M2L_Type);
     Profile::Toc();
 
     Profile::Toc();
@@ -97,7 +97,7 @@ public:
       }
       if(row_perm_.Dim()>0)                                      // if this type & entry needs permutation
       for(int i=p_list.size()-1; i>=0; i--){                    // loop over the operations of perm_list from end to begin
-        //assert(type!=V_Type);
+        //assert(type!=M2L_Helper_Type);
         Permutation<real_t>& pr = perm[type][R_Perm + p_list[i]];  // get the permutation of the operation
         row_perm_=pr.Transpose()*row_perm_;                     // accumulate the permutation to row_perm (perm_r in precompmat header)
       }
@@ -121,7 +121,7 @@ public:
       }
       if(col_perm_.Dim()>0)
       for(int i=p_list.size()-1; i>=0; i--){
-        //assert(type!=V_Type);
+        //assert(type!=M2L_Helper_Type);
         Permutation<real_t>& pc = perm[type][C_Perm + p_list[i]];
         col_perm_ = col_perm_*pc;
       }
@@ -272,7 +272,7 @@ public:
       M=M_c2e0*(M_c2e1*M_pe2c);
       break;
     }
-    case V_Type:{
+    case M2L_Helper_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_m2l->ker_dim;
       int n1=multipole_order*2;
@@ -293,27 +293,27 @@ public:
       err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*ker_dim[0]*ker_dim[1]*sizeof(real_t));
 #pragma omp critical (FFTW_PLAN)
       {
-        if (!vprecomp_fft_flag){
-          vprecomp_fftplan = fft_plan_many_dft_r2c(3, nnn, ker_dim[0]*ker_dim[1],
+        if (!m2l_precomp_fft_flag){
+          m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, nnn, ker_dim[0]*ker_dim[1],
                                                    (real_t*)fftw_in, NULL, 1, n3,
                                                    (fft_complex*) fftw_out, NULL, 1, n3_,
                                                    FFTW_ESTIMATE);
-          vprecomp_fft_flag=true;
+          m2l_precomp_fft_flag=true;
         }
       }
       memcpy(fftw_in, &conv_poten[0], n3*ker_dim[0]*ker_dim[1]*sizeof(real_t));
-      fft_execute_dft_r2c(vprecomp_fftplan, (real_t*)fftw_in, (fft_complex*)(fftw_out));
+      fft_execute_dft_r2c(m2l_precomp_fftplan, (real_t*)fftw_in, (fft_complex*)(fftw_out));
       Matrix<real_t> M_(2*n3_*ker_dim[0]*ker_dim[1],1,(real_t*)fftw_out,false);
       M=M_;
       free(fftw_in);
       free(fftw_out);
       break;
     }
-    case V1_Type:{
+    case M2L_Type:{
       if(!multipole_order) break;
       const int* ker_dim=kernel->k_m2l->ker_dim;
-      size_t mat_cnt =interacList->rel_coord[V_Type].size();
-      for(size_t k=0;k<mat_cnt;k++) Precomp(V_Type, k);
+      size_t mat_cnt =interacList->rel_coord[M2L_Helper_Type].size();
+      for(size_t k=0;k<mat_cnt;k++) Precomp(M2L_Helper_Type, k);
 
       const size_t chld_cnt=1UL<<3;
       size_t n1=multipole_order*2;
@@ -324,18 +324,18 @@ public:
       std::vector<real_t*> M_ptr(chld_cnt*chld_cnt);
       for(size_t i=0;i<chld_cnt*chld_cnt;i++) M_ptr[i]=&zero_vec[0];
 
-      ivec3& rel_coord_=interacList->rel_coord[V1_Type][mat_indx];
+      ivec3& rel_coord_=interacList->rel_coord[M2L_Type][mat_indx];
       for(int j1=0;j1<chld_cnt;j1++)
         for(int j2=0;j2<chld_cnt;j2++){
           int rel_coord[3]={rel_coord_[0]*2-(j1/1)%2+(j2/1)%2,
                             rel_coord_[1]*2-(j1/2)%2+(j2/2)%2,
                             rel_coord_[2]*2-(j1/4)%2+(j2/4)%2};
           for(size_t k=0;k<mat_cnt;k++){
-            ivec3& ref_coord=interacList->rel_coord[V_Type][k];
+            ivec3& ref_coord=interacList->rel_coord[M2L_Helper_Type][k];
             if(ref_coord[0]==rel_coord[0] &&
                ref_coord[1]==rel_coord[1] &&
                ref_coord[2]==rel_coord[2]){
-              Matrix<real_t>& M = mat[V_Type][k];
+              Matrix<real_t>& M = mat[M2L_Helper_Type][k];
               M_ptr[j2*chld_cnt+j1]=&M[0][0];
               break;
             }
@@ -361,10 +361,10 @@ public:
   }
 
   void PrecompAll(Mat_Type type) {
-    int mat_cnt = interacList->rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
+    int idx_num = interacList->rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
     if (type == M2M_Type || type == L2L_Type) {
       for(int perm_idx=0; perm_idx<Perm_Count; perm_idx++) PrecompPerm(type, (Perm_Type) perm_idx);
-      for(int i=0; i<mat_cnt; i++) {           // i is index of rel_coord
+      for(int i=0; i<idx_num; i++) {           // i is index of rel_coord
         if(interacList->interac_class[type][i] == i) { // if i-th coord is a class_coord
           Precomp(type, i);                       // calculate operator matrix of class_coord
         }
@@ -376,7 +376,7 @@ public:
       //   }
       // }
 
-      for(int mat_idx=0; mat_idx<mat_cnt; mat_idx++) {
+      for(int mat_idx=0; mat_idx<idx_num; mat_idx++) {
         Permutation<real_t>& perm_r0 = Perm_R(0, type, mat_idx);
         Permutation<real_t>& perm_c0 = Perm_C(0, type, mat_idx);
         for(int level=1; level<MAX_DEPTH; level++) {
@@ -391,7 +391,7 @@ public:
         }
       }
     } else {
-      for(int mat_idx=0; mat_idx<mat_cnt; mat_idx++)
+      for(int mat_idx=0; mat_idx<idx_num; mat_idx++)
         Precomp(type, mat_idx);
     }
   }

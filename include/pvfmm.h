@@ -44,12 +44,12 @@ namespace pvfmm{
   typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;
   typedef std::vector<real_t> RealVec;
 
-  fft_plan vprecomp_fftplan;
-  bool vprecomp_fft_flag;
-  fft_plan vlist_fftplan;
-  bool vlist_fft_flag;
-  fft_plan vlist_ifftplan;
-  bool vlist_ifft_flag;
+  fft_plan m2l_precomp_fftplan;
+  bool m2l_precomp_fft_flag;
+  fft_plan m2l_list_fftplan;
+  bool m2l_list_fft_flag;
+  fft_plan m2l_list_ifftplan;
+  bool m2l_list_ifft_flag;
   const int SrcCoord = 1, SrcValue = 2, TrgCoord = 3, TrgValue = 4,
             UpwardEquivCoord = 5, UpwardCheckCoord=6, UpwardEquivValue = 7,
             DnwardEquivCoord = 8, DnwardCheckCoord=9, DnwardEquivValue = 10;
@@ -61,13 +61,13 @@ namespace pvfmm{
     L2L_U_Type= 3,
     M2M_Type  = 4,
     L2L_Type  = 5,
-    V_Type    = 6,
-    V1_Type   = 7,
+    M2L_Helper_Type    = 6,
+    M2L_Type   = 7,
     P2M_Type  = 8,
     L2P_Type  = 9,
-    U0_Type   = 10,
-    U1_Type   = 11,
-    U2_Type   = 12,
+    P2P0_Type   = 10,
+    P2P1_Type   = 11,
+    P2P2_Type   = 12,
     M2P_Type  = 13,
     P2L_Type    = 14,
     Type_Count= 15
@@ -104,7 +104,7 @@ namespace pvfmm{
     Matrix<real_t> M[4];   // M is not empty for P2M, L2P, empty for other lists
   };
 
-  struct VListData {
+  struct M2LListData {
     size_t buff_size;
     size_t m;
     size_t n_blk0;

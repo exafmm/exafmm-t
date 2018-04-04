@@ -28,12 +28,12 @@ public:
     InitList(1,1,2,L2L_Type);
     InitList(0,0,1,L2P_Type);
 
-    InitList(3,3,2,U0_Type);     // count = 4^3-2^3 = 56
-    InitList(1,0,1,U1_Type);
-    InitList(3,3,2,U2_Type);
+    InitList(3,3,2,P2P0_Type);     // count = 4^3-2^3 = 56
+    InitList(1,0,1,P2P1_Type);
+    InitList(3,3,2,P2P2_Type);
 
-    InitList(3,2,1,V_Type);
-    InitList(1,1,1,V1_Type);
+    InitList(3,2,1,M2L_Helper_Type);
+    InitList(1,1,1,M2L_Type);
     InitList(5,5,2,M2P_Type);
     InitList(5,5,2,P2L_Type);
   }
