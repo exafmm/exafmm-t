@@ -7,61 +7,12 @@
 #include "precomp_mat.hpp"
 
 namespace pvfmm{
-  struct PackedData{
-    size_t len;
-    Matrix<real_t>* ptr;
-    Vector<size_t> cnt;
-    Vector<size_t> dsp;
-
-    PackedData() {}
-    PackedData(Matrix<real_t>* mat, std::vector<FMM_Node*> nodes, int type) {
-      ptr = mat;
-      len = mat->Dim(0) * mat->Dim(1);
-      cnt.Resize(nodes.size());
-      dsp.Resize(nodes.size());
-      for(int i=0; i<nodes.size(); i++) {
-        FMM_Node* node = nodes[i];
-        Vector<real_t>* vec;
-        switch (type) {
-          case 1:  vec = &(node->src_coord); break;  // src_coord
-          case 2:  vec = &(node->src_value); break;  // src_value
-          case 3:  vec = &(node->trg_coord); break;  // trg_coord
-          case 4:  vec = &(node->trg_value); break;  // trg_value
-          case 5:  vec = &(upwd_equiv_surf[node->depth]); break;  // upward equivalent surface coords
-          case 6:  vec = &(upwd_check_surf[node->depth]); break;  // upward check      surface coords
-          case 7:  vec = &(node->upward_equiv); break;  // upward equivalent charges
-          case 8:  vec = &(dnwd_equiv_surf[node->depth]); break;  // downward equivalent surface coords
-          case 9:  vec = &(dnwd_check_surf[node->depth]); break;  // downward check      surface coords
-          case 10: vec = &(node->dnward_equiv); break;  // downward equivalent charges
-          default: assert(0 && "PackedData type has to be an integer from 1 to 10");
-        }
-        dsp[i] = vec->data_ptr - mat[0][0];
-        cnt[i] = vec->Dim();
-      }
-    }
-  };
-
-  struct ptSetupData{
-    const Kernel* kernel;
-    PackedData src_coord;
-    PackedData src_value;
-    PackedData trg_coord;
-    PackedData trg_value;
-    InteracData pt_interac_data;
-  };
-
   struct SetupBase {
     const Kernel* kernel;
     std::vector<FMM_Node*> nodes_in ;
     std::vector<FMM_Node*> nodes_out;
     Matrix<real_t>* input_data;
     Matrix<real_t>* output_data;
-  };
-
-  // L2P Setup
-  struct BodiesSetup : SetupBase {
-    Matrix<real_t>* coord_data;
-    ptSetupData pt_setup_data;
   };
 
   // M2M & L2L Setup
@@ -665,36 +616,6 @@ private:
     }
   }
 
-  // Initialize ptSetupData::pt_interac_data.interac_cst, then save ptSetupData in setup_data
-  void PtSetup(BodiesSetup& setup_data, ptSetupData* data_){
-    ptSetupData& data = *data_;
-    if(data.pt_interac_data.interac_cnt.Dim()){
-      InteracData& intdata=data.pt_interac_data;
-      Vector<size_t>  cnt;
-      Vector<size_t>& dsp=intdata.interac_cst;
-      cnt.Resize(intdata.interac_cnt.Dim());
-      dsp.Resize(intdata.interac_dsp.Dim());
-#pragma omp parallel for
-      for(size_t trg=0;trg<cnt.Dim();trg++){
-        size_t trg_cnt=data.trg_coord.cnt[trg];
-        cnt[trg]=0;
-        for(size_t i=0;i<intdata.interac_cnt[trg];i++){
-          size_t int_id=intdata.interac_dsp[trg]+i;
-          size_t src=intdata.in_node[int_id];
-          size_t src_cnt=data.src_coord.cnt[src];
-          cnt[trg]+=(src_cnt)*trg_cnt;
-        }
-      }
-      dsp[0]=cnt[0];
-      scan(&cnt[0],&dsp[0],dsp.Dim());
-    }
-    setup_data.pt_setup_data = data;
-    {
-      size_t n=setup_data.output_data->Dim(0)*setup_data.output_data->Dim(1)*sizeof(real_t);
-      if(dev_buffer.Dim()<n) dev_buffer.Resize(n);
-    }
-  }
-
   void SetupPrecomp(CellsSetup& setup_data){
     assert(setup_data.precomp_data && setup_data.level < MAX_DEPTH);
     Profile::Tic("SetupPrecomp",true,25);
@@ -817,20 +738,6 @@ private:
     mat = &node_data_buff[5];   // clear target's potential
     memset(&(*mat)[0][0], 0, mat->Dim(0)*mat->Dim(1)*sizeof(real_t));
     Profile::Toc();
-  }
-
-  template<typename ElemType>
-  void CopyVec(std::vector<std::vector<ElemType> >& vec_, pvfmm::Vector<ElemType>& vec) {
-    int omp_p=omp_get_max_threads();
-    std::vector<size_t> vec_dsp(omp_p+1,0);
-    for(size_t tid=0;tid<omp_p;tid++){
-      vec_dsp[tid+1]=vec_dsp[tid]+vec_[tid].size();
-    }
-    vec.Resize(vec_dsp[omp_p]);
-#pragma omp parallel for
-    for(size_t tid=0;tid<omp_p;tid++){
-      memcpy(&vec[0]+vec_dsp[tid],&vec_[tid][0],vec_[tid].size()*sizeof(ElemType));
-    }
   }
 
   void M2L_ListSetup(M2LSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){

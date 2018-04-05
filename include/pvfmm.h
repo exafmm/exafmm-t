@@ -93,17 +93,6 @@ namespace pvfmm{
     std::vector<real_t> value;
   };
 
-  struct InteracData{
-    Vector<size_t> in_node;
-    Vector<size_t> scal_idx;
-    Vector<real_t> coord_shift;
-    Vector<size_t> interac_cnt;
-    Vector<size_t> interac_dsp;
-    Vector<size_t> interac_cst;    // displacement of cost
-    Vector<real_t> scal[4*MAX_DEPTH];
-    Matrix<real_t> M[4];   // M is not empty for P2M, L2P, empty for other lists
-  };
-
   struct M2LListData {
     size_t buff_size;
     size_t m;
