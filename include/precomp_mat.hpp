@@ -80,7 +80,7 @@ public:
   Permutation<real_t>& getPerm_C(int l, Mat_Type type, size_t indx){
     return perm_c[l*Type_Count+type][indx];
   }
-  
+
   // This is only related to M2M and L2L operator
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
     size_t indx0 = interacList->interac_class[type][indx];                     // indx0: class coord index
@@ -174,7 +174,7 @@ public:
     }
     if(P_.Dim()==0) P_=P;
   }
-  
+
   Matrix<real_t>& Precomp(Mat_Type type, size_t mat_indx) {
     int level = 0;
     Matrix<real_t>& M_ = mat[type][mat_indx];
@@ -257,7 +257,7 @@ public:
         }
         for(size_t i=0;i<S.Dim(0);i++) S[i][i]=(S[i][i]>eps*max_S*4?1.0/S[i][i]:0.0);
         M_c2e0=V.Transpose()*S;
-      } 
+      }
       mat[L2L_V_Type][0] = M_c2e0;
       mat[L2L_U_Type][0] = M_c2e1;
 
@@ -369,12 +369,6 @@ public:
           Precomp(type, i);                       // calculate operator matrix of class_coord
         }
       }
-      // for(int mat_idx=0; mat_idx<mat_cnt; mat_idx++) {
-      //   for(int level=0; level<MAX_DEPTH; level++) {
-      //     Perm_R(level, type, mat_idx);  // calculate perm_r
-      //     Perm_C(level, type, mat_idx);  // & perm_c for M2M and D2U type
-      //   }
-      // }
 
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++) {
         Permutation<real_t>& perm_r0 = Perm_R(0, type, mat_idx);
@@ -529,7 +523,7 @@ public:
       for(int j=0; j<numRelCoords; j++){
         Matrix<real_t>& M = mat[i][j];
         int dim1 = *(int*)f_ptr; f_ptr += sizeof(int);
-        int dim2 = *(int*)f_ptr; f_ptr += sizeof(int);       
+        int dim2 = *(int*)f_ptr; f_ptr += sizeof(int);
         if (dim1*dim2) {
           M.Resize(dim1, dim2);
           memcpy(&M[0][0], f_ptr, sizeof(real_t)*dim1*dim2);

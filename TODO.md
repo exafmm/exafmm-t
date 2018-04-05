@@ -1,16 +1,16 @@
 ###TODO
 -------------
-- [ ] W -> M2P
-- [ ] X -> P2L
-- [ ] U -> P2P
-- [ ] V -> M2L
+- [x] W -> M2P
+- [x] X -> P2L
+- [x] U -> P2P
+- [x] V -> M2L
 - [x] OpenMP dynamic
 - [x] Clean P2P in fmm_tree
 - [ ] Add P2M, L2P to TIME
 - [ ] Remove M2M, L2L precomputation for all levels
 
 - [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution
-- [ ] Vector -> std::vector with customized allocator 
+- [ ] Vector -> std::vector with customized allocator
 - [ ] decide whether to keep permutation type
 - [ ] simplify precompmat header
   - simplify CompactData for M2M & L2L:
