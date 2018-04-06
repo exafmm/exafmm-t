@@ -1086,25 +1086,13 @@ private:
         vec_cnt0+=vec_cnt1;
       }
 #pragma omp parallel for
-      for(int tid=0;tid<omp_p;tid++){
-        size_t a=( tid   *vec_cnt)/omp_p;
-        size_t b=((tid+1)*vec_cnt)/omp_p;
-        if(tid>      0 && a<vec_cnt){
-          size_t out_ptr=output_perm[a*4+3];
-          if(tid>      0) while(a<vec_cnt && out_ptr==output_perm[a*4+3]) a++;
-        }
-        if(tid<omp_p-1 && b<vec_cnt){
-          size_t out_ptr=output_perm[b*4+3];
-          if(tid<omp_p-1) while(b<vec_cnt && out_ptr==output_perm[b*4+3]) b++;
-        }
-        for(size_t i=a;i<b;i++){ // Compute permutations.
-          const size_t*  perm=(size_t*)(precomp_data+output_perm[i*4+0]);
-          const real_t*  scal=(real_t*)(precomp_data+output_perm[i*4+1]);
-          const real_t* v_in =(real_t*)(    buff_out+output_perm[i*4+2]);
-          real_t*       v_out=(real_t*)( output_data+output_perm[i*4+3]);
-          for(size_t j=0;j<M_dim1;j++ ){
-            v_out[j]+=v_in[perm[j]]*scal[j];
-          }
+      for(size_t i = 0; i<vec_cnt; i++){ // Compute permutations.
+        const size_t*  perm=(size_t*)(precomp_data+output_perm[i*4+0]);
+        const real_t*  scal=(real_t*)(precomp_data+output_perm[i*4+1]);
+        const real_t* v_in =(real_t*)(    buff_out+output_perm[i*4+2]);
+        real_t*       v_out=(real_t*)( output_data+output_perm[i*4+3]);
+        for(size_t j=0;j<M_dim1;j++ ){
+          v_out[j]+=v_in[perm[j]]*scal[j];
         }
       }
     }

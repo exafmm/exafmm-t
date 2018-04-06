@@ -13,7 +13,6 @@ public:
   std::vector<std::vector<Permutation<real_t> > > perm_r;
   std::vector<std::vector<Permutation<real_t> > > perm_c;
   InteracList* interacList;
-  // int MULTIPOLE_ORDER;
   const Kernel* kernel;
 
   PrecompMat(InteracList* interacList_, const Kernel* kernel_):
@@ -64,7 +63,6 @@ public:
     Profile::Toc();
 
     Profile::Tic("PrecompV",false,4);
-    // PrecompAll(M2L_Helper_Type);
     Profile::Toc();
     Profile::Tic("PrecompM2L",false,4);
     PrecompAll(M2L_Type);
@@ -370,10 +368,6 @@ public:
           Permutation<real_t>& temp_c = getPerm_C(level, type, mat_idx);
           temp_r = perm_r0;
           temp_c = perm_c0;
-          if(type == L2L_Type) {
-            temp_r.scal = std::vector<real_t>(temp_r.scal.size(), pow(0.5, level));
-            temp_c.scal = std::vector<real_t>(temp_c.scal.size(), pow(2, level));
-          }
         }
       }
     } else {
