@@ -6,20 +6,19 @@
 - [x] V -> M2L
 - [x] OpenMP dynamic
 - [x] Clean P2P in fmm_tree
-- [ ] Add P2M, L2P to TIME
+- [x] Add P2M, L2P to TIME
 - [ ] Remove M2M, L2L precomputation for all levels
+- [ ] Remove unnecessary "{}"
+- [ ] Use code beautifier
 
-- [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution
+- [ ] Simplify M2M and L2L
+- [ ] Simplify tree structure
+- [ ] Unify node data types
 - [ ] Vector -> std::vector with customized allocator
-- [ ] decide whether to keep permutation type
-- [ ] simplify precompmat header
-  - simplify CompactData for M2M & L2L:
-    vector<char> comp_data -> vector<real_t> mat, Pr_scal, Pc_scal, vector<int> offset, Pr_perm, Pc_perm
-  - generate M2M_V_Type & M2M_U_Type in a single run, same for L2L_V & L2L_U
-- [ ] split fmm_tree header -> tree_construction, eval_setup, eval
-  - remove circular dependency of classes, use forward declaration if necessary
-- [ ] Flatten the class hierarchy
-- [ ] write down math equations for precomputation
+- [ ] Matrix -> std::vector(std::vector) for non-Real_t
+- [x] decide whether to keep permutation type
+- [x] Flatten the class hierarchy
+- [x] write down math equations for precomputation
 - [x] RealVec in P2P
 - [x] remove surf_coord & surf_value from FMM_Node
 - [x] make Precompmat members public instead of calling access functions
@@ -34,16 +33,9 @@
 - [x] D2D -> L2L
 - [x] S2U -> P2M
 - [x] D2T -> L2P
-- [ ] assume source == target
-- [ ] size_t -> int
-- [ ] Matrix -> std::vector(std::vector) for non-Real_t
+- [x] assume source == target
 - [x] Remove SVD5 and other SVD functions that use it
-- [ ] Remove unnecessary "{}"
-- [ ] "){" -> ") {", "}else{" -> "} else {"
-- [ ] template -> Real_t
 - [x] vec.h <- kernel, fmm_tree
-- [ ] Vector -> std::vector
-  - dev_buffer
-  - rm ReInit
-  - Resize -> resize
-  - Dim -> size
+- [ ] split fmm_tree header -> tree_construction, eval_setup, eval
+  - remove circular dependency of classes, use forward declaration if necessary
+- [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution

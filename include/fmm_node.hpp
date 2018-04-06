@@ -14,14 +14,14 @@ class FMM_Node {
   size_t node_id;
   real_t coord[3];
   FMM_Node * colleague[27];
-  Vector<real_t> pt_coord;
-  Vector<real_t> pt_value;
+  Vector<real_t> pt_coord; // Remove
+  Vector<real_t> pt_value; // Remove
   Vector<real_t> src_coord;
   Vector<real_t> src_value;
-  Vector<real_t> trg_coord;
-  Vector<real_t> trg_value;
-  Vector<real_t> upward_equiv;
-  Vector<real_t> dnward_equiv;
+  Vector<real_t> trg_coord; // Remove
+  Vector<real_t> trg_value; // Remove
+  Vector<real_t> upward_equiv; // M
+  Vector<real_t> dnward_equiv; // L
   size_t pt_cnt[2];
   std::vector<FMM_Node*> interac_list[Type_Count];
 

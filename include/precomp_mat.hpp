@@ -186,37 +186,29 @@ public:
       const int* ker_dim=kernel->k_m2m->ker_dim;
       real_t c[3]={0,0,0};
       std::vector<real_t> check_surf=u_check_surf(c,level);
-      size_t n_uc=check_surf.size()/3;
       real_t s=powf(0.5,(level+2));
       ivec3& coord = interacList->rel_coord[type][mat_indx];
       real_t child_coord[3]={(coord[0]+1)*s,(coord[1]+1)*s,(coord[2]+1)*s};
       std::vector<real_t> equiv_surf=u_equiv_surf(child_coord,level+1);
-      size_t n_ue=equiv_surf.size()/3;
-      Matrix<real_t> M_ce2c(n_ue*ker_dim[0],n_uc*ker_dim[1]);
-      kernel->k_m2m->BuildMatrix(&equiv_surf[0], n_ue,
-                                 &check_surf[0], n_uc, &(M_ce2c[0][0]));
+      Matrix<real_t> M_ce2c(NSURF*ker_dim[0],NSURF*ker_dim[1]);
+      kernel->k_m2m->BuildMatrix(&equiv_surf[0], NSURF,
+                                 &check_surf[0], NSURF, &(M_ce2c[0][0]));
       // caculate M2M_U and M2M_V
       Matrix<real_t> M_c2e0, M_c2e1;
-      if(MULTIPOLE_ORDER != 0) {
-        const int* ker_dim=kernel->k_m2m->ker_dim;
-        real_t c[3]={0,0,0};
-        std::vector<real_t> uc_coord=u_check_surf(c,level);
-        size_t n_uc=uc_coord.size()/3;
-        std::vector<real_t> ue_coord=u_equiv_surf(c,level);
-        size_t n_ue=ue_coord.size()/3;
-        Matrix<real_t> M_e2c(n_ue*ker_dim[0],n_uc*ker_dim[1]);
-        kernel->k_m2m->BuildMatrix(&ue_coord[0], n_ue, &uc_coord[0], n_uc, &(M_e2c[0][0]));
-        Matrix<real_t> U,S,V;
-        M_e2c.SVD(U,S,V);
-        M_c2e1=U.Transpose();
-        real_t eps=1, max_S=0;
-        while(eps*(real_t)0.5+(real_t)1.0>1.0) eps*=0.5;
-        for(size_t i=0;i<std::min(S.Dim(0),S.Dim(1));i++){
-          if(fabs(S[i][i])>max_S) max_S=fabs(S[i][i]);
-        }
-        for(size_t i=0;i<S.Dim(0);i++) S[i][i]=(S[i][i]>eps*max_S*4?1.0/S[i][i]:0.0);
-        M_c2e0=V.Transpose()*S;
+      std::vector<real_t> uc_coord=u_check_surf(c,level);
+      std::vector<real_t> ue_coord=u_equiv_surf(c,level);
+      Matrix<real_t> M_e2c(NSURF*ker_dim[0],NSURF*ker_dim[1]);
+      kernel->k_m2m->BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &(M_e2c[0][0]));
+      Matrix<real_t> U,S,V;
+      M_e2c.SVD(U,S,V);
+      M_c2e1=U.Transpose();
+      real_t eps=1, max_S=0;
+      while(eps*(real_t)0.5+(real_t)1.0>1.0) eps*=0.5;
+      for(size_t i=0;i<std::min(S.Dim(0),S.Dim(1));i++){
+        if(fabs(S[i][i])>max_S) max_S=fabs(S[i][i]);
       }
+      for(size_t i=0;i<S.Dim(0);i++) S[i][i]=(S[i][i]>eps*max_S*4?1.0/S[i][i]:0.0);
+      M_c2e0=V.Transpose()*S;
       mat[M2M_V_Type][0] = M_c2e0;
       mat[M2M_U_Type][0] = M_c2e1;
       M=(M_ce2c*M_c2e0)*M_c2e1;
