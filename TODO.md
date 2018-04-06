@@ -10,6 +10,7 @@
 - [ ] Remove M2M, L2L precomputation for all levels
 - [ ] Remove unnecessary "{}"
 - [ ] Use code beautifier
+- [ ] n_uc, n_ue, n_dc, n_de to NSURF
 
 - [ ] Simplify M2M and L2L
 - [ ] Simplify tree structure
