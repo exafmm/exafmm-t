@@ -23,10 +23,8 @@ public:
     InitList(0,0,1,L2L_V_Type);
     InitList(0,0,1,L2L_U_Type);
 
-    InitList(0,0,1,P2M_Type);
     InitList(1,1,2,M2M_Type);    // count = 8, (+1 or -1)
     InitList(1,1,2,L2L_Type);
-    InitList(0,0,1,L2P_Type);
 
     InitList(3,3,2,P2P0_Type);     // count = 4^3-2^3 = 56
     InitList(1,0,1,P2P1_Type);

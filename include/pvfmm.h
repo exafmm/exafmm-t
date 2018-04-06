@@ -63,8 +63,6 @@ namespace pvfmm{
     L2L_Type  = 5,
     M2L_Helper_Type    = 6,
     M2L_Type   = 7,
-    P2M_Type  = 8,
-    L2P_Type  = 9,
     P2P0_Type   = 10,
     P2P1_Type   = 11,
     P2P2_Type   = 12,

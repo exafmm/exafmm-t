@@ -29,7 +29,7 @@ namespace pvfmm{
     std::vector<size_t> output_perm;
     std::vector<char>* precomp_data;
   };
-  
+
   // M2L Setup
   struct M2LSetup : SetupBase {
     Mat_Type interac_type;
@@ -50,12 +50,12 @@ public:
   M2LSetup M2L_data;
 
 public:
-  FMM_Tree(const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_): 
+  FMM_Tree(const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_):
     kernel(kernel_), interacList(interacList_), mat(mat_),
     root_node(NULL) {
     m2l_precomp_fft_flag = false;
     m2l_list_fft_flag = false;
-    m2l_list_ifft_flag = false; 
+    m2l_list_ifft_flag = false;
   }
 
   ~FMM_Tree(){
@@ -461,12 +461,6 @@ private:
     FMM_Node* p = n->Parent(); // parent node
     std::vector<FMM_Node*>& interac_list = n->interac_list[t];
     switch (t) {
-      case P2M_Type:
-        if(n->IsLeaf()) interac_list[0] = n;
-        break;
-      case L2P_Type:
-	if(n->IsLeaf()) interac_list[0] = n;
-	break;
       case M2M_Type:
 	if(n->IsLeaf()) return;
 	for(int j=0;j<n_child;j++) {
@@ -603,7 +597,7 @@ private:
   // Fill in interac_list of all nodes, assume sources == target for simplicity
   void BuildInteracLists() {
     std::vector<FMM_Node*>& nodes = GetNodeList();
-    std::vector<Mat_Type> interactionTypes = {P2M_Type, M2M_Type, L2L_Type, L2P_Type, P2P0_Type,
+    std::vector<Mat_Type> interactionTypes = {M2M_Type, L2L_Type, P2P0_Type,
                                               P2P1_Type, P2P2_Type, M2P_Type, P2L_Type, M2L_Type};
     for(Mat_Type& type : interactionTypes) {
       int numRelCoord = interacList->rel_coord[type].size();  // num of possible relative positions
@@ -665,7 +659,7 @@ private:
         std::vector<std::vector<FMM_Node*> > trg_interac_list(setup_data.nodes_out.size());  // n_out*mat_cnt FMM_Node pointers
         std::vector<std::vector<FMM_Node*> > src_interac_list(setup_data.nodes_in.size());
         for(auto& nodes : src_interac_list) nodes.resize(mat_cnt, NULL);
-        
+
 #pragma omp parallel for
         for(int i=0; i<n_out; i++) {           // build index mapping bwt nodes_in & nodes_out
           std::vector<FMM_Node*>& interact_nodes = nodes_out[i]->interac_list[interac_type];
@@ -677,7 +671,7 @@ private:
             }
           }
         }
-        
+
         size_t interac_dsp_=0;
         std::vector<std::vector<size_t>> interac_dsp(n_out, std::vector<size_t>(mat_cnt));
         for(size_t j=0;j<mat_cnt;j++){
@@ -729,7 +723,7 @@ private:
   }
 
   void ClearFMMData() {
-    Profile::Tic("ClearFMMData",true);    
+    Profile::Tic("ClearFMMData",true);
     Matrix<real_t>* mat;
     mat = &node_data_buff[0];   // clear upward equiv charges
     memset(&(*mat)[0][0], 0, mat->Dim(0)*mat->Dim(1)*sizeof(real_t));
@@ -753,7 +747,7 @@ private:
       setup_data.nodes_out.clear();
       for(FMM_Node* node : nodes_in)
         if(node->pt_cnt[0]) setup_data.nodes_in.push_back(node);
-      for(FMM_Node* node : nodes_out) 
+      for(FMM_Node* node : nodes_out)
         if(node->pt_cnt[1]) setup_data.nodes_out.push_back(node);
     }
     std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
@@ -988,7 +982,7 @@ public:
 
 /* 3rd Part: Evaluation */
 private:
-  void P2M() { 
+  void P2M() {
 #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
       FMM_Node* leaf = leafs[i];
@@ -1036,7 +1030,7 @@ private:
         equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->coord[0];
         equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->coord[1];
         equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
-      }     
+      }
       kernel->k_l2t->ker_poten(&equivCoord[0], NSURF, &(leaf->dnward_equiv[0]),
                                &(leaf->trg_coord[0]), leaf->pt_cnt[1], &(leaf->trg_value[0]));
     }
