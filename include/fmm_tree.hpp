@@ -637,7 +637,6 @@ private:
 
     Profile::Tic("Interac-Data",true,25);
     {
-      std::vector<size_t> interac_mat;
       std::vector<size_t> interac_cnt;
       std::vector<size_t>  input_perm;
       std::vector<size_t> output_perm;
@@ -679,7 +678,6 @@ private:
             interac_dsp[i][j]=interac_dsp_;
             if(trg_interac_list[i][j]!=NULL) interac_dsp_++;
           }
-          interac_mat.push_back(precomp_data_offset[interacList->interac_class[interac_type][j]][0]);
           interac_cnt.push_back(interac_dsp_-interac_dsp[0][j]);
         }
         assert((M_dim0+M_dim1)*sizeof(real_t) * interac_dsp_ < buff_size);    // assert the buffer size we need is smaller than 1G
@@ -689,6 +687,7 @@ private:
           for(size_t j=0; j<mat_cnt; j++) {
             FMM_Node* trg_node=src_interac_list[i][j];
             if(trg_node != NULL) {
+//if(interac_type == M2M_Type) std::cout << "src octant: " << nodes_in[i]->octant << " mat_cnt: " << j << std::endl;
               size_t depth=trg_node->depth;
               input_perm .push_back(precomp_data_offset[j][1+4*depth+0]);
               input_perm .push_back(precomp_data_offset[j][1+4*depth+1]);
@@ -715,7 +714,6 @@ private:
       setup_data.M_dim0 = M_dim0;
       setup_data.M_dim1 = M_dim1;
       setup_data.interac_cnt = interac_cnt;
-      setup_data.interac_mat = interac_mat;
       setup_data.input_perm = input_perm;
       setup_data.output_perm = output_perm;
     }
@@ -1036,6 +1034,25 @@ private:
     }
   }
 
+  void M2M() {
+    Matrix<real_t>& M = mat->mat[M2M_Type][7];  // 7 is the class coord, will generalize it later
+    for(int i=nodesLevelOrder.size()-2; i>=0; i--) { // skip the last element (root)
+      FMM_Node* child = nodesLevelOrder[i];
+      int octant = child->octant;   // octant == idx in the current relative position settings
+      std::vector<size_t>& perm_in = mat->perm_r[M2M_Type][octant].perm;
+      std::vector<size_t>& perm_out = mat->perm_c[M2M_Type][octant].perm;
+      Matrix<real_t> buffer_in(1, NSURF);
+      Matrix<real_t> buffer_out(1, NSURF);
+      for(int k=0; k<NSURF; k++) {
+        buffer_in[0][k] = child->upward_equiv[perm_in[k]]; // input perm
+      }
+      Matrix<real_t>::GEMM(buffer_out, buffer_in, M);
+      for(int k=0; k<NSURF; k++) {
+        child->parent->upward_equiv[k] += buffer_out[0][perm_out[k]];
+      }
+    }
+  }
+
   void EvalList(CellsSetup& setup_data){
     if(setup_data.interac_cnt.empty()) return;
     char* buff = dev_buffer.data_ptr;
@@ -1048,7 +1065,6 @@ private:
       size_t M_dim0 = setup_data.M_dim0;
       size_t M_dim1 = setup_data.M_dim1;
       Vector<size_t> interac_cnt = setup_data.interac_cnt;
-      Vector<size_t> interac_mat = setup_data.interac_mat;
       Vector<size_t>  input_perm = setup_data.input_perm;
       Vector<size_t> output_perm = setup_data.output_perm;
 
@@ -1061,14 +1077,15 @@ private:
 #pragma omp parallel for
       for(size_t i=0; i<vec_cnt; i++) {
         const size_t*  perm=(size_t*)(precomp_data+input_perm[i*4+0]);
-        const real_t*  scal=(real_t*)(precomp_data+input_perm[i*4+1]);
+        //const real_t*  scal=(real_t*)(precomp_data+input_perm[i*4+1]);
         const real_t* v_in =(real_t*)(  input_data+input_perm[i*4+3]);
         real_t*       v_out=(real_t*)(     buff_in+input_perm[i*4+2]);
         for(size_t j=0; j<M_dim0; j++) {
-          v_out[j] = v_in[perm[j]]*scal[j];
+          v_out[j] = v_in[perm[j]];
         }
       }
 
+#if 0
       size_t vec_cnt0=0;
       for(size_t j=0; j<mat_cnt; ){
         size_t vec_cnt1=0;
@@ -1085,14 +1102,24 @@ private:
         }
         vec_cnt0+=vec_cnt1;
       }
+#else
+      size_t totalCount = 0;
+      for(int k=0; k<mat_cnt; k++) totalCount += interac_cnt[k];
+Matrix<real_t>& M = mat->mat[setup_data.interac_type][7];  // 7 is the class coord, will generalize it later
+//        Matrix<real_t> M(M_dim0, M_dim1, (real_t*)(precomp_data+interac_mat0), false);
+        Matrix<real_t> Ms(totalCount, M_dim0, (real_t*)(buff_in), false);
+        Matrix<real_t> Mt(totalCount, M_dim1, (real_t*)(buff_out), false);
+        Matrix<real_t>::GEMM(Mt,Ms,M);
+
+#endif
 #pragma omp parallel for
       for(size_t i = 0; i<vec_cnt; i++){ // Compute permutations.
         const size_t*  perm=(size_t*)(precomp_data+output_perm[i*4+0]);
-        const real_t*  scal=(real_t*)(precomp_data+output_perm[i*4+1]);
+        //const real_t*  scal=(real_t*)(precomp_data+output_perm[i*4+1]);
         const real_t* v_in =(real_t*)(    buff_out+output_perm[i*4+2]);
         real_t*       v_out=(real_t*)( output_data+output_perm[i*4+3]);
         for(size_t j=0;j<M_dim1;j++ ){
-          v_out[j]+=v_in[perm[j]]*scal[j];
+          v_out[j]+=v_in[perm[j]];
         }
       }
     }
@@ -1445,9 +1472,7 @@ private:
     P2M();
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
-    for(int i=LEVEL-1; i>=0; i--){
-      M2M(M2M_data[i]);
-    }
+    M2M();
     Profile::Toc();
   }
 
