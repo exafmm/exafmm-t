@@ -15,7 +15,7 @@ namespace pvfmm{
     Matrix<real_t>* output_data;
   };
 
-  // M2M & L2L Setup
+  // L2L Setup
   struct CellsSetup : SetupBase {
     int level;
     size_t M_dim0;
@@ -45,7 +45,6 @@ public:
   InteracList* interacList;
   PrecompMat* mat;
   std::vector<FMM_Node*> node_lst;
-  std::vector<CellsSetup> M2M_data;
   std::vector<CellsSetup> L2L_data;
   M2LSetup M2L_data;
 
@@ -877,31 +876,6 @@ private:
     Profile::Toc();
   }
 
-  void M2MSetup(CellsSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
-    setup_data.level = level;
-    setup_data.kernel = kernel->k_m2m;
-    setup_data.interac_type = M2M_Type;
-    setup_data.input_data = &buff[0];
-    setup_data.output_data = &buff[0];
-
-    setup_data.nodes_in.clear();
-    setup_data.nodes_out.clear();
-    std::vector<FMM_Node*>& nodes_in = n_list[0];
-    std::vector<FMM_Node*>& nodes_out = n_list[0];
-    for(FMM_Node* node : nodes_in)
-      if(node->depth==level+1 && node->pt_cnt[0]) setup_data.nodes_in.push_back(node);
-    for(FMM_Node* node : nodes_out)
-      if(node->depth==level && node->pt_cnt[0]) setup_data.nodes_out.push_back(node);
-
-    setup_data.input_vector.clear();
-    setup_data.output_vector.clear();
-    for(FMM_Node* node : setup_data.nodes_in)
-      setup_data.input_vector.push_back(&(node->upward_equiv));
-    for(FMM_Node* node : setup_data.nodes_out)
-      setup_data.output_vector.push_back(&(node->upward_equiv));
-    SetupInterac(setup_data);
-  }
-
   void L2LSetup(CellsSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
     setup_data.level = level;
     setup_data.kernel = kernel->k_l2l;
@@ -948,7 +922,6 @@ public:
     CollectNodeData(all_nodes, node_data_buff, node_lists);
     Profile::Toc();
 
-    M2M_data.resize(MAX_DEPTH);
     L2L_data.resize(MAX_DEPTH);
 
     Profile::Tic("BuildLists",false,3);
@@ -963,13 +936,6 @@ public:
     for(int i=0;i<MAX_DEPTH;i++){
       L2L_data[i].precomp_data = &L2L_precomp_lst;
       L2LSetup(L2L_data[i], node_data_buff, node_lists, i);
-    }
-    Profile::Toc();
-
-    Profile::Tic("M2MSetup",false,3);
-    for(size_t i=0;i<MAX_DEPTH;i++){
-      M2M_data[i].precomp_data = &M2M_precomp_lst;
-      M2MSetup(M2M_data[i], node_data_buff, node_lists, i);
     }
     Profile::Toc();
 
@@ -1034,23 +1000,37 @@ private:
     }
   }
 
-  void M2M() {
+  void M2M(FMM_Node* node) {
+    if(node->IsLeaf()) return;
     Matrix<real_t>& M = mat->mat[M2M_Type][7];  // 7 is the class coord, will generalize it later
-    for(int i=nodesLevelOrder.size()-2; i>=0; i--) { // skip the last element (root)
-      FMM_Node* child = nodesLevelOrder[i];
-      int octant = child->octant;   // octant == idx in the current relative position settings
-      std::vector<size_t>& perm_in = mat->perm_r[M2M_Type][octant].perm;
-      std::vector<size_t>& perm_out = mat->perm_c[M2M_Type][octant].perm;
-      Matrix<real_t> buffer_in(1, NSURF);
-      Matrix<real_t> buffer_out(1, NSURF);
-      for(int k=0; k<NSURF; k++) {
-        buffer_in[0][k] = child->upward_equiv[perm_in[k]]; // input perm
-      }
-      Matrix<real_t>::GEMM(buffer_out, buffer_in, M);
-      for(int k=0; k<NSURF; k++) {
-        child->parent->upward_equiv[k] += buffer_out[0][perm_out[k]];
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL)
+#pragma omp task untied
+        M2M(node->child[octant]);
+    }
+#pragma omp taskwait
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL) {
+        FMM_Node* child = node->child[octant];
+        std::vector<size_t>& perm_in = mat->perm_r[M2M_Type][octant].perm;
+        std::vector<size_t>& perm_out = mat->perm_c[M2M_Type][octant].perm;
+        Matrix<real_t> buffer_in(1, NSURF);
+        Matrix<real_t> buffer_out(1, NSURF);
+        for(int k=0; k<NSURF; k++) {
+          buffer_in[0][k] = child->upward_equiv[perm_in[k]]; // input perm
+        }
+        Matrix<real_t>::GEMM(buffer_out, buffer_in, M);
+        for(int k=0; k<NSURF; k++) {
+          node->upward_equiv[k] += buffer_out[0][perm_out[k]];
+        }
       }
     }
+  }
+
+  void M2M() {
+#pragma omp parallel
+#pragma omp single nowait
+    M2M(root_node);
   }
 
   void EvalList(CellsSetup& setup_data){
