@@ -13,7 +13,6 @@ namespace pvfmm{
     std::vector<FMM_Node*> nodes_out;
     Matrix<real_t>* input_data;
     Matrix<real_t>* output_data;
-    Mat_Type interac_type;
     std::vector<Vector<real_t>*> input_vector;
     std::vector<Vector<real_t>*> output_vector;
     M2LListData m2l_list_data;
@@ -567,7 +566,6 @@ private:
   void M2L_ListSetup(M2LSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     {
       setup_data.kernel=kernel->k_m2l;
-      setup_data.interac_type = M2L_Type;
       setup_data. input_data=&buff[0];
       setup_data.output_data=&buff[1];
       std::vector<FMM_Node*>& nodes_in =n_list[2];
@@ -590,11 +588,10 @@ private:
     Profile::Tic("Interac-Data",true,25);
     if(n_out>0 && n_in >0){
       size_t precomp_offset=0;
-      Mat_Type& interac_type = setup_data.interac_type;
-      size_t mat_cnt = interacList->rel_coord[interac_type].size();
+      size_t mat_cnt = interacList->rel_coord[M2L_Type].size();
       std::vector<real_t*> precomp_mat;
       for(size_t mat_id=0;mat_id<mat_cnt;mat_id++){
-        Matrix<real_t>& M = mat->mat[interac_type][mat_id];
+        Matrix<real_t>& M = mat->mat[M2L_Type][mat_id];
         precomp_mat.push_back(&M[0][0]);
       }
       size_t ker_dim0=setup_data.kernel->ker_dim[0];
@@ -635,7 +632,7 @@ private:
             std::set<FMM_Node*> nodes_in;
             for(size_t i=blk0_start;i<blk0_end;i++){
               nodes_out_.push_back(nodes_out[i]);
-              std::vector<FMM_Node*>& lst=nodes_out[i]->interac_list[interac_type];
+              std::vector<FMM_Node*>& lst=nodes_out[i]->interac_list[M2L_Type];
               for(size_t k=0;k<mat_cnt;k++) if(lst[k]!=NULL && lst[k]->pt_cnt[0]) nodes_in.insert(lst[k]);
             }
             for(typename std::set<FMM_Node*>::iterator node=nodes_in.begin(); node != nodes_in.end(); node++){
@@ -681,7 +678,7 @@ private:
               size_t blk1_end  =(nodes_out_.size()*(blk1+1))/n_blk1;
               for(size_t k=0;k<mat_cnt;k++){
                 for(size_t i=blk1_start;i<blk1_end;i++){
-                  std::vector<FMM_Node*>& lst=nodes_out_[i]->interac_list[interac_type];
+                  std::vector<FMM_Node*>& lst=nodes_out_[i]->interac_list[M2L_Type];
                   if(lst[k]!=NULL && lst[k]->pt_cnt[0]){
                     interac_vec[blk0].push_back(lst[k]->node_id*fftsize*ker_dim0);
                     interac_vec[blk0].push_back(    i          *fftsize*ker_dim1);
