@@ -8,6 +8,8 @@
 - [x] Clean P2P in fmm_tree
 - [x] Add P2M, L2P to TIME
 - [x] Remove M2M, L2L precomputation for all levels
+- [ ] remove CollectNodeData and node_lst from fmm_tree
+- [ ] remove getPermR, getPermC from precomputation header
 - [ ] Remove unnecessary "{}"
 - [ ] Use code beautifier
 - [ ] n_uc, n_ue, n_dc, n_de to NSURF

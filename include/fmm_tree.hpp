@@ -440,27 +440,6 @@ private:
     FMM_Node* p = n->Parent(); // parent node
     std::vector<FMM_Node*>& interac_list = n->interac_list[t];
     switch (t) {
-      case M2M_Type:
-	if(n->IsLeaf()) return;
-	for(int j=0;j<n_child;j++) {
-	  rel_coord[0] = -1+(j & 1?2:0);
-	  rel_coord[1] = -1+(j & 2?2:0);
-	  rel_coord[2] = -1+(j & 4?2:0);
-	  c_hash = interacList->coord_hash(rel_coord);
-	  idx = interacList->hash_lut[t][c_hash];
-	  FMM_Node* chld=(FMM_Node*)n->Child(j);
-	  if(idx>=0) interac_list[idx]=chld;
-	}
-	break;
-      case L2L_Type:
-	if(p == NULL) return;
-        rel_coord[0] = -1+(p2n & 1?2:0);
-        rel_coord[1] = -1+(p2n & 2?2:0);
-        rel_coord[2] = -1+(p2n & 4?2:0);
-        c_hash = interacList->coord_hash(rel_coord);
-        idx = interacList->hash_lut[t][c_hash];
-        if(idx>=0) interac_list[idx]=p;
-	break;
       case P2P0_Type:
 	if(p == NULL || !n->IsLeaf()) return;
 	for(int i=0;i<n_collg;i++){
@@ -504,22 +483,6 @@ private:
 		assert(col->Child(j)->IsLeaf()); //2:1 balanced
 		interac_list[idx] = (FMM_Node*)col->Child(j);
 	      }
-	    }
-	  }
-	}
-	break;
-      case M2L_Helper_Type:
-	if(p == NULL) return;
-	for(int i=0;i<n_collg;i++){
-	  FMM_Node* pc=(FMM_Node*)p->Colleague(i);
-	  if(pc!=NULL?!pc->IsLeaf():0){
-	    for(int j=0;j<n_child;j++){
-	      rel_coord[0]=( i   %3)*2-2+(j & 1?1:0)-(p2n & 1?1:0);
-	      rel_coord[1]=((i/3)%3)*2-2+(j & 2?1:0)-(p2n & 2?1:0);
-	      rel_coord[2]=((i/9)%3)*2-2+(j & 4?1:0)-(p2n & 4?1:0);
-	      c_hash = interacList->coord_hash(rel_coord);
-	      idx=interacList->hash_lut[t][c_hash];
-	      if(idx>=0) interac_list[idx]=(FMM_Node*)pc->Child(j);
 	    }
 	  }
 	}
@@ -576,8 +539,8 @@ private:
   // Fill in interac_list of all nodes, assume sources == target for simplicity
   void BuildInteracLists() {
     std::vector<FMM_Node*>& nodes = GetNodeList();
-    std::vector<Mat_Type> interactionTypes = {M2M_Type, L2L_Type, P2P0_Type,
-                                              P2P1_Type, P2P2_Type, M2P_Type, P2L_Type, M2L_Type};
+    std::vector<Mat_Type> interactionTypes = {P2P0_Type, P2P1_Type, P2P2_Type,
+                                              M2P_Type, P2L_Type, M2L_Type};
     for(Mat_Type& type : interactionTypes) {
       int numRelCoord = interacList->rel_coord[type].size();  // num of possible relative positions
 #pragma omp parallel for
