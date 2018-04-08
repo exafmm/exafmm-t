@@ -24,17 +24,16 @@ public:
     }
 
     perm.resize(Type_Count);
-    for(size_t i=0;i<Type_Count;i++){
-      perm[i].resize(Perm_Count);
-    }
+    perm[M2M_Type].resize(Perm_Count);
+    perm[L2L_Type].resize(Perm_Count);
 
-    perm_r.resize(MAX_DEPTH*Type_Count);
-    perm_c.resize(MAX_DEPTH*Type_Count);
+    perm_r.resize(Type_Count);
+    perm_c.resize(Type_Count);
     int numRelCoords = interacList->rel_coord[M2M_Type].size();
-    for(size_t i=0; i<perm_r.size(); i++){
-      perm_r[i].resize(numRelCoords);
-      perm_c[i].resize(numRelCoords);
-    }
+    perm_r[M2M_Type].resize(numRelCoords);
+    perm_c[M2M_Type].resize(numRelCoords);
+    perm_r[L2L_Type].resize(numRelCoords);
+    perm_c[L2L_Type].resize(numRelCoords);
 
     Profile::Tic("InitFMM_Pts",true);
 
@@ -136,7 +135,6 @@ public:
   void PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
     Permutation<real_t>& P_ = perm[type][perm_indx];
     if(P_.Dim()!=0) return;
-    // size_t m=MULTIPOLE_ORDER;
     size_t p_indx=perm_indx % C_Perm;
     Permutation<real_t> P;
     switch (type) {
@@ -359,93 +357,14 @@ public:
           Precomp(type, i);                       // calculate operator matrix of class_coord
         }
       }
-
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++) {
-        Permutation<real_t>& perm_r0 = Perm_R(0, type, mat_idx);
-        Permutation<real_t>& perm_c0 = Perm_C(0, type, mat_idx);
-        for(int level=1; level<MAX_DEPTH; level++) {
-          Permutation<real_t>& temp_r = getPerm_R(level, type, mat_idx);
-          Permutation<real_t>& temp_c = getPerm_C(level, type, mat_idx);
-          temp_r = perm_r0;
-          temp_c = perm_c0;
-        }
+        Perm_R(0, type, mat_idx);
+        Perm_C(0, type, mat_idx);
       }
     } else {
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++)
         Precomp(type, mat_idx);
     }
-  }
-
-  size_t CompactData(int level, Mat_Type type, std::vector<char>& comp_data){
-    std::vector<Matrix<real_t> >& mat_ = mat[type];
-    size_t mat_cnt=mat_.size();
-    size_t indx_size=0;
-    size_t mem_size=0;
-    size_t l0=0;
-    size_t l1= MAX_DEPTH;
-    {
-      indx_size+=mat_cnt*(1+(2+2)*(l1-l0))*sizeof(size_t);
-      for(size_t j=0;j<mat_cnt;j++){
-        Matrix     <real_t>& M = mat[type][j];
-        if(M.Dim(0)>0 && M.Dim(1)>0){
-          mem_size+=M.Dim(0)*M.Dim(1)*sizeof(real_t);
-        }
-        for(size_t l=l0;l<l1;l++){
-          Permutation<real_t>& Pr=getPerm_R(l,type,j);
-          Permutation<real_t>& Pc=getPerm_C(l,type,j);
-          assert(Pr.Dim() == Pc.Dim());
-          if(Pr.Dim()>0){
-            mem_size+=Pr.Dim()*sizeof(size_t);
-            mem_size+=Pr.Dim()*sizeof(real_t);
-            mem_size+=Pc.Dim()*sizeof(size_t);
-            mem_size+=Pc.Dim()*sizeof(real_t);
-          }
-        }
-      }
-    }
-    if(comp_data.size() < indx_size+mem_size) comp_data.resize(indx_size+mem_size);
-    {
-      char* indx_ptr=&comp_data[0];
-      Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
-      size_t data_offset = indx_size;
-      for(size_t j=0;j<mat_cnt;j++){
-        Matrix     <real_t>& M = mat[type][j];
-        offset_indx[j][0]=data_offset; indx_ptr+=sizeof(size_t);
-        data_offset += M.Dim(0)*M.Dim(1)*sizeof(real_t);
-        for(size_t l=l0;l<l1;l++){
-          Permutation<real_t>& Pr=getPerm_R(l,type,j);
-          offset_indx[j][1+4*(l-l0)+0]=data_offset;
-          data_offset+=Pr.Dim()*sizeof(size_t);
-          offset_indx[j][1+4*(l-l0)+1]=data_offset;
-          data_offset+=Pr.Dim()*sizeof(real_t);
-          Permutation<real_t>& Pc=getPerm_C(l,type,j);
-          offset_indx[j][1+4*(l-l0)+2]=data_offset;
-          data_offset+=Pc.Dim()*sizeof(size_t);
-          offset_indx[j][1+4*(l-l0)+3]=data_offset;
-          data_offset+=Pc.Dim()*sizeof(real_t);
-        }
-      }
-    }
-    char* indx_ptr=&comp_data[0];
-    Matrix<size_t> offset_indx(mat_cnt,1+(2+2)*(l1-l0), (size_t*)indx_ptr, false);
-    for(size_t j=0;j<mat_cnt;j++){
-      Matrix     <real_t>& M = mat[type][j];
-      if(M.Dim(0)>0 && M.Dim(1)>0)
-        memcpy(&comp_data[0]+offset_indx[j][0], &M[0][0], M.Dim(0)*M.Dim(1)*sizeof(real_t));
-      for(size_t l=l0;l<l1;l++){
-        Permutation<real_t>& Pr=getPerm_R(l,type,j);
-        Permutation<real_t>& Pc=getPerm_C(l,type,j);
-        if(Pr.Dim()>0){
-          memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+0], &Pr.perm[0], Pr.Dim()*sizeof(size_t));
-          memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+1], &Pr.scal[0], Pr.Dim()*sizeof(real_t));
-        }
-        if(Pc.Dim()>0){
-          memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+2], &Pc.perm[0], Pc.Dim()*sizeof(size_t));
-          memcpy(&comp_data[0]+offset_indx[j][1+4*(l-l0)+3], &Pc.scal[0], Pc.Dim()*sizeof(real_t));
-        }
-      }
-    }
-    return indx_size+mem_size;
   }
 
   void Save2File(const char* fname, bool replace=false){

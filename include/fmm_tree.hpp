@@ -7,31 +7,12 @@
 #include "precomp_mat.hpp"
 
 namespace pvfmm{
-  struct SetupBase {
+  struct M2LSetup {
     const Kernel* kernel;
     std::vector<FMM_Node*> nodes_in ;
     std::vector<FMM_Node*> nodes_out;
     Matrix<real_t>* input_data;
     Matrix<real_t>* output_data;
-  };
-
-  // L2L Setup
-  struct CellsSetup : SetupBase {
-    int level;
-    size_t M_dim0;
-    size_t M_dim1;
-    Mat_Type interac_type;
-    std::vector<Vector<real_t>*> input_vector;
-    std::vector<Vector<real_t>*> output_vector;
-    std::vector<size_t> interac_cnt;
-    std::vector<size_t> interac_mat;
-    std::vector<size_t>  input_perm;
-    std::vector<size_t> output_perm;
-    std::vector<char>* precomp_data;
-  };
-
-  // M2L Setup
-  struct M2LSetup : SetupBase {
     Mat_Type interac_type;
     std::vector<Vector<real_t>*> input_vector;
     std::vector<Vector<real_t>*> output_vector;
@@ -45,7 +26,6 @@ public:
   InteracList* interacList;
   PrecompMat* mat;
   std::vector<FMM_Node*> node_lst;
-  std::vector<CellsSetup> L2L_data;
   M2LSetup M2L_data;
 
 public:
@@ -609,116 +589,6 @@ private:
     }
   }
 
-  void SetupPrecomp(CellsSetup& setup_data){
-    assert(setup_data.precomp_data && setup_data.level < MAX_DEPTH);
-    Profile::Tic("SetupPrecomp",true,25);
-    mat->CompactData(setup_data.level, setup_data.interac_type, *setup_data.precomp_data);
-    Profile::Toc();
-  }
-
-  void SetupInterac(CellsSetup& setup_data){
-    int level=setup_data.level;
-    Mat_Type& interac_type = setup_data.interac_type;
-    std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
-    std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    Matrix<real_t>&  input_data=*setup_data. input_data;
-    Matrix<real_t>& output_data=*setup_data.output_data;
-    std::vector<Vector<real_t>*>&  input_vector=setup_data. input_vector;
-    std::vector<Vector<real_t>*>& output_vector=setup_data.output_vector;
-    size_t n_in =nodes_in .size();
-    size_t n_out=nodes_out.size();
-    if(setup_data.precomp_data->size()==0) SetupPrecomp(setup_data);
-
-    Matrix<real_t>& M0 = mat->ClassMat(interac_type, 0);
-    int M_dim0 = M0.Dim(0);
-    int M_dim1 = M0.Dim(1);
-    size_t mat_cnt=interacList->rel_coord[interac_type].size();
-
-    Profile::Tic("Interac-Data",true,25);
-    {
-      std::vector<size_t> interac_cnt;
-      std::vector<size_t>  input_perm;
-      std::vector<size_t> output_perm;
-      size_t buff_size = 1024l*1024l*1024l;      // 1G buffer
-      if(n_out && n_in) {
-        std::vector<std::vector<size_t> > precomp_data_offset;
-        {
-          std::vector<char>& precomp_data=*setup_data.precomp_data;
-          char* indx_ptr=&precomp_data[0];
-          const int l1_l0 = MAX_DEPTH;
-          int size = 1 + (2+2)*l1_l0;    // matches the definition in CompactData
-          for(int i=0; i<mat_cnt; i++) {
-            std::vector<size_t> temp_data((size_t*)indx_ptr + i*size, (size_t*)indx_ptr + (i+1)*size);
-            precomp_data_offset.push_back(temp_data);
-          }
-        }
-        int i = 0;
-        for(FMM_Node* node_in : setup_data.nodes_in) node_in->node_id = i++;
-        std::vector<std::vector<FMM_Node*> > trg_interac_list(setup_data.nodes_out.size());  // n_out*mat_cnt FMM_Node pointers
-        std::vector<std::vector<FMM_Node*> > src_interac_list(setup_data.nodes_in.size());
-        for(auto& nodes : src_interac_list) nodes.resize(mat_cnt, NULL);
-
-#pragma omp parallel for
-        for(int i=0; i<n_out; i++) {           // build index mapping bwt nodes_in & nodes_out
-          std::vector<FMM_Node*>& interact_nodes = nodes_out[i]->interac_list[interac_type];
-          assert(interact_nodes.size() == mat_cnt);
-          trg_interac_list[i] = interact_nodes;
-          for(int j=0; j<mat_cnt; j++) {
-            if(trg_interac_list[i][j] != NULL) {
-              src_interac_list[trg_interac_list[i][j]->node_id][j] = nodes_out[i];
-            }
-          }
-        }
-
-        size_t interac_dsp_=0;
-        std::vector<std::vector<size_t>> interac_dsp(n_out, std::vector<size_t>(mat_cnt));
-        for(size_t j=0;j<mat_cnt;j++){
-          for(size_t i=0;i<n_out;i++){
-            interac_dsp[i][j]=interac_dsp_;
-            if(trg_interac_list[i][j]!=NULL) interac_dsp_++;
-          }
-          interac_cnt.push_back(interac_dsp_-interac_dsp[0][j]);
-        }
-        assert((M_dim0+M_dim1)*sizeof(real_t) * interac_dsp_ < buff_size);    // assert the buffer size we need is smaller than 1G
-
-        for(size_t i=0; i<n_out; i++) nodes_out[i]->node_id = i;
-        for(size_t i=0; i<n_in ; i++) {
-          for(size_t j=0; j<mat_cnt; j++) {
-            FMM_Node* trg_node=src_interac_list[i][j];
-            if(trg_node != NULL) {
-//if(interac_type == M2M_Type) std::cout << "src octant: " << nodes_in[i]->octant << " mat_cnt: " << j << std::endl;
-              size_t depth=trg_node->depth;
-              input_perm .push_back(precomp_data_offset[j][1+4*depth+0]);
-              input_perm .push_back(precomp_data_offset[j][1+4*depth+1]);
-              input_perm .push_back(interac_dsp[trg_node->node_id][j]*M_dim0*sizeof(real_t));
-              input_perm .push_back((size_t)(& input_vector[i][0][0]- input_data[0]));
-              assert(input_vector[i]->Dim() == M_dim0);
-            }
-          }
-        }
-
-        for(size_t i=0; i<n_out; i++) {
-          for(size_t j=0; j<mat_cnt; j++) {
-            if(trg_interac_list[i][j] != NULL) {
-              size_t depth=nodes_out[i]->depth;
-              output_perm.push_back(precomp_data_offset[j][1+4*depth+2]);
-              output_perm.push_back(precomp_data_offset[j][1+4*depth+3]);
-              output_perm.push_back(interac_dsp[i][j]*M_dim1*sizeof(real_t));
-              output_perm.push_back((size_t)(&output_vector[i][0][0]-output_data[0]));
-            }
-          }
-        }
-      }
-      if(dev_buffer.Dim()<buff_size) dev_buffer.Resize(buff_size);
-      setup_data.M_dim0 = M_dim0;
-      setup_data.M_dim1 = M_dim1;
-      setup_data.interac_cnt = interac_cnt;
-      setup_data.input_perm = input_perm;
-      setup_data.output_perm = output_perm;
-    }
-    Profile::Toc();
-  }
-
   void ClearFMMData() {
     Profile::Tic("ClearFMMData",true);
     Matrix<real_t>* mat;
@@ -732,7 +602,6 @@ private:
   }
 
   void M2L_ListSetup(M2LSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
-    if(!MULTIPOLE_ORDER) return;
     {
       setup_data.kernel=kernel->k_m2l;
       setup_data.interac_type = M2L_Type;
@@ -876,31 +745,6 @@ private:
     Profile::Toc();
   }
 
-  void L2LSetup(CellsSetup& setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list, int level){
-    setup_data.level = level;
-    setup_data.kernel = kernel->k_l2l;
-    setup_data.interac_type = L2L_Type;
-    setup_data.input_data = &buff[1];
-    setup_data.output_data = &buff[1];
-
-    setup_data.nodes_in.clear();
-    setup_data.nodes_out.clear();
-    std::vector<FMM_Node*>& nodes_in =n_list[1];
-    std::vector<FMM_Node*>& nodes_out=n_list[1];
-    for(FMM_Node* node : nodes_in)
-      if(node->depth==level-1 && node->pt_cnt[1]) setup_data.nodes_in.push_back(node);
-    for(FMM_Node* node : nodes_out)
-      if(node->depth==level && node->pt_cnt[1]) setup_data.nodes_out.push_back(node);
-
-    setup_data.input_vector.clear();
-    setup_data.output_vector.clear();
-    for(FMM_Node* node : setup_data.nodes_in)
-      setup_data.input_vector.push_back(&(node->dnward_equiv));
-    for(FMM_Node* node : setup_data.nodes_out)
-      setup_data.output_vector.push_back(&(node->dnward_equiv));
-    SetupInterac(setup_data);
-  }
-
 public:
   void SetupFMM() {
     Profile::Tic("SetupFMM",true);{
@@ -922,21 +766,12 @@ public:
     CollectNodeData(all_nodes, node_data_buff, node_lists);
     Profile::Toc();
 
-    L2L_data.resize(MAX_DEPTH);
-
     Profile::Tic("BuildLists",false,3);
     BuildInteracLists();
     Profile::Toc();
 
     Profile::Tic("M2LListSetup",false,3);
     M2L_ListSetup(M2L_data, node_data_buff, node_lists);
-    Profile::Toc();
-
-    Profile::Tic("L2LSetup",false,3);
-    for(int i=0;i<MAX_DEPTH;i++){
-      L2L_data[i].precomp_data = &L2L_precomp_lst;
-      L2LSetup(L2L_data[i], node_data_buff, node_lists, i);
-    }
     Profile::Toc();
 
     ClearFMMData();
@@ -1033,77 +868,37 @@ private:
     M2M(root_node);
   }
 
-  void EvalList(CellsSetup& setup_data){
-    if(setup_data.interac_cnt.empty()) return;
-    char* buff = dev_buffer.data_ptr;
-    char* precomp_data = &(*setup_data.precomp_data)[0];
-    real_t* input_data = setup_data.input_data->data_ptr;
-    real_t* output_data = setup_data.output_data->data_ptr;
-    size_t mat_cnt = interacList->rel_coord[setup_data.interac_type].size();
-    Profile::Tic("DeviceComp",false,20);
-    {
-      size_t M_dim0 = setup_data.M_dim0;
-      size_t M_dim1 = setup_data.M_dim1;
-      Vector<size_t> interac_cnt = setup_data.interac_cnt;
-      Vector<size_t>  input_perm = setup_data.input_perm;
-      Vector<size_t> output_perm = setup_data.output_perm;
-
-      int omp_p=omp_get_max_threads();
-      size_t vec_cnt=0;
-      for(size_t j=0; j<mat_cnt; j++) vec_cnt += interac_cnt[j];
-      char* buff_in =buff;
-      char* buff_out=buff+vec_cnt*M_dim0*sizeof(real_t);
-
-#pragma omp parallel for
-      for(size_t i=0; i<vec_cnt; i++) {
-        const size_t*  perm=(size_t*)(precomp_data+input_perm[i*4+0]);
-        //const real_t*  scal=(real_t*)(precomp_data+input_perm[i*4+1]);
-        const real_t* v_in =(real_t*)(  input_data+input_perm[i*4+3]);
-        real_t*       v_out=(real_t*)(     buff_in+input_perm[i*4+2]);
-        for(size_t j=0; j<M_dim0; j++) {
-          v_out[j] = v_in[perm[j]];
+  void L2L(FMM_Node* node) {
+    if(node->IsLeaf()) return;
+    Matrix<real_t>& M = mat->mat[L2L_Type][7];  // 7 is the class coord, will generalize it later
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL) {
+        FMM_Node* child = node->child[octant];
+        std::vector<size_t>& perm_in = mat->perm_r[L2L_Type][octant].perm;
+        std::vector<size_t>& perm_out = mat->perm_c[L2L_Type][octant].perm;
+        Matrix<real_t> buffer_in(1, NSURF);
+        Matrix<real_t> buffer_out(1, NSURF);
+        for(int k=0; k<NSURF; k++) {
+          buffer_in[0][k] = node->dnward_equiv[perm_in[k]]; // input perm
         }
-      }
-
-#if 0
-      size_t vec_cnt0=0;
-      for(size_t j=0; j<mat_cnt; ){
-        size_t vec_cnt1=0;
-        size_t interac_mat0=interac_mat[j];
-        for(; j<mat_cnt && interac_mat[j]==interac_mat0; j++) vec_cnt1+=interac_cnt[j];
-        Matrix<real_t> M(M_dim0, M_dim1, (real_t*)(precomp_data+interac_mat0), false);
-#pragma omp parallel for
-        for(int tid=0;tid<omp_p;tid++){
-          size_t a=(vec_cnt1*(tid  ))/omp_p;
-          size_t b=(vec_cnt1*(tid+1))/omp_p;
-          Matrix<real_t> Ms(b-a, M_dim0, (real_t*)(buff_in +M_dim0*vec_cnt0*sizeof(real_t))+M_dim0*a, false);
-          Matrix<real_t> Mt(b-a, M_dim1, (real_t*)(buff_out+M_dim1*vec_cnt0*sizeof(real_t))+M_dim1*a, false);
-          Matrix<real_t>::GEMM(Mt,Ms,M);
-        }
-        vec_cnt0+=vec_cnt1;
-      }
-#else
-      size_t totalCount = 0;
-      for(int k=0; k<mat_cnt; k++) totalCount += interac_cnt[k];
-Matrix<real_t>& M = mat->mat[setup_data.interac_type][7];  // 7 is the class coord, will generalize it later
-//        Matrix<real_t> M(M_dim0, M_dim1, (real_t*)(precomp_data+interac_mat0), false);
-        Matrix<real_t> Ms(totalCount, M_dim0, (real_t*)(buff_in), false);
-        Matrix<real_t> Mt(totalCount, M_dim1, (real_t*)(buff_out), false);
-        Matrix<real_t>::GEMM(Mt,Ms,M);
-
-#endif
-#pragma omp parallel for
-      for(size_t i = 0; i<vec_cnt; i++){ // Compute permutations.
-        const size_t*  perm=(size_t*)(precomp_data+output_perm[i*4+0]);
-        //const real_t*  scal=(real_t*)(precomp_data+output_perm[i*4+1]);
-        const real_t* v_in =(real_t*)(    buff_out+output_perm[i*4+2]);
-        real_t*       v_out=(real_t*)( output_data+output_perm[i*4+3]);
-        for(size_t j=0;j<M_dim1;j++ ){
-          v_out[j]+=v_in[perm[j]];
+        Matrix<real_t>::GEMM(buffer_out, buffer_in, M);
+        for(int k=0; k<NSURF; k++) {
+          child->dnward_equiv[k] += buffer_out[0][perm_out[k]];
         }
       }
     }
-    Profile::Toc();
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL)
+#pragma omp task untied
+        L2L(node->child[octant]);
+    }
+#pragma omp taskwait
+  }
+
+  void L2L() {
+#pragma omp parallel
+#pragma omp single nowait
+    L2L(root_node);
   }
 
   void M2LListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp,
@@ -1311,11 +1106,6 @@ Matrix<real_t>& M = mat->mat[setup_data.interac_type][7];  // 7 is the class coo
     }
   }
 
-  void M2M(CellsSetup& setup_data){
-    if(!MULTIPOLE_ORDER) return;
-    EvalList(setup_data);
-  }
-
   void P2P() {
     std::vector<FMM_Node*>& targets = leafs;   // leafs, assume sources == targets
     std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type, P2L_Type, M2P_Type};
@@ -1395,9 +1185,6 @@ Matrix<real_t>& M = mat->mat[setup_data.interac_type][7];  // 7 is the class coo
   }
 
   void M2L_List(M2LSetup&  setup_data){
-    if(!MULTIPOLE_ORDER) return;
-    int np=1;
-    Profile::Tic("Host2Device",false,25);
     int dim0=setup_data.input_data->dim[0];
     int dim1=setup_data.input_data->dim[1];
     size_t buff_size=*((size_t*)&setup_data.m2l_list_data.buff_size);
@@ -1406,7 +1193,6 @@ Matrix<real_t>& M = mat->mat[setup_data.interac_type][7];  // 7 is the class coo
     M2LListData m2l_list_data=setup_data.m2l_list_data;
     real_t * input_data=setup_data.input_data->data_ptr;
     real_t * output_data=setup_data.output_data->data_ptr;
-    Profile::Toc();
     buff_size     = m2l_list_data.buff_size;
     size_t m      = m2l_list_data.m;
     size_t n_blk0 = m2l_list_data.n_blk0;
@@ -1441,12 +1227,6 @@ Matrix<real_t>& M = mat->mat[setup_data.interac_type][7];  // 7 is the class coo
     }
   }
 
-
-  void L2L(CellsSetup& setup_data){
-    if(!MULTIPOLE_ORDER) return;
-    EvalList(setup_data);
-  }
-
   void UpwardPass() {
     Profile::Tic("P2M", false, 5);
     P2M();
@@ -1470,9 +1250,7 @@ Matrix<real_t>& M = mat->mat[setup_data.interac_type][7];  // 7 is the class coo
     M2L_List(M2L_data);
     Profile::Toc();
     Profile::Tic("L2L", false, 5);
-    for(size_t i=0; i<=LEVEL; i++) {
-      L2L(L2L_data[i]);
-    }
+    L2L();
     Profile::Toc();
     Profile::Tic("L2P", false, 5);
     L2P();

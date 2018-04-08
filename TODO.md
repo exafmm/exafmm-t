@@ -7,12 +7,12 @@
 - [x] OpenMP dynamic
 - [x] Clean P2P in fmm_tree
 - [x] Add P2M, L2P to TIME
-- [ ] Remove M2M, L2L precomputation for all levels
+- [x] Remove M2M, L2L precomputation for all levels
 - [ ] Remove unnecessary "{}"
 - [ ] Use code beautifier
 - [ ] n_uc, n_ue, n_dc, n_de to NSURF
 
-- [ ] Simplify M2M and L2L
+- [x] Simplify M2M and L2L
 - [ ] Simplify tree structure
 - [ ] Unify node data types
 - [ ] Vector -> std::vector with customized allocator

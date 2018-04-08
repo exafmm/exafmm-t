@@ -109,7 +109,6 @@ namespace pvfmm{
   std::vector<Vector<real_t> > dnwd_check_surf;
   std::vector<Vector<real_t> > dnwd_equiv_surf;
 
-  std::vector<char> L2L_precomp_lst;
   std::vector<Matrix<real_t> > node_data_buff;
   Vector<char> dev_buffer;
 
