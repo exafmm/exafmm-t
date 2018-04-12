@@ -947,7 +947,7 @@ private:
     int omp_p=omp_get_max_threads();
     size_t n=6*(m-1)*(m-1)+2;
     static Vector<size_t> map;
-    {
+    { // Remove
       size_t n_old=map.Dim();
       if(n_old!=n){
         real_t c[3]={0,0,0};
@@ -957,7 +957,7 @@ private:
           map[i]=((size_t)(m-1-surf[i*3]+0.5))+((size_t)(m-1-surf[i*3+1]+0.5))*n1+((size_t)(m-1-surf[i*3+2]+0.5))*n2;
       }
     }
-    {
+    { // Remove
       if(!m2l_list_fft_flag){
         int err, nnn[3]={(int)n1,(int)n1,(int)n1};
         real_t *fftw_in, *fftw_out;
@@ -1011,7 +1011,7 @@ private:
     int omp_p=omp_get_max_threads();
     size_t n=6*(m-1)*(m-1)+2;
     static Vector<size_t> map;
-    {
+    { // Remove
       size_t n_old=map.Dim();
       if(n_old!=n){
         real_t c[3]={0,0,0};
@@ -1021,7 +1021,7 @@ private:
           map[i]=((size_t)(m*2-0.5-surf[i*3]))+((size_t)(m*2-0.5-surf[i*3+1]))*n1+((size_t)(m*2-0.5-surf[i*3+2]))*n2;
       }
     }
-    {
+    { // Remove
       if(!m2l_list_ifft_flag){
         int err, nnn[3]={(int)n1,(int)n1,(int)n1};
         real_t *fftw_in, *fftw_out;
@@ -1276,7 +1276,7 @@ public:
       kernel->ker_poten(&src_coord[0], src_cnt, &src_value[0], &trg_coord[a*3], b-a, &trg_poten_dir[a*trg_dof  ]);
     }
     pvfmm::Profile::Toc();
-    {
+    { // Remove
       real_t max_=0;
       real_t max_err=0;
       for(size_t i=0;i<trg_poten_fmm.size();i++){

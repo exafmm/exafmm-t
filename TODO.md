@@ -1,44 +1,14 @@
 ###TODO
 -------------
-- [x] W -> M2P
-- [x] X -> P2L
-- [x] U -> P2P
-- [x] V -> M2L
-- [x] OpenMP dynamic
-- [x] Clean P2P in fmm_tree
-- [x] Add P2M, L2P to TIME
-- [x] Remove M2M, L2L precomputation for all levels
-- [ ] remove CollectNodeData and node_lst from fmm_tree
-- [ ] remove getPermR, getPermC from precomputation header
-- [ ] Remove unnecessary "{}"
-- [ ] Use code beautifier
-- [x] n_uc, n_ue, n_dc, n_de to NSURF
 
-- [x] Simplify M2M and L2L
-- [ ] Simplify tree structure
-- [ ] Unify node data types
-- [ ] Vector -> std::vector with customized allocator
-- [ ] Matrix -> std::vector(std::vector) for non-Real_t
-- [x] decide whether to keep permutation type
-- [x] Flatten the class hierarchy
-- [x] write down math equations for precomputation
-- [x] RealVec in P2P
-- [x] remove surf_coord & surf_value from FMM_Node
-- [x] make Precompmat members public instead of calling access functions
-- [x] remove "ghost"
-- [x] remove "scatter" related members and functions
-- [x] Real_t -> real_t
-- [x] UC2UE0 -> M2M_V
-- [x] UC2UE1 -> M2M_U
-- [x] DC2DE0 -> L2L_V
-- [x] DC2DE1 -> L2L_U
-- [x] U2U -> M2M
-- [x] D2D -> L2L
-- [x] S2U -> P2M
-- [x] D2T -> L2P
-- [x] assume source == target
-- [x] Remove SVD5 and other SVD functions that use it
-- [x] vec.h <- kernel, fmm_tree
-- [ ] split fmm_tree header -> tree_construction, eval_setup, eval
+- [ ] Push history of pvfmm to exafmm-t (Tingyu)
+- [ ] remove CollectNodeData and node_lst from fmm_tree (Tingyu)
+- [ ] remove getPermR, getPermC from precomputation header (Chenwu)
+- [ ] Remove unnecessary "{}" (Chenwu)
+- [ ] Use code beautifier (Chenwu)
+- [ ] Simplify tree structure (Tingyu)
+- [ ] Unify node data types (Tingyu)
+- [ ] Vector -> std::vector with customized allocator (Tingyu)
+- [ ] split fmm_tree header -> tree_construction, eval_setup, eval (Tingyu)
   - remove circular dependency of classes, use forward declaration if necessary
-- [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution
+- [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution (Tingyu)

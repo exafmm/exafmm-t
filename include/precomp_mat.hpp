@@ -35,33 +35,11 @@ public:
     perm_r[L2L_Type].resize(numRelCoords);
     perm_c[L2L_Type].resize(numRelCoords);
 
-    Profile::Tic("InitFMM_Pts",true);
-
-    std::stringstream ss;
-    const char* realType = sizeof(real_t) == 8 ? "_d" : "_f";
-    ss << "Precomp_" << kernel->ker_name.c_str() << "_m" << MULTIPOLE_ORDER << realType <<".data";
-    std::string fname = ss.str();
-
-    Profile::Tic("LoadMatrices",true,3);
-    LoadFile(fname.c_str());
-    Profile::Toc();
-
     Profile::Tic("PrecompM2M",false,4);
     PrecompAll(M2M_Type);
     Profile::Toc();
     Profile::Tic("PrecompL2L",false,4);
     PrecompAll(L2L_Type);
-    Profile::Toc();
-
-    Profile::Tic("Save2File",false,4);
-    FILE* f = fopen(fname.c_str(),"r");
-    if(f==NULL) {
-      Save2File(fname.c_str());
-    }
-    else fclose(f);
-    Profile::Toc();
-
-    Profile::Tic("PrecompV",false,4);
     Profile::Toc();
     Profile::Tic("PrecompM2L",false,4);
     PrecompAll(M2L_Type);
