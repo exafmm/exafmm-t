@@ -12,7 +12,7 @@
 - [ ] remove getPermR, getPermC from precomputation header
 - [ ] Remove unnecessary "{}"
 - [ ] Use code beautifier
-- [ ] n_uc, n_ue, n_dc, n_de to NSURF
+- [x] n_uc, n_ue, n_dc, n_de to NSURF
 
 - [x] Simplify M2M and L2L
 - [ ] Simplify tree structure

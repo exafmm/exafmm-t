@@ -378,12 +378,10 @@ private:
     n_list[5] = leafs;
     n_list[6] = leafs;
     // fill in vec_list
-    int n_ue = mat->ClassMat(M2M_U_Type, 0).Dim(1);
-    int n_de = mat->ClassMat(L2L_V_Type, 0).Dim(0);
     for(int i=0; i<nodesLevelOrder.size(); i++) {
       FMM_Node* node = nodesLevelOrder[i];
-      node->upward_equiv.Resize(n_ue);
-      node->dnward_equiv.Resize(n_de);
+      node->upward_equiv.Resize(NSURF);
+      node->dnward_equiv.Resize(NSURF);
       vec_list[0].push_back( &(node->upward_equiv) );
       vec_list[1].push_back( &(node->dnward_equiv) );
     }

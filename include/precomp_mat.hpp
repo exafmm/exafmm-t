@@ -217,12 +217,10 @@ public:
       ivec3& coord=interacList->rel_coord[type][mat_indx];
       real_t c[3]={(coord[0]+1)*s,(coord[1]+1)*s,(coord[2]+1)*s};
       std::vector<real_t> check_surf=d_check_surf(c,level);
-      size_t n_dc=check_surf.size()/3;
       real_t parent_coord[3]={0,0,0};
       std::vector<real_t> equiv_surf=d_equiv_surf(parent_coord,level-1);
-      size_t n_de=equiv_surf.size()/3;
-      Matrix<real_t> M_pe2c(n_de*ker_dim[0],n_dc*ker_dim[1]);
-      kernel->k_l2l->BuildMatrix(&equiv_surf[0], n_de, &check_surf[0], n_dc, &(M_pe2c[0][0]));
+      Matrix<real_t> M_pe2c(NSURF*ker_dim[0],NSURF*ker_dim[1]);
+      kernel->k_l2l->BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_pe2c[0][0]));
 
       // caculate L2L_U and L2L_V
       Matrix<real_t> M_c2e0, M_c2e1;
@@ -230,11 +228,9 @@ public:
         const int* ker_dim=kernel->k_l2l->ker_dim;
         real_t c[3]={0,0,0};
         std::vector<real_t> check_surf=d_check_surf(c,level);
-        size_t n_ch=check_surf.size()/3;
         std::vector<real_t> equiv_surf=d_equiv_surf(c,level);
-        size_t n_eq=equiv_surf.size()/3;
-        Matrix<real_t> M_e2c(n_eq*ker_dim[0],n_ch*ker_dim[1]);
-        kernel->k_l2l->BuildMatrix(&equiv_surf[0], n_eq, &check_surf[0], n_ch, &(M_e2c[0][0]));
+        Matrix<real_t> M_e2c(NSURF*ker_dim[0],NSURF*ker_dim[1]);
+        kernel->k_l2l->BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_e2c[0][0]));
         Matrix<real_t> U,S,V;
         M_e2c.SVD(U,S,V);
         M_c2e1=U.Transpose();
