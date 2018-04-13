@@ -44,23 +44,13 @@ public:
     Profile::Tic("PrecompM2L",false,4);
     PrecompAll(M2L_Type);
     Profile::Toc();
-
-    Profile::Toc();
-  }
-
-  Permutation<real_t>& getPerm_R(int l, Mat_Type type, size_t indx){
-    return perm_r[l*Type_Count+type][indx];
-  }
-
-  Permutation<real_t>& getPerm_C(int l, Mat_Type type, size_t indx){
-    return perm_c[l*Type_Count+type][indx];
   }
 
   // This is only related to M2M and L2L operator
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx){
     size_t indx0 = interacList->interac_class[type][indx];                     // indx0: class coord index
     Matrix     <real_t>& M0      = mat[type][indx0];         // class coord matrix
-    Permutation<real_t>& row_perm = getPerm_R(l, type, indx );    // mat->perm_r[(l+128)*16+type][indx]
+    Permutation<real_t>& row_perm = perm_r[l*Type_Count+type][indx];    // mat->perm_r[(l+128)*16+type][indx]
     //if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;             // if mat hasn't been computed, then return
     if(row_perm.Dim()==0){                                        // if this perm_r entry hasn't been computed
       std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];      // get perm_list of current rel_coord
@@ -84,7 +74,7 @@ public:
   Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx){
     size_t indx0 = interacList->interac_class[type][indx];
     Matrix     <real_t>& M0      = mat[type][indx0];
-    Permutation<real_t>& col_perm = getPerm_C(l, type, indx );
+    Permutation<real_t>& col_perm = perm_c[l*Type_Count+type][indx];
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
     if(col_perm.Dim()==0){
       std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];
