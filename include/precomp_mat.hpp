@@ -18,7 +18,7 @@ public:
   PrecompMat(InteracList* interacList_, const Kernel* kernel_):
     kernel(kernel_), interacList(interacList_) {
     mat.resize(PrecomputationType);
-    for(int type; type<PrecomputationType; type++) {
+    for(int type=0; type<PrecomputationType; type++) {
       int numRelCoords = interacList->rel_coord[type].size();
       mat[type].resize(numRelCoords);
     }
