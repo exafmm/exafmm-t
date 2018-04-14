@@ -93,7 +93,6 @@ namespace pvfmm{
 
   struct M2LListData {
     size_t buff_size;
-    size_t m;
     size_t n_blk0;
     std::vector<real_t*> precomp_mat;
     std::vector<std::vector<size_t> > fft_vec;

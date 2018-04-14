@@ -690,7 +690,6 @@ private:
         }
       }
       setup_data.m2l_list_data.buff_size   = buff_size;
-      setup_data.m2l_list_data.m           = MULTIPOLE_ORDER;
       setup_data.m2l_list_data.n_blk0      = n_blk0;
       setup_data.m2l_list_data.precomp_mat = precomp_mat;
       setup_data.m2l_list_data.fft_vec     = fft_vec;
@@ -1152,7 +1151,7 @@ private:
     real_t * input_data=setup_data.input_data->data_ptr;
     real_t * output_data=setup_data.output_data->data_ptr;
     buff_size     = m2l_list_data.buff_size;
-    size_t m      = m2l_list_data.m;
+    size_t m      = MULTIPOLE_ORDER;
     size_t n_blk0 = m2l_list_data.n_blk0;
     size_t n1 = m * 2;
     size_t n2 = n1 * n1;
@@ -1178,10 +1177,16 @@ private:
       Vector<real_t> fft_out(output_dim, (real_t*)(buff+input_dim*sizeof(real_t)),false);
       Vector<real_t>  buffer(buffer_dim, (real_t*)(buff+(input_dim+output_dim)*sizeof(real_t)),false);
       Vector<real_t>  input_data_(dim0*dim1,input_data,false);
+Profile::Tic("FFT_UpEquiv", false, 5);
       FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0],  input_data_, fft_in, buffer);
+Profile::Toc();
+Profile::Tic("M2LHadamard", false, 5);
       M2LListHadamard(M_dim, interac_dsp[blk0], interac_vec[blk0], precomp_mat, fft_in, fft_out);
+Profile::Toc();
       Vector<real_t> output_data_(dim0*dim1, output_data, false);
+Profile::Tic("FFT_Check2Equiv", false, 5);
       FFT_Check2Equiv(m, ifft_vec[blk0], ifft_scl[blk0], fft_out, output_data_, buffer);
+Profile::Toc();
     }
   }
 
