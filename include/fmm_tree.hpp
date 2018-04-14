@@ -579,18 +579,18 @@ private:
     std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
     std::vector<Vector<real_t>*>&  input_vector=setup_data. input_vector;  input_vector.clear();
     std::vector<Vector<real_t>*>& output_vector=setup_data.output_vector; output_vector.clear();
-    for(FMM_Node* node : nodes_in)  input_vector.push_back(&(node->Child(0)->upward_equiv));
-    for(FMM_Node* node : nodes_out) output_vector.push_back(&(node->Child(0)->dnward_equiv));
+    for(FMM_Node* node : nodes_in)  input_vector.push_back(&(node->Child(0)->upward_equiv));     // nonLeaf's first child's upward equiv
+    for(FMM_Node* node : nodes_out) output_vector.push_back(&(node->Child(0)->dnward_equiv));    // nonLeaf's first child's dnward equiv
     size_t n_in =nodes_in .size();
     size_t n_out=nodes_out.size();
     Profile::Tic("Interac-Data",true,25);
     if(n_out>0 && n_in >0){
       size_t precomp_offset=0;
       size_t mat_cnt = interacList->rel_coord[M2L_Type].size();
-      std::vector<real_t*> precomp_mat;
+      std::vector<real_t*> precomp_mat;                    // vector of ptrs which points to Precomputation matrix of each M2L relative position
       for(size_t mat_id=0;mat_id<mat_cnt;mat_id++){
         Matrix<real_t>& M = mat->mat[M2L_Type][mat_id];
-        precomp_mat.push_back(&M[0][0]);
+        precomp_mat.push_back(&M[0][0]);                   // precomp_mat.size == M2L's numRelCoords
       }
       size_t ker_dim0=setup_data.kernel->ker_dim[0];
       size_t ker_dim1=setup_data.kernel->ker_dim[1];
@@ -603,7 +603,7 @@ private:
         fftsize=2*n3_*chld_cnt;
       }
       int omp_p=omp_get_max_threads();
-      size_t buff_size=1024l*1024l*1024l;
+      size_t buff_size=1024l*1024l*1024l;    // 1Gb buffer
       size_t n_blk0=2*fftsize*(ker_dim0*n_in +ker_dim1*n_out)*sizeof(real_t)/buff_size;
       if(n_blk0==0) n_blk0=1;
       std::vector<std::vector<size_t> >  fft_vec(n_blk0);
@@ -617,12 +617,13 @@ private:
         Matrix<real_t>& output_data=*setup_data.output_data;
         std::vector<std::vector<FMM_Node*> > nodes_blk_in (n_blk0);
         std::vector<std::vector<FMM_Node*> > nodes_blk_out(n_blk0);
-        std::vector<real_t> src_scal=kernel->k_m2l->src_scal;
-        std::vector<real_t> trg_scal=kernel->k_m2l->trg_scal;
+        std::vector<real_t> src_scal=kernel->k_m2l->src_scal;  // src_scal is 0 for Laplace
+        std::vector<real_t> trg_scal=kernel->k_m2l->trg_scal;  // trg_scal is 1 for Laplace
 
         for(size_t i=0;i<n_in;i++) nodes_in[i]->node_id=i;
+
         for(size_t blk0=0;blk0<n_blk0;blk0++){
-          size_t blk0_start=(n_out* blk0   )/n_blk0;
+          size_t blk0_start=(n_out* blk0   )/n_blk0;                 // divide the whole M2L interaction lists into chunks
           size_t blk0_end  =(n_out*(blk0+1))/n_blk0;
           std::vector<FMM_Node*>& nodes_in_ =nodes_blk_in [blk0];
           std::vector<FMM_Node*>& nodes_out_=nodes_blk_out[blk0];
@@ -945,14 +946,14 @@ private:
     size_t fftsize_in =2*n3_*chld_cnt;
     int omp_p=omp_get_max_threads();
     size_t n=6*(m-1)*(m-1)+2;
-    static Vector<size_t> map;
+    static std::vector<size_t> map;
     { // Remove
-      size_t n_old=map.Dim();
+      size_t n_old = map.size();
       if(n_old!=n){
         real_t c[3]={0,0,0};
         Vector<real_t> surf=surface(m, c, (real_t)(m-1), 0);
-        map.Resize(surf.Dim()/3);
-        for(size_t i=0;i<map.Dim();i++)
+        map.resize(surf.Dim()/3);
+        for(size_t i=0;i<map.size();i++)
           map[i]=((size_t)(m-1-surf[i*3]+0.5))+((size_t)(m-1-surf[i*3+1]+0.5))*n1+((size_t)(m-1-surf[i*3+2]+0.5))*n2;
       }
     }
@@ -1009,14 +1010,14 @@ private:
     size_t fftsize_out=2*n3_*chld_cnt;
     int omp_p=omp_get_max_threads();
     size_t n=6*(m-1)*(m-1)+2;
-    static Vector<size_t> map;
+    static std::vector<size_t> map;
     { // Remove
-      size_t n_old=map.Dim();
+      size_t n_old = map.size();
       if(n_old!=n){
         real_t c[3]={0,0,0};
         Vector<real_t> surf=surface(m, c, (real_t)(m-1), 0);
-        map.Resize(surf.Dim()/3);
-        for(size_t i=0;i<map.Dim();i++)
+        map.resize(surf.Dim()/3);
+        for(size_t i=0;i<map.size();i++)
           map[i]=((size_t)(m*2-0.5-surf[i*3]))+((size_t)(m*2-0.5-surf[i*3+1]))*n1+((size_t)(m*2-0.5-surf[i*3+2]))*n2;
       }
     }
