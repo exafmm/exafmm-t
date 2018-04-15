@@ -7,16 +7,6 @@
 #include "precomp_mat.hpp"
 
 namespace pvfmm{
-  struct M2LSetup {  // remove
-    std::vector<FMM_Node*> nodes_in ;  // remove
-    std::vector<FMM_Node*> nodes_out;  // remove
-    Matrix<real_t>* input_data;     // change to global
-    Matrix<real_t>* output_data;    // change to global
-    std::vector<Vector<real_t>*> input_vector;   // remove
-    std::vector<Vector<real_t>*> output_vector;  // remove
-    M2LListData m2l_list_data;
-  };
-
 class FMM_Tree {
 public:
   FMM_Node* root_node;
@@ -24,9 +14,8 @@ public:
   InteracList* interacList;
   PrecompMat* mat;
   std::vector<FMM_Node*> node_lst;
-  M2LSetup M2L_data;
+  M2LListData m2l_list_data;
 
-public:
   FMM_Tree(const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_):
     kernel(kernel_), interacList(interacList_), mat(mat_),
     root_node(NULL) {
@@ -560,145 +549,128 @@ private:
     Profile::Toc();
   }
 
-  void M2L_ListSetup(M2LSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
-    {
-      setup_data. input_data=&buff[0];
-      setup_data.output_data=&buff[1];
-      std::vector<FMM_Node*>& nodes_in =n_list[2];
-      std::vector<FMM_Node*>& nodes_out=n_list[3];
-      setup_data.nodes_in .clear();
-      setup_data.nodes_out.clear();
-      for(FMM_Node* node : nodes_in)
-        if(node->pt_cnt[0]) setup_data.nodes_in.push_back(node);
-      for(FMM_Node* node : nodes_out)
-        if(node->pt_cnt[1]) setup_data.nodes_out.push_back(node);
+  void M2L_ListSetup(M2LListData& m2l_list_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+    Matrix<real_t>& input_data = buff[0];
+    Matrix<real_t>& output_data = buff[1];
+    std::vector<FMM_Node*>& nodes_in =n_list[2];
+    std::vector<FMM_Node*>& nodes_out=n_list[3];
+    std::vector<Vector<real_t>*> input_vector;
+    std::vector<Vector<real_t>*> output_vector;
+    for(FMM_Node* node : nodes_in)
+      input_vector.push_back(&(node->Child(0)->upward_equiv));     // nonLeaf's first child's upward equiv
+    for(FMM_Node* node : nodes_out)
+      output_vector.push_back(&(node->Child(0)->dnward_equiv));    // nonLeaf's first child's dnward equiv
+    size_t n_in = nodes_in.size();
+    size_t n_out = nodes_out.size();
+
+    // build ptrs of precompmat
+    size_t mat_cnt = interacList->rel_coord[M2L_Type].size();
+    std::vector<real_t*> precomp_mat;                    // vector of ptrs which points to Precomputation matrix of each M2L relative position
+    for(size_t mat_id=0; mat_id<mat_cnt; mat_id++){
+      Matrix<real_t>& M = mat->mat[M2L_Type][mat_id];
+      precomp_mat.push_back(&M[0][0]);                   // precomp_mat.size == M2L's numRelCoords
     }
-    std::vector<FMM_Node*>& nodes_in =setup_data.nodes_in ;
-    std::vector<FMM_Node*>& nodes_out=setup_data.nodes_out;
-    std::vector<Vector<real_t>*>&  input_vector=setup_data. input_vector;  input_vector.clear();
-    std::vector<Vector<real_t>*>& output_vector=setup_data.output_vector; output_vector.clear();
-    for(FMM_Node* node : nodes_in)  input_vector.push_back(&(node->Child(0)->upward_equiv));     // nonLeaf's first child's upward equiv
-    for(FMM_Node* node : nodes_out) output_vector.push_back(&(node->Child(0)->dnward_equiv));    // nonLeaf's first child's dnward equiv
-    size_t n_in =nodes_in .size();
-    size_t n_out=nodes_out.size();
-    Profile::Tic("Interac-Data",true,25);
-    if(n_out>0 && n_in >0){
-      size_t precomp_offset=0;
-      size_t mat_cnt = interacList->rel_coord[M2L_Type].size();
-      std::vector<real_t*> precomp_mat;                    // vector of ptrs which points to Precomputation matrix of each M2L relative position
-      for(size_t mat_id=0;mat_id<mat_cnt;mat_id++){
-        Matrix<real_t>& M = mat->mat[M2L_Type][mat_id];
-        precomp_mat.push_back(&M[0][0]);                   // precomp_mat.size == M2L's numRelCoords
-      }
-      size_t ker_dim0 = kernel->k_m2l->ker_dim[0];
-      size_t ker_dim1 = kernel->k_m2l->ker_dim[1];
-      size_t fftsize;
-      {
-        size_t n1=MULTIPOLE_ORDER*2;
-        size_t n2=n1*n1;
-        size_t n3_=n2*(n1/2+1);
-        size_t chld_cnt=1UL<<3;
-        fftsize=2*n3_*chld_cnt;
-      }
-      int omp_p=omp_get_max_threads();
-      size_t buff_size=1024l*1024l*1024l;    // 1Gb buffer
-      size_t n_blk0=2*fftsize*(ker_dim0*n_in +ker_dim1*n_out)*sizeof(real_t)/buff_size;
-      if(n_blk0==0) n_blk0=1;
-      std::vector<std::vector<size_t> >  fft_vec(n_blk0);
-      std::vector<std::vector<size_t> > ifft_vec(n_blk0);
-      std::vector<std::vector<real_t> >  fft_scl(n_blk0);
-      std::vector<std::vector<real_t> > ifft_scl(n_blk0);
-      std::vector<std::vector<size_t> > interac_vec(n_blk0);
-      std::vector<std::vector<size_t> > interac_dsp(n_blk0);
-      {
-        Matrix<real_t>&  input_data=*setup_data. input_data;
-        Matrix<real_t>& output_data=*setup_data.output_data;
-        std::vector<std::vector<FMM_Node*> > nodes_blk_in (n_blk0);
-        std::vector<std::vector<FMM_Node*> > nodes_blk_out(n_blk0);
-        std::vector<real_t> src_scal=kernel->k_m2l->src_scal;  // src_scal is 0 for Laplace
-        std::vector<real_t> trg_scal=kernel->k_m2l->trg_scal;  // trg_scal is 1 for Laplace
+    // calculate buff_size & numBlocks
+    size_t ker_dim0 = kernel->k_m2l->ker_dim[0];
+    size_t ker_dim1 = kernel->k_m2l->ker_dim[1];
+    size_t n1 = MULTIPOLE_ORDER*2;
+    size_t n2 = n1*n1;
+    size_t n3_ = n2*(n1/2+1);
+    size_t chld_cnt = 8;
+    size_t fftsize = 2 * n3_ * chld_cnt;
+    size_t buff_size = 1024l*1024l*1024l;    // 1Gb buffer
+    size_t n_blk0 = 2*fftsize*(ker_dim0*n_in +ker_dim1*n_out)*sizeof(real_t)/buff_size;
+    if(n_blk0==0) n_blk0 = 1;
+    // calculate fft_dsp(fft_vec) & fft_scal
+    int omp_p = omp_get_max_threads();
+    std::vector<std::vector<size_t> >  fft_vec(n_blk0);
+    std::vector<std::vector<size_t> > ifft_vec(n_blk0);
+    std::vector<std::vector<real_t> >  fft_scl(n_blk0);
+    std::vector<std::vector<real_t> > ifft_scl(n_blk0);
+    std::vector<std::vector<FMM_Node*> > nodes_blk_in (n_blk0);  // node_in in each block
+    std::vector<std::vector<FMM_Node*> > nodes_blk_out(n_blk0);  // node_out in each block
+    std::vector<real_t> src_scal=kernel->k_m2l->src_scal;  // src_scal is 0 for Laplace
+    std::vector<real_t> trg_scal=kernel->k_m2l->trg_scal;  // trg_scal is 1 for Laplace
+    for(size_t i=0; i<n_in; i++) nodes_in[i]->node_id=i;
 
-        for(size_t i=0;i<n_in;i++) nodes_in[i]->node_id=i;
-
-        for(size_t blk0=0;blk0<n_blk0;blk0++){
-          size_t blk0_start=(n_out* blk0   )/n_blk0;                 // divide the whole M2L interaction lists into chunks
-          size_t blk0_end  =(n_out*(blk0+1))/n_blk0;
-          std::vector<FMM_Node*>& nodes_in_ =nodes_blk_in [blk0];
-          std::vector<FMM_Node*>& nodes_out_=nodes_blk_out[blk0];
-          {
-            std::set<FMM_Node*> nodes_in;
-            for(size_t i=blk0_start;i<blk0_end;i++){
-              nodes_out_.push_back(nodes_out[i]);
-              std::vector<FMM_Node*>& lst=nodes_out[i]->interac_list[M2L_Type];
-              for(size_t k=0;k<mat_cnt;k++) if(lst[k]!=NULL && lst[k]->pt_cnt[0]) nodes_in.insert(lst[k]);
-            }
-            for(typename std::set<FMM_Node*>::iterator node=nodes_in.begin(); node != nodes_in.end(); node++){
-              nodes_in_.push_back(*node);
-            }
-            size_t  input_dim=nodes_in_ .size()*ker_dim0*fftsize;
-            size_t output_dim=nodes_out_.size()*ker_dim1*fftsize;
-            size_t buffer_dim=2*(ker_dim0+ker_dim1)*fftsize*omp_p;
-            if(buff_size<(input_dim + output_dim + buffer_dim)*sizeof(real_t))
-              buff_size=(input_dim + output_dim + buffer_dim)*sizeof(real_t);
-          }
-          {
-            for(size_t i=0;i<nodes_in_ .size();i++) fft_vec[blk0].push_back((size_t)(& input_vector[nodes_in_[i]->node_id][0][0]- input_data[0]));
-            for(size_t i=0;i<nodes_out_.size();i++)ifft_vec[blk0].push_back((size_t)(&output_vector[blk0_start   +     i ][0][0]-output_data[0]));
-            size_t scal_dim0=src_scal.size();
-            size_t scal_dim1=trg_scal.size();
-            fft_scl [blk0].resize(nodes_in_ .size()*scal_dim0);
-            ifft_scl[blk0].resize(nodes_out_.size()*scal_dim1);
-            for(size_t i=0;i<nodes_in_ .size();i++){
-              size_t depth=nodes_in_[i]->depth+1;
-              for(size_t j=0;j<scal_dim0;j++){
-                fft_scl[blk0][i*scal_dim0+j]=powf(2.0, src_scal[j]*depth);
-              }
-            }
-            for(size_t i=0;i<nodes_out_.size();i++){
-              size_t depth=nodes_out_[i]->depth+1;
-              for(size_t j=0;j<scal_dim1;j++){
-                ifft_scl[blk0][i*scal_dim1+j]=powf(2.0, trg_scal[j]*depth);
-              }
-            }
-          }
+    for(size_t blk0=0; blk0<n_blk0; blk0++){
+      // prepare nodes_in_ & out_ for this block
+      size_t blk0_start=(n_out* blk0   )/n_blk0;
+      size_t blk0_end  =(n_out*(blk0+1))/n_blk0;
+      std::vector<FMM_Node*>& nodes_in_ =nodes_blk_in [blk0];
+      std::vector<FMM_Node*>& nodes_out_=nodes_blk_out[blk0];
+      std::set<FMM_Node*> nodes_in;
+      for(size_t i=blk0_start;i<blk0_end;i++){
+        nodes_out_.push_back(nodes_out[i]);
+        std::vector<FMM_Node*>& lst=nodes_out[i]->interac_list[M2L_Type];
+        for(size_t k=0;k<mat_cnt;k++) if(lst[k]!=NULL && lst[k]->pt_cnt[0]) nodes_in.insert(lst[k]);
+      }
+      for(typename std::set<FMM_Node*>::iterator node=nodes_in.begin(); node != nodes_in.end(); node++){
+        nodes_in_.push_back(*node);
+      }
+      // reevaluate buff_size
+      size_t  input_dim=nodes_in_ .size()*ker_dim0*fftsize;
+      size_t output_dim=nodes_out_.size()*ker_dim1*fftsize;
+      size_t buffer_dim=2*(ker_dim0+ker_dim1)*fftsize*omp_p;
+      if(buff_size<(input_dim + output_dim + buffer_dim)*sizeof(real_t))
+        buff_size=(input_dim + output_dim + buffer_dim)*sizeof(real_t);
+      // calculate fft_vec (dsp) and fft_scal
+      for(size_t i=0;i<nodes_in_ .size();i++) fft_vec[blk0].push_back((size_t)(& input_vector[nodes_in_[i]->node_id][0][0]- input_data[0]));
+      for(size_t i=0;i<nodes_out_.size();i++)ifft_vec[blk0].push_back((size_t)(&output_vector[blk0_start   +     i ][0][0]-output_data[0]));
+      size_t scal_dim0=src_scal.size();
+      size_t scal_dim1=trg_scal.size();
+      fft_scl [blk0].resize(nodes_in_ .size()*scal_dim0);
+      ifft_scl[blk0].resize(nodes_out_.size()*scal_dim1);
+      for(size_t i=0;i<nodes_in_ .size();i++){
+        size_t depth=nodes_in_[i]->depth+1;
+        for(size_t j=0;j<scal_dim0;j++){
+          fft_scl[blk0][i*scal_dim0+j]=powf(2.0, src_scal[j]*depth);
         }
-        for(size_t blk0=0;blk0<n_blk0;blk0++){
-          std::vector<FMM_Node*>& nodes_in_ =nodes_blk_in [blk0];
-          std::vector<FMM_Node*>& nodes_out_=nodes_blk_out[blk0];
-          for(size_t i=0;i<nodes_in_.size();i++) nodes_in_[i]->node_id=i;
-          {
-            size_t n_blk1=nodes_out_.size()*sizeof(real_t)/CACHE_SIZE;
-            if(n_blk1==0) n_blk1=1;
-            size_t interac_dsp_=0;
-            for(size_t blk1=0;blk1<n_blk1;blk1++){
-              size_t blk1_start=(nodes_out_.size()* blk1   )/n_blk1;
-              size_t blk1_end  =(nodes_out_.size()*(blk1+1))/n_blk1;
-              for(size_t k=0;k<mat_cnt;k++){
-                for(size_t i=blk1_start;i<blk1_end;i++){
-                  std::vector<FMM_Node*>& lst=nodes_out_[i]->interac_list[M2L_Type];
-                  if(lst[k]!=NULL && lst[k]->pt_cnt[0]){
-                    interac_vec[blk0].push_back(lst[k]->node_id*fftsize*ker_dim0);   // node_in dspl
-                    interac_vec[blk0].push_back(    i          *fftsize*ker_dim1);   // node_out dspl
-                    interac_dsp_++;
-                  }
-                }
-                interac_dsp[blk0].push_back(interac_dsp_);
+      }
+      for(size_t i=0;i<nodes_out_.size();i++){
+        size_t depth=nodes_out_[i]->depth+1;
+        for(size_t j=0;j<scal_dim1;j++){
+          ifft_scl[blk0][i*scal_dim1+j]=powf(2.0, trg_scal[j]*depth);
+        }
+      }
+    }
+    // calculate interac_vec & interac_dsp
+    std::vector<std::vector<size_t> > interac_vec(n_blk0);
+    std::vector<std::vector<size_t> > interac_dsp(n_blk0);
+    for(size_t blk0=0; blk0<n_blk0; blk0++){
+      std::vector<FMM_Node*>& nodes_in_ =nodes_blk_in [blk0];
+      std::vector<FMM_Node*>& nodes_out_=nodes_blk_out[blk0];
+      for(size_t i=0;i<nodes_in_.size();i++) nodes_in_[i]->node_id=i;
+      {
+        size_t n_blk1=nodes_out_.size()*sizeof(real_t)/CACHE_SIZE;
+        if(n_blk1==0) n_blk1=1;
+        size_t interac_dsp_=0;
+        for(size_t blk1=0;blk1<n_blk1;blk1++){
+          size_t blk1_start=(nodes_out_.size()* blk1   )/n_blk1;
+          size_t blk1_end  =(nodes_out_.size()*(blk1+1))/n_blk1;
+          for(size_t k=0;k<mat_cnt;k++){
+            for(size_t i=blk1_start;i<blk1_end;i++){
+              std::vector<FMM_Node*>& lst=nodes_out_[i]->interac_list[M2L_Type];
+              if(lst[k]!=NULL && lst[k]->pt_cnt[0]){
+                interac_vec[blk0].push_back(lst[k]->node_id*fftsize*ker_dim0);   // node_in dspl
+                interac_vec[blk0].push_back(    i          *fftsize*ker_dim1);   // node_out dspl
+                interac_dsp_++;
               }
             }
+            interac_dsp[blk0].push_back(interac_dsp_);
           }
         }
       }
-      setup_data.m2l_list_data.buff_size   = buff_size;
-      setup_data.m2l_list_data.n_blk0      = n_blk0;
-      setup_data.m2l_list_data.precomp_mat = precomp_mat;
-      setup_data.m2l_list_data.fft_vec     = fft_vec;
-      setup_data.m2l_list_data.ifft_vec    = ifft_vec;
-      setup_data.m2l_list_data.fft_scl     = fft_scl;
-      setup_data.m2l_list_data.ifft_scl    = ifft_scl;
-      setup_data.m2l_list_data.interac_vec = interac_vec;
-      setup_data.m2l_list_data.interac_dsp = interac_dsp;
     }
-    Profile::Toc();
+    m2l_list_data.buff_size   = buff_size;
+    m2l_list_data.n_blk0      = n_blk0;
+    m2l_list_data.precomp_mat = precomp_mat;
+    m2l_list_data.fft_vec     = fft_vec;
+    m2l_list_data.ifft_vec    = ifft_vec;
+    m2l_list_data.fft_scl     = fft_scl;
+    m2l_list_data.ifft_scl    = ifft_scl;
+    m2l_list_data.interac_vec = interac_vec;
+    m2l_list_data.interac_dsp = interac_dsp;
   }
 
 public:
@@ -727,7 +699,7 @@ public:
     Profile::Toc();
 
     Profile::Tic("M2LListSetup",false,3);
-    M2L_ListSetup(M2L_data, node_data_buff, node_lists);
+    M2L_ListSetup(m2l_list_data, node_data_buff, node_lists);
     Profile::Toc();
 
     ClearFMMData();
@@ -1140,16 +1112,15 @@ private:
     }
   }
 
-  void M2L_List(M2LSetup&  setup_data){
-    M2LListData& m2l_list_data = setup_data.m2l_list_data;
+  void M2L_List(M2LListData& m2l_list_data) {
     size_t buff_size = m2l_list_data.buff_size;
     size_t n_blk0 = m2l_list_data.n_blk0;
     if(dev_buffer.Dim()<buff_size) dev_buffer.Resize(buff_size);
-    int dim0=setup_data.input_data->dim[0];
-    int dim1=setup_data.input_data->dim[1];
+    int dim0=node_data_buff[0].dim[0];
+    int dim1=node_data_buff[0].dim[1];
     char * buff=dev_buffer.data_ptr;
-    real_t * input_data = setup_data.input_data->data_ptr;
-    real_t * output_data = setup_data.output_data->data_ptr;
+    real_t * input_data = node_data_buff[0].data_ptr;
+    real_t * output_data = node_data_buff[1].data_ptr;
     size_t m      = MULTIPOLE_ORDER;
     size_t n1 = m * 2;
     size_t n2 = n1 * n1;
@@ -1208,7 +1179,7 @@ Profile::Toc();
     P2P();
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
-    M2L_List(M2L_data);
+    M2L_List(m2l_list_data);
     Profile::Toc();
     Profile::Tic("L2L", false, 5);
     L2L();
