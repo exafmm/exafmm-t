@@ -317,8 +317,7 @@ private:
   }
 
   // generate node_list for different operators and node_data_buff (src trg information)
-  void CollectNodeData(std::vector<FMM_Node*>& nodes, std::vector<Matrix<real_t> >& node_data_buff, std::vector<std::vector<FMM_Node*> >& n_list) {
-    n_list.resize(7);
+  void CollectNodeData(std::vector<FMM_Node*>& nodes, std::vector<Matrix<real_t> >& node_data_buff) {
     std::vector<std::vector<Vector<real_t>* > > vec_list(7);      // vec of vecs of pointers
     // post-order traversal
     leafs.clear();
@@ -357,14 +356,6 @@ private:
       }
     }
     nodesLevelOrder.push_back(root_node);   // level 0 root is the last one instead of the first elem in pvfmm's level order TT
-    // fill in node_lists
-    n_list[0] = nodesLevelOrder;
-    n_list[1] = nodesLevelOrder;
-    n_list[2] = nonleafsLevelOrder;
-    n_list[3] = nonleafsLevelOrder;
-    n_list[4] = leafs;
-    n_list[5] = leafs;
-    n_list[6] = leafs;
     // fill in vec_list
     for(int i=0; i<nodesLevelOrder.size(); i++) {
       FMM_Node* node = nodesLevelOrder[i];
@@ -549,11 +540,11 @@ private:
     Profile::Toc();
   }
 
-  void M2LSetup(M2LData& M2Ldata, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
+  void M2LSetup(M2LData& M2Ldata, std::vector<Matrix<real_t> >& buff){
     Matrix<real_t>& input_data = buff[0];
     Matrix<real_t>& output_data = buff[1];
-    std::vector<FMM_Node*>& nodes_in =n_list[2];
-    std::vector<FMM_Node*>& nodes_out=n_list[3];
+    std::vector<FMM_Node*>& nodes_in = nonleafsLevelOrder;
+    std::vector<FMM_Node*>& nodes_out = nonleafsLevelOrder;
     std::vector<Vector<real_t>*> input_vector;
     std::vector<Vector<real_t>*> output_vector;
     for(FMM_Node* node : nodes_in)
@@ -690,8 +681,8 @@ public:
       all_nodes.push_back(n);        // all_nodes: postorder tree traversal
       n = PostorderNxt(n);
     }
-    std::vector<std::vector<FMM_Node*> > node_lists; // TODO: Remove this parameter, not really needed
-    CollectNodeData(all_nodes, node_data_buff, node_lists);
+    //std::vector<std::vector<FMM_Node*> > node_lists; // TODO: Remove this parameter, not really needed
+    CollectNodeData(all_nodes, node_data_buff);
     Profile::Toc();
 
     Profile::Tic("BuildLists",false,3);
@@ -699,7 +690,7 @@ public:
     Profile::Toc();
 
     Profile::Tic("M2LListSetup",false,3);
-    M2LSetup(M2Ldata, node_data_buff, node_lists);
+    M2LSetup(M2Ldata, node_data_buff);
     Profile::Toc();
 
     ClearFMMData();
