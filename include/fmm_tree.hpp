@@ -7,14 +7,13 @@
 #include "precomp_mat.hpp"
 
 namespace pvfmm{
-  struct M2LSetup {
-    const Kernel* kernel;
-    std::vector<FMM_Node*> nodes_in ;
-    std::vector<FMM_Node*> nodes_out;
-    Matrix<real_t>* input_data;
-    Matrix<real_t>* output_data;
-    std::vector<Vector<real_t>*> input_vector;
-    std::vector<Vector<real_t>*> output_vector;
+  struct M2LSetup {  // remove
+    std::vector<FMM_Node*> nodes_in ;  // remove
+    std::vector<FMM_Node*> nodes_out;  // remove
+    Matrix<real_t>* input_data;     // change to global
+    Matrix<real_t>* output_data;    // change to global
+    std::vector<Vector<real_t>*> input_vector;   // remove
+    std::vector<Vector<real_t>*> output_vector;  // remove
     M2LListData m2l_list_data;
   };
 
@@ -563,7 +562,6 @@ private:
 
   void M2L_ListSetup(M2LSetup&  setup_data, std::vector<Matrix<real_t> >& buff, std::vector<std::vector<FMM_Node*> >& n_list){
     {
-      setup_data.kernel=kernel->k_m2l;
       setup_data. input_data=&buff[0];
       setup_data.output_data=&buff[1];
       std::vector<FMM_Node*>& nodes_in =n_list[2];
@@ -592,8 +590,8 @@ private:
         Matrix<real_t>& M = mat->mat[M2L_Type][mat_id];
         precomp_mat.push_back(&M[0][0]);                   // precomp_mat.size == M2L's numRelCoords
       }
-      size_t ker_dim0=setup_data.kernel->ker_dim[0];
-      size_t ker_dim1=setup_data.kernel->ker_dim[1];
+      size_t ker_dim0 = kernel->k_m2l->ker_dim[0];
+      size_t ker_dim1 = kernel->k_m2l->ker_dim[1];
       size_t fftsize;
       {
         size_t n1=MULTIPOLE_ORDER*2;
@@ -679,8 +677,8 @@ private:
                 for(size_t i=blk1_start;i<blk1_end;i++){
                   std::vector<FMM_Node*>& lst=nodes_out_[i]->interac_list[M2L_Type];
                   if(lst[k]!=NULL && lst[k]->pt_cnt[0]){
-                    interac_vec[blk0].push_back(lst[k]->node_id*fftsize*ker_dim0);
-                    interac_vec[blk0].push_back(    i          *fftsize*ker_dim1);
+                    interac_vec[blk0].push_back(lst[k]->node_id*fftsize*ker_dim0);   // node_in dspl
+                    interac_vec[blk0].push_back(    i          *fftsize*ker_dim1);   // node_out dspl
                     interac_dsp_++;
                   }
                 }
@@ -951,8 +949,8 @@ private:
       size_t n_old = map.size();
       if(n_old!=n){
         real_t c[3]={0,0,0};
-        Vector<real_t> surf=surface(m, c, (real_t)(m-1), 0);
-        map.resize(surf.Dim()/3);
+        std::vector<real_t> surf = surface(m, c, (real_t)(m-1), 0);
+        map.resize(surf.size()/3);
         for(size_t i=0;i<map.size();i++)
           map[i]=((size_t)(m-1-surf[i*3]+0.5))+((size_t)(m-1-surf[i*3+1]+0.5))*n1+((size_t)(m-1-surf[i*3+2]+0.5))*n2;
       }
@@ -1015,8 +1013,8 @@ private:
       size_t n_old = map.size();
       if(n_old!=n){
         real_t c[3]={0,0,0};
-        Vector<real_t> surf=surface(m, c, (real_t)(m-1), 0);
-        map.resize(surf.Dim()/3);
+        std::vector<real_t> surf = surface(m, c, (real_t)(m-1), 0);
+        map.resize(surf.size()/3);
         for(size_t i=0;i<map.size();i++)
           map[i]=((size_t)(m*2-0.5-surf[i*3]))+((size_t)(m*2-0.5-surf[i*3+1]))*n1+((size_t)(m*2-0.5-surf[i*3+2]))*n2;
       }
@@ -1143,17 +1141,16 @@ private:
   }
 
   void M2L_List(M2LSetup&  setup_data){
+    M2LListData& m2l_list_data = setup_data.m2l_list_data;
+    size_t buff_size = m2l_list_data.buff_size;
+    size_t n_blk0 = m2l_list_data.n_blk0;
+    if(dev_buffer.Dim()<buff_size) dev_buffer.Resize(buff_size);
     int dim0=setup_data.input_data->dim[0];
     int dim1=setup_data.input_data->dim[1];
-    size_t buff_size=*((size_t*)&setup_data.m2l_list_data.buff_size);
-    if(dev_buffer.Dim()<buff_size) dev_buffer.Resize(buff_size);
     char * buff=dev_buffer.data_ptr;
-    M2LListData m2l_list_data=setup_data.m2l_list_data;
-    real_t * input_data=setup_data.input_data->data_ptr;
-    real_t * output_data=setup_data.output_data->data_ptr;
-    buff_size     = m2l_list_data.buff_size;
+    real_t * input_data = setup_data.input_data->data_ptr;
+    real_t * output_data = setup_data.output_data->data_ptr;
     size_t m      = MULTIPOLE_ORDER;
-    size_t n_blk0 = m2l_list_data.n_blk0;
     size_t n1 = m * 2;
     size_t n2 = n1 * n1;
     size_t n3_ = n2 * (n1 / 2 + 1);
@@ -1161,23 +1158,23 @@ private:
     size_t fftsize = 2 * n3_ * chld_cnt;
     size_t M_dim = n3_;
     std::vector<real_t*> precomp_mat = m2l_list_data.precomp_mat;
-    std::vector<std::vector<size_t> >  fft_vec = m2l_list_data.fft_vec;
-    std::vector<std::vector<size_t> > ifft_vec = m2l_list_data.ifft_vec;
-    std::vector<std::vector<real_t> >  fft_scl = m2l_list_data.fft_scl;
-    std::vector<std::vector<real_t> > ifft_scl = m2l_list_data.ifft_scl;
-    std::vector<std::vector<size_t> > interac_vec = m2l_list_data.interac_vec;
-    std::vector<std::vector<size_t> > interac_dsp = m2l_list_data.interac_dsp;
+    std::vector<std::vector<size_t> >&  fft_vec = m2l_list_data.fft_vec;
+    std::vector<std::vector<size_t> >& ifft_vec = m2l_list_data.ifft_vec;
+    std::vector<std::vector<real_t> >&  fft_scl = m2l_list_data.fft_scl;
+    std::vector<std::vector<real_t> >& ifft_scl = m2l_list_data.ifft_scl;
+    std::vector<std::vector<size_t> >& interac_vec = m2l_list_data.interac_vec;
+    std::vector<std::vector<size_t> >& interac_dsp = m2l_list_data.interac_dsp;
     int omp_p=omp_get_max_threads();
     for(size_t blk0=0;blk0<n_blk0;blk0++){
-      size_t n_in = fft_vec[blk0].size();
-      size_t n_out=ifft_vec[blk0].size();
+      size_t n_in = fft_vec[blk0].size();  // num of nodes_in in this block
+      size_t n_out=ifft_vec[blk0].size();  // num of nodes_out in this block
       size_t  input_dim=n_in *fftsize;
       size_t output_dim=n_out*fftsize;
       size_t buffer_dim=4*fftsize*omp_p;
       Vector<real_t> fft_in ( input_dim, (real_t*)buff,false);
       Vector<real_t> fft_out(output_dim, (real_t*)(buff+input_dim*sizeof(real_t)),false);
       Vector<real_t>  buffer(buffer_dim, (real_t*)(buff+(input_dim+output_dim)*sizeof(real_t)),false);
-      Vector<real_t>  input_data_(dim0*dim1,input_data,false);
+      Vector<real_t>  input_data_(dim0*dim1,input_data,false);      // upward equiv ptr (node_data_buff)
 Profile::Tic("FFT_UpEquiv", false, 5);
       FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0],  input_data_, fft_in, buffer);
 Profile::Toc();
