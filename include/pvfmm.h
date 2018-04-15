@@ -91,7 +91,7 @@ namespace pvfmm{
     std::vector<real_t> value;
   };
 
-  struct M2LListData {
+  struct M2LData {
     size_t buff_size;
     size_t n_blk0;
     std::vector<real_t*> precomp_mat;
