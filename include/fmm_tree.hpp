@@ -317,8 +317,7 @@ private:
   }
 
   // generate node_list for different operators and node_data_buff (src trg information)
-  void CollectNodeData(std::vector<FMM_Node*>& nodes, std::vector<Matrix<real_t> >& node_data_buff) {
-    std::vector<std::vector<Vector<real_t>* > > vec_list(7);      // vec of vecs of pointers
+  void CollectNodeData(std::vector<FMM_Node*>& nodes) {
     // post-order traversal
     leafs.clear();
     nonleafs.clear();                       // input "nodes" is post-order
@@ -360,51 +359,14 @@ private:
     for(int i=0; i<nodesLevelOrder.size(); i++) {
       FMM_Node* node = nodesLevelOrder[i];
 node->idx = i;
-      node->upward_equiv.Resize(NSURF);
-      node->dnward_equiv.Resize(NSURF);
-      vec_list[0].push_back( &(node->upward_equiv) );
-      vec_list[1].push_back( &(node->dnward_equiv) );
+      node->upward_equiv.Resize(NSURF); node->upward_equiv.SetZero();
+      node->dnward_equiv.Resize(NSURF); node->dnward_equiv.SetZero();
     }
     int trg_dof = kernel->ker_dim[1];
     for(int i=0; i<leafs.size(); i++) {
       FMM_Node* leaf = leafs[i];
       int n_trg_val = (leaf->trg_coord.Dim()/3) * trg_dof;
       leaf->trg_value.Resize(n_trg_val);
-      vec_list[4].push_back( &(leaf->src_value) );        // src_value should be initialized before CollectNodeData
-      vec_list[5].push_back( &(leaf->trg_value) );
-      vec_list[6].push_back( &(leaf->src_coord) );
-      vec_list[6].push_back( &(leaf->trg_coord) );
-    }
-    for(int depth=0; depth<MAX_DEPTH; depth++){
-      vec_list[6].push_back( &upwd_check_surf[depth] );   // these surf coords are generated in FMM_Tree constructor
-      vec_list[6].push_back( &upwd_equiv_surf[depth] );
-      vec_list[6].push_back( &dnwd_check_surf[depth] );
-      vec_list[6].push_back( &dnwd_equiv_surf[depth] );
-    }
-
-    node_data_buff.resize(vec_list.size()+1);             // FMM_Tree member node_data_buff: vec of 8 Matrices
-    for(int idx=0; idx<vec_list.size(); idx++){           // loop over vec_list
-      Matrix<real_t>& buff = node_data_buff[idx];         // reference to idx-th buff chunk
-      std::vector<Vector<real_t>*>& vecs = vec_list[idx]; // reference to idx-th chunk of Vector's pointers
-      int nvecs = vecs.size();                            // num of Vector's pointers in current chunk
-      if (!nvecs) continue;
-      std::vector<int> size(nvecs);                       // size of each Vector that ptr points to
-      std::vector<int> disp(nvecs, 0);                    // displacement of sizes
-#pragma omp parallel for
-      for (int i=0; i<nvecs; i++) size[i] = vecs[i]->Dim();  // calculate Vector size
-      scan(&size[0], &disp[0], nvecs);                    // calculate Vector size's displ
-      size_t buff_size = size[nvecs-1] + disp[nvecs-1];   // total buff size needed
-      if (!buff_size) continue;
-      if (buff.Dim(0)*buff.Dim(1) < buff_size) {
-        buff.ReInit(1,buff_size*1.05);                    // buff is a huge 1-row matrix
-      }
-#pragma omp parallel for
-      for (int i=0; i<nvecs; i++) {
-        if (size[i]>0) {
-          memcpy(&buff[0][0]+disp[i], vecs[i]->data_ptr, size[i]*sizeof(real_t));
-        }
-        vecs[i]->ReInit3(size[i], &buff[0][0]+disp[i], false);  // keep data_ptr in nodes but release the ownership of the data to node_data_buff
-      }
     }
   }
 
@@ -527,7 +489,7 @@ node->idx = i;
       }
     }
   }
-
+#if 0
   void ClearFMMData() {
     Profile::Tic("ClearFMMData",true);
     Matrix<real_t>* mat;
@@ -539,7 +501,7 @@ node->idx = i;
     memset(&(*mat)[0][0], 0, mat->Dim(0)*mat->Dim(1)*sizeof(real_t));
     Profile::Toc();
   }
-
+#endif
   void M2LSetup(M2LData& M2Ldata) {
     std::vector<FMM_Node*>& nodes_in = nonleafsLevelOrder;
     std::vector<FMM_Node*>& nodes_out = nonleafsLevelOrder;
@@ -602,7 +564,7 @@ node->idx = i;
         fft_vec[blk0].push_back(nodes_in_[i]->child[0]->idx * NSURF);
       }
       for(size_t i=0;i<nodes_out_.size();i++) {
-        ifft_vec[blk0].push_back(nodes_out_[blk0_start+i]->child[0]->idx * NSURF);
+        ifft_vec[blk0].push_back(nodes_out[blk0_start+i]->child[0]->idx * NSURF);
       }
       size_t scal_dim0=src_scal.size();
       size_t scal_dim1=trg_scal.size();
@@ -677,8 +639,7 @@ public:
       all_nodes.push_back(n);        // all_nodes: postorder tree traversal
       n = PostorderNxt(n);
     }
-    //std::vector<std::vector<FMM_Node*> > node_lists; // TODO: Remove this parameter, not really needed
-    CollectNodeData(all_nodes, node_data_buff);
+    CollectNodeData(all_nodes);
     Profile::Toc();
 
     Profile::Tic("BuildLists",false,3);
@@ -689,7 +650,7 @@ public:
     M2LSetup(M2Ldata);
     Profile::Toc();
 
-    ClearFMMData();
+    //ClearFMMData();
     }Profile::Toc();
   }
 /* End of 2nd Part: Setup FMM */
@@ -814,6 +775,30 @@ private:
 #pragma omp parallel
 #pragma omp single nowait
     L2L(root_node);
+  }
+
+  void gatherEquiv() {
+    size_t numNodes = nodesLevelOrder.size();
+    allUpwardEquiv.ReInit(1, numNodes*NSURF);
+    allDnwardEquiv.ReInit(1, numNodes*NSURF);
+#pragma omp parallel for collapse(2)
+    for(int i=0; i<numNodes; i++) {
+      for(int j=0; j<NSURF; j++) {
+        allUpwardEquiv[0][i*NSURF+j] = nodesLevelOrder[i]->upward_equiv[j];
+        allDnwardEquiv[0][i*NSURF+j] = nodesLevelOrder[i]->dnward_equiv[j];
+      }
+    }
+  }
+
+  void scatterEquiv() {
+    size_t numNodes = nodesLevelOrder.size();
+#pragma omp parallel for collapse(2)
+    for(int i=0; i<numNodes; i++) {
+      for(int j=0; j<NSURF; j++) {
+        nodesLevelOrder[i]->upward_equiv[j] = allUpwardEquiv[0][i*NSURF+j];
+        nodesLevelOrder[i]->dnward_equiv[j] = allDnwardEquiv[0][i*NSURF+j];
+      }
+    }
   }
 
   void M2LListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp,
@@ -1103,11 +1088,11 @@ private:
     size_t buff_size = M2Ldata.buff_size;
     size_t n_blk0 = M2Ldata.n_blk0;
     if(dev_buffer.Dim()<buff_size) dev_buffer.Resize(buff_size);
-    int dim0=node_data_buff[0].dim[0];
-    int dim1=node_data_buff[0].dim[1];
+    int dim0 = allUpwardEquiv.dim[0];
+    int dim1 = allUpwardEquiv.dim[1];
     char * buff=dev_buffer.data_ptr;
-    real_t * input_data = node_data_buff[0].data_ptr;
-    real_t * output_data = node_data_buff[1].data_ptr;
+    real_t * input_data = allUpwardEquiv.data_ptr;
+    real_t * output_data = allDnwardEquiv.data_ptr;
     size_t m      = MULTIPOLE_ORDER;
     size_t n1 = m * 2;
     size_t n2 = n1 * n1;
@@ -1166,7 +1151,9 @@ Profile::Toc();
     P2P();
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
+    gatherEquiv();
     M2L(M2Ldata);
+    scatterEquiv();
     Profile::Toc();
     Profile::Tic("L2L", false, 5);
     L2L();

@@ -108,7 +108,8 @@ namespace pvfmm{
   std::vector<Vector<real_t> > dnwd_check_surf;
   std::vector<Vector<real_t> > dnwd_equiv_surf;
 
-  std::vector<Matrix<real_t> > node_data_buff;
+  Matrix<real_t> allUpwardEquiv;
+  Matrix<real_t> allDnwardEquiv;
   Vector<char> dev_buffer;
 
   class FMM_Node;
