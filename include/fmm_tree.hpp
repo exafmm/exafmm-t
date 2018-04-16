@@ -359,6 +359,7 @@ private:
     // fill in vec_list
     for(int i=0; i<nodesLevelOrder.size(); i++) {
       FMM_Node* node = nodesLevelOrder[i];
+node->idx = i;
       node->upward_equiv.Resize(NSURF);
       node->dnward_equiv.Resize(NSURF);
       vec_list[0].push_back( &(node->upward_equiv) );
@@ -393,7 +394,6 @@ private:
       for (int i=0; i<nvecs; i++) size[i] = vecs[i]->Dim();  // calculate Vector size
       scan(&size[0], &disp[0], nvecs);                    // calculate Vector size's displ
       size_t buff_size = size[nvecs-1] + disp[nvecs-1];   // total buff size needed
-//if(idx==0) std::cout << "buff_size 0 " << buff_size << std::endl;
       if (!buff_size) continue;
       if (buff.Dim(0)*buff.Dim(1) < buff_size) {
         buff.ReInit(1,buff_size*1.05);                    // buff is a huge 1-row matrix
@@ -540,17 +540,9 @@ private:
     Profile::Toc();
   }
 
-  void M2LSetup(M2LData& M2Ldata, std::vector<Matrix<real_t> >& buff){
-    Matrix<real_t>& input_data = buff[0];
-    Matrix<real_t>& output_data = buff[1];
+  void M2LSetup(M2LData& M2Ldata) {
     std::vector<FMM_Node*>& nodes_in = nonleafsLevelOrder;
     std::vector<FMM_Node*>& nodes_out = nonleafsLevelOrder;
-    std::vector<Vector<real_t>*> input_vector;
-    std::vector<Vector<real_t>*> output_vector;
-    for(FMM_Node* node : nodes_in)
-      input_vector.push_back(&(node->Child(0)->upward_equiv));     // nonLeaf's first child's upward equiv
-    for(FMM_Node* node : nodes_out)
-      output_vector.push_back(&(node->Child(0)->dnward_equiv));    // nonLeaf's first child's dnward equiv
     size_t n_in = nodes_in.size();
     size_t n_out = nodes_out.size();
 
@@ -605,9 +597,13 @@ private:
       size_t buffer_dim=2*(ker_dim0+ker_dim1)*fftsize*omp_p;
       if(buff_size<(input_dim + output_dim + buffer_dim)*sizeof(real_t))
         buff_size=(input_dim + output_dim + buffer_dim)*sizeof(real_t);
-      // calculate fft_vec (dsp) and fft_scal
-      for(size_t i=0;i<nodes_in_ .size();i++) fft_vec[blk0].push_back((size_t)(& input_vector[nodes_in_[i]->node_id][0][0]- input_data[0]));
-      for(size_t i=0;i<nodes_out_.size();i++)ifft_vec[blk0].push_back((size_t)(&output_vector[blk0_start   +     i ][0][0]-output_data[0]));
+      // calculate fft_vec (dsp) and fft_sca
+      for(size_t i=0;i<nodes_in_ .size();i++) {
+        fft_vec[blk0].push_back(nodes_in_[i]->child[0]->idx * NSURF);
+      }
+      for(size_t i=0;i<nodes_out_.size();i++) {
+        ifft_vec[blk0].push_back(nodes_out_[blk0_start+i]->child[0]->idx * NSURF);
+      }
       size_t scal_dim0=src_scal.size();
       size_t scal_dim1=trg_scal.size();
       fft_scl [blk0].resize(nodes_in_ .size()*scal_dim0);
@@ -690,7 +686,7 @@ public:
     Profile::Toc();
 
     Profile::Tic("M2LListSetup",false,3);
-    M2LSetup(M2Ldata, node_data_buff);
+    M2LSetup(M2Ldata);
     Profile::Toc();
 
     ClearFMMData();

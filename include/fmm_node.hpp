@@ -5,6 +5,7 @@ namespace pvfmm{
 
 class FMM_Node {
  public:
+size_t idx;     // index of node in level-order, to help remove data_buff
   int depth;
   int max_depth;
   int octant;
