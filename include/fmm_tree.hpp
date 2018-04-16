@@ -780,8 +780,8 @@ private:
     }
   }
 
-  void M2LListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp,
-                     std::vector<size_t>& interac_vec, std::vector<real_t*>& precomp_mat, Vector<real_t>& fft_in, Vector<real_t>& fft_out){
+  void M2LListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
+                       std::vector<real_t*>& precomp_mat, std::vector<real_t>& fft_in, Vector<real_t>& fft_out) {
     size_t chld_cnt=1UL<<3;
     size_t fftsize_in =M_dim*chld_cnt*2;
     size_t fftsize_out=M_dim*chld_cnt*2;
@@ -858,7 +858,7 @@ private:
   }
 
   void FFT_UpEquiv(size_t m, std::vector<size_t>& fft_vec, std::vector<real_t>& fft_scal,
-		   Vector<real_t>& input_data, Vector<real_t>& output_data) {
+		   Vector<real_t>& input_data, std::vector<real_t>& output_data) {
     size_t n1=m*2;
     size_t n2=n1*n1;
     size_t n3=n1*n2;
@@ -902,8 +902,7 @@ private:
         std::vector<real_t> buffer(fftsize_in, 0);
         for(size_t node_idx=node_start; node_idx<node_end; node_idx++){
           Matrix<real_t> upward_equiv(chld_cnt,n,&input_data[0] + fft_vec[node_idx],false);
-          Vector<real_t> upward_equiv_fft(fftsize_in, &output_data[fftsize_in *node_idx], false);  // fft_in
-          upward_equiv_fft.SetZero();
+          real_t* upward_equiv_fft = &output_data[fftsize_in*node_idx];  // offset ptr for node_idx in fft_in vector
           for(size_t k=0;k<n;k++){
             size_t idx=map[k];
             int j1=0;
@@ -967,6 +966,7 @@ private:
         std::vector<real_t> buffer1(fftsize_out, 0);
         for(size_t node_idx=node_start; node_idx<node_end; node_idx++){
           Vector<real_t> dnward_check_fft(fftsize_out, &input_data[fftsize_out*node_idx], false);
+          //real_t* dnward_check_fft = &input_data[fftsize_out*node_idx];
           Vector<real_t> dnward_equiv(n*chld_cnt,&output_data[0] + ifft_vec[node_idx],false);
           for(size_t j=0;j<n3_;j++)
           for(size_t k=0;k<chld_cnt;k++){
@@ -1091,16 +1091,18 @@ private:
       size_t n_out=ifft_vec[blk0].size();  // num of nodes_out in this block
       size_t  input_dim=n_in *fftsize;
       size_t output_dim=n_out*fftsize;
-      Vector<real_t> fft_in ( input_dim, (real_t*)buff,false);
+      std::vector<real_t> fft_in(n_in * fftsize, 0);
       Vector<real_t> fft_out(output_dim, (real_t*)(buff+input_dim*sizeof(real_t)),false);
+      //Vector<real_t> fft_in ( input_dim, (real_t*)buff,false);
+      //std::vector<real_t> fft_out(n_out * fftsize, 0);
       Vector<real_t>  input_data_(dim0*dim1,input_data,false);      // upward equiv ptr (node_data_buff)
+      Vector<real_t> output_data_(dim0*dim1, output_data, false);
 Profile::Tic("FFT_UpEquiv", false, 5);
       FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0],  input_data_, fft_in);
 Profile::Toc();
 Profile::Tic("M2LHadamard", false, 5);
       M2LListHadamard(M_dim, interac_dsp[blk0], interac_vec[blk0], precomp_mat, fft_in, fft_out);
 Profile::Toc();
-      Vector<real_t> output_data_(dim0*dim1, output_data, false);
 Profile::Tic("FFT_Check2Equiv", false, 5);
       FFT_Check2Equiv(m, ifft_vec[blk0], ifft_scl[blk0], fft_out, output_data_);
 Profile::Toc();
