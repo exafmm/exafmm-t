@@ -130,7 +130,7 @@ int main(int argc, char **argv){
   PrecompMat pmat(&interacList, kernel);
   FMM_Tree tree(kernel, &interacList, &pmat);
 
-  for(size_t it=0;it<1;it++){
+  for(size_t it=0;it<2;it++){
     Profile::Tic("TotalTime",true);
     tree.Initialize(&init_data);
     Profile::Tic("SetSrcTrg",true);

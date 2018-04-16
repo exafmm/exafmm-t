@@ -344,6 +344,9 @@ node->idx = i;
       node->upward_equiv.Resize(NSURF); node->upward_equiv.SetZero();
       node->dnward_equiv.Resize(NSURF); node->dnward_equiv.SetZero();
     }
+    size_t numNodes = nodesLevelOrder.size();
+    allUpwardEquiv.ReInit(1, numNodes*NSURF);
+    allDnwardEquiv.ReInit(1, numNodes*NSURF);
     int trg_dof = kernel->ker_dim[1];
     for(int i=0; i<leafs.size(); i++) {
       FMM_Node* leaf = leafs[i];
@@ -471,19 +474,15 @@ node->idx = i;
       }
     }
   }
-#if 0
+
   void ClearFMMData() {
-    Profile::Tic("ClearFMMData",true);
-    Matrix<real_t>* mat;
-    mat = &node_data_buff[0];   // clear upward equiv charges
-    memset(&(*mat)[0][0], 0, mat->Dim(0)*mat->Dim(1)*sizeof(real_t));
-    mat = &node_data_buff[1];   // clear downward equiv charges
-    memset(&(*mat)[0][0], 0, mat->Dim(0)*mat->Dim(1)*sizeof(real_t));
-    mat = &node_data_buff[5];   // clear target's potential
-    memset(&(*mat)[0][0], 0, mat->Dim(0)*mat->Dim(1)*sizeof(real_t));
-    Profile::Toc();
+    for(size_t i=0; i<nodesLevelOrder.size(); i++) {
+      nodesLevelOrder[i]->upward_equiv.SetZero();
+      nodesLevelOrder[i]->dnward_equiv.SetZero();
+      nodesLevelOrder[i]->trg_value.SetZero();
+    }
   }
-#endif
+
   void M2LSetup(M2LData& M2Ldata) {
     std::vector<FMM_Node*>& nodes_in = nonleafsLevelOrder;
     std::vector<FMM_Node*>& nodes_out = nonleafsLevelOrder;
@@ -632,7 +631,7 @@ public:
     M2LSetup(M2Ldata);
     Profile::Toc();
 
-    //ClearFMMData();
+    ClearFMMData();
     }Profile::Toc();
   }
 /* End of 2nd Part: Setup FMM */
@@ -761,8 +760,6 @@ private:
 
   void gatherEquiv() {
     size_t numNodes = nodesLevelOrder.size();
-    allUpwardEquiv.ReInit(1, numNodes*NSURF);
-    allDnwardEquiv.ReInit(1, numNodes*NSURF);
 #pragma omp parallel for collapse(2)
     for(int i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {

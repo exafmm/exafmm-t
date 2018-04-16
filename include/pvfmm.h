@@ -50,9 +50,6 @@ namespace pvfmm{
   bool m2l_list_fft_flag;
   fft_plan m2l_list_ifftplan;
   bool m2l_list_ifft_flag;
-  const int SrcCoord = 1, SrcValue = 2, TrgCoord = 3, TrgValue = 4,
-            UpwardEquivCoord = 5, UpwardCheckCoord=6, UpwardEquivValue = 7,
-            DnwardEquivCoord = 8, DnwardCheckCoord=9, DnwardEquivValue = 10;
 
   typedef enum{
     M2M_V_Type= 0,
