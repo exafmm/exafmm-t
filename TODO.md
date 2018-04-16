@@ -2,7 +2,7 @@
 -------------
 
 - [x] Push history of pvfmm to exafmm-t (Tingyu)
-- [ ] remove CollectNodeData and node_lst from fmm_tree (Tingyu)
+- [x] remove CollectNodeData and node_lst from fmm_tree (Tingyu)
 - [x] remove getPermR, getPermC from precomputation header (Chenwu)
 - [ ] Remove unnecessary "{}" (Chenwu)
 - [ ] Use code beautifier (Chenwu)

@@ -146,21 +146,8 @@ int main(int argc, char **argv){
     tree.RunFMM();
     Profile::Toc();
   }
-  long nleaf=0, maxdepth=0;
-  std::vector<size_t> all_nodes(MAX_DEPTH+1,0);
-  std::vector<size_t> leaf_nodes(MAX_DEPTH+1,0);
-  std::vector<FMM_Node*>& nodes=tree.GetNodeList();
-  for(size_t i=0;i<nodes.size();i++){
-    FMM_Node* n=nodes[i];
-    all_nodes[n->depth]++;
-    if(n->IsLeaf()){
-      leaf_nodes[n->depth]++;
-      if(maxdepth<n->depth) maxdepth=n->depth;
-      nleaf++;
-    }
-  }
-  std::cout<<"Leaf Nodes : "<<nleaf<<'\n';
-  std::cout<<"Tree Depth : "<<maxdepth<<'\n';
+  std::cout<<"Leaf Nodes : "<< leafs.size() <<'\n';
+  std::cout<<"Tree Depth : "<< LEVEL <<'\n';
   tree.CheckFMMOutput("Output");
   Profile::Toc();
   Profile::print();

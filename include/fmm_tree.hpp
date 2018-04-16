@@ -98,24 +98,6 @@ private:
     return 0;
   }
 
-  FMM_Node* FindNode(MortonId& key, bool subdiv, FMM_Node* start=NULL) {
-    int num_child=1UL<<3;
-    FMM_Node* n=start;
-    if(n==NULL) n=root_node;
-    while(n->GetMortonId()<key && (!n->IsLeaf()||subdiv)){
-      if(n->IsLeaf()) n->Subdivide();
-      if(n->IsLeaf()) break;
-      for(int j=0;j<num_child;j++){
-	if(n->Child(j)->GetMortonId().NextId()>key){
-	  n=n->Child(j);
-	  break;
-	}
-      }
-    }
-    assert(!subdiv || n->GetMortonId()==key);
-    return n;
-  }
-
   FMM_Node* PreorderNxt(FMM_Node* curr_node) {
     assert(curr_node!=NULL);
     int n=(1UL<<3);
