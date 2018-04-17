@@ -201,28 +201,24 @@ int Forward(Vector<T>& data_, const std::vector<size_t>& index) {
   size_t data_dim=loc_size[0]/loc_size[1];
   std::vector<char> buffer(data_size*data_dim);
   std::vector<Pair_t> psorted(data_size);
-  {
-    #pragma omp parallel for
-    for(size_t i=0; i<data_size; i++) {
-      psorted[i].key=index[i];
-      psorted[i].data=i;
-    }
-    merge_sort(&psorted[0], &psorted[0]+data_size);
+  #pragma omp parallel for
+  for(size_t i=0; i<data_size; i++) {
+    psorted[i].key=index[i];
+    psorted[i].data=i;
   }
-  {
-    char* data=(char*)&data_[0];
-    #pragma omp parallel for
-    for(size_t i=0; i<data_size; i++) {
-      for(size_t j=0; j<data_dim; j++)
-        buffer[i*data_dim+j]=data[i*data_dim+j];
-    }
-    #pragma omp parallel for
-    for(size_t i=0; i<data_size; i++) {
-      size_t src_indx=psorted[i].key*data_dim;
-      size_t trg_indx=psorted[i].data*data_dim;
-      for(size_t j=0; j<data_dim; j++)
-        data[trg_indx+j]=buffer[src_indx+j];
-    }
+  merge_sort(&psorted[0], &psorted[0]+data_size);
+  char* data=(char*)&data_[0];
+  #pragma omp parallel for
+  for(size_t i=0; i<data_size; i++) {
+    for(size_t j=0; j<data_dim; j++)
+      buffer[i*data_dim+j]=data[i*data_dim+j];
+  }
+  #pragma omp parallel for
+  for(size_t i=0; i<data_size; i++) {
+    size_t src_indx=psorted[i].key*data_dim;
+    size_t trg_indx=psorted[i].data*data_dim;
+    for(size_t j=0; j<data_dim; j++)
+      data[trg_indx+j]=buffer[src_indx+j];
   }
   return 0;
 }

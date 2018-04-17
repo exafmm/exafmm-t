@@ -267,25 +267,24 @@ class FMM_Tree {
       int l=node->octant;         // l is octant
       for(int i=0; i<n1; i++) {
         tmp_node1=parent_node->Colleague(i);  // loop over parent's colleagues
-        if(tmp_node1!=NULL)
-          if(!tmp_node1->IsLeaf()) {
-            for(int j=0; j<n2; j++) {
-              tmp_node2=tmp_node1->Child(j);    // loop over parent's colleages child
-              if(tmp_node2!=NULL) {
-                bool flag=true;
-                int a=1, b=1, new_indx=0;
-                for(int k=0; k<3; k++) {
-                  int indx_diff=(((i/b)%3)-1)*2+((j/a)%2)-((l/a)%2);
-                  if(-1>indx_diff || indx_diff>1) flag=false;
-                  new_indx+=(indx_diff+1)*b;
-                  a*=2;
-                  b*=3;
-                }
-                if(flag)
-                  node->SetColleague(tmp_node2, new_indx);
+        if(tmp_node1!=NULL && !tmp_node1->IsLeaf()) {
+          for(int j=0; j<n2; j++) {
+            tmp_node2=tmp_node1->Child(j);    // loop over parent's colleages child
+            if(tmp_node2!=NULL) {
+              bool flag=true;
+              int a=1, b=1, new_indx=0;
+              for(int k=0; k<3; k++) {
+                int indx_diff=(((i/b)%3)-1)*2+((j/a)%2)-((l/a)%2);
+                if(-1>indx_diff || indx_diff>1) flag=false;
+                new_indx+=(indx_diff+1)*b;
+                a*=2;
+                b*=3;
               }
+              if(flag)
+                node->SetColleague(tmp_node2, new_indx);
             }
           }
+        }
       }
     }
   }
@@ -561,24 +560,22 @@ class FMM_Tree {
       std::vector<FMM_Node*>& nodes_in_ =nodes_blk_in [blk0];
       std::vector<FMM_Node*>& nodes_out_=nodes_blk_out[blk0];
       for(size_t i=0; i<nodes_in_.size(); i++) nodes_in_[i]->node_id=i;
-      {
-        size_t n_blk1=nodes_out_.size()*sizeof(real_t)/CACHE_SIZE;
-        if(n_blk1==0) n_blk1=1;
-        size_t interac_dsp_=0;
-        for(size_t blk1=0; blk1<n_blk1; blk1++) {
-          size_t blk1_start=(nodes_out_.size()* blk1   )/n_blk1;
-          size_t blk1_end  =(nodes_out_.size()*(blk1+1))/n_blk1;
-          for(size_t k=0; k<mat_cnt; k++) {
-            for(size_t i=blk1_start; i<blk1_end; i++) {
-              std::vector<FMM_Node*>& lst=nodes_out_[i]->interac_list[M2L_Type];
-              if(lst[k]!=NULL && lst[k]->pt_cnt[0]) {
-                interac_vec[blk0].push_back(lst[k]->node_id*fftsize*ker_dim0);   // node_in dspl
-                interac_vec[blk0].push_back(    i          *fftsize*ker_dim1);   // node_out dspl
-                interac_dsp_++;
-              }
+      size_t n_blk1=nodes_out_.size()*sizeof(real_t)/CACHE_SIZE;
+      if(n_blk1==0) n_blk1=1;
+      size_t interac_dsp_=0;
+      for(size_t blk1=0; blk1<n_blk1; blk1++) {
+        size_t blk1_start=(nodes_out_.size()* blk1   )/n_blk1;
+        size_t blk1_end  =(nodes_out_.size()*(blk1+1))/n_blk1;
+        for(size_t k=0; k<mat_cnt; k++) {
+          for(size_t i=blk1_start; i<blk1_end; i++) {
+            std::vector<FMM_Node*>& lst=nodes_out_[i]->interac_list[M2L_Type];
+            if(lst[k]!=NULL && lst[k]->pt_cnt[0]) {
+              interac_vec[blk0].push_back(lst[k]->node_id*fftsize*ker_dim0);   // node_in dspl
+              interac_vec[blk0].push_back(    i          *fftsize*ker_dim1);   // node_out dspl
+              interac_dsp_++;
             }
-            interac_dsp[blk0].push_back(interac_dsp_);
           }
+          interac_dsp[blk0].push_back(interac_dsp_);
         }
       }
     }
@@ -596,31 +593,29 @@ class FMM_Tree {
  public:
   void SetupFMM() {
     Profile::Tic("SetupFMM", true);
-    {
-      Profile::Tic("SetColleagues", false, 3);
-      SetColleagues();
-      Profile::Toc();
-      Profile::Tic("CollectNodeData", false, 3);
-      FMM_Node* n = PostorderFirst();
-      std::vector<FMM_Node*> all_nodes;
-      LEVEL = 0;
-      while(n!=NULL) {
-        LEVEL = n->depth > LEVEL ? n->depth : LEVEL;
-        n->pt_cnt[0]=0;
-        n->pt_cnt[1]=0;
-        all_nodes.push_back(n);        // all_nodes: postorder tree traversal
-        n = PostorderNxt(n);
-      }
-      CollectNodeData(all_nodes);
-      Profile::Toc();
-      Profile::Tic("BuildLists", false, 3);
-      BuildInteracLists();
-      Profile::Toc();
-      Profile::Tic("M2LListSetup", false, 3);
-      M2LSetup(M2Ldata);
-      Profile::Toc();
-      ClearFMMData();
+    Profile::Tic("SetColleagues", false, 3);
+    SetColleagues();
+    Profile::Toc();
+    Profile::Tic("CollectNodeData", false, 3);
+    FMM_Node* n = PostorderFirst();
+    std::vector<FMM_Node*> all_nodes;
+    LEVEL = 0;
+    while(n!=NULL) {
+      LEVEL = n->depth > LEVEL ? n->depth : LEVEL;
+      n->pt_cnt[0]=0;
+      n->pt_cnt[1]=0;
+      all_nodes.push_back(n);        // all_nodes: postorder tree traversal
+      n = PostorderNxt(n);
     }
+    CollectNodeData(all_nodes);
+    Profile::Toc();
+    Profile::Tic("BuildLists", false, 3);
+    BuildInteracLists();
+    Profile::Toc();
+    Profile::Tic("M2LListSetup", false, 3);
+    M2LSetup(M2Ldata);
+    Profile::Toc();
+    ClearFMMData();
     Profile::Toc();
   }
   /* End of 2nd Part: Setup FMM */
@@ -855,58 +850,50 @@ class FMM_Tree {
     int omp_p=omp_get_max_threads();
     size_t n=6*(m-1)*(m-1)+2;
     static std::vector<size_t> map;
-    {
-      // Remove
-      size_t n_old = map.size();
-      if(n_old!=n) {
-        real_t c[3]= {0, 0, 0};
-        std::vector<real_t> surf = surface(m, c, (real_t)(m-1), 0);
-        map.resize(surf.size()/3);
-        for(size_t i=0; i<map.size(); i++)
-          map[i]=((size_t)(m-1-surf[i*3]+0.5))+((size_t)(m-1-surf[i*3+1]+0.5))*n1+((size_t)(
-                   m-1-surf[i*3+2]+0.5))*n2;
-      }
+    size_t n_old = map.size();
+    if(n_old!=n) {
+      real_t c[3]= {0, 0, 0};
+      std::vector<real_t> surf = surface(m, c, (real_t)(m-1), 0);
+      map.resize(surf.size()/3);
+      for(size_t i=0; i<map.size(); i++)
+        map[i]=((size_t)(m-1-surf[i*3]+0.5))+((size_t)(m-1-surf[i*3+1]+0.5))*n1+((size_t)(
+                 m-1-surf[i*3+2]+0.5))*n2;
     }
-    {
-      // Remove
-      if(!m2l_list_fft_flag) {
-        int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
-        real_t *fftw_in, *fftw_out;
-        err = posix_memalign((void**)&fftw_in,  MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
-        err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
-        m2l_list_fftplan = fft_plan_many_dft_r2c(3, nnn, chld_cnt,
-                           (real_t*)fftw_in, NULL, 1, n3,
-                           (fft_complex*)(fftw_out), NULL, 1, n3_,
-                           FFTW_ESTIMATE);
-        free(fftw_in );
-        free(fftw_out);
-        m2l_list_fft_flag=true;
-      }
+    if(!m2l_list_fft_flag) {
+      int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
+      real_t *fftw_in, *fftw_out;
+      err = posix_memalign((void**)&fftw_in,  MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
+      err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
+      m2l_list_fftplan = fft_plan_many_dft_r2c(3, nnn, chld_cnt,
+                         (real_t*)fftw_in, NULL, 1, n3,
+                         (fft_complex*)(fftw_out), NULL, 1, n3_,
+                         FFTW_ESTIMATE);
+      free(fftw_in );
+      free(fftw_out);
+      m2l_list_fft_flag=true;
     }
-    {
-      size_t n_in = fft_vec.size();
-      #pragma omp parallel for
-      for(int pid=0; pid<omp_p; pid++) {
-        size_t node_start=(n_in*(pid  ))/omp_p;
-        size_t node_end  =(n_in*(pid+1))/omp_p;
-        std::vector<real_t> buffer(fftsize_in, 0);
-        for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
-          Matrix<real_t> upward_equiv(chld_cnt, n, &input_data[0] + fft_vec[node_idx], false);
-          real_t* upward_equiv_fft =
-            &output_data[fftsize_in*node_idx];  // offset ptr for node_idx in fft_in vector
-          for(size_t k=0; k<n; k++) {
-            size_t idx=map[k];
-            int j1=0;
-            for(int j0=0; j0<(int)chld_cnt; j0++)
-              upward_equiv_fft[idx+j0*n3]=upward_equiv[j0][k]*fft_scal[node_idx];
-          }
-          fft_execute_dft_r2c(m2l_list_fftplan, (real_t*)&upward_equiv_fft[0], (fft_complex*)&buffer[0]);
-          for(size_t j=0; j<n3_; j++)
-            for(size_t k=0; k<chld_cnt; k++) {
-              upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
-              upward_equiv_fft[2*(chld_cnt*j+k)+1]=buffer[2*(n3_*k+j)+1];
-            }
+    size_t n_in = fft_vec.size();
+    #pragma omp parallel for
+    for(int pid=0; pid<omp_p; pid++) {
+      size_t node_start=(n_in*(pid  ))/omp_p;
+      size_t node_end  =(n_in*(pid+1))/omp_p;
+      std::vector<real_t> buffer(fftsize_in, 0);
+      for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
+        Matrix<real_t> upward_equiv(chld_cnt, n, &input_data[0] + fft_vec[node_idx], false);
+        real_t* upward_equiv_fft =
+          &output_data[fftsize_in*node_idx];  // offset ptr for node_idx in fft_in vector
+        for(size_t k=0; k<n; k++) {
+          size_t idx=map[k];
+          int j1=0;
+          for(int j0=0; j0<(int)chld_cnt; j0++)
+            upward_equiv_fft[idx+j0*n3]=upward_equiv[j0][k]*fft_scal[node_idx];
         }
+        fft_execute_dft_r2c(m2l_list_fftplan, (real_t*)&upward_equiv_fft[0], (fft_complex*)&buffer[0]);
+        for(size_t j=0; j<n3_; j++)
+          for(size_t k=0; k<chld_cnt; k++) {
+            upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
+            upward_equiv_fft[2*(chld_cnt*j+k)+1]=buffer[2*(n3_*k+j)+1];
+          }
       }
     }
   }
@@ -922,57 +909,49 @@ class FMM_Tree {
     int omp_p=omp_get_max_threads();
     size_t n=6*(m-1)*(m-1)+2;
     static std::vector<size_t> map;
-    {
-      // Remove
-      size_t n_old = map.size();
-      if(n_old!=n) {
-        real_t c[3]= {0, 0, 0};
-        std::vector<real_t> surf = surface(m, c, (real_t)(m-1), 0);
-        map.resize(surf.size()/3);
-        for(size_t i=0; i<map.size(); i++)
-          map[i]=((size_t)(m*2-0.5-surf[i*3]))+((size_t)(m*2-0.5-surf[i*3+1]))*n1+((size_t)(
-                   m*2-0.5-surf[i*3+2]))*n2;
-      }
+    size_t n_old = map.size();
+    if(n_old!=n) {
+      real_t c[3]= {0, 0, 0};
+      std::vector<real_t> surf = surface(m, c, (real_t)(m-1), 0);
+      map.resize(surf.size()/3);
+      for(size_t i=0; i<map.size(); i++)
+        map[i]=((size_t)(m*2-0.5-surf[i*3]))+((size_t)(m*2-0.5-surf[i*3+1]))*n1+((size_t)(
+                 m*2-0.5-surf[i*3+2]))*n2;
     }
-    {
-      // Remove
-      if(!m2l_list_ifft_flag) {
-        int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
-        real_t *fftw_in, *fftw_out;
-        err = posix_memalign((void**)&fftw_in,  MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
-        err = posix_memalign((void**)&fftw_out, MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
-        m2l_list_ifftplan = fft_plan_many_dft_c2r(3, nnn, chld_cnt,
-                            (fft_complex*)fftw_in, NULL, 1, n3_,
-                            (real_t*)(fftw_out), NULL, 1, n3,
-                            FFTW_ESTIMATE);
-        free(fftw_in);
-        free(fftw_out);
-        m2l_list_ifft_flag=true;
-      }
+    if(!m2l_list_ifft_flag) {
+      int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
+      real_t *fftw_in, *fftw_out;
+      err = posix_memalign((void**)&fftw_in,  MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
+      err = posix_memalign((void**)&fftw_out, MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
+      m2l_list_ifftplan = fft_plan_many_dft_c2r(3, nnn, chld_cnt,
+                          (fft_complex*)fftw_in, NULL, 1, n3_,
+                          (real_t*)(fftw_out), NULL, 1, n3,
+                          FFTW_ESTIMATE);
+      free(fftw_in);
+      free(fftw_out);
+      m2l_list_ifft_flag=true;
     }
-    {
-      size_t n_out=ifft_vec.size();
-      #pragma omp parallel for
-      for(int pid=0; pid<omp_p; pid++) {
-        size_t node_start=(n_out*(pid  ))/omp_p;
-        size_t node_end  =(n_out*(pid+1))/omp_p;
-        std::vector<real_t> buffer0(fftsize_out, 0);
-        std::vector<real_t> buffer1(fftsize_out, 0);
-        for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
-          Vector<real_t> dnward_check_fft(fftsize_out, &input_data[fftsize_out*node_idx], false);
-          //real_t* dnward_check_fft = &input_data[fftsize_out*node_idx];
-          Vector<real_t> dnward_equiv(n*chld_cnt, &output_data[0] + ifft_vec[node_idx], false);
-          for(size_t j=0; j<n3_; j++)
-            for(size_t k=0; k<chld_cnt; k++) {
-              buffer0[2*(n3_*k+j)+0]=dnward_check_fft[2*(chld_cnt*j+k)+0];
-              buffer0[2*(n3_*k+j)+1]=dnward_check_fft[2*(chld_cnt*j+k)+1];
-            }
-          fft_execute_dft_c2r(m2l_list_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
-          for(size_t k=0; k<n; k++) {
-            size_t idx=map[k];
-            for(int j0=0; j0<(int)chld_cnt; j0++)
-              dnward_equiv[n*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
+    size_t n_out=ifft_vec.size();
+    #pragma omp parallel for
+    for(int pid=0; pid<omp_p; pid++) {
+      size_t node_start=(n_out*(pid  ))/omp_p;
+      size_t node_end  =(n_out*(pid+1))/omp_p;
+      std::vector<real_t> buffer0(fftsize_out, 0);
+      std::vector<real_t> buffer1(fftsize_out, 0);
+      for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
+        Vector<real_t> dnward_check_fft(fftsize_out, &input_data[fftsize_out*node_idx], false);
+        //real_t* dnward_check_fft = &input_data[fftsize_out*node_idx];
+        Vector<real_t> dnward_equiv(n*chld_cnt, &output_data[0] + ifft_vec[node_idx], false);
+        for(size_t j=0; j<n3_; j++)
+          for(size_t k=0; k<chld_cnt; k++) {
+            buffer0[2*(n3_*k+j)+0]=dnward_check_fft[2*(chld_cnt*j+k)+0];
+            buffer0[2*(n3_*k+j)+1]=dnward_check_fft[2*(chld_cnt*j+k)+1];
           }
+        fft_execute_dft_c2r(m2l_list_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
+        for(size_t k=0; k<n; k++) {
+          size_t idx=map[k];
+          for(int j0=0; j0<(int)chld_cnt; j0++)
+            dnward_equiv[n*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
         }
       }
     }
@@ -1065,7 +1044,7 @@ class FMM_Tree {
     char * buff=dev_buffer.data_ptr;
     real_t * input_data = allUpwardEquiv.data_ptr;
     real_t * output_data = allDnwardEquiv.data_ptr;
-    size_t m      = MULTIPOLE_ORDER;
+    size_t m = MULTIPOLE_ORDER;
     size_t n1 = m * 2;
     size_t n2 = n1 * n1;
     size_t n3_ = n2 * (n1 / 2 + 1);
@@ -1194,18 +1173,15 @@ class FMM_Tree {
                         &trg_poten_dir[a*trg_dof  ]);
     }
     pvfmm::Profile::Toc();
-    {
-      // Remove
-      real_t max_=0;
-      real_t max_err=0;
-      for(size_t i=0; i<trg_poten_fmm.size(); i++) {
-        real_t err=fabs(trg_poten_dir[i]-trg_poten_fmm[i]);
-        real_t max=fabs(trg_poten_dir[i]);
-        if(err>max_err) max_err=err;
-        if(max>max_) max_=max;
-      }
-      std::cout<<"Error      : "<<std::scientific<<max_err/max_<<'\n';
+    real_t max_=0;
+    real_t max_err=0;
+    for(size_t i=0; i<trg_poten_fmm.size(); i++) {
+      real_t err=fabs(trg_poten_dir[i]-trg_poten_fmm[i]);
+      real_t max=fabs(trg_poten_dir[i]);
+      if(err>max_err) max_err=err;
+      if(max>max_) max_=max;
     }
+    std::cout<<"Error      : "<<std::scientific<<max_err/max_<<'\n';
     real_t trg_diff = 0, trg_norm = 0.;
     assert(trg_poten_dir.size() == trg_poten_fmm.size());
     for(size_t i=0; i<trg_poten_fmm.size(); i++) {

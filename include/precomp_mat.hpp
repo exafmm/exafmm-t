@@ -51,8 +51,7 @@ class PrecompMat {
     Permutation<real_t>& row_perm = perm_r[l*Type_Count
                                            +type][indx];    // mat->perm_r[(l+128)*16+type][indx]
     //if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;             // if mat hasn't been computed, then return
-    if(row_perm.Dim()==
-        0) {                                       // if this perm_r entry hasn't been computed
+    if(row_perm.Dim()==0) {                                       // if this perm_r entry hasn't been computed
       std::vector<Perm_Type> p_list =
         interacList->perm_list[type][indx];      // get perm_list of current rel_coord
       for(int i=0; i<l; i++) p_list.push_back(Scaling);           // push back Scaling operation l times
@@ -60,12 +59,10 @@ class PrecompMat {
                                       0));  // init row_perm to be size npts*src_dim
       for(int i=0; i<C_Perm; i++) {                               // loop over permutation types
         Permutation<real_t>& pr = perm[type][R_Perm + i];      // grab the handle of its mat->perm entry
-        if(!pr.Dim()) row_perm_ = Permutation<real_t>
-                                    (0);           // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
+        if(!pr.Dim()) row_perm_ = Permutation<real_t> (0);           // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
       }
       if(row_perm_.Dim()>0)                                      // if this type & entry needs permutation
-        for(int i=p_list.size()-1; i>=0;
-            i--) {                   // loop over the operations of perm_list from end to begin
+        for(int i=p_list.size()-1; i>=0; i--) {                   // loop over the operations of perm_list from end to begin
           //assert(type!=M2L_Helper_Type);
           Permutation<real_t>& pr = perm[type][R_Perm + p_list[i]];  // get the permutation of the operation
           row_perm_=pr.Transpose()
@@ -115,10 +112,10 @@ class PrecompMat {
       std::vector<real_t> scal_exp;
       Permutation<real_t> ker_perm;
       if(perm_indx<C_Perm) {
-        ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
+        ker_perm=kernel->k_m2m->perm_vec[0+p_indx];
         scal_exp=kernel->k_m2m->src_scal;
       } else {
-        ker_perm=kernel->k_m2m->perm_vec[0     +p_indx];
+        ker_perm=kernel->k_m2m->perm_vec[0+p_indx];
         scal_exp=kernel->k_m2m->src_scal;
       }
       P=equiv_surf_perm(p_indx, ker_perm, scal_exp);
@@ -247,14 +244,12 @@ class PrecompMat {
       err = posix_memalign((void**)&fftw_in, MEM_ALIGN,   n3 *ker_dim[0]*ker_dim[1]*sizeof(real_t));
       err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*ker_dim[0]*ker_dim[1]*sizeof(real_t));
       #pragma omp critical (FFTW_PLAN)
-      {
-        if (!m2l_precomp_fft_flag) {
-          m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, nnn, ker_dim[0]*ker_dim[1],
-                                (real_t*)fftw_in, NULL, 1, n3,
-                                (fft_complex*) fftw_out, NULL, 1, n3_,
-                                FFTW_ESTIMATE);
-          m2l_precomp_fft_flag=true;
-        }
+      if (!m2l_precomp_fft_flag) {
+        m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, nnn, ker_dim[0]*ker_dim[1],
+                              (real_t*)fftw_in, NULL, 1, n3,
+                              (fft_complex*) fftw_out, NULL, 1, n3_,
+                              FFTW_ESTIMATE);
+        m2l_precomp_fft_flag=true;
       }
       memcpy(fftw_in, &conv_poten[0], n3*ker_dim[0]*ker_dim[1]*sizeof(real_t));
       fft_execute_dft_r2c(m2l_precomp_fftplan, (real_t*)fftw_in, (fft_complex*)(fftw_out));
