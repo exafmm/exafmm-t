@@ -339,8 +339,8 @@ class FMM_Tree {
       node->dnward_equiv.SetZero();
     }
     size_t numNodes = nodesLevelOrder.size();
-    allUpwardEquiv.ReInit(1, numNodes*NSURF);
-    allDnwardEquiv.ReInit(1, numNodes*NSURF);
+    allUpwardEquiv.resize(numNodes*NSURF);
+    allDnwardEquiv.resize(numNodes*NSURF);
     int trg_dof = kernel->ker_dim[1];
     for(int i=0; i<leafs.size(); i++) {
       FMM_Node* leaf = leafs[i];
@@ -746,8 +746,8 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     #pragma omp parallel for collapse(2)
     for(int i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
-        allUpwardEquiv[0][i*NSURF+j] = nodesLevelOrder[i]->upward_equiv[j];
-        allDnwardEquiv[0][i*NSURF+j] = nodesLevelOrder[i]->dnward_equiv[j];
+        allUpwardEquiv[i*NSURF+j] = nodesLevelOrder[i]->upward_equiv[j];
+        allDnwardEquiv[i*NSURF+j] = nodesLevelOrder[i]->dnward_equiv[j];
       }
     }
   }
@@ -757,8 +757,8 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     #pragma omp parallel for collapse(2)
     for(int i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
-        nodesLevelOrder[i]->upward_equiv[j] = allUpwardEquiv[0][i*NSURF+j];
-        nodesLevelOrder[i]->dnward_equiv[j] = allDnwardEquiv[0][i*NSURF+j];
+        nodesLevelOrder[i]->upward_equiv[j] = allUpwardEquiv[i*NSURF+j];
+        nodesLevelOrder[i]->dnward_equiv[j] = allDnwardEquiv[i*NSURF+j];
       }
     }
   }
@@ -839,7 +839,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
   }
 
   void FFT_UpEquiv(size_t m, std::vector<size_t>& fft_vec, std::vector<real_t>& fft_scal,
-                   Vector<real_t>& input_data, std::vector<real_t>& output_data) {
+                   std::vector<real_t>& input_data, std::vector<real_t>& output_data) {
     size_t n1=m*2;
     size_t n2=n1*n1;
     size_t n3=n1*n2;
@@ -847,10 +847,9 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     size_t chld_cnt=1UL<<3;
     size_t fftsize_in =2*n3_*chld_cnt;
     int omp_p=omp_get_max_threads();
-    size_t n=6*(m-1)*(m-1)+2;
     static std::vector<size_t> map;
     size_t n_old = map.size();
-    if(n_old!=n) {
+    if(n_old!=NSURF) {
       real_t c[3]= {0, 0, 0};
       std::vector<real_t> surf = surface(m, c, (real_t)(m-1), 0);
       map.resize(surf.size()/3);
@@ -878,26 +877,28 @@ std::cout << buff_size / pow(1024,3) << std::endl;
       size_t node_end  =(n_in*(pid+1))/omp_p;
       std::vector<real_t> buffer(fftsize_in, 0);
       for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
-        Matrix<real_t> upward_equiv(chld_cnt, n, &input_data[0] + fft_vec[node_idx], false);
+        // upward_equiv.size is numChilds * NSURF
+        real_t* upward_equiv = &input_data[fft_vec[node_idx]];  // offset ptr for node_idx's child's upward_equiv in allUpwardEquiv
         real_t* upward_equiv_fft = &output_data[fftsize_in*node_idx];  // offset ptr for node_idx in fft_in vector
-        for(size_t k=0; k<n; k++) {
+        for(size_t k=0; k<NSURF; k++) {
           size_t idx=map[k];
           int j1=0;
           for(int j0=0; j0<(int)chld_cnt; j0++)
-            upward_equiv_fft[idx+j0*n3]=upward_equiv[j0][k]*fft_scal[node_idx];
+            upward_equiv_fft[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
         }
         fft_execute_dft_r2c(m2l_list_fftplan, (real_t*)&upward_equiv_fft[0], (fft_complex*)&buffer[0]);
-        for(size_t j=0; j<n3_; j++)
+        for(size_t j=0; j<n3_; j++) {
           for(size_t k=0; k<chld_cnt; k++) {
             upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
             upward_equiv_fft[2*(chld_cnt*j+k)+1]=buffer[2*(n3_*k+j)+1];
           }
+        }
       }
     }
   }
 
   void FFT_Check2Equiv(size_t m, std::vector<size_t>& ifft_vec, std::vector<real_t>& ifft_scal,
-                       AlignedVec& input_data, Vector<real_t>& output_data) {
+                       AlignedVec& input_data, std::vector<real_t>& output_data) {
     size_t n1=m*2;
     size_t n2=n1*n1;
     size_t n3=n1*n2;
@@ -937,9 +938,9 @@ std::cout << buff_size / pow(1024,3) << std::endl;
       std::vector<real_t> buffer0(fftsize_out, 0);
       std::vector<real_t> buffer1(fftsize_out, 0);
       for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
-        //Vector<real_t> dnward_check_fft(fftsize_out, &input_data[fftsize_out*node_idx], false);
-        real_t* dnward_check_fft = &input_data[fftsize_out*node_idx];
-        Vector<real_t> dnward_equiv(n*chld_cnt, &output_data[0] + ifft_vec[node_idx], false);
+        real_t* dnward_check_fft = &input_data[fftsize_out*node_idx];  // offset ptr for node_idx in fft_out vector
+        // dnward_equiv.size is numChilds * NSURF
+        real_t* dnward_equiv = &output_data[ifft_vec[node_idx]];  // offset ptr for node_idx's child's dnward_equiv in allDnwardEquiv
         for(size_t j=0; j<n3_; j++)
           for(size_t k=0; k<chld_cnt; k++) {
             buffer0[2*(n3_*k+j)+0]=dnward_check_fft[2*(chld_cnt*j+k)+0];
@@ -1035,10 +1036,6 @@ std::cout << buff_size / pow(1024,3) << std::endl;
 
   void M2L(M2LData& M2Ldata) {
     size_t n_blk0 = M2Ldata.n_blk0;
-    int dim0 = allUpwardEquiv.dim[0];
-    int dim1 = allUpwardEquiv.dim[1];
-    real_t * input_data = allUpwardEquiv.data_ptr;
-    real_t * output_data = allDnwardEquiv.data_ptr;
     size_t m = MULTIPOLE_ORDER;
     size_t n1 = m * 2;
     size_t n2 = n1 * n1;
@@ -1053,7 +1050,6 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     std::vector<std::vector<real_t> >& ifft_scl = M2Ldata.ifft_scl;
     std::vector<std::vector<size_t> >& interac_vec = M2Ldata.interac_vec;
     std::vector<std::vector<size_t> >& interac_dsp = M2Ldata.interac_dsp;
-    int omp_p=omp_get_max_threads();
     for(size_t blk0=0; blk0<n_blk0; blk0++) {
       size_t n_in = fft_vec[blk0].size();  // num of nodes_in in this block
       size_t n_out=ifft_vec[blk0].size();  // num of nodes_out in this block
@@ -1061,16 +1057,14 @@ std::cout << buff_size / pow(1024,3) << std::endl;
       size_t output_dim=n_out*fftsize;
       std::vector<real_t> fft_in(n_in * fftsize, 0);
       AlignedVec fft_out(n_out * fftsize, 0);  // fft_out must be aligned
-      Vector<real_t>  input_data_(dim0*dim1, input_data, false);
-      Vector<real_t> output_data_(dim0*dim1, output_data, false);
       Profile::Tic("FFT_UpEquiv", false, 5);
-      FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0],  input_data_, fft_in);
+      FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0], allUpwardEquiv, fft_in);
       Profile::Toc();
       Profile::Tic("M2LHadamard", false, 5);
       M2LListHadamard(M_dim, interac_dsp[blk0], interac_vec[blk0], precomp_mat, fft_in, fft_out);
       Profile::Toc();
       Profile::Tic("FFT_Check2Equiv", false, 5);
-      FFT_Check2Equiv(m, ifft_vec[blk0], ifft_scl[blk0], fft_out, output_data_);
+      FFT_Check2Equiv(m, ifft_vec[blk0], ifft_scl[blk0], fft_out, allDnwardEquiv);
       Profile::Toc();
     }
   }

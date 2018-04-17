@@ -106,8 +106,8 @@ std::vector<Vector<real_t> > upwd_equiv_surf;
 std::vector<Vector<real_t> > dnwd_check_surf;
 std::vector<Vector<real_t> > dnwd_equiv_surf;
 
-Matrix<real_t> allUpwardEquiv;
-Matrix<real_t> allDnwardEquiv;
+std::vector<real_t> allUpwardEquiv;
+std::vector<real_t> allDnwardEquiv;
 
 class FMM_Node;
 std::vector<FMM_Node*> leafs, nonleafs;
