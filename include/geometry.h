@@ -2,7 +2,6 @@
 #define geometry_h
 #include "pvfmm.h"
 #include "matrix.hpp"
-#include "vector.hpp"
 
 namespace pvfmm {
   // alpha is the ratio r_surface/r_cell, see 2015Malhotra, page 7 

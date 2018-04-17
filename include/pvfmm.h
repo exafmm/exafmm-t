@@ -1,7 +1,6 @@
 #ifndef pvfmm_h
 #define pvfmm_h
 #include "align.h"
-#include "vector.hpp"
 #include "matrix.hpp"
 #include "vec.h"
 namespace pvfmm {
@@ -37,7 +36,7 @@ typedef fftw_plan fft_plan;
 #define fft_destroy_plan fftw_destroy_plan
 #endif
 
-typedef vec<3, int> ivec3;                           //!< Vector of 3 int types
+typedef vec<3, int> ivec3;                           //!< std::vector of 3 int types
 //! SIMD vector types for AVX512, AVX, and SSE
 const int NSIMD = SIMD_BYTES / int(sizeof(
                                      real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
@@ -101,10 +100,10 @@ struct M2LData {
   std::vector<std::vector<size_t> > interac_dsp;
 };
 
-std::vector<Vector<real_t> > upwd_check_surf;
-std::vector<Vector<real_t> > upwd_equiv_surf;
-std::vector<Vector<real_t> > dnwd_check_surf;
-std::vector<Vector<real_t> > dnwd_equiv_surf;
+std::vector<std::vector<real_t> > upwd_check_surf;
+std::vector<std::vector<real_t> > upwd_equiv_surf;
+std::vector<std::vector<real_t> > dnwd_check_surf;
+std::vector<std::vector<real_t> > dnwd_equiv_surf;
 
 std::vector<real_t> allUpwardEquiv;
 std::vector<real_t> allDnwardEquiv;

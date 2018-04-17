@@ -178,8 +178,8 @@ class FMM_Tree {
       Profile::Tic("Points2Octee", true, 5);
       std::vector<MortonId> lin_oct;
       std::vector<MortonId> pt_mid;
-      Vector<real_t>& pt_c=root_node->pt_coord;
-      size_t pt_cnt=pt_c.Dim()/3;
+      std::vector<real_t>& pt_c=root_node->pt_coord;
+      size_t pt_cnt=pt_c.size()/3;
       pt_mid.resize(pt_cnt);
       #pragma omp parallel for
       for(size_t i=0; i<pt_cnt; i++)
@@ -187,15 +187,15 @@ class FMM_Tree {
       points2Octree(pt_mid, lin_oct, max_depth, init_data->max_pts);
       Profile::Toc();
       Profile::Tic("SortPoints", true, 5);
-      std::vector<Vector<real_t>*> coord_lst;
-      std::vector<Vector<real_t>*> value_lst;
+      std::vector<std::vector<real_t>*> coord_lst;
+      std::vector<std::vector<real_t>*> value_lst;
       root_node->NodeDataVec(coord_lst, value_lst);
       assert(coord_lst.size()==value_lst.size());
       std::vector<size_t> index;
       for(size_t i=0; i<coord_lst.size(); i++) {
         if(!coord_lst[i]) continue;
-        Vector<real_t>& pt_c=*coord_lst[i];
-        size_t pt_cnt=pt_c.Dim()/3;
+        std::vector<real_t>& pt_c=*coord_lst[i];
+        size_t pt_cnt=pt_c.size()/3;
         pt_mid.resize(pt_cnt);
         #pragma omp parallel for
         for(size_t i=0; i<pt_cnt; i++)
@@ -203,7 +203,7 @@ class FMM_Tree {
         SortIndex(pt_mid, index);
         Forward  (pt_c, index);
         if(value_lst[i]!=NULL) {
-          Vector<real_t>& pt_v=*value_lst[i];
+          std::vector<real_t>& pt_v=*value_lst[i];
           Forward(pt_v, index);
         }
       }
@@ -297,14 +297,14 @@ class FMM_Tree {
     for (int i=0; i<nodes.size(); i++) {
       if (nodes[i]->IsLeaf()) {
         leafs.push_back(nodes[i]);
-        nodes[i]->pt_cnt[0] += nodes[i]->src_coord.Dim()  / 3;
-        nodes[i]->pt_cnt[1] += nodes[i]->trg_coord.Dim()  / 3;
+        nodes[i]->pt_cnt[0] += nodes[i]->src_coord.size() / 3;
+        nodes[i]->pt_cnt[1] += nodes[i]->trg_coord.size() / 3;
       } else {
         nonleafs.push_back(nodes[i]);
-        nodes[i]->src_coord.Resize(0);
-        nodes[i]->trg_coord.Resize(0);
-        nodes[i]->src_value.Resize(0);
-        nodes[i]->trg_value.Resize(0);
+        nodes[i]->src_coord.resize(0);
+        nodes[i]->trg_coord.resize(0);
+        nodes[i]->src_value.resize(0);
+        nodes[i]->trg_value.resize(0);
         for (int j=0; j<8; j++) {
           FMM_Node* child = nodes[i]->Child(j);
           nodes[i]->pt_cnt[0] += child->pt_cnt[0];
@@ -333,10 +333,8 @@ class FMM_Tree {
     for(int i=0; i<nodesLevelOrder.size(); i++) {
       FMM_Node* node = nodesLevelOrder[i];
       node->idx = i;
-      node->upward_equiv.Resize(NSURF);
-      node->upward_equiv.SetZero();
-      node->dnward_equiv.Resize(NSURF);
-      node->dnward_equiv.SetZero();
+      node->upward_equiv.resize(NSURF, 0);
+      node->dnward_equiv.resize(NSURF, 0);
     }
     size_t numNodes = nodesLevelOrder.size();
     allUpwardEquiv.resize(numNodes*NSURF);
@@ -344,8 +342,8 @@ class FMM_Tree {
     int trg_dof = kernel->ker_dim[1];
     for(int i=0; i<leafs.size(); i++) {
       FMM_Node* leaf = leafs[i];
-      int n_trg_val = (leaf->trg_coord.Dim()/3) * trg_dof;
-      leaf->trg_value.Resize(n_trg_val);
+      int n_trg_val = (leaf->trg_coord.size()/3) * trg_dof;
+      leaf->trg_value.resize(n_trg_val);
     }
   }
 
@@ -472,9 +470,12 @@ class FMM_Tree {
 
   void ClearFMMData() {
     for(size_t i=0; i<nodesLevelOrder.size(); i++) {
-      nodesLevelOrder[i]->upward_equiv.SetZero();
-      nodesLevelOrder[i]->dnward_equiv.SetZero();
-      nodesLevelOrder[i]->trg_value.SetZero();
+      std::vector<real_t>& upward_equiv = nodesLevelOrder[i]->upward_equiv;
+      std::vector<real_t>& dnward_equiv = nodesLevelOrder[i]->dnward_equiv;
+      std::vector<real_t>& trg_value = nodesLevelOrder[i]->trg_value;
+      std::fill(upward_equiv.begin(), upward_equiv.end(), 0);
+      std::fill(dnward_equiv.begin(), dnward_equiv.end(), 0);
+      std::fill(trg_value.begin(), trg_value.end(), 0);
     }
   }
 
@@ -1121,10 +1122,10 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     FMM_Node* n=root_node;
     while(n!=NULL) {
       if(n->IsLeaf()) {
-        Vector<real_t>& coord_vec=n->src_coord;
-        Vector<real_t>& value_vec=n->src_value;
-        for(size_t i=0; i<coord_vec.Dim(); i++) src_coord.push_back(coord_vec[i]);
-        for(size_t i=0; i<value_vec.Dim(); i++) src_value.push_back(value_vec[i]);
+        std::vector<real_t>& coord_vec=n->src_coord;
+        std::vector<real_t>& value_vec=n->src_value;
+        for(size_t i=0; i<coord_vec.size(); i++) src_coord.push_back(coord_vec[i]);
+        for(size_t i=0; i<value_vec.size(); i++) src_value.push_back(value_vec[i]);
       }
       n=static_cast<FMM_Node*>(PreorderNxt(n));
     }
@@ -1137,9 +1138,9 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     long long trg_iter=0;
     while(n!=NULL) {
       if(n->IsLeaf()) {
-        Vector<real_t>& coord_vec=n->trg_coord;
-        Vector<real_t>& poten_vec=n->trg_value;
-        for(size_t i=0; i<coord_vec.Dim()/3; i++) {
+        std::vector<real_t>& coord_vec=n->trg_coord;
+        std::vector<real_t>& poten_vec=n->trg_value;
+        for(size_t i=0; i<coord_vec.size()/3; i++) {
           if(trg_iter%step_size == 0) {
             for(int j=0; j<3        ; j++) trg_coord    .push_back(coord_vec[i*3        +j]);
             for(int j=0; j<trg_dof  ; j++) trg_poten_fmm.push_back(poten_vec[i*trg_dof  +j]);

@@ -193,10 +193,10 @@ int SortIndex(const std::vector<T>& key, std::vector<size_t>& index) {
 }
 
 template<typename T>
-int Forward(Vector<T>& data_, const std::vector<size_t>& index) {
+int Forward(std::vector<T>& data_, const std::vector<size_t>& index) {
   typedef SortPair<size_t, size_t> Pair_t;
   long long data_size=index.size();
-  long long loc_size[2]= {(long long)(data_.Dim()*sizeof(T)), data_size};
+  long long loc_size[2]= {(long long)(data_.size()*sizeof(T)), data_size};
   if(loc_size[0]==0 || loc_size[1]==0) return 0;
   size_t data_dim=loc_size[0]/loc_size[1];
   std::vector<char> buffer(data_size*data_dim);

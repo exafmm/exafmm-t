@@ -1,5 +1,6 @@
 #ifndef _PVFMM_MATRIX_HPP_
 #define _PVFMM_MATRIX_HPP_
+#define MEM_ALIGN 64
 #include "profile.hpp"
 
 extern "C" {
