@@ -73,7 +73,7 @@ std::vector<real_t> nonuniform(int numBodies) {
   return coord;
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
   Args args(argc, argv);
   omp_set_num_threads(args.threads);
   size_t N = args.numBodies;
@@ -82,8 +82,7 @@ int main(int argc, char **argv){
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   int depth = 15;
   Profile::Enable(true);
-  Profile::Tic("FMM_Test",true);
-
+  Profile::Tic("FMM_Test", true);
   InitData init_data;
   init_data.max_depth=depth;
   init_data.max_pts=M;
@@ -98,45 +97,42 @@ int main(int argc, char **argv){
   for(size_t i=0; i<N; i++) src_value.push_back(drand48()-0.5);
   init_data.coord=src_coord;
   init_data.value=src_value;
-
   // initialize equiv surface coords for all levels
   upwd_check_surf.resize(MAX_DEPTH);
   upwd_equiv_surf.resize(MAX_DEPTH);
   dnwd_check_surf.resize(MAX_DEPTH);
   dnwd_equiv_surf.resize(MAX_DEPTH);
-  for(size_t depth=0;depth<MAX_DEPTH;depth++){
+  for(size_t depth=0; depth<MAX_DEPTH; depth++) {
     real_t c[3] = {0.0};
     upwd_check_surf[depth].Resize(NSURF*3);
     upwd_equiv_surf[depth].Resize(NSURF*3);
     dnwd_check_surf[depth].Resize(NSURF*3);
     dnwd_equiv_surf[depth].Resize(NSURF*3);
-    upwd_check_surf[depth] = u_check_surf(c,depth);
-    upwd_equiv_surf[depth] = u_equiv_surf(c,depth);
-    dnwd_check_surf[depth] = d_check_surf(c,depth);
-    dnwd_equiv_surf[depth] = d_equiv_surf(c,depth);
+    upwd_check_surf[depth] = u_check_surf(c, depth);
+    upwd_equiv_surf[depth] = u_equiv_surf(c, depth);
+    dnwd_check_surf[depth] = d_check_surf(c, depth);
+    dnwd_equiv_surf[depth] = d_equiv_surf(c, depth);
   }
-
   InteracList interacList;
   interacList.Initialize();
-  Kernel potn_ker = BuildKernel<potentialP2P>("laplace"    , std::pair<int,int>(1,1));
-  Kernel grad_ker = BuildKernel<gradientP2P >("laplace_grad", std::pair<int,int>(1,3),
-					     &potn_ker, &potn_ker, NULL, &potn_ker, &potn_ker, NULL, &potn_ker, NULL);
+  Kernel potn_ker = BuildKernel<potentialP2P>("laplace", std::pair<int, int>(1, 1));
+  Kernel grad_ker = BuildKernel<gradientP2P >("laplace_grad", std::pair<int, int>(1, 3),
+                    &potn_ker, &potn_ker, NULL, &potn_ker, &potn_ker, NULL, &potn_ker, NULL);
 #if POTENTIAL
-  Kernel * kernel = &potn_ker; 
+  Kernel * kernel = &potn_ker;
 #else
-  Kernel * kernel = &grad_ker; 
+  Kernel * kernel = &grad_ker;
 #endif
   kernel->Initialize();
   PrecompMat pmat(&interacList, kernel);
   FMM_Tree tree(kernel, &interacList, &pmat);
-
-  for(size_t it=0;it<2;it++){
-    Profile::Tic("TotalTime",true);
+  for(size_t it=0; it<2; it++) {
+    Profile::Tic("TotalTime", true);
     tree.Initialize(&init_data);
-    Profile::Tic("SetSrcTrg",true);
+    Profile::Tic("SetSrcTrg", true);
     std::vector<FMM_Node*>& nodes=tree.GetNodeList();
-#pragma omp parallel for
-    for(size_t i=0;i<nodes.size();i++){
+    #pragma omp parallel for
+    for(size_t i=0; i<nodes.size(); i++) {
       nodes[i]->trg_coord = nodes[i]->pt_coord;
       nodes[i]->src_coord = nodes[i]->pt_coord;
       nodes[i]->src_value = nodes[i]->pt_value;

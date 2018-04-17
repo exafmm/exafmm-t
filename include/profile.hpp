@@ -1,37 +1,37 @@
 #ifndef _PVFMM_PROFILE_HPP_
 #define _PVFMM_PROFILE_HPP_
 
-namespace pvfmm{
+namespace pvfmm {
 
-class Profile{
-public:
+class Profile {
+ public:
 
-  static long long Add_FLOP(long long inc){
+  static long long Add_FLOP(long long inc) {
     long long orig_val=FLOP;
-#pragma omp atomic update
+    #pragma omp atomic update
     FLOP+=inc;
     return orig_val;
   }
 
-  static long long Add_MEM(long long inc){
+  static long long Add_MEM(long long inc) {
     long long orig_val=MEM;
-#pragma omp atomic update
+    #pragma omp atomic update
     MEM+=inc;
-    for(size_t i=0;i<max_mem.size();i++){
+    for(size_t i=0; i<max_mem.size(); i++) {
       if(max_mem[i]<MEM) max_mem[i]=MEM;
     }
     return orig_val;
   }
 
-  static bool Enable(bool state){
+  static bool Enable(bool state) {
     bool orig_val=enable_state;
     enable_state=state;
     return orig_val;
   }
 
-  static void Tic(const char* name_, bool sync_=false, int verbose=0){
+  static void Tic(const char* name_, bool sync_=false, int verbose=0) {
     if(!enable_state) return;
-    if(verbose<=5 && verb_level.size()==enable_depth){
+    if(verbose<=5 && verb_level.size()==enable_depth) {
       name.push(name_);
       sync.push(sync_);
       max_mem.push_back(MEM);
@@ -47,9 +47,9 @@ public:
     verb_level.push(verbose);
   }
 
-  static void Toc(){
+  static void Toc() {
     if(!enable_state) return;
-    if(verb_level.top()<=5 && verb_level.size()==enable_depth){
+    if(verb_level.top()<=5 && verb_level.size()==enable_depth) {
       std::string name_=name.top();
       bool sync_=sync.top();
       e_log.push_back(false);
@@ -67,55 +67,53 @@ public:
     verb_level.pop();
   }
 
-  static void print(){
+  static void print() {
     int np=1, rank=0;
     std::stack<double> tt;
     std::stack<long long> ff;
     std::stack<long long> mm;
     int width=10;
     size_t level=0;
-
     std::stack<std::string> out_stack;
     std::string s;
     out_stack.push(s);
-    for(size_t i=0;i<e_log.size();i++){
-      if(e_log[i]){
-	level++;
-	tt.push(t_log[i]);
-	ff.push(f_log[i]);
-	mm.push(m_log[i]);
-
-	std::string ss;
-	out_stack.push(ss);
-      }else{
-	double t0=t_log[i]-tt.top();tt.pop();
-	double f0=(double)(f_log[i]-ff.top())*1e-9;ff.pop();
-	double fs0=f0/t0;
-	double t_max=t0, t_min=t0, t_sum=t0;
-	double f_max=f0, f_min=f0, f_sum=f0;
-	//double m_final=(double)m_log[i]*1e-9;
-	//double m_init =(double)mm.top()*1e-9; mm.pop();
-	//double m_max  =(double)max_m_log[i]*1e-9;
-	double t_avg=t_sum/np;
-	//double f_avg=f_sum/np;
-
-	if(!rank){
+    for(size_t i=0; i<e_log.size(); i++) {
+      if(e_log[i]) {
+        level++;
+        tt.push(t_log[i]);
+        ff.push(f_log[i]);
+        mm.push(m_log[i]);
+        std::string ss;
+        out_stack.push(ss);
+      } else {
+        double t0=t_log[i]-tt.top();
+        tt.pop();
+        double f0=(double)(f_log[i]-ff.top())*1e-9;
+        ff.pop();
+        double fs0=f0/t0;
+        double t_max=t0, t_min=t0, t_sum=t0;
+        double f_max=f0, f_min=f0, f_sum=f0;
+        //double m_final=(double)m_log[i]*1e-9;
+        //double m_init =(double)mm.top()*1e-9; mm.pop();
+        //double m_max  =(double)max_m_log[i]*1e-9;
+        double t_avg=t_sum/np;
+        //double f_avg=f_sum/np;
+        if(!rank) {
           if(n_log[i] == "P2M" || n_log[i] == "M2M" || n_log[i] == "P2L"
-          || n_log[i] == "M2P" || n_log[i] == "P2P" || n_log[i] == "M2L"
-          || n_log[i] == "L2L" || n_log[i] == "L2P")
+              || n_log[i] == "M2P" || n_log[i] == "P2P" || n_log[i] == "M2L"
+              || n_log[i] == "L2L" || n_log[i] == "L2P")
 // || n_log[i] == "FFT_UpEquiv" || n_log[i] == "M2LHadamard" || n_log[i] == "FFT_Check2Equiv")
-	    std::cout << n_log[i] << "        : " << t_avg << std::endl;
-	}
-	level--;
+            std::cout << n_log[i] << "        : " << t_avg << std::endl;
+        }
+        level--;
       }
     }
     if(!rank)
       std::cout<<out_stack.top()<<'\n';
-
     reset();
   }
 
-  static void reset(){
+  static void reset() {
     FLOP=0;
     while(!sync.empty())sync.pop();
     while(!name.empty())name.pop();
@@ -128,7 +126,7 @@ public:
     max_m_log.clear();
   }
 
-private:
+ private:
 
   static long long FLOP;
   static long long MEM;
