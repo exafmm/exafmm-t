@@ -44,6 +44,7 @@ const int NSIMD = SIMD_BYTES / int(sizeof(
 typedef vec<NSIMD, real_t> simdvec;                  //!< SIMD vector type
 typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;
 typedef std::vector<real_t> RealVec;
+typedef std::vector<real_t, AlignAllocator> AlignedVec;
 
 fft_plan m2l_precomp_fftplan;
 bool m2l_precomp_fft_flag;
@@ -90,11 +91,10 @@ struct InitData {
 };
 
 struct M2LData {
-  size_t buff_size;
   size_t n_blk0;
   std::vector<real_t*> precomp_mat;
-  std::vector<std::vector<size_t> > fft_vec;
-  std::vector<std::vector<size_t> > ifft_vec;
+  std::vector<std::vector<size_t> > fft_vec;   // source's first child's upward_equiv's displacement
+  std::vector<std::vector<size_t> > ifft_vec;  // target's first child's dnward_equiv's displacement
   std::vector<std::vector<real_t> > fft_scl;
   std::vector<std::vector<real_t> > ifft_scl;
   std::vector<std::vector<size_t> > interac_vec;
@@ -108,7 +108,6 @@ std::vector<Vector<real_t> > dnwd_equiv_surf;
 
 Matrix<real_t> allUpwardEquiv;
 Matrix<real_t> allDnwardEquiv;
-Vector<char> dev_buffer;
 
 class FMM_Node;
 std::vector<FMM_Node*> leafs, nonleafs;

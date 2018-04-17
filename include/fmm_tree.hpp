@@ -527,17 +527,20 @@ class FMM_Tree {
       }
       for(typename std::set<FMM_Node*>::iterator node=nodes_in.begin(); node != nodes_in.end(); node++)
         nodes_in_.push_back(*node);
-      // reevaluate buff_size
+      // reevaluate buff_size, not necessary for CPU code
+#if 0
       size_t  input_dim=nodes_in_ .size()*ker_dim0*fftsize;
       size_t output_dim=nodes_out_.size()*ker_dim1*fftsize;
       size_t buffer_dim=2*(ker_dim0+ker_dim1)*fftsize*omp_p;
       if(buff_size<(input_dim + output_dim + buffer_dim)*sizeof(real_t))
         buff_size=(input_dim + output_dim + buffer_dim)*sizeof(real_t);
+std::cout << buff_size / pow(1024,3) << std::endl;
+#endif
       // calculate fft_vec (dsp) and fft_sca
       for(size_t i=0; i<nodes_in_ .size(); i++)
-        fft_vec[blk0].push_back(nodes_in_[i]->child[0]->idx * NSURF);
+        fft_vec[blk0].push_back(nodes_in_[i]->child[0]->idx * NSURF);  // nodes_in_ is local to the current block
       for(size_t i=0; i<nodes_out_.size(); i++)
-        ifft_vec[blk0].push_back(nodes_out[blk0_start+i]->child[0]->idx * NSURF);
+        ifft_vec[blk0].push_back(nodes_out[blk0_start+i]->child[0]->idx * NSURF); // nodes_out here is global
       size_t scal_dim0=src_scal.size();
       size_t scal_dim1=trg_scal.size();
       fft_scl [blk0].resize(nodes_in_ .size()*scal_dim0);
@@ -579,7 +582,6 @@ class FMM_Tree {
         }
       }
     }
-    M2Ldata.buff_size   = buff_size;
     M2Ldata.n_blk0      = n_blk0;
     M2Ldata.precomp_mat = precomp_mat;
     M2Ldata.fft_vec     = fft_vec;
@@ -763,7 +765,7 @@ class FMM_Tree {
 
   void M2LListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp,
                        std::vector<size_t>& interac_vec,
-                       std::vector<real_t*>& precomp_mat, std::vector<real_t>& fft_in, Vector<real_t>& fft_out) {
+                       std::vector<real_t*>& precomp_mat, std::vector<real_t>& fft_in, AlignedVec& fft_out) {
     size_t chld_cnt=1UL<<3;
     size_t fftsize_in =M_dim*chld_cnt*2;
     size_t fftsize_out=M_dim*chld_cnt*2;
@@ -771,12 +773,9 @@ class FMM_Tree {
     real_t * zero_vec0, * zero_vec1;
     err = posix_memalign((void**)&zero_vec0, MEM_ALIGN, fftsize_in *sizeof(real_t));
     err = posix_memalign((void**)&zero_vec1, MEM_ALIGN, fftsize_out*sizeof(real_t));
-    size_t n_out=fft_out.Dim()/fftsize_out;
-    #pragma omp parallel for
-    for(size_t k=0; k<n_out; k++) {
-      Vector<real_t> dnward_check_fft(fftsize_out, &fft_out[k*fftsize_out], false);
-      dnward_check_fft.SetZero();
-    }
+    size_t n_out=fft_out.size()/fftsize_out;
+    std::fill(fft_out.begin(), fft_out.end(), 0);
+
     size_t mat_cnt=precomp_mat.size();
     size_t blk1_cnt=interac_dsp.size()/mat_cnt;
     int BLOCK_SIZE = CACHE_SIZE * 4 / sizeof(real_t);
@@ -880,8 +879,7 @@ class FMM_Tree {
       std::vector<real_t> buffer(fftsize_in, 0);
       for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
         Matrix<real_t> upward_equiv(chld_cnt, n, &input_data[0] + fft_vec[node_idx], false);
-        real_t* upward_equiv_fft =
-          &output_data[fftsize_in*node_idx];  // offset ptr for node_idx in fft_in vector
+        real_t* upward_equiv_fft = &output_data[fftsize_in*node_idx];  // offset ptr for node_idx in fft_in vector
         for(size_t k=0; k<n; k++) {
           size_t idx=map[k];
           int j1=0;
@@ -899,7 +897,7 @@ class FMM_Tree {
   }
 
   void FFT_Check2Equiv(size_t m, std::vector<size_t>& ifft_vec, std::vector<real_t>& ifft_scal,
-                       Vector<real_t>& input_data, Vector<real_t>& output_data) {
+                       AlignedVec& input_data, Vector<real_t>& output_data) {
     size_t n1=m*2;
     size_t n2=n1*n1;
     size_t n3=n1*n2;
@@ -939,8 +937,8 @@ class FMM_Tree {
       std::vector<real_t> buffer0(fftsize_out, 0);
       std::vector<real_t> buffer1(fftsize_out, 0);
       for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
-        Vector<real_t> dnward_check_fft(fftsize_out, &input_data[fftsize_out*node_idx], false);
-        //real_t* dnward_check_fft = &input_data[fftsize_out*node_idx];
+        //Vector<real_t> dnward_check_fft(fftsize_out, &input_data[fftsize_out*node_idx], false);
+        real_t* dnward_check_fft = &input_data[fftsize_out*node_idx];
         Vector<real_t> dnward_equiv(n*chld_cnt, &output_data[0] + ifft_vec[node_idx], false);
         for(size_t j=0; j<n3_; j++)
           for(size_t k=0; k<chld_cnt; k++) {
@@ -1036,12 +1034,9 @@ class FMM_Tree {
   }
 
   void M2L(M2LData& M2Ldata) {
-    size_t buff_size = M2Ldata.buff_size;
     size_t n_blk0 = M2Ldata.n_blk0;
-    if(dev_buffer.Dim()<buff_size) dev_buffer.Resize(buff_size);
     int dim0 = allUpwardEquiv.dim[0];
     int dim1 = allUpwardEquiv.dim[1];
-    char * buff=dev_buffer.data_ptr;
     real_t * input_data = allUpwardEquiv.data_ptr;
     real_t * output_data = allDnwardEquiv.data_ptr;
     size_t m = MULTIPOLE_ORDER;
@@ -1065,10 +1060,8 @@ class FMM_Tree {
       size_t  input_dim=n_in *fftsize;
       size_t output_dim=n_out*fftsize;
       std::vector<real_t> fft_in(n_in * fftsize, 0);
-      Vector<real_t> fft_out(output_dim, (real_t*)(buff+input_dim*sizeof(real_t)), false);
-      //Vector<real_t> fft_in ( input_dim, (real_t*)buff,false);
-      //std::vector<real_t> fft_out(n_out * fftsize, 0);
-      Vector<real_t>  input_data_(dim0*dim1, input_data, false);    // upward equiv ptr (node_data_buff)
+      AlignedVec fft_out(n_out * fftsize, 0);  // fft_out must be aligned
+      Vector<real_t>  input_data_(dim0*dim1, input_data, false);
       Vector<real_t> output_data_(dim0*dim1, output_data, false);
       Profile::Tic("FFT_UpEquiv", false, 5);
       FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0],  input_data_, fft_in);
