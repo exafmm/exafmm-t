@@ -114,5 +114,6 @@ std::vector<FMM_Node*> nodesLevelOrder, nonleafsLevelOrder;
 int LEVEL;     // depth of octree
 int MULTIPOLE_ORDER;         // order of multipole expansion
 int NSURF;     // number of surface coordinates
+Matrix<real_t> BUFFER;
 }
 #endif //_PVFMM_COMMON_HPP_
