@@ -166,8 +166,10 @@ class PrecompMat {
       Matrix<real_t> M_e2c(NSURF*ker_dim[0], NSURF*ker_dim[1]);
       kernel->k_m2m->BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &(M_e2c[0][0]));
       Matrix<real_t> U, S, V;
+Profile::Tic("SVD", false, 4);
       M_e2c.SVD(U, S, V);
       M_c2e1=U.Transpose();
+Profile::Toc();
       real_t eps=1, max_S=0;
       while(eps*(real_t)0.5+(real_t)1.0>1.0) eps*=0.5;
       for(size_t i=0; i<std::min(S.Dim(0), S.Dim(1)); i++) {
@@ -177,7 +179,9 @@ class PrecompMat {
       M_c2e0=V.Transpose()*S;
       mat[M2M_V_Type][0] = M_c2e0;
       mat[M2M_U_Type][0] = M_c2e1;
+Profile::Tic("Multiply Matrix", false, 4);
       M=(M_ce2c*M_c2e0)*M_c2e1;
+Profile::Toc();
       break;
     }
     case L2L_Type: {
@@ -312,15 +316,19 @@ class PrecompMat {
       interacList->rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
     if (type == M2M_Type || type == L2L_Type) {
       for(int perm_idx=0; perm_idx<Perm_Count; perm_idx++) PrecompPerm(type, (Perm_Type) perm_idx);
+Profile::Tic("Precomp Mat", false, 4);
       for(int i=0; i<idx_num; i++) {           // i is index of rel_coord
         if(interacList->interac_class[type][i] == i) { // if i-th coord is a class_coord
           Precomp(type, i);                       // calculate operator matrix of class_coord
         }
       }
+Profile::Toc();
+Profile::Tic("Precomp Perm", false, 4);
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++) {
         Perm_R(0, type, mat_idx);
         Perm_C(0, type, mat_idx);
       }
+Profile::Toc();
     } else {
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++)
         Precomp(type, mat_idx);
