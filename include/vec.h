@@ -770,8 +770,10 @@ namespace pvfmm {
 #else
       vec temp = vec(_mm512_cvtps_pd(_mm256_rsqrt_ps(_mm512_cvtpd_ps(v.data))));
 #endif
-      temp *= (temp * temp * v - 3.0f) * (-0.5f);
-      temp *= (temp * temp * v - 3.0f) * (-0.5f);
+      vec three = 3.0;
+      vec twelve = 12.0;
+      temp *= (three - temp * temp * v);
+      temp *= (twelve - temp * temp * v); 
       return temp;
 #else
       vec one = 1;
@@ -786,15 +788,6 @@ namespace pvfmm {
 #pragma message("Overloading vector operators for AVX")
 #endif
 #include <immintrin.h>
-  inline __m256 rsqrt_approx(const __m256& r2){
-    return _mm256_andnot_ps(_mm256_cmp_ps(r2,_mm256_setzero_ps(),_CMP_EQ_OS),_mm256_rsqrt_ps(r2));
-  }
-
-  inline void rsqrt_newton(__m256& rinv, const __m256& r2, const float& nwtn_const){
-    rinv = _mm256_mul_ps(rinv,_mm256_sub_ps(_mm256_set_ps(nwtn_const, nwtn_const, nwtn_const, nwtn_const,
-                                                          nwtn_const, nwtn_const, nwtn_const, nwtn_const),
-                                            _mm256_mul_ps(r2,_mm256_mul_ps(rinv,rinv))));
-  }
 
   template<>
   class vec<8,float> {
@@ -913,28 +906,16 @@ namespace pvfmm {
     }
     friend vec rsqrt(const vec & v) {                           // Reciprocal square root
 #if EXAFMM_VEC_NEWTON                                           // Switch on Newton-Raphson correction
-      __m256 r2 = v.data;
-      __m256 rinv = rsqrt_approx(r2);
-      rinv *= (3.0f - rinv * rinv * r2);
-      rinv *= (12.0f - rinv * rinv * r2);
-      return vec(rinv);
+      vec three = 3.0f;
+      vec temp = vec(_mm256_rsqrt_ps(v.data));
+      temp *= (three - temp * temp * v);
+      return temp;
 #else
       vec one = 1;
       return vec(_mm256_div_ps(one.data,_mm256_sqrt_ps(v.data)));
 #endif
     }
   };
-
-  __m128 rsqrt_approx(const __m128& r2);        // forward declaration, full implentation in SSE section
-
-  inline __m256d rsqrt_approx(const __m256d& r2){
-    return _mm256_cvtps_pd(rsqrt_approx(_mm256_cvtpd_ps(r2)));
-  }
-
-  inline void rsqrt_newton(__m256d& rinv, const __m256d& r2, const double& nwtn_const){
-      rinv = _mm256_mul_pd(rinv,_mm256_sub_pd(_mm256_set_pd(nwtn_const, nwtn_const, nwtn_const, nwtn_const),
-                                              _mm256_mul_pd(r2,_mm256_mul_pd(rinv,rinv))));
-  }
 
   template<>
   class vec<4,double> {
@@ -1053,15 +1034,12 @@ namespace pvfmm {
     }
     friend vec rsqrt(const vec & v) {                           // Reciprocal square root
 #if EXAFMM_VEC_NEWTON                                           // Switch on Newton-Raphson correction
-      //vec temp = vec(_mm256_cvtps_pd(_mm_rsqrt_ps(_mm256_cvtpd_ps(v.data))));
-      //temp *= (temp * temp * v - 3.0f) * (-0.5f);
-      //temp *= (temp * temp * v - 3.0f) * (-0.5f);
-      //return temp;
-      __m256d r2 = v.data;
-      __m256d rinv = rsqrt_approx(r2);
-      rsqrt_newton(rinv, r2, double(3));
-      rsqrt_newton(rinv, r2, double(12));
-      return vec(rinv);
+      vec temp = vec(_mm256_cvtps_pd(_mm_rsqrt_ps(_mm256_cvtpd_ps(v.data))));
+      vec three = 3.0;
+      vec twelve = 12.0;
+      temp *= (three - temp * temp * v);
+      temp *= (twelve - temp * temp * v);
+      return temp;
 #else
       vec one = 1;
       return vec(_mm256_div_pd(one.data,_mm256_sqrt_pd(v.data)));
@@ -1206,13 +1184,6 @@ namespace pvfmm {
 #pragma message("Overloading vector operators for SSE")
 #endif
 #include <pmmintrin.h>
-  inline __m128 rsqrt_approx(const __m128& r2){
-    return _mm_andnot_ps(_mm_cmpeq_ps(r2,_mm_setzero_ps()),_mm_rsqrt_ps(r2));
-  }
-
-  inline void rsqrt_newton(__m128& rinv, const __m128& r2, const float& nwtn_const){
-    rinv = _mm_mul_ps(rinv,_mm_sub_ps(_mm_set1_ps(nwtn_const),_mm_mul_ps(r2,_mm_mul_ps(rinv,rinv))));
-  }
 
   template<>
   class vec<4,float> {
@@ -1326,28 +1297,16 @@ namespace pvfmm {
     }
     friend vec rsqrt(const vec & v) {                           // Reciprocal square root
 #if EXAFMM_VEC_NEWTON                                           // Switch on Newton-Raphson correction
-      //vec temp = vec(_mm_rsqrt_ps(v.data));
-      // temp *= (temp * temp * v - 3.0f) * (-0.5f);
-      //return temp;
-      __m128 r2 = v.data;
-      __m128 rinv = rsqrt_approx(r2);
-      rsqrt_newton(rinv, r2, float(3));
-      rsqrt_newton(rinv, r2, float(12));
-      return vec(rinv);
+      vec temp = vec(_mm_rsqrt_ps(v.data));
+      vec three = 3.0f;
+      temp *= (three - temp * temp * v);
+      return temp;
 #else
       vec one = 1;
       return vec(_mm_div_ps(one.data,_mm_sqrt_ps(v.data)));
 #endif
     }
   };
-
-  inline __m128d rsqrt_approx(const __m128d& r2){
-    return _mm_cvtps_pd(rsqrt_approx(_mm_cvtpd_ps(r2)));
-  }
-
-  inline void rsqrt_newton(__m128d& rinv, const __m128d& r2, const double& nwtn_const){
-    rinv = _mm_mul_pd(rinv,_mm_sub_pd(_mm_set1_pd(nwtn_const),_mm_mul_pd(r2,_mm_mul_pd(rinv,rinv))));
-  }
 
   template<>
   class vec<2,double> {
@@ -1459,15 +1418,12 @@ namespace pvfmm {
     }
     friend vec rsqrt(const vec & v) {                           // Reciprocal square root
 #if EXAFMM_VEC_NEWTON                                           // Switch on Newton-Raphson correction
-      //vec temp = vec(_mm_cvtps_pd(_mm_rsqrt_ps(_mm_cvtpd_ps(v.data))));
-      //temp *= (temp * temp * v - 3.0f) * (-0.5f);
-      //temp *= (temp * temp * v - 3.0f) * (-0.5f);
-      //return temp;
-      __m128d r2 = v.data;
-      __m128d rinv = rsqrt_approx(r2);
-      rsqrt_newton(rinv, r2, double(3));
-      rsqrt_newton(rinv, r2, double(12));
-      return vec(rinv);
+      vec temp = vec(_mm_cvtps_pd(_mm_rsqrt_ps(_mm_cvtpd_ps(v.data))));
+      vec three = 3.0;
+      vec twelve = 12.0;
+      temp *= (three - temp * temp * v);
+      temp *= (twelve - temp * temp * v);
+      return temp;
 #else
       vec one = 1;
       return vec(_mm_div_pd(one.data,_mm_sqrt_pd(v.data)));

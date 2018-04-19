@@ -124,7 +124,7 @@ Kernel BuildKernel(const char* name, std::pair<int, int> k_dim,
 
 void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
   simdvec zero((real_t)0);
-  const real_t OOFP = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
+  const real_t OOFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
   simdvec oofp(OOFP);
   int src_cnt = src_coord.size() / 3;
   int trg_cnt = trg_coord.size() / 3;
@@ -146,6 +146,7 @@ void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, Re
       r2 = r2 + sy*sy;
       r2 = r2 + sz*sz;
       simdvec invR = rsqrt(r2);
+      invR &= r2 > zero;
       tv = tv + invR*sv;
     }
     tv = tv * oofp;
@@ -157,7 +158,7 @@ void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, Re
 
 void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
   simdvec zero((real_t)0);
-  const real_t OOFP = -1.0/(4*16*16*16*M_PI);
+  const real_t OOFP = -1.0/(4*2*2*2*M_PI);
   simdvec oofp(OOFP);
   int src_cnt = src_coord.size() / 3;
   int trg_cnt = trg_coord.size() / 3;
@@ -180,6 +181,7 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, Rea
       r2 = r2 + sy*sy;
       r2 = r2 + sz*sz;
       simdvec invR = rsqrt(r2);
+      invR &= r2 > zero;
       simdvec invR3 = (invR*invR) * invR;
       simdvec sv(src_value[s]);
       sv = invR3 * sv;
@@ -221,11 +223,9 @@ void laplaceP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int tr
   }
   if (grad) gradientP2P(src_coord, src_value, trg_coord, trg_value);
   else potentialP2P(src_coord, src_value, trg_coord, trg_value);
-  {
-    for(size_t i=0; i<trg_cnt ; i++) {
-      for(size_t j=0; j<TRG_DIM; j++)
-        v_trg[i*TRG_DIM+j]+=trg_value[i*TRG_DIM+j];
-    }
+  for(size_t i=0; i<trg_cnt ; i++) {
+    for(size_t j=0; j<TRG_DIM; j++)
+      v_trg[i*TRG_DIM+j]+=trg_value[i*TRG_DIM+j];
   }
 }
 
