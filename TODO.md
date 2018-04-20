@@ -1,11 +1,11 @@
 ###TODO
 -------------
 
+- [ ] Check grad answer in CheckFMMOutput (Chenwu)
+- [ ] Merge potential and grad (Chenwu)
+- [ ] Move P2M, M2M, M2L, L2L, L2P to Kernel class (Chenwu)
 - [x] Push history of pvfmm to exafmm-t (Tingyu)
 - [x] remove CollectNodeData and node_lst from fmm_tree (Tingyu)
-- [x] remove getPermR, getPermC from precomputation header (Chenwu)
-- [x] Remove unnecessary "{}" (Chenwu)
-- [x] Use code beautifier (Chenwu)
 - [ ] Simplify tree structure (Tingyu)
 - [ ] Unify node data types (Tingyu)
 - [x] Vector -> std::vector with customized allocator (Tingyu)

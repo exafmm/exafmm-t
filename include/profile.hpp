@@ -99,7 +99,7 @@ class Profile {
         double t_avg=t_sum/np;
         //double f_avg=f_sum/np;
         if(!rank) {
-#if 0
+#if 1
           if(n_log[i] == "P2M" || n_log[i] == "M2M" || n_log[i] == "P2L"
               || n_log[i] == "M2P" || n_log[i] == "P2P" || n_log[i] == "M2L"
               || n_log[i] == "L2L" || n_log[i] == "L2P")
