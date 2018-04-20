@@ -32,15 +32,16 @@ class PrecompMat {
     perm_c[M2M_Type].resize(numRelCoords);
     perm_r[L2L_Type].resize(numRelCoords);
     perm_c[L2L_Type].resize(numRelCoords);
-    Profile::Tic("PrecompM2M", false, 4);
+#pragma omp parallel
+#pragma omp single nowait
+{
+#pragma omp task
     PrecompAll(M2M_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompL2L", false, 4);
-    PrecompAll(L2L_Type);
-    Profile::Toc();
-    Profile::Tic("PrecompM2L", false, 4);
+#pragma omp task
     PrecompAll(M2L_Type);
-    Profile::Toc();
+#pragma omp taskwait
+}
+    PrecompAll(L2L_Type);
   }
 
   // This is only related to M2M and L2L operator
@@ -254,7 +255,7 @@ Profile::Toc();
       real_t *fftw_in, *fftw_out;
       err = posix_memalign((void**)&fftw_in, MEM_ALIGN,   n3 *ker_dim[0]*ker_dim[1]*sizeof(real_t));
       err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*ker_dim[0]*ker_dim[1]*sizeof(real_t));
-      #pragma omp critical (FFTW_PLAN)
+
       if (!m2l_precomp_fft_flag) {
         m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, nnn, ker_dim[0]*ker_dim[1],
                               (real_t*)fftw_in, NULL, 1, n3,
@@ -312,7 +313,6 @@ Profile::Toc();
     default:
       break;
     }
-    #pragma omp critical (PRECOMP_MATRIX_PTS)
     if(M_.Dim(0)==0 && M_.Dim(1)==0)
       M_=M;
     return M_;
