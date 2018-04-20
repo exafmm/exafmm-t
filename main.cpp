@@ -126,7 +126,9 @@ int main(int argc, char **argv) {
   Kernel * kernel = &grad_ker;
 #endif
   kernel->Initialize();
+  Profile::Tic("Precomputation", true);
   PrecompMat pmat(&interacList, kernel);
+  Profile::Toc();
   FMM_Tree tree(kernel, &interacList, &pmat);
   for(size_t it=0; it<1; it++) {
     Profile::Tic("TotalTime", true);

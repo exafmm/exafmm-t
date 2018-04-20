@@ -168,7 +168,6 @@ class PrecompMat {
       Matrix<real_t> U, S, V;
 Profile::Tic("SVD", false, 4);
       M_e2c.SVD(U, S, V);
-      M_c2e1=U.Transpose();
 Profile::Toc();
       real_t eps=1, max_S=0;
       while(eps*(real_t)0.5+(real_t)1.0>1.0) eps*=0.5;
@@ -177,8 +176,12 @@ Profile::Toc();
       }
       for(size_t i=0; i<S.Dim(0); i++) S[i][i]=(S[i][i]>eps*max_S*4?1.0/S[i][i]:0.0);
       M_c2e0=V.Transpose()*S;
-      mat[M2M_V_Type][0] = M_c2e0;
-      mat[M2M_U_Type][0] = M_c2e1;
+      M_c2e1=U.Transpose();
+      mat[M2M_V_Type][0] = V.Transpose()*S;
+      mat[M2M_U_Type][0] = U.Transpose();
+      mat[L2L_V_Type][0] = U*S;
+      mat[L2L_U_Type][0] = V;
+
 Profile::Tic("Multiply Matrix", false, 4);
       M=(M_ce2c*M_c2e0)*M_c2e1;
 Profile::Toc();
@@ -195,6 +198,9 @@ Profile::Toc();
       std::vector<real_t> equiv_surf=d_equiv_surf(parent_coord, level-1);
       Matrix<real_t> M_pe2c(NSURF*ker_dim[0], NSURF*ker_dim[1]);
       kernel->k_l2l->BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_pe2c[0][0]));
+
+      Matrix<real_t> M_c2e0, M_c2e1;
+#if 0
       // caculate L2L_U and L2L_V
       Matrix<real_t> M_c2e0, M_c2e1;
       if(MULTIPOLE_ORDER != 0 ) {
@@ -217,14 +223,15 @@ Profile::Toc();
       }
       mat[L2L_V_Type][0] = M_c2e0;
       mat[L2L_U_Type][0] = M_c2e1;
+#endif
       Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
       std::vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
       Permutation<real_t> P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
-      M_c2e0=P*M_c2e0;
+      M_c2e0=P*mat[L2L_V_Type][0];
       ker_perm=kernel->k_l2l->perm_vec[0     +Scaling];
       scal_exp=kernel->k_l2l->src_scal;
       P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
-      M_c2e1=M_c2e1*P;
+      M_c2e1=mat[L2L_U_Type][0]*P;
       M=M_c2e0*(M_c2e1*M_pe2c);
       break;
     }
