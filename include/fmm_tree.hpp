@@ -116,44 +116,6 @@ class FMM_Tree {
     }
   }
 
-  FMM_Node* PostorderNxt(FMM_Node* curr_node) {
-    assert(curr_node!=NULL);
-    FMM_Node* node=curr_node;
-    int j=node->octant+1;
-    node=node->Parent();
-    if(node==NULL) return NULL;
-    int n=(1UL<<3);
-    for(; j<n; j++) {
-      if(node->Child(j)!=NULL) {
-        node=node->Child(j);
-        while(true) {
-          if(node->IsLeaf()) return node;
-          for(int i=0; i<n; i++) {
-            if(node->Child(i)!=NULL) {
-              node=node->Child(i);
-              break;
-            }
-          }
-        }
-      }
-    }
-    return node;
-  }
-
-  FMM_Node* PostorderFirst() {
-    FMM_Node* node=root_node;
-    int n=(1UL<<3);
-    while(true) {
-      if(node->IsLeaf()) return node;
-      for(int i=0; i<n; i++) {
-        if(node->Child(i)!=NULL) {
-          node=node->Child(i);
-          break;
-        }
-      }
-    }
-  }
-
  public:
   std::vector<FMM_Node*>& GetNodeList() {
     node_lst.clear();
@@ -289,62 +251,58 @@ class FMM_Tree {
     }
   }
 
-  // generate node_list for different operators and node_data_buff (src trg information)
-  void CollectNodeData(std::vector<FMM_Node*>& nodes) {
-    // post-order traversal
+  // Construct list of leafs, nonleafs and initialize members 
+  void CollectNodeData() {
     leafs.clear();
-    nonleafs.clear();                       // input "nodes" is post-order
-    for (int i=0; i<nodes.size(); i++) {
-      if (nodes[i]->IsLeaf()) {
-        leafs.push_back(nodes[i]);
-        nodes[i]->pt_cnt[0] += nodes[i]->src_coord.size() / 3;
-        nodes[i]->pt_cnt[1] += nodes[i]->trg_coord.size() / 3;
-      } else {
-        nonleafs.push_back(nodes[i]);
-        nodes[i]->src_coord.resize(0);
-        nodes[i]->trg_coord.resize(0);
-        nodes[i]->src_value.resize(0);
-        nodes[i]->trg_value.resize(0);
-        for (int j=0; j<8; j++) {
-          FMM_Node* child = nodes[i]->Child(j);
-          nodes[i]->pt_cnt[0] += child->pt_cnt[0];
-          nodes[i]->pt_cnt[1] += child->pt_cnt[1];
-        }
-      }
-    }
-    // level order traversal
-    nodesLevelOrder.clear();            // level order traversal with leafs
-    nonleafsLevelOrder.clear();         // level order traversal without leafs
+    nonleafs.clear();
+    allnodes.clear();
     std::queue<FMM_Node*> nodesQueue;
     nodesQueue.push(root_node);
     while (!nodesQueue.empty()) {
       FMM_Node* curr = nodesQueue.front();
       nodesQueue.pop();
-      if (curr != root_node)  nodesLevelOrder.push_back(curr);
-      if (!curr->IsLeaf()) nonleafsLevelOrder.push_back(curr);
+      if (curr != root_node)  allnodes.push_back(curr);
+      if (!curr->IsLeaf()) nonleafs.push_back(curr);
+      else leafs.push_back(curr);
       for (int i=0; i<8; i++) {
         FMM_Node* child = curr->Child(i);
         if (child!=NULL) nodesQueue.push(child);
       }
     }
-    nodesLevelOrder.push_back(
-      root_node);   // level 0 root is the last one instead of the first elem in pvfmm's level order TT
-    // fill in vec_list
-    for(int i=0; i<nodesLevelOrder.size(); i++) {
-      FMM_Node* node = nodesLevelOrder[i];
+    allnodes.push_back(root_node);   // level 0 root is the last one
+    
+    for (long i=0; i<leafs.size(); i++) {
+      FMM_Node* leaf = leafs[i];
+      leaf->pt_cnt[0] = leaf->src_coord.size() / 3;
+      leaf->pt_cnt[1] = leaf->trg_coord.size() / 3;
+      leaf->trg_value.resize(leaf->pt_cnt[1] * kernel->ker_dim[1]);
+    }
+
+    for (long i=nonleafs.size()-1; i>=0; --i) {
+      FMM_Node* nonleaf = nonleafs[i];
+      nonleaf->src_coord.clear();
+      nonleaf->trg_coord.clear();
+      nonleaf->src_value.clear();
+      nonleaf->trg_value.clear();
+      for (int j=0; j<8; j++) {
+        FMM_Node* child = nonleaf->Child(j);
+        if (child) {
+          nonleaf->pt_cnt[0] += child->pt_cnt[0];
+          nonleaf->pt_cnt[1] += child->pt_cnt[1];
+        }
+      }
+    }
+
+    for(long i=0; i<allnodes.size(); i++) {
+      FMM_Node* node = allnodes[i];
       node->idx = i;
       node->upward_equiv.resize(NSURF, 0);
       node->dnward_equiv.resize(NSURF, 0);
     }
-    size_t numNodes = nodesLevelOrder.size();
+    size_t numNodes = allnodes.size();
     allUpwardEquiv.resize(numNodes*NSURF);
     allDnwardEquiv.resize(numNodes*NSURF);
-    int trg_dof = kernel->ker_dim[1];
-    for(int i=0; i<leafs.size(); i++) {
-      FMM_Node* leaf = leafs[i];
-      int n_trg_val = (leaf->trg_coord.size()/3) * trg_dof;
-      leaf->trg_value.resize(n_trg_val);
-    }
+    LEVEL = leafs.back()->depth;
   }
 
   // Build t-type interaction list for node n
@@ -469,10 +427,10 @@ class FMM_Tree {
   }
 
   void ClearFMMData() {
-    for(size_t i=0; i<nodesLevelOrder.size(); i++) {
-      std::vector<real_t>& upward_equiv = nodesLevelOrder[i]->upward_equiv;
-      std::vector<real_t>& dnward_equiv = nodesLevelOrder[i]->dnward_equiv;
-      std::vector<real_t>& trg_value = nodesLevelOrder[i]->trg_value;
+    for(size_t i=0; i<allnodes.size(); i++) {
+      std::vector<real_t>& upward_equiv = allnodes[i]->upward_equiv;
+      std::vector<real_t>& dnward_equiv = allnodes[i]->dnward_equiv;
+      std::vector<real_t>& trg_value = allnodes[i]->trg_value;
       std::fill(upward_equiv.begin(), upward_equiv.end(), 0);
       std::fill(dnward_equiv.begin(), dnward_equiv.end(), 0);
       std::fill(trg_value.begin(), trg_value.end(), 0);
@@ -480,8 +438,8 @@ class FMM_Tree {
   }
 
   void M2LSetup(M2LData& M2Ldata) {
-    std::vector<FMM_Node*>& nodes_in = nonleafsLevelOrder;
-    std::vector<FMM_Node*>& nodes_out = nonleafsLevelOrder;
+    std::vector<FMM_Node*>& nodes_in = nonleafs;
+    std::vector<FMM_Node*>& nodes_out = nonleafs;
     size_t n_in = nodes_in.size();
     size_t n_out = nodes_out.size();
     // build ptrs of precompmat
@@ -600,17 +558,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     SetColleagues();
     Profile::Toc();
     Profile::Tic("CollectNodeData", false, 3);
-    FMM_Node* n = PostorderFirst();
-    std::vector<FMM_Node*> all_nodes;
-    LEVEL = 0;
-    while(n!=NULL) {
-      LEVEL = n->depth > LEVEL ? n->depth : LEVEL;
-      n->pt_cnt[0]=0;
-      n->pt_cnt[1]=0;
-      all_nodes.push_back(n);        // all_nodes: postorder tree traversal
-      n = PostorderNxt(n);
-    }
-    CollectNodeData(all_nodes);
+    CollectNodeData();
     Profile::Toc();
     Profile::Tic("BuildLists", false, 3);
     BuildInteracLists();
@@ -743,23 +691,23 @@ std::cout << buff_size / pow(1024,3) << std::endl;
   }
 
   void gatherEquiv() {
-    size_t numNodes = nodesLevelOrder.size();
+    size_t numNodes = allnodes.size();
     #pragma omp parallel for collapse(2)
     for(int i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
-        allUpwardEquiv[i*NSURF+j] = nodesLevelOrder[i]->upward_equiv[j];
-        allDnwardEquiv[i*NSURF+j] = nodesLevelOrder[i]->dnward_equiv[j];
+        allUpwardEquiv[i*NSURF+j] = allnodes[i]->upward_equiv[j];
+        allDnwardEquiv[i*NSURF+j] = allnodes[i]->dnward_equiv[j];
       }
     }
   }
 
   void scatterEquiv() {
-    size_t numNodes = nodesLevelOrder.size();
+    size_t numNodes = allnodes.size();
     #pragma omp parallel for collapse(2)
     for(int i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
-        nodesLevelOrder[i]->upward_equiv[j] = allUpwardEquiv[i*NSURF+j];
-        nodesLevelOrder[i]->dnward_equiv[j] = allDnwardEquiv[i*NSURF+j];
+        allnodes[i]->upward_equiv[j] = allUpwardEquiv[i*NSURF+j];
+        allnodes[i]->dnward_equiv[j] = allDnwardEquiv[i*NSURF+j];
       }
     }
   }
@@ -1013,7 +961,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
   }
 
   void P2L() {
-    std::vector<FMM_Node*>& targets = nodesLevelOrder;
+    std::vector<FMM_Node*>& targets = allnodes;
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       FMM_Node* target = targets[i];

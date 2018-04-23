@@ -89,7 +89,6 @@ class PrecompMat {
       }
       if(col_perm_.Dim()>0)
         for(int i=p_list.size()-1; i>=0; i--) {
-          //assert(type!=M2L_Helper_Type);
           Permutation<real_t>& pc = perm[type][C_Perm + p_list[i]];
           col_perm_ = col_perm_*pc;
         }
@@ -149,7 +148,6 @@ class PrecompMat {
     Matrix<real_t> M;
     switch (type) {
     case M2M_Type: {
-      if(!MULTIPOLE_ORDER) break;
       const int* ker_dim=kernel->k_m2m->ker_dim;
       real_t c[3]= {0, 0, 0};
       std::vector<real_t> check_surf=u_check_surf(c, level);
@@ -189,7 +187,6 @@ Profile::Toc();
       break;
     }
     case L2L_Type: {
-      if(!MULTIPOLE_ORDER) break;
       const int* ker_dim=kernel->k_l2l->ker_dim;
       real_t s=powf(0.5, level+1);
       ivec3& coord=interacList->rel_coord[type][mat_indx];
@@ -237,7 +234,6 @@ Profile::Toc();
       break;
     }
     case M2L_Helper_Type: {
-      if(!MULTIPOLE_ORDER) break;
       const int* ker_dim=kernel->k_m2l->ker_dim;
       int n1=MULTIPOLE_ORDER*2;
       int n3 =n1*n1*n1;
@@ -272,7 +268,6 @@ Profile::Toc();
       break;
     }
     case M2L_Type: {
-      if(!MULTIPOLE_ORDER) break;
       const int* ker_dim=kernel->k_m2l->ker_dim;
       size_t mat_cnt =interacList->rel_coord[M2L_Helper_Type].size();
       for(size_t k=0; k<mat_cnt; k++) Precomp(M2L_Helper_Type, k);
@@ -319,23 +314,18 @@ Profile::Toc();
   }
 
   void PrecompAll(Mat_Type type) {
-    int idx_num =
-      interacList->rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
+    int idx_num = interacList->rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
     if (type == M2M_Type || type == L2L_Type) {
       for(int perm_idx=0; perm_idx<Perm_Count; perm_idx++) PrecompPerm(type, (Perm_Type) perm_idx);
-Profile::Tic("Precomp Mat", false, 4);
       for(int i=0; i<idx_num; i++) {           // i is index of rel_coord
         if(interacList->interac_class[type][i] == i) { // if i-th coord is a class_coord
           Precomp(type, i);                       // calculate operator matrix of class_coord
         }
       }
-Profile::Toc();
-Profile::Tic("Precomp Perm", false, 4);
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++) {
         Perm_R(0, type, mat_idx);
         Perm_C(0, type, mat_idx);
       }
-Profile::Toc();
     } else {
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++)
         Precomp(type, mat_idx);

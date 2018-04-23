@@ -109,8 +109,8 @@ std::vector<real_t> allUpwardEquiv;
 std::vector<real_t> allDnwardEquiv;
 
 class FMM_Node;
-std::vector<FMM_Node*> leafs, nonleafs;
-std::vector<FMM_Node*> nodesLevelOrder, nonleafsLevelOrder;
+std::vector<FMM_Node*> leafs, nonleafs, allnodes;
+
 int LEVEL;     // depth of octree
 int MULTIPOLE_ORDER;         // order of multipole expansion
 int NSURF;     // number of surface coordinates
