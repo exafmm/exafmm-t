@@ -160,8 +160,8 @@ class FMM_Tree {
         size_t pt_cnt=pt_c.size()/3;
         pt_mid.resize(pt_cnt);
         #pragma omp parallel for
-        for(size_t i=0; i<pt_cnt; i++)
-          pt_mid[i]=MortonId(pt_c[i*3+0], pt_c[i*3+1], pt_c[i*3+2], max_depth);
+        for(size_t j=0; j<pt_cnt; j++)
+          pt_mid[j]=MortonId(pt_c[j*3+0], pt_c[j*3+1], pt_c[j*3+2], max_depth);
         SortIndex(pt_mid, index);
         Forward  (pt_c, index);
         if(value_lst[i]!=NULL) {
