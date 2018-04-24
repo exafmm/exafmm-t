@@ -251,7 +251,7 @@ class FMM_Tree {
     }
   }
 
-  // Construct list of leafs, nonleafs and initialize members 
+  // Construct list of leafs, nonleafs and initialize members
   void CollectNodeData() {
     leafs.clear();
     nonleafs.clear();
@@ -270,7 +270,7 @@ class FMM_Tree {
       }
     }
     allnodes.push_back(root_node);   // level 0 root is the last one
-    
+
     for (long i=0; i<leafs.size(); i++) {
       FMM_Node* leaf = leafs[i];
       leaf->pt_cnt[0] = leaf->src_coord.size() / 3;
@@ -1123,14 +1123,14 @@ std::cout << buff_size / pow(1024,3) << std::endl;
       if(err>max_err) max_err=err;
       if(max>max_) max_=max;
     }
-    std::cout<<"Error      : "<<std::scientific<<max_err/max_<<'\n';
+    std::cout << std::setw(20) << std::left << "Error" << " : "<<std::scientific<<max_err/max_<<'\n';
     real_t trg_diff = 0, trg_norm = 0.;
     assert(trg_poten_dir.size() == trg_poten_fmm.size());
     for(size_t i=0; i<trg_poten_fmm.size(); i++) {
       trg_diff += (trg_poten_dir[i]-trg_poten_fmm[i])*(trg_poten_dir[i]-trg_poten_fmm[i]);
       trg_norm += trg_poten_dir[i] * trg_poten_dir[i];
     }
-    std::cout << "L2 Error   : " << std::scientific << sqrt(trg_diff/trg_norm) << std::endl;
+    std::cout << std::setw(20) << std::left << "L2 Error" << " : " << std::scientific << sqrt(trg_diff/trg_norm) << std::endl;
   }
 };
 

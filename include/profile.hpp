@@ -101,13 +101,14 @@ class Profile {
         if(!rank) {
 #if 1
           if(n_log[i] == "P2M" || n_log[i] == "M2M" || n_log[i] == "P2L"
-              || n_log[i] == "M2P" || n_log[i] == "P2P" || n_log[i] == "M2L"
-              || n_log[i] == "L2L" || n_log[i] == "L2P" || n_log[i] == "Precomputation"
-              || n_log[i] == "FMM_Test" ) 
+             || n_log[i] == "M2P" || n_log[i] == "P2P" || n_log[i] == "M2L"
+             || n_log[i] == "L2L" || n_log[i] == "L2P" || n_log[i] == "Precomputation"
+             || n_log[i] == "Total" )
 
 //|| n_log[i] == "SVD" || n_log[i] == "FFT_UpEquiv" || n_log[i] == "M2LHadamard" || n_log[i] == "FFT_Check2Equiv")
 #endif
-            std::cout << n_log[i] << "        : " << t_avg << std::endl;
+            std::cout << std::setw(20) << std::left << n_log[i] << " : " << std::setprecision(7)
+                      << t_avg << std::endl;
         }
         level--;
       }

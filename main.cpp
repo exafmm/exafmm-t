@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   int depth = 15;
   Profile::Enable(true);
-  Profile::Tic("FMM_Test", true);
+  Profile::Tic("Total", true);
   InitData init_data;
   init_data.max_depth=depth;
   init_data.max_pts=M;
@@ -146,8 +146,8 @@ int main(int argc, char **argv) {
     tree.RunFMM();
     Profile::Toc();
   }
-  std::cout<<"Leaf Nodes : "<< leafs.size() <<'\n';
-  std::cout<<"Tree Depth : "<< LEVEL <<'\n';
+  std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() <<'\n';
+  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< LEVEL <<'\n';
   tree.CheckFMMOutput("Output");
   Profile::Toc();
   Profile::print();
