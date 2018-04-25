@@ -4,7 +4,7 @@ WFLAGS = -fmudflap -fno-strict-aliasing -fsanitize=address -fsanitize=leak -fsta
 # -Wsign-compare -Werror
 
 CXX = mpiicpc
-CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=gnu++11 -fopenmp -I./include $(WFLAGS)
+CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=gnu++11 -fopenmp -debug all -traceback -I./include
 LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
 
 %.o: %.cpp

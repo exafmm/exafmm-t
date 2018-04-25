@@ -32,15 +32,8 @@ class PrecompMat {
     perm_c[M2M_Type].resize(numRelCoords);
     perm_r[L2L_Type].resize(numRelCoords);
     perm_c[L2L_Type].resize(numRelCoords);
-#pragma omp parallel
-#pragma omp single nowait
-{
-#pragma omp task
     PrecompAll(M2M_Type);
-#pragma omp task
     PrecompAll(M2L_Type);
-#pragma omp taskwait
-}
     PrecompAll(L2L_Type);
   }
 
@@ -198,30 +191,6 @@ Profile::Toc();
       kernel->k_l2l->BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_pe2c[0][0]));
 
       Matrix<real_t> M_c2e0, M_c2e1;
-#if 0
-      // caculate L2L_U and L2L_V
-      Matrix<real_t> M_c2e0, M_c2e1;
-      if(MULTIPOLE_ORDER != 0 ) {
-        const int* ker_dim=kernel->k_l2l->ker_dim;
-        real_t c[3]= {0, 0, 0};
-        std::vector<real_t> check_surf=d_check_surf(c, level);
-        std::vector<real_t> equiv_surf=d_equiv_surf(c, level);
-        Matrix<real_t> M_e2c(NSURF*ker_dim[0], NSURF*ker_dim[1]);
-        kernel->k_l2l->BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_e2c[0][0]));
-        Matrix<real_t> U, S, V;
-        M_e2c.SVD(U, S, V);
-        M_c2e1=U.Transpose();
-        real_t eps=1, max_S=0;
-        while(eps*(real_t)0.5+(real_t)1.0>1.0) eps*=0.5;
-        for(size_t i=0; i<std::min(S.Dim(0), S.Dim(1)); i++) {
-          if(fabs(S[i][i])>max_S) max_S=fabs(S[i][i]);
-        }
-        for(size_t i=0; i<S.Dim(0); i++) S[i][i]=(S[i][i]>eps*max_S*4?1.0/S[i][i]:0.0);
-        M_c2e0=V.Transpose()*S;
-      }
-      mat[L2L_V_Type][0] = M_c2e0;
-      mat[L2L_U_Type][0] = M_c2e1;
-#endif
       Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
       std::vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
       Permutation<real_t> P=equiv_surf_perm(Scaling, ker_perm, scal_exp);

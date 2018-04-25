@@ -1,11 +1,18 @@
 ###TODO
 -------------
 
-- [ ] Remove mutable
+- [ ] Remove mutable (Chenwu)
 - [ ] Check grad answer in CheckFMMOutput (Chenwu)
 - [ ] Merge potential and grad (Chenwu)
-- [ ] Move P2M, M2M, M2L, L2L, L2P to Kernel class (Chenwu)
-- [ ] trg/src_coord/value > pt_coord/pt_trg/pt_src
+- [ ] Move P2M to Kernel class (Chenwu)
+- [ ] Move M2M to Kernel class (Chenwu)
+- [ ] Move L2L to Kernel class (Chenwu)
+- [ ] Move L2P to Kernel class (Chenwu)
+- [ ] Move P2L to Kernel class (Chenwu)
+- [ ] Move M2P to Kernel class (Chenwu)
+- [ ] Move P2P to Kernel class (Chenwu)
+- [ ] Move M2L to Kernel class (Chenwu)
+- [ ] trg/src_coord/value > pt_coord/pt_trg/pt_src (Tingyu)
 - [ ] Unify node data types (Tingyu)
 - [ ] Simplify tree structure (Tingyu)
 - [ ] split fmm_tree header -> tree_construction, eval_setup, eval (Tingyu)
@@ -16,6 +23,5 @@
 - [ ] define global n1,n2,n3,n3\_,fftsize, replace the local copys with the global ones in M2L precomputation & evaluation
 - [ ] remove node_lst from FMM_Tree, organize traversal calls in CollectNodeData
 - [ ] test whether fft_in needs to be aligned in M2L (performance-wise)
-- [ ] compare & update benchmarks in TIME
 - [ ] naming conventions
 - [ ] rename headers, modify include guards
