@@ -13,19 +13,19 @@ struct Kernel {
   std::string ker_name;
   Ker_t ker_poten;
 
-  mutable bool init;
-  mutable std::vector<real_t> src_scal;
-  mutable std::vector<real_t> trg_scal;
-  mutable std::vector<Permutation<real_t> > perm_vec;
+  bool init;
+  std::vector<real_t> src_scal;
+  std::vector<real_t> trg_scal;
+  std::vector<Permutation<real_t> > perm_vec;
 
-  mutable const Kernel* k_s2m;
-  mutable const Kernel* k_s2l;
-  mutable const Kernel* k_s2t;
-  mutable const Kernel* k_m2m;
-  mutable const Kernel* k_m2l;
-  mutable const Kernel* k_m2t;
-  mutable const Kernel* k_l2l;
-  mutable const Kernel* k_l2t;
+  Kernel* k_s2m;
+  Kernel* k_s2l;
+  Kernel* k_s2t;
+  Kernel* k_m2m;
+  Kernel* k_m2l;
+  Kernel* k_m2t;
+  Kernel* k_l2l;
+  Kernel* k_l2t;
 
   Kernel(Ker_t poten, const char* name, std::pair<int, int> k_dim) {
     ker_dim[0]=k_dim.first;
@@ -48,7 +48,7 @@ struct Kernel {
     k_l2t=NULL;
   }
 
-  void Initialize() const {
+  void Initialize() {
     if(init) return;
     init = true;
     // hardcoded src & trg scal here, since they are constants for Laplace based on the original code
@@ -106,10 +106,10 @@ struct Kernel {
 
 template<void (*A)(real_t*, int, real_t*, real_t*, int, real_t*)>
 Kernel BuildKernel(const char* name, std::pair<int, int> k_dim,
-                   const Kernel* k_s2m=NULL, const Kernel* k_s2l=NULL, const Kernel* k_s2t=NULL,
-                   const Kernel* k_m2m=NULL,
-                   const Kernel* k_m2l=NULL, const Kernel* k_m2t=NULL, const Kernel* k_l2l=NULL,
-                   const Kernel* k_l2t=NULL) {
+                   Kernel* k_s2m=NULL, Kernel* k_s2l=NULL, Kernel* k_s2t=NULL,
+                   Kernel* k_m2m=NULL,
+                   Kernel* k_m2l=NULL, Kernel* k_m2t=NULL, Kernel* k_l2l=NULL,
+                   Kernel* k_l2t=NULL) {
   Kernel K(A, name, k_dim);
   K.k_s2m=k_s2m;
   K.k_s2l=k_s2l;
@@ -158,7 +158,7 @@ void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, Re
 
 void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
   simdvec zero((real_t)0);
-  const real_t OOFP = -1.0/(4*2*2*2*M_PI);
+  const real_t OOFP = -1.0/(4*2*2*6*M_PI);
   simdvec oofp(OOFP);
   int src_cnt = src_coord.size() / 3;
   int trg_cnt = trg_coord.size() / 3;

@@ -1,7 +1,7 @@
 ###TODO
 -------------
 
-- [ ] Remove mutable (Chenwu)
+- [x] Remove mutable (Chenwu)
 - [ ] Check grad answer in CheckFMMOutput (Chenwu)
 - [ ] Merge potential and grad (Chenwu)
 - [ ] Move P2M to Kernel class (Chenwu)
