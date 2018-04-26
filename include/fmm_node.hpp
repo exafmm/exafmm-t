@@ -15,12 +15,9 @@ class FMM_Node {
   size_t node_id;
   real_t coord[3];
   FMM_Node * colleague[27];
-  std::vector<real_t> pt_coord; // Remove
-  std::vector<real_t> pt_value; // Remove
-  std::vector<real_t> src_coord;
-  std::vector<real_t> src_value;
-  std::vector<real_t> trg_coord; // Remove
-  std::vector<real_t> trg_value; // Remove
+  std::vector<real_t> pt_coord;
+  std::vector<real_t> pt_value;
+  std::vector<real_t> trg_value;
   std::vector<real_t> upward_equiv; // M
   std::vector<real_t> dnward_equiv; // L
   size_t pt_cnt[2];
@@ -57,7 +54,6 @@ class FMM_Node {
       int flag=1;
       for(int j=0; j<3; j++) {
         coord[j]=parent_->coord[j]+
-                 // ((Path2Node() & flag)?coord_offset:0.0f);
                  ((octant & flag)?coord_offset:0.0f);
         flag=flag<<1;
       }
@@ -76,10 +72,6 @@ class FMM_Node {
                    std::vector<std::vector<real_t>*>& value) {
     coord  .push_back(&pt_coord  );
     value  .push_back(&pt_value  );
-    coord  .push_back(&src_coord  );
-    value  .push_back(&src_value  );
-    coord  .push_back(&trg_coord  );
-    value  .push_back(&trg_value  );
   }
 
   void Truncate() {

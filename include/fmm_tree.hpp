@@ -273,16 +273,13 @@ class FMM_Tree {
 
     for (long i=0; i<leafs.size(); i++) {
       FMM_Node* leaf = leafs[i];
-      leaf->pt_cnt[0] = leaf->src_coord.size() / 3;
-      leaf->pt_cnt[1] = leaf->trg_coord.size() / 3;
+      leaf->pt_cnt[0] = leaf->pt_coord.size() / 3;
+      leaf->pt_cnt[1] = leaf->pt_coord.size() / 3;
       leaf->trg_value.resize(leaf->pt_cnt[1] * kernel->ker_dim[1]);
     }
 
     for (long i=nonleafs.size()-1; i>=0; --i) {
       FMM_Node* nonleaf = nonleafs[i];
-      nonleaf->src_coord.clear();
-      nonleaf->trg_coord.clear();
-      nonleaf->src_value.clear();
       nonleaf->trg_value.clear();
       for (int j=0; j<8; j++) {
         FMM_Node* child = nonleaf->Child(j);
@@ -557,11 +554,11 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     Profile::Tic("SetColleagues", false, 3);
     SetColleagues();
     Profile::Toc();
-    Profile::Tic("CollectNodeData", false, 3);
-    CollectNodeData();
-    Profile::Toc();
     Profile::Tic("BuildLists", false, 3);
     BuildInteracLists();
+    Profile::Toc();
+    Profile::Tic("CollectNodeData", false, 3);
+    CollectNodeData();
     Profile::Toc();
     Profile::Tic("M2LListSetup", false, 3);
     M2LSetup(M2Ldata);
@@ -586,7 +583,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
         checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
         checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
       }
-      kernel->k_s2m->ker_poten(&(leaf->src_coord[0]), leaf->pt_cnt[0], &(leaf->src_value[0]),
+      kernel->k_s2m->ker_poten(&(leaf->pt_coord[0]), leaf->pt_cnt[0], &(leaf->pt_value[0]),
                                &checkCoord[0], NSURF, &
                                (leaf->upward_equiv[0]));  // save check potentials in upward_equiv temporarily
       // check surface potential -> equivalent surface charge
@@ -622,7 +619,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
         equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
       }
       kernel->k_l2t->ker_poten(&equivCoord[0], NSURF, &(leaf->dnward_equiv[0]),
-                               &(leaf->trg_coord[0]), leaf->pt_cnt[1], &(leaf->trg_value[0]));
+                               &(leaf->pt_coord[0]), leaf->pt_cnt[1], &(leaf->trg_value[0]));
     }
   }
 
@@ -723,7 +720,6 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     err = posix_memalign((void**)&zero_vec0, MEM_ALIGN, fftsize_in *sizeof(real_t));
     err = posix_memalign((void**)&zero_vec1, MEM_ALIGN, fftsize_out*sizeof(real_t));
     size_t n_out=fft_out.dim[0] * fft_out.dim[1]/fftsize_out;
-    //std::fill(fft_out.begin(), fft_out.end(), 0);
     fft_out.SetZero();
 
     size_t mat_cnt=precomp_mat.size();
@@ -926,8 +922,8 @@ std::cout << buff_size / pow(1024,3) << std::endl;
             if (type == M2P_Type)
               if (source->pt_cnt[0] > NSURF)
                 continue;
-            kernel->k_s2t->ker_poten(&(source->src_coord[0]), source->pt_cnt[0], &(source->src_value[0]),
-                                     &(target->trg_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
+            kernel->k_s2t->ker_poten(&(source->pt_coord[0]), source->pt_cnt[0], &(source->pt_value[0]),
+                                     &(target->pt_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
           }
         }
       }
@@ -954,7 +950,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
             sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
           }
           kernel->k_m2t->ker_poten(&sourceEquivCoord[0], NSURF, &(source->upward_equiv[0]),
-                                   &(target->trg_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
+                                   &(target->pt_coord[0]), target->pt_cnt[1], &(target->trg_value[0]));
         }
       }
     }
@@ -979,7 +975,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
             targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
             targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
           }
-          kernel->k_s2l->ker_poten(&(source->src_coord[0]), source->pt_cnt[0], &(source->src_value[0]),
+          kernel->k_s2l->ker_poten(&(source->pt_coord[0]), source->pt_cnt[0], &(source->pt_value[0]),
                                    &targetCheckCoord[0], NSURF, &(target->dnward_equiv[0]));
         }
       }
@@ -1076,8 +1072,8 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     FMM_Node* n=root_node;
     while(n!=NULL) {
       if(n->IsLeaf()) {
-        std::vector<real_t>& coord_vec=n->src_coord;
-        std::vector<real_t>& value_vec=n->src_value;
+        std::vector<real_t>& coord_vec=n->pt_coord;
+        std::vector<real_t>& value_vec=n->pt_value;
         for(size_t i=0; i<coord_vec.size(); i++) src_coord.push_back(coord_vec[i]);
         for(size_t i=0; i<value_vec.size(); i++) src_value.push_back(value_vec[i]);
       }
@@ -1092,7 +1088,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     long long trg_iter=0;
     while(n!=NULL) {
       if(n->IsLeaf()) {
-        std::vector<real_t>& coord_vec=n->trg_coord;
+        std::vector<real_t>& coord_vec=n->pt_coord;
         std::vector<real_t>& poten_vec=n->trg_value;
         for(size_t i=0; i<coord_vec.size()/3; i++) {
           if(trg_iter%step_size == 0) {

@@ -133,15 +133,6 @@ int main(int argc, char **argv) {
   for(size_t it=0; it<1; it++) {
     Profile::Tic("TotalTime", true);
     tree.Initialize(&init_data);
-    Profile::Tic("SetSrcTrg", true);
-    std::vector<FMM_Node*>& nodes=tree.GetNodeList();
-    #pragma omp parallel for
-    for(size_t i=0; i<nodes.size(); i++) {
-      nodes[i]->trg_coord = nodes[i]->pt_coord;
-      nodes[i]->src_coord = nodes[i]->pt_coord;
-      nodes[i]->src_value = nodes[i]->pt_value;
-    }
-    Profile::Toc();
     tree.SetupFMM();
     tree.RunFMM();
     Profile::Toc();
