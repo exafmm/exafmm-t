@@ -16,8 +16,8 @@ class FMM_Node {
   real_t coord[3];
   FMM_Node * colleague[27];
   std::vector<real_t> pt_coord;
-  std::vector<real_t> pt_value;
-  std::vector<real_t> trg_value;
+  std::vector<real_t> pt_src;  // src's charge
+  std::vector<real_t> pt_trg;  // trg's potential
   std::vector<real_t> upward_equiv; // M
   std::vector<real_t> dnward_equiv; // L
   size_t pt_cnt[2];
@@ -63,7 +63,7 @@ class FMM_Node {
     if(data_) {
       max_pts=data->max_pts;
       pt_coord=data->coord;
-      pt_value=data->value;
+      pt_src=data->value;
     } else if(parent)
       max_pts =parent->max_pts;
   }
@@ -71,7 +71,7 @@ class FMM_Node {
   void NodeDataVec(std::vector<std::vector<real_t>*>& coord,
                    std::vector<std::vector<real_t>*>& value) {
     coord  .push_back(&pt_coord  );
-    value  .push_back(&pt_value  );
+    value  .push_back(&pt_src  );
   }
 
   void Truncate() {
