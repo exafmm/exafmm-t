@@ -8,7 +8,6 @@
 namespace pvfmm {
 class PrecompMat {
  public:
-  std::vector<std::vector<Matrix<real_t> > > mat;
   std::vector<std::vector<Permutation<real_t> > > perm;
   std::vector<std::vector<Permutation<real_t> > > perm_r;
   std::vector<std::vector<Permutation<real_t> > > perm_c;
@@ -17,10 +16,10 @@ class PrecompMat {
 
   PrecompMat(InteracList* interacList_, const Kernel* kernel_):
     kernel(kernel_), interacList(interacList_) {
-    mat.resize(PrecomputationType);
+    gPrecompMat.resize(PrecomputationType);
     for(int type=0; type<PrecomputationType; type++) {
       int numRelCoords = interacList->rel_coord[type].size();
-      mat[type].resize(numRelCoords);
+      gPrecompMat[type].resize(numRelCoords);
     }
     perm.resize(Type_Count);
     perm[M2M_Type].resize(Perm_Count);
@@ -35,14 +34,13 @@ class PrecompMat {
     PrecompAll(M2M_Type);
     PrecompAll(M2L_Type);
     PrecompAll(L2L_Type);
-    kernel->k_p2m->SaveMat(mat);
   }
 
   // This is only related to M2M and L2L operator
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx) {
     size_t indx0 =
       interacList->interac_class[type][indx];                     // indx0: class coord index
-    Matrix     <real_t>& M0      = mat[type][indx0];         // class coord matrix
+    Matrix     <real_t>& M0      = gPrecompMat[type][indx0];         // class coord matrix
     Permutation<real_t>& row_perm = perm_r[l*Type_Count
                                            +type][indx];    // mat->perm_r[(l+128)*16+type][indx]
     //if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;             // if mat hasn't been computed, then return
@@ -70,7 +68,7 @@ class PrecompMat {
 
   Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx) {
     size_t indx0 = interacList->interac_class[type][indx];
-    Matrix     <real_t>& M0      = mat[type][indx0];
+    Matrix     <real_t>& M0      = gPrecompMat[type][indx0];
     Permutation<real_t>& col_perm = perm_c[l*Type_Count+type][indx];
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
     if(col_perm.Dim()==0) {
@@ -93,7 +91,7 @@ class PrecompMat {
 
   Matrix<real_t>& ClassMat(Mat_Type type, size_t indx) {
     size_t indx0 = interacList->interac_class[type][indx];
-    return mat[type][indx0];
+    return gPrecompMat[type][indx0];
   }
 
   void PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
@@ -137,7 +135,7 @@ class PrecompMat {
 
   Matrix<real_t>& Precomp(Mat_Type type, size_t mat_indx) {
     int level = 0;
-    Matrix<real_t>& M_ = mat[type][mat_indx];
+    Matrix<real_t>& M_ = gPrecompMat[type][mat_indx];
     if(M_.Dim(0)!=0 && M_.Dim(1)!=0) return M_;
     Matrix<real_t> M;
     switch (type) {
@@ -170,10 +168,10 @@ Profile::Toc();
       for(size_t i=0; i<S.Dim(0); i++) S[i][i]=(S[i][i]>eps*max_S*4?1.0/S[i][i]:0.0);
       M_c2e0=V.Transpose()*S;
       M_c2e1=U.Transpose();
-      mat[M2M_V_Type][0] = V.Transpose()*S;
-      mat[M2M_U_Type][0] = U.Transpose();
-      mat[L2L_V_Type][0] = U*S;
-      mat[L2L_U_Type][0] = V;
+      gPrecompMat[M2M_V_Type][0] = V.Transpose()*S;
+      gPrecompMat[M2M_U_Type][0] = U.Transpose();
+      gPrecompMat[L2L_V_Type][0] = U*S;
+      gPrecompMat[L2L_U_Type][0] = V;
 
 Profile::Tic("Multiply Matrix", false, 4);
       M=(M_ce2c*M_c2e0)*M_c2e1;
@@ -195,11 +193,11 @@ Profile::Toc();
       Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
       std::vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
       Permutation<real_t> P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
-      M_c2e0=P*mat[L2L_V_Type][0];
+      M_c2e0=P*gPrecompMat[L2L_V_Type][0];
       ker_perm=kernel->k_l2l->perm_vec[0     +Scaling];
       scal_exp=kernel->k_l2l->src_scal;
       P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
-      M_c2e1=mat[L2L_U_Type][0]*P;
+      M_c2e1=gPrecompMat[L2L_U_Type][0]*P;
       M=M_c2e0*(M_c2e1*M_pe2c);
       break;
     }
@@ -260,7 +258,7 @@ Profile::Toc();
             if(ref_coord[0]==rel_coord[0] &&
                 ref_coord[1]==rel_coord[1] &&
                 ref_coord[2]==rel_coord[2]) {
-              Matrix<real_t>& M = mat[M2L_Helper_Type][k];
+              Matrix<real_t>& M = gPrecompMat[M2L_Helper_Type][k];
               M_ptr[j2*chld_cnt+j1]=&M[0][0];
               break;
             }

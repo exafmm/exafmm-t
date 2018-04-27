@@ -4,7 +4,6 @@
 #include "vec.h"
 #include "pvfmm.h"
 #include "fmm_node.hpp"
-#include "precomp_mat.hpp"
 namespace pvfmm {
 
 struct Kernel {
@@ -12,7 +11,6 @@ struct Kernel {
   typedef void (*Ker_t)(real_t* r_src, int src_cnt, real_t* v_src,
                         real_t* r_trg, int trg_cnt, real_t* k_out);
 
-  std::vector<std::vector<Matrix<real_t>>> mat;
   int ker_dim[2];
   std::string ker_name;
   Ker_t ker_poten;
@@ -107,10 +105,6 @@ struct Kernel {
       }
   }
 
-  void SaveMat(std::vector<std::vector<Matrix<real_t> > > mat_) {
-    mat = mat_;
-  }
-
   void P2M() {
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
@@ -128,9 +122,9 @@ struct Kernel {
                                (leaf->upward_equiv[0]));  // save check potentials in upward_equiv temporarily check surface potential -> equivalent surface charge
       Matrix<real_t> check(1, NSURF, &(leaf->upward_equiv[0]), true);  // check surface potential
       Matrix<real_t> buffer(1, NSURF);
-      Matrix<real_t>::GEMM(buffer, check, mat[M2M_V_Type][0]);
+      Matrix<real_t>::GEMM(buffer, check, gPrecompMat[M2M_V_Type][0]);
       Matrix<real_t> equiv(1, NSURF);  // equivalent surface charge
-      Matrix<real_t>::GEMM(equiv, buffer, mat[M2M_U_Type][0]);
+      Matrix<real_t>::GEMM(equiv, buffer, gPrecompMat[M2M_U_Type][0]);
       for(int k=0; k<NSURF; k++)
         leaf->upward_equiv[k] = scal * equiv[0][k];
     }

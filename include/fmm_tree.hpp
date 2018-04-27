@@ -443,7 +443,7 @@ class FMM_Tree {
     size_t mat_cnt = interacList->rel_coord[M2L_Type].size();
     std::vector<real_t*> precomp_mat;                    // vector of ptrs which points to Precomputation matrix of each M2L relative position
     for(size_t mat_id=0; mat_id<mat_cnt; mat_id++) {
-      Matrix<real_t>& M = mat->mat[M2L_Type][mat_id];
+      Matrix<real_t>& M = gPrecompMat[M2L_Type][mat_id];
       precomp_mat.push_back(&M[0][0]);                   // precomp_mat.size == M2L's numRelCoords
     }
     // calculate buff_size & numBlocks
@@ -578,9 +578,9 @@ std::cout << buff_size / pow(1024,3) << std::endl;
       // check surface potential -> equivalent surface charge
       Matrix<real_t> check(1, NSURF, &(leaf->dnward_equiv[0]), true);  // check surface potential
       Matrix<real_t> buffer(1, NSURF);
-      Matrix<real_t>::GEMM(buffer, check, mat->mat[L2L_V_Type][0]);
+      Matrix<real_t>::GEMM(buffer, check, gPrecompMat[L2L_V_Type][0]);
       Matrix<real_t> equiv(1, NSURF);  // equivalent surface charge
-      Matrix<real_t>::GEMM(equiv, buffer, mat->mat[L2L_U_Type][0]);
+      Matrix<real_t>::GEMM(equiv, buffer, gPrecompMat[L2L_U_Type][0]);
       for(int k=0; k<NSURF; k++)
         leaf->dnward_equiv[k] = scal * equiv[0][k];
       // equivalent surface charge -> target potential
@@ -597,7 +597,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
 
   void M2M(FMM_Node* node) {
     if(node->IsLeaf()) return;
-    Matrix<real_t>& M = mat->mat[M2M_Type][7];  // 7 is the class coord, will generalize it later
+    Matrix<real_t>& M = gPrecompMat[M2M_Type][7];  // 7 is the class coord, will generalize it later
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL)
         #pragma omp task untied
@@ -629,7 +629,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
 
   void L2L(FMM_Node* node) {
     if(node->IsLeaf()) return;
-    Matrix<real_t>& M = mat->mat[L2L_Type][7];  // 7 is the class coord, will generalize it later
+    Matrix<real_t>& M = gPrecompMat[L2L_Type][7];  // 7 is the class coord, will generalize it later
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
         FMM_Node* child = node->child[octant];

@@ -4,7 +4,7 @@
 - [x] Remove mutable (Chenwu)
 - [ ] Check grad answer in CheckFMMOutput (Chenwu)
 - [ ] Merge potential and grad (Chenwu)
-- [ ] Move P2M to Kernel class (Chenwu)
+- [x] Move P2M to Kernel class (Chenwu)
 - [ ] Move M2M to Kernel class (Chenwu)
 - [ ] Move L2L to Kernel class (Chenwu)
 - [ ] Move L2P to Kernel class (Chenwu)
