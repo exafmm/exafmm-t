@@ -569,31 +569,6 @@ std::cout << buff_size / pow(1024,3) << std::endl;
 
   /* 3rd Part: Evaluation */
  private:
-  void P2M() {
-    #pragma omp parallel for
-    for(int i=0; i<leafs.size(); i++) {
-      FMM_Node* leaf = leafs[i];
-      int level = leaf->depth;
-      real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
-      std::vector<real_t> checkCoord(NSURF*3);
-      for(int k=0; k<NSURF; k++) {
-        checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->coord[0];
-        checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
-        checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
-      }
-      kernel->k_p2m->ker_poten(&(leaf->pt_coord[0]), leaf->pt_cnt[0], &(leaf->pt_src[0]),
-                               &checkCoord[0], NSURF, &
-                               (leaf->upward_equiv[0]));  // save check potentials in upward_equiv temporarily check surface potential -> equivalent surface charge
-      Matrix<real_t> check(1, NSURF, &(leaf->upward_equiv[0]), true);  // check surface potential
-      Matrix<real_t> buffer(1, NSURF);
-      Matrix<real_t>::GEMM(buffer, check, mat->mat[M2M_V_Type][0]);
-      Matrix<real_t> equiv(1, NSURF);  // equivalent surface charge
-      Matrix<real_t>::GEMM(equiv, buffer, mat->mat[M2M_U_Type][0]);
-      for(int k=0; k<NSURF; k++)
-        leaf->upward_equiv[k] = scal * equiv[0][k];
-    }
-  }
-
   void L2P() {
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
@@ -1019,7 +994,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
 
   void UpwardPass() {
     Profile::Tic("P2M", false, 5);
-    P2M();
+    kernel->k_p2m->P2M();
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
     M2M();

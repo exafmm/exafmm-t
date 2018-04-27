@@ -35,6 +35,7 @@ class PrecompMat {
     PrecompAll(M2M_Type);
     PrecompAll(M2L_Type);
     PrecompAll(L2L_Type);
+    kernel->k_p2m->SaveMat(mat);
   }
 
   // This is only related to M2M and L2L operator

@@ -1,6 +1,7 @@
 #ifndef _PVFMM_FMM_NODE_HPP_
 #define _PVFMM_FMM_NODE_HPP_
 #include "pvfmm.h"
+#include "mortonid.hpp"
 namespace pvfmm {
 
 class FMM_Node {
