@@ -18,14 +18,14 @@ struct Kernel {
   std::vector<real_t> trg_scal;
   std::vector<Permutation<real_t> > perm_vec;
 
-  Kernel* k_s2m;
-  Kernel* k_s2l;
-  Kernel* k_s2t;
+  Kernel* k_p2m;
+  Kernel* k_p2l;
+  Kernel* k_p2p;
   Kernel* k_m2m;
   Kernel* k_m2l;
-  Kernel* k_m2t;
+  Kernel* k_m2p;
   Kernel* k_l2l;
-  Kernel* k_l2t;
+  Kernel* k_l2p;
 
   Kernel(Ker_t poten, const char* name, std::pair<int, int> k_dim) {
     ker_dim[0]=k_dim.first;
@@ -38,14 +38,14 @@ struct Kernel {
     perm_vec.resize(Perm_Count);
     std::fill(perm_vec.begin(), perm_vec.begin()+C_Perm, Permutation<real_t>(ker_dim[0]));
     std::fill(perm_vec.begin()+C_Perm, perm_vec.end(), Permutation<real_t>(ker_dim[1]));
-    k_s2m=NULL;
-    k_s2l=NULL;
-    k_s2t=NULL;
+    k_p2m=NULL;
+    k_p2l=NULL;
+    k_p2p=NULL;
     k_m2m=NULL;
     k_m2l=NULL;
-    k_m2t=NULL;
+    k_m2p=NULL;
     k_l2l=NULL;
-    k_l2t=NULL;
+    k_l2p=NULL;
   }
 
   void Initialize() {
@@ -54,34 +54,34 @@ struct Kernel {
     // hardcoded src & trg scal here, since they are constants for Laplace based on the original code
     if (ker_dim[1] == 3) std::fill(trg_scal.begin(), trg_scal.end(), 2.);
     else std::fill(trg_scal.begin(), trg_scal.end(), 1.);
-    if(!k_s2m) k_s2m=this;
-    if(!k_s2l) k_s2l=this;
-    if(!k_s2t) k_s2t=this;
+    if(!k_p2m) k_p2m=this;
+    if(!k_p2l) k_p2l=this;
+    if(!k_p2p) k_p2p=this;
     if(!k_m2m) k_m2m=this;
     if(!k_m2l) k_m2l=this;
-    if(!k_m2t) k_m2t=this;
+    if(!k_m2p) k_m2p=this;
     if(!k_l2l) k_l2l=this;
-    if(!k_l2t) k_l2t=this;
-    assert(k_s2t->ker_dim[0]==ker_dim[0]);
-    assert(k_s2m->ker_dim[0]==k_s2l->ker_dim[0]);
-    assert(k_s2m->ker_dim[0]==k_s2t->ker_dim[0]);
+    if(!k_l2p) k_l2p=this;
+    assert(k_p2p->ker_dim[0]==ker_dim[0]);
+    assert(k_p2m->ker_dim[0]==k_p2l->ker_dim[0]);
+    assert(k_p2m->ker_dim[0]==k_p2p->ker_dim[0]);
     assert(k_m2m->ker_dim[0]==k_m2l->ker_dim[0]);
-    assert(k_m2m->ker_dim[0]==k_m2t->ker_dim[0]);
-    assert(k_l2l->ker_dim[0]==k_l2t->ker_dim[0]);
-    assert(k_s2t->ker_dim[1]==ker_dim[1]);
-    assert(k_s2m->ker_dim[1]==k_m2m->ker_dim[1]);
-    assert(k_s2l->ker_dim[1]==k_l2l->ker_dim[1]);
+    assert(k_m2m->ker_dim[0]==k_m2p->ker_dim[0]);
+    assert(k_l2l->ker_dim[0]==k_l2p->ker_dim[0]);
+    assert(k_p2p->ker_dim[1]==ker_dim[1]);
+    assert(k_p2m->ker_dim[1]==k_m2m->ker_dim[1]);
+    assert(k_p2l->ker_dim[1]==k_l2l->ker_dim[1]);
     assert(k_m2l->ker_dim[1]==k_l2l->ker_dim[1]);
-    assert(k_s2t->ker_dim[1]==k_m2t->ker_dim[1]);
-    assert(k_s2t->ker_dim[1]==k_l2t->ker_dim[1]);
-    k_s2m->Initialize();
-    k_s2l->Initialize();
-    k_s2t->Initialize();
+    assert(k_p2p->ker_dim[1]==k_m2p->ker_dim[1]);
+    assert(k_p2p->ker_dim[1]==k_l2p->ker_dim[1]);
+    k_p2m->Initialize();
+    k_p2l->Initialize();
+    k_p2p->Initialize();
     k_m2m->Initialize();
     k_m2l->Initialize();
-    k_m2t->Initialize();
+    k_m2p->Initialize();
     k_l2l->Initialize();
-    k_l2t->Initialize();
+    k_l2p->Initialize();
   }
 
   //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)
@@ -106,19 +106,19 @@ struct Kernel {
 
 template<void (*A)(real_t*, int, real_t*, real_t*, int, real_t*)>
 Kernel BuildKernel(const char* name, std::pair<int, int> k_dim,
-                   Kernel* k_s2m=NULL, Kernel* k_s2l=NULL, Kernel* k_s2t=NULL,
+                   Kernel* k_p2m=NULL, Kernel* k_p2l=NULL, Kernel* k_p2p=NULL,
                    Kernel* k_m2m=NULL,
-                   Kernel* k_m2l=NULL, Kernel* k_m2t=NULL, Kernel* k_l2l=NULL,
-                   Kernel* k_l2t=NULL) {
+                   Kernel* k_m2l=NULL, Kernel* k_m2p=NULL, Kernel* k_l2l=NULL,
+                   Kernel* k_l2p=NULL) {
   Kernel K(A, name, k_dim);
-  K.k_s2m=k_s2m;
-  K.k_s2l=k_s2l;
-  K.k_s2t=k_s2t;
+  K.k_p2m=k_p2m;
+  K.k_p2l=k_p2l;
+  K.k_p2p=k_p2p;
   K.k_m2m=k_m2m;
   K.k_m2l=k_m2l;
-  K.k_m2t=k_m2t;
+  K.k_m2p=k_m2p;
   K.k_l2l=k_l2l;
-  K.k_l2t=k_l2t;
+  K.k_l2p=k_l2p;
   return K;
 }
 
@@ -241,5 +241,4 @@ void gradientP2P(real_t* r_src, int src_cnt, real_t* v_src,  real_t* r_trg, int 
 }
 
 }//end namespace
-
 #endif //_PVFMM_FMM_KERNEL_HPP_
