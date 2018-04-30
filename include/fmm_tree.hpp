@@ -37,7 +37,7 @@ class FMM_Tree {
    * Interface: Initialize(init_data) */
  private:
   inline int p2oLocal(std::vector<MortonId> & nodes, std::vector<MortonId>& leaves,
-                      unsigned int maxNumPts, unsigned int maxDepth, bool complete) {
+                      unsigned int maxNumPts, unsigned int maxDepth) {
     assert(maxDepth<=MAX_DEPTH);
     std::vector<MortonId> leaves_lst;
     unsigned int init_size=leaves.size();
@@ -70,13 +70,11 @@ class FMM_Tree {
       next_pt = curr_pt + maxNumPts;
       if(next_pt > num_pts) next_pt = num_pts;
     }
-    if(complete) {
-      while(curr_node<last_node) {
-        while( curr_node.NextId() > last_node && curr_node.GetDepth() < maxDepth-1 )
-          curr_node = curr_node.getDFD(curr_node.GetDepth()+1);
-        leaves_lst.push_back(curr_node);
-        curr_node = curr_node.NextId();
-      }
+    while(curr_node<last_node) {
+      while( curr_node.NextId() > last_node && curr_node.GetDepth() < maxDepth-1 )
+        curr_node = curr_node.getDFD(curr_node.GetDepth()+1);
+      leaves_lst.push_back(curr_node);
+      curr_node = curr_node.NextId();
     }
     leaves=leaves_lst;
     return 0;
@@ -84,7 +82,6 @@ class FMM_Tree {
 
   inline int points2Octree(const std::vector<MortonId>& pt_mid, std::vector<MortonId>& nodes,
                            unsigned int maxDepth, unsigned int maxNumPts) {
-    int myrank=0, np=1;
     Profile::Tic("SortMortonId", true, 10);
     std::vector<MortonId> pt_sorted;
     HyperQuickSort(pt_mid, pt_sorted);
@@ -93,7 +90,7 @@ class FMM_Tree {
     Profile::Tic("p2o_local", false, 10);
     nodes.resize(1);
     nodes[0]=MortonId();
-    p2oLocal(pt_sorted, nodes, maxNumPts, maxDepth, myrank==np-1);
+    p2oLocal(pt_sorted, nodes, maxNumPts, maxDepth);
     Profile::Toc();
     return 0;
   }
