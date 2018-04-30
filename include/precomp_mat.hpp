@@ -9,8 +9,6 @@ namespace pvfmm {
 class PrecompMat {
  public:
   std::vector<std::vector<Permutation<real_t> > > perm;
-  // std::vector<std::vector<Permutation<real_t> > > perm_r;
-  // std::vector<std::vector<Permutation<real_t> > > perm_c;
   InteracList* interacList;
   const Kernel* kernel;
 

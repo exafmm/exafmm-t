@@ -230,7 +230,59 @@ struct Kernel {
             targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
           }
           ker_poten(&(source->pt_coord[0]), source->pt_cnt[0], &(source->pt_src[0]),
-                                   &targetCheckCoord[0], NSURF, &(target->dnward_equiv[0]));
+                       &targetCheckCoord[0], NSURF, &(target->dnward_equiv[0]));
+        }
+      }
+    }
+  }
+
+  void M2P() {
+    std::vector<FMM_Node*>& targets = leafs;  // leafs
+    #pragma omp parallel for
+    for(int i=0; i<targets.size(); i++) {
+      FMM_Node* target = targets[i];
+      std::vector<FMM_Node*>& sources = target->interac_list[M2P_Type];
+      for(int j=0; j<sources.size(); j++) {
+        FMM_Node* source = sources[j];
+        if (source != NULL) {
+          if (source->IsLeaf() && source->pt_cnt[0]<=NSURF)
+            continue;
+          std::vector<real_t> sourceEquivCoord(NSURF*3);
+          int level = source->depth;
+          // source cell's equiv coord = relative equiv coord + cell's origin
+          for(int k=0; k<NSURF; k++) {
+            sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->coord[0];
+            sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
+            sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
+          }
+          ker_poten(&sourceEquivCoord[0], NSURF, &(source->upward_equiv[0]),
+                       &(target->pt_coord[0]), target->pt_cnt[1], &(target->pt_trg[0]));
+        }
+      }
+    }
+  }
+
+  void P2P() {
+    std::vector<FMM_Node*>& targets = leafs;   // leafs, assume sources == targets
+    std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type, P2L_Type, M2P_Type};
+    #pragma omp parallel for
+    for(int i=0; i<targets.size(); i++) {
+      FMM_Node* target = targets[i];
+      for(int k=0; k<types.size(); k++) {
+        Mat_Type type = types[k];
+        std::vector<FMM_Node*>& sources = target->interac_list[type];
+        if (type == P2L_Type)
+          if (target->pt_cnt[1] > NSURF)
+            continue;
+        for(int j=0; j<sources.size(); j++) {
+          FMM_Node* source = sources[j];
+          if (source != NULL) {
+            if (type == M2P_Type)
+              if (source->pt_cnt[0] > NSURF)
+                continue;
+            ker_poten(&(source->pt_coord[0]), source->pt_cnt[0], &(source->pt_src[0]),
+                         &(target->pt_coord[0]), target->pt_cnt[1], &(target->pt_trg[0]));
+          }
         }
       }
     }
