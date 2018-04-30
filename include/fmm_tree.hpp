@@ -569,42 +569,30 @@ std::cout << buff_size / pow(1024,3) << std::endl;
 
   /* 3rd Part: Evaluation */
  private:
-  void L2P() {
-    #pragma omp parallel for
-    for(int i=0; i<leafs.size(); i++) {
-      FMM_Node* leaf = leafs[i];
-      int level = leaf->depth;
-      real_t scal = pow(0.5, level);
+  // void L2P() {
+    // #pragma omp parallel for
+    // for(int i=0; i<leafs.size(); i++) {
+      // FMM_Node* leaf = leafs[i];
+      // int level = leaf->depth;
+      // real_t scal = pow(0.5, level);
       // check surface potential -> equivalent surface charge
-      Matrix<real_t> check(1, NSURF, &(leaf->dnward_equiv[0]), true);  // check surface potential
-      Matrix<real_t> buffer(1, NSURF);
-      Matrix<real_t>::GEMM(buffer, check, gPrecompMat[L2L_V_Type][0]);
-      Matrix<real_t> equiv(1, NSURF);  // equivalent surface charge
-      Matrix<real_t>::GEMM(equiv, buffer, gPrecompMat[L2L_U_Type][0]);
-      for(int k=0; k<NSURF; k++)
-        leaf->dnward_equiv[k] = scal * equiv[0][k];
+      // Matrix<real_t> check(1, NSURF, &(leaf->dnward_equiv[0]), true);  // check surface potential
+      // Matrix<real_t> buffer(1, NSURF);
+      // Matrix<real_t>::GEMM(buffer, check, gPrecompMat[L2L_V_Type][0]);
+      // Matrix<real_t> equiv(1, NSURF);  // equivalent surface charge
+      // Matrix<real_t>::GEMM(equiv, buffer, gPrecompMat[L2L_U_Type][0]);
+      // for(int k=0; k<NSURF; k++)
+        // leaf->dnward_equiv[k] = scal * equiv[0][k];
       // equivalent surface charge -> target potential
-      std::vector<real_t> equivCoord(NSURF*3);
-      for(int k=0; k<NSURF; k++) {
-        equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->coord[0];
-        equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->coord[1];
-        equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
-      }
-      kernel->k_l2p->ker_poten(&equivCoord[0], NSURF, &(leaf->dnward_equiv[0]),
-                               &(leaf->pt_coord[0]), leaf->pt_cnt[1], &(leaf->pt_trg[0]));
-    }
-  }
-
-  // void M2M() {
-    // #pragma omp parallel
-    // #pragma omp single nowait
-    // M2M(root_node);
-  // }
-
-  // void L2L() {
-    // #pragma omp parallel
-    // #pragma omp single nowait
-    // L2L(root_node);
+      // std::vector<real_t> equivCoord(NSURF*3);
+      // for(int k=0; k<NSURF; k++) {
+        // equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->coord[0];
+        // equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->coord[1];
+        // equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
+      // }
+      // kernel->k_l2p->ker_poten(&equivCoord[0], NSURF, &(leaf->dnward_equiv[0]),
+                               // &(leaf->pt_coord[0]), leaf->pt_cnt[1], &(leaf->pt_trg[0]));
+    // }
   // }
 
   void gatherEquiv() {
@@ -876,32 +864,6 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     }
   }
 
-  void P2L() {
-    std::vector<FMM_Node*>& targets = allnodes;
-    #pragma omp parallel for
-    for(int i=0; i<targets.size(); i++) {
-      FMM_Node* target = targets[i];
-      if (target->IsLeaf() && target->pt_cnt[1]<=NSURF)
-        continue;
-      std::vector<FMM_Node*>& sources = target->interac_list[P2L_Type];
-      for(int j=0; j<sources.size(); j++) {
-        FMM_Node* source = sources[j];
-        if (source != NULL) {
-          std::vector<real_t> targetCheckCoord(NSURF*3);
-          int level = target->depth;
-          // target cell's check coord = relative check coord + cell's origin
-          for(int k=0; k<NSURF; k++) {
-            targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
-            targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
-            targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
-          }
-          kernel->k_p2l->ker_poten(&(source->pt_coord[0]), source->pt_cnt[0], &(source->pt_src[0]),
-                                   &targetCheckCoord[0], NSURF, &(target->dnward_equiv[0]));
-        }
-      }
-    }
-  }
-
   void M2L(M2LData& M2Ldata) {
     real_t* buff = BUFFER.data_ptr;
     size_t n_blk0 = M2Ldata.n_blk0;
@@ -945,7 +907,6 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     kernel->k_p2m->P2M();
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
-    // M2M();
     #pragma omp parallel
     #pragma omp single nowait
     kernel->k_m2m->M2M(root_node);
@@ -954,7 +915,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
 
   void DownwardPass() {
     Profile::Tic("P2L", false, 5);
-    P2L();
+    kernel->k_p2l->P2L();
     Profile::Toc();
     Profile::Tic("M2P", false, 5);
     M2P();
@@ -973,7 +934,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     kernel->k_l2l->L2L(root_node);
     Profile::Toc();
     Profile::Tic("L2P", false, 5);
-    L2P();
+    kernel->k_l2p->L2P();
     Profile::Toc();
   }
 
