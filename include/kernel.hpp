@@ -157,6 +157,32 @@ struct Kernel {
       }
     }
   }
+
+  void L2L(FMM_Node* node) {
+    if(node->IsLeaf()) return;
+    Matrix<real_t>& M = gPrecompMat[L2L_Type][7];  // 7 is the class coord, will generalize it later
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL) {
+        FMM_Node* child = node->child[octant];
+        std::vector<size_t>& perm_in = perm_r[octant].perm;
+        std::vector<size_t>& perm_out = perm_c[octant].perm;
+        Matrix<real_t> buffer_in(1, NSURF);
+        Matrix<real_t> buffer_out(1, NSURF);
+        for(int k=0; k<NSURF; k++) {
+          buffer_in[0][k] = node->dnward_equiv[perm_in[k]]; // input perm
+        }
+        Matrix<real_t>::GEMM(buffer_out, buffer_in, M);
+        for(int k=0; k<NSURF; k++)
+          child->dnward_equiv[k] += buffer_out[0][perm_out[k]];
+      }
+    }
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL)
+        #pragma omp task untied
+        L2L(node->child[octant]);
+    }
+    #pragma omp taskwait
+  }
 };
 
 template<void (*A)(real_t*, int, real_t*, real_t*, int, real_t*)>

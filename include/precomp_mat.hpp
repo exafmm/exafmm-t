@@ -35,7 +35,7 @@ class PrecompMat {
   }
 
   // This is only related to M2M and L2L operator
-  Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx) {
+  Permutation<real_t>& Perm_R(Mat_Type type, size_t indx) {
     size_t indx0 =
       interacList->interac_class[type][indx];                     // indx0: class coord index
     Matrix <real_t>& M0 = gPrecompMat[type][indx0];         // class coord matrix
@@ -44,7 +44,7 @@ class PrecompMat {
     if(row_perm.Dim()==0) {                                       // if this perm_r entry hasn't been computed
       std::vector<Perm_Type> p_list =
         interacList->perm_list[type][indx];      // get perm_list of current rel_coord
-      for(int i=0; i<l; i++) p_list.push_back(Scaling);           // push back Scaling operation l times
+      // for(int i=0; i<l; i++) p_list.push_back(Scaling);           // push back Scaling operation l times
       Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(
                                       0));  // init row_perm to be size npts*src_dim
       for(int i=0; i<C_Perm; i++) {                               // loop over permutation types
@@ -63,14 +63,14 @@ class PrecompMat {
     return row_perm;
   }
 
-  Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx) {
+  Permutation<real_t>& Perm_C(Mat_Type type, size_t indx) {
     size_t indx0 = interacList->interac_class[type][indx];
     Matrix     <real_t>& M0      = gPrecompMat[type][indx0];
     Permutation<real_t>& col_perm = (type == M2M_Type) ? kernel->k_m2m->perm_c[indx] : kernel->k_l2l->perm_c[indx];
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
     if(col_perm.Dim()==0) {
       std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];
-      for(int i=0; i<l; i++) p_list.push_back(Scaling);
+      // for(int i=0; i<l; i++) p_list.push_back(Scaling);
       Permutation<real_t> col_perm_ = Permutation<real_t>(M0.Dim(1));
       for(int i=0; i<C_Perm; i++) {
         Permutation<real_t>& pc = perm[type][C_Perm + i];
@@ -288,8 +288,8 @@ Profile::Toc();
         }
       }
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++) {
-        Perm_R(0, type, mat_idx);
-        Perm_C(0, type, mat_idx);
+        Perm_R(type, mat_idx);
+        Perm_C(type, mat_idx);
       }
     } else {
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++)
