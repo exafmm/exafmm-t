@@ -595,37 +595,11 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     }
   }
 
-  void M2M(FMM_Node* node) {
-    if(node->IsLeaf()) return;
-    Matrix<real_t>& M = gPrecompMat[M2M_Type][7];  // 7 is the class coord, will generalize it later
-    for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL)
-        #pragma omp task untied
-        M2M(node->child[octant]);
-    }
-    #pragma omp taskwait
-    for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL) {
-        FMM_Node* child = node->child[octant];
-        std::vector<size_t>& perm_in = mat->perm_r[M2M_Type][octant].perm;
-        std::vector<size_t>& perm_out = mat->perm_c[M2M_Type][octant].perm;
-        Matrix<real_t> buffer_in(1, NSURF);
-        Matrix<real_t> buffer_out(1, NSURF);
-        for(int k=0; k<NSURF; k++) {
-          buffer_in[0][k] = child->upward_equiv[perm_in[k]]; // input perm
-        }
-        Matrix<real_t>::GEMM(buffer_out, buffer_in, M);
-        for(int k=0; k<NSURF; k++)
-          node->upward_equiv[k] += buffer_out[0][perm_out[k]];
-      }
-    }
-  }
-
-  void M2M() {
-    #pragma omp parallel
-    #pragma omp single nowait
-    M2M(root_node);
-  }
+  // void M2M() {
+    // #pragma omp parallel
+    // #pragma omp single nowait
+    // M2M(root_node);
+  // }
 
   void L2L(FMM_Node* node) {
     if(node->IsLeaf()) return;
@@ -633,8 +607,8 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
         FMM_Node* child = node->child[octant];
-        std::vector<size_t>& perm_in = mat->perm_r[L2L_Type][octant].perm;
-        std::vector<size_t>& perm_out = mat->perm_c[L2L_Type][octant].perm;
+        std::vector<size_t>& perm_in = kernel->k_l2l->perm_r[octant].perm;
+        std::vector<size_t>& perm_out = kernel->k_l2l->perm_c[octant].perm;
         Matrix<real_t> buffer_in(1, NSURF);
         Matrix<real_t> buffer_out(1, NSURF);
         for(int k=0; k<NSURF; k++) {
@@ -997,7 +971,10 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     kernel->k_p2m->P2M();
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
-    M2M();
+    // M2M();
+    #pragma omp parallel
+    #pragma omp single nowait
+    kernel->k_m2m->M2M(root_node);
     Profile::Toc();
   }
 

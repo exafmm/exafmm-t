@@ -9,8 +9,8 @@ namespace pvfmm {
 class PrecompMat {
  public:
   std::vector<std::vector<Permutation<real_t> > > perm;
-  std::vector<std::vector<Permutation<real_t> > > perm_r;
-  std::vector<std::vector<Permutation<real_t> > > perm_c;
+  // std::vector<std::vector<Permutation<real_t> > > perm_r;
+  // std::vector<std::vector<Permutation<real_t> > > perm_c;
   InteracList* interacList;
   const Kernel* kernel;
 
@@ -24,13 +24,11 @@ class PrecompMat {
     perm.resize(Type_Count);
     perm[M2M_Type].resize(Perm_Count);
     perm[L2L_Type].resize(Perm_Count);
-    perm_r.resize(Type_Count);
-    perm_c.resize(Type_Count);
     int numRelCoords = interacList->rel_coord[M2M_Type].size();
-    perm_r[M2M_Type].resize(numRelCoords);
-    perm_c[M2M_Type].resize(numRelCoords);
-    perm_r[L2L_Type].resize(numRelCoords);
-    perm_c[L2L_Type].resize(numRelCoords);
+    kernel->k_m2m->perm_r.resize(numRelCoords);
+    kernel->k_m2m->perm_c.resize(numRelCoords);
+    kernel->k_l2l->perm_r.resize(numRelCoords);
+    kernel->k_l2l->perm_c.resize(numRelCoords);
     PrecompAll(M2M_Type);
     PrecompAll(M2L_Type);
     PrecompAll(L2L_Type);
@@ -40,9 +38,8 @@ class PrecompMat {
   Permutation<real_t>& Perm_R(int l, Mat_Type type, size_t indx) {
     size_t indx0 =
       interacList->interac_class[type][indx];                     // indx0: class coord index
-    Matrix     <real_t>& M0      = gPrecompMat[type][indx0];         // class coord matrix
-    Permutation<real_t>& row_perm = perm_r[l*Type_Count
-                                           +type][indx];    // mat->perm_r[(l+128)*16+type][indx]
+    Matrix <real_t>& M0 = gPrecompMat[type][indx0];         // class coord matrix
+    Permutation<real_t>& row_perm = (type == M2M_Type) ? kernel->k_m2m->perm_r[indx] : kernel->k_l2l->perm_r[indx];
     //if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;             // if mat hasn't been computed, then return
     if(row_perm.Dim()==0) {                                       // if this perm_r entry hasn't been computed
       std::vector<Perm_Type> p_list =
@@ -69,7 +66,7 @@ class PrecompMat {
   Permutation<real_t>& Perm_C(int l, Mat_Type type, size_t indx) {
     size_t indx0 = interacList->interac_class[type][indx];
     Matrix     <real_t>& M0      = gPrecompMat[type][indx0];
-    Permutation<real_t>& col_perm = perm_c[l*Type_Count+type][indx];
+    Permutation<real_t>& col_perm = (type == M2M_Type) ? kernel->k_m2m->perm_c[indx] : kernel->k_l2l->perm_c[indx];
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
     if(col_perm.Dim()==0) {
       std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];

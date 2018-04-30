@@ -18,7 +18,9 @@ struct Kernel {
   bool init;
   std::vector<real_t> src_scal;
   std::vector<real_t> trg_scal;
-  std::vector<Permutation<real_t> > perm_vec;
+  std::vector<Permutation<real_t>> perm_vec;
+  std::vector<Permutation<real_t>> perm_r;
+  std::vector<Permutation<real_t>> perm_c;
 
   Kernel* k_p2m;
   Kernel* k_p2l;
@@ -127,6 +129,32 @@ struct Kernel {
       Matrix<real_t>::GEMM(equiv, buffer, gPrecompMat[M2M_U_Type][0]);
       for(int k=0; k<NSURF; k++)
         leaf->upward_equiv[k] = scal * equiv[0][k];
+    }
+  }
+
+  void M2M(FMM_Node* node) {
+    if(node->IsLeaf()) return;
+    Matrix<real_t>& M = gPrecompMat[M2M_Type][7];  // 7 is the class coord, will generalize it later
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL)
+        #pragma omp task untied
+        M2M(node->child[octant]);
+    }
+    #pragma omp taskwait
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL) {
+        FMM_Node* child = node->child[octant];
+        std::vector<size_t>& perm_in = perm_r[octant].perm;
+        std::vector<size_t>& perm_out = perm_c[octant].perm;
+        Matrix<real_t> buffer_in(1, NSURF);
+        Matrix<real_t> buffer_out(1, NSURF);
+        for(int k=0; k<NSURF; k++) {
+          buffer_in[0][k] = child->upward_equiv[perm_in[k]]; // input perm
+        }
+        Matrix<real_t>::GEMM(buffer_out, buffer_in, M);
+        for(int k=0; k<NSURF; k++)
+          node->upward_equiv[k] += buffer_out[0][perm_out[k]];
+      }
     }
   }
 };
