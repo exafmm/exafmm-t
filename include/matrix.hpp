@@ -123,30 +123,11 @@ class Matrix {
     return &data_ptr[i*dim[1]];
   }
 
-  Matrix<T> operator*(const Matrix<T>& M) {
-    assert(dim[1]==M.dim[0]);
-    Profile::Add_FLOP(2*(((long long)dim[0])*dim[1])*M.dim[1]);
-    Matrix<T> M_r(dim[0], M.dim[1], NULL);
-    if(M.Dim(0)*M.Dim(1)==0 || this->Dim(0)*this->Dim(1)==0) return M_r;
+  friend Matrix<T> operator*(const Matrix<T>& A, const Matrix<T>& B) {
+    assert(A.dim[1] == B.dim[0]);
     char transA = 'N', transB = 'N';
     T alpha = 1.0, beta = 0.0;
-#if FLOAT
-    sgemm_(&transA, &transB, (int*)&M.dim[1], (int*)&dim[0], (int*)&dim[1], &alpha, M.data_ptr,
-           (int*)&M.dim[1], data_ptr, (int*)&dim[1], &beta, M_r.data_ptr, (int*)&M_r.dim[1]);
-#else
-    dgemm_(&transA, &transB, (int*)&M.dim[1], (int*)&dim[0], (int*)&dim[1], &alpha, M.data_ptr,
-           (int*)&M.dim[1], data_ptr, (int*)&dim[1], &beta, M_r.data_ptr, (int*)&M_r.dim[1]);
-#endif
-    return M_r;
-  }
-
-  static void GEMM(Matrix<T>& M_r, const Matrix<T>& A, const Matrix<T>& B, T beta=0.0) {
-    if(A.Dim(0)*A.Dim(1)==0 || B.Dim(0)*B.Dim(1)==0) return;
-    assert(A.dim[1]==B.dim[0]);
-    assert(M_r.dim[0]==A.dim[0]);
-    assert(M_r.dim[1]==B.dim[1]);
-    char transA = 'N', transB = 'N';
-    T alpha = 1.0;
+    Matrix<T> M_r(A.dim[0], B.dim[1]);
 #if FLOAT
     sgemm_(&transA, &transB, (int*)&B.dim[1], (int*)&A.dim[0], (int*)&A.dim[1], &alpha, B.data_ptr,
            (int*)&B.dim[1], A.data_ptr, (int*)&A.dim[1], &beta, M_r.data_ptr, (int*)&M_r.dim[1]);
@@ -154,8 +135,14 @@ class Matrix {
     dgemm_(&transA, &transB, (int*)&B.dim[1], (int*)&A.dim[0], (int*)&A.dim[1], &alpha, B.data_ptr,
            (int*)&B.dim[1], A.data_ptr, (int*)&A.dim[1], &beta, M_r.data_ptr, (int*)&M_r.dim[1]);
 #endif
-    //gemm('N','N',B.dim[1],A.dim[0],A.dim[1],
-    //      1.0,B.data_ptr,B.dim[1],A.data_ptr,A.dim[1],beta,M_r.data_ptr,M_r.dim[1]);
+    return M_r;
+  }
+
+  static void GEMM(Matrix<T>& M_r, const Matrix<T>& A, const Matrix<T>& B, T beta=0.0) {
+    if(A.Dim(0)*A.Dim(1)==0 || B.Dim(0)*B.Dim(1)==0) return;
+    assert(M_r.dim[0] == A.dim[0]);
+    assert(M_r.dim[1] == B.dim[1]);
+    M_r = A * B;
   }
 
 #define B1 128
