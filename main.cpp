@@ -73,9 +73,6 @@ std::vector<real_t> nonuniform(int numBodies) {
 }
 
 int main(int argc, char **argv) {
-  size_t BUFFERSIZE = 1024*1024*1024;
-  BUFFER.Resize(1, BUFFERSIZE);
-  BUFFER.SetZero();
   Args args(argc, argv);
   omp_set_num_threads(args.threads);
   size_t N = args.numBodies;

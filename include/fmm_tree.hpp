@@ -810,7 +810,9 @@ std::cout << buff_size / pow(1024,3) << std::endl;
   }
 
   void M2L(M2LData& M2Ldata) {
-    real_t* buff = BUFFER.data_ptr;
+    size_t buffersize = 1024*1024*1024;
+    Matrix<real_t> buffer(1, buffersize);
+    real_t* buff = buffer.data_ptr;
     size_t n_blk0 = M2Ldata.n_blk0;
     size_t m = MULTIPOLE_ORDER;
     size_t n1 = m * 2;
