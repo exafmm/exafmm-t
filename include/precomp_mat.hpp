@@ -68,7 +68,6 @@ class PrecompMat {
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
     if(col_perm.Dim()==0) {
       std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];
-      // for(int i=0; i<l; i++) p_list.push_back(Scaling);
       Permutation<real_t> col_perm_ = Permutation<real_t>(M0.Dim(1));
       for(int i=0; i<C_Perm; i++) {
         Permutation<real_t>& pc = perm[type][C_Perm + i];
@@ -161,15 +160,13 @@ Profile::Toc();
         if(fabs(S[i][i])>max_S) max_S=fabs(S[i][i]);
       }
       for(size_t i=0; i<S.Dim(0); i++) S[i][i]=(S[i][i]>eps*max_S*4?1.0/S[i][i]:0.0);
-      M_c2e0=V.Transpose()*S;
-      M_c2e1=U.Transpose();
-      gPrecompMat[M2M_V_Type][0] = V.Transpose()*S;
-      gPrecompMat[M2M_U_Type][0] = U.Transpose();
-      gPrecompMat[L2L_V_Type][0] = U*S;
-      gPrecompMat[L2L_U_Type][0] = V;
+      M2M_V = V.Transpose()*S;
+      M2M_U = U.Transpose();
+      L2L_V = U*S;
+      L2L_U = V;
 
 Profile::Tic("Multiply Matrix", false, 4);
-      M=(M_ce2c*M_c2e0)*M_c2e1;
+      M = (M_ce2c * M2M_V) * M2M_U;
 Profile::Toc();
       break;
     }
@@ -188,11 +185,11 @@ Profile::Toc();
       Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
       std::vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
       Permutation<real_t> P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
-      M_c2e0=P*gPrecompMat[L2L_V_Type][0];
+      M_c2e0 = P * L2L_V;
       ker_perm=kernel->k_l2l->perm_vec[0     +Scaling];
       scal_exp=kernel->k_l2l->src_scal;
       P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
-      M_c2e1=gPrecompMat[L2L_U_Type][0]*P;
+      M_c2e1 = L2L_U * P;
       M=M_c2e0*(M_c2e1*M_pe2c);
       break;
     }

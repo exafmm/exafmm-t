@@ -111,6 +111,8 @@ std::vector<real_t> allDnwardEquiv;
 class FMM_Node;
 std::vector<FMM_Node*> leafs, nonleafs, allnodes;
 std::vector<std::vector<Matrix<real_t>>> gPrecompMat;
+Matrix<real_t> M2M_U, M2M_V;
+Matrix<real_t> L2L_U, L2L_V;
 
 int LEVEL;     // depth of octree
 int MULTIPOLE_ORDER;         // order of multipole expansion
