@@ -11,7 +11,7 @@
 - [x] Move P2L to Kernel class (Chenwu)
 - [x] Move M2P to Kernel class (Chenwu)
 - [x] Move P2P to Kernel class (Chenwu)
-- [ ] Move M2L to Kernel class (Chenwu)
+- [x] Move M2L to Kernel class (Chenwu)
 - [x] trg/src_coord/value > pt_coord/pt_trg/pt_src (Tingyu)
 - [ ] Unify node data types (Tingyu)
 - [ ] Simplify tree structure (Tingyu)
