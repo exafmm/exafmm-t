@@ -1,24 +1,16 @@
 ###TODO
 -------------
 
-- [x] Remove mutable (Chenwu)
+- [ ] Remove gPrecompMat (Chenwu)
+- [ ] Move precomputation to individual functions (Chenwu)
 - [ ] Check grad answer in CheckFMMOutput (Chenwu)
 - [ ] Merge potential and grad (Chenwu)
-- [x] Move P2M to Kernel class (Chenwu)
-- [x] Move M2M to Kernel class (Chenwu)
-- [x] Move L2L to Kernel class (Chenwu)
-- [x] Move L2P to Kernel class (Chenwu)
-- [x] Move P2L to Kernel class (Chenwu)
-- [x] Move M2P to Kernel class (Chenwu)
-- [x] Move P2P to Kernel class (Chenwu)
-- [x] Move M2L to Kernel class (Chenwu)
-- [x] trg/src_coord/value > pt_coord/pt_trg/pt_src (Tingyu)
+- [ ] Remove interaction list class (Tingyu)
+- [ ] Remove classes (Tingyu)
 - [ ] Unify node data types (Tingyu)
 - [ ] Simplify tree structure (Tingyu)
 - [ ] split fmm_tree header -> tree_construction, eval_setup, eval (Tingyu)
-  - remove circular dependency of classes, use forward declaration if necessary
 - [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution (Tingyu)
-
 - [ ] change macros for constants to global const variables
 - [ ] define global n1,n2,n3,n3\_,fftsize, replace the local copys with the global ones in M2L precomputation & evaluation
 - [ ] remove node_lst from FMM_Tree, organize traversal calls in CollectNodeData
