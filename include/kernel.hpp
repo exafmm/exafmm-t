@@ -136,7 +136,7 @@ struct Kernel {
 
   void M2M(FMM_Node* node) {
     if(node->IsLeaf()) return;
-    Matrix<real_t>& M = gPrecompMat[M2M_Type][7];  // 7 is the class coord, will generalize it later
+    Matrix<real_t>& M = mat_M2M;
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL)
         #pragma omp task untied
@@ -162,7 +162,7 @@ struct Kernel {
 
   void L2L(FMM_Node* node) {
     if(node->IsLeaf()) return;
-    Matrix<real_t>& M = gPrecompMat[L2L_Type][7];  // 7 is the class coord, will generalize it later
+    Matrix<real_t>& M = mat_L2L;
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
         FMM_Node* child = node->child[octant];

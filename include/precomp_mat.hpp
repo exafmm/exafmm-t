@@ -34,11 +34,8 @@ class PrecompMat {
 
   // This is only related to M2M and L2L operator
   Permutation<real_t>& Perm_R(Mat_Type type, size_t indx) {
-    size_t indx0 =
-      interacList->interac_class[type][indx];                     // indx0: class coord index
-    Matrix <real_t>& M0 = gPrecompMat[type][indx0];         // class coord matrix
+    Matrix<real_t>& M0 = (type == M2M_Type) ? mat_M2M : mat_L2L;
     Permutation<real_t>& row_perm = (type == M2M_Type) ? kernel->k_m2m->perm_r[indx] : kernel->k_l2l->perm_r[indx];
-    //if(M0.Dim(0)==0 || M0.Dim(1)==0) return row_perm;             // if mat hasn't been computed, then return
     if(row_perm.Dim()==0) {                                       // if this perm_r entry hasn't been computed
       std::vector<Perm_Type> p_list =
         interacList->perm_list[type][indx];      // get perm_list of current rel_coord
@@ -62,8 +59,7 @@ class PrecompMat {
   }
 
   Permutation<real_t>& Perm_C(Mat_Type type, size_t indx) {
-    size_t indx0 = interacList->interac_class[type][indx];
-    Matrix     <real_t>& M0      = gPrecompMat[type][indx0];
+    Matrix<real_t>& M0 = (type == M2M_Type) ? mat_M2M : mat_L2L;
     Permutation<real_t>& col_perm = (type == M2M_Type) ? kernel->k_m2m->perm_c[indx] : kernel->k_l2l->perm_c[indx];
     if(M0.Dim(0)==0 || M0.Dim(1)==0) return col_perm;
     if(col_perm.Dim()==0) {
@@ -81,11 +77,6 @@ class PrecompMat {
       col_perm = col_perm_;
     }
     return col_perm;
-  }
-
-  Matrix<real_t>& ClassMat(Mat_Type type, size_t indx) {
-    size_t indx0 = interacList->interac_class[type][indx];
-    return gPrecompMat[type][indx0];
   }
 
   void PrecompPerm(Mat_Type type, Perm_Type perm_indx) {
@@ -127,10 +118,8 @@ class PrecompMat {
     if(P_.Dim()==0) P_=P;
   }
 
-  Matrix<real_t>& Precomp(Mat_Type type, size_t mat_indx) {
+  void Precomp(Mat_Type type, size_t mat_indx) {
     int level = 0;
-    Matrix<real_t>& M_ = gPrecompMat[type][mat_indx];
-    if(M_.Dim(0)!=0 && M_.Dim(1)!=0) return M_;
     Matrix<real_t> M;
     switch (type) {
     case M2M_Type: {
@@ -165,9 +154,7 @@ Profile::Toc();
       L2L_V = U*S;
       L2L_U = V;
 
-Profile::Tic("Multiply Matrix", false, 4);
-      M = (M_ce2c * M2M_V) * M2M_U;
-Profile::Toc();
+      mat_M2M = (M_ce2c * M2M_V) * M2M_U;
       break;
     }
     case L2L_Type: {
@@ -190,7 +177,7 @@ Profile::Toc();
       scal_exp=kernel->k_l2l->src_scal;
       P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
       M_c2e1 = L2L_U * P;
-      M=M_c2e0*(M_c2e1*M_pe2c);
+      mat_L2L = M_c2e0 * (M_c2e1*M_pe2c);
       break;
     }
     case M2L_Helper_Type: {
@@ -222,7 +209,7 @@ Profile::Toc();
       memcpy(fftw_in, &conv_poten[0], n3*ker_dim[0]*ker_dim[1]*sizeof(real_t));
       fft_execute_dft_r2c(m2l_precomp_fftplan, (real_t*)fftw_in, (fft_complex*)(fftw_out));
       Matrix<real_t> M_(2*n3_*ker_dim[0]*ker_dim[1], 1, (real_t*)fftw_out, false);
-      M=M_;
+      gPrecompMat[type][mat_indx] = M_;
       free(fftw_in);
       free(fftw_out);
       break;
@@ -263,14 +250,13 @@ Profile::Toc();
           M[j][k*2+1]=M_ptr[k][j*2+1]/n3;
         }
       }
+
+      gPrecompMat[type][mat_indx] = M;
       break;
     }
     default:
       break;
     }
-    if(M_.Dim(0)==0 && M_.Dim(1)==0)
-      M_=M;
-    return M_;
   }
 
   void PrecompAll(Mat_Type type) {
