@@ -111,7 +111,7 @@ class FMM_Node {
     std::vector<std::vector<std::vector<real_t>*> > chld_pt_v(nchld);
     for(size_t i=0; i<nchld; i++)
       Child(i)->NodeDataVec(chld_pt_c[i], chld_pt_v[i]);
-    real_t* c=Coord();
+    real_t* c = coord;
     real_t s=powf(0.5, depth+1);
     for(size_t j=0; j<pt_c.size(); j++) {
       if(!pt_c[j] || !pt_c[j]->size()) continue;
@@ -168,10 +168,6 @@ class FMM_Node {
     return child[id];
   }
 
-  FMM_Node* Parent() {
-    return parent;
-  }
-
   inline MortonId GetMortonId() {
     assert(coord);
     real_t s=0.25/(1UL<<MAX_DEPTH);
@@ -184,19 +180,9 @@ class FMM_Node {
     depth=mid.GetDepth();
   }
 
-  FMM_Node * Colleague(int index) {
-    return colleague[index];
-  }
-
   void SetColleague(FMM_Node * node_, int index) {
     colleague[index]=node_;
   }
-
-  real_t* Coord() {
-    assert(coord!=NULL);
-    return coord;
-  }
-
 };
 
 }//end namespace

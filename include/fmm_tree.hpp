@@ -105,7 +105,7 @@ class FMM_Tree {
     FMM_Node* node=curr_node;
     while(true) {
       int i=node->octant+1;
-      node=node->Parent();
+      node = node->parent;
       if(node==NULL) return NULL;
       for(; i<n; i++)
         if(node->Child(i)!=NULL)
@@ -221,11 +221,11 @@ class FMM_Tree {
       FMM_Node* tmp_node1;
       FMM_Node* tmp_node2;
       for(int i=0; i<n1; i++)node->SetColleague(NULL, i);
-      parent_node=node->Parent();
+      parent_node = node->parent;
       if(parent_node==NULL) return;
       int l=node->octant;         // l is octant
       for(int i=0; i<n1; i++) {
-        tmp_node1=parent_node->Colleague(i);  // loop over parent's colleagues
+        tmp_node1 = parent_node->colleague[i];  // loop over parent's colleagues
         if(tmp_node1!=NULL && !tmp_node1->IsLeaf()) {
           for(int j=0; j<n2; j++) {
             tmp_node2=tmp_node1->Child(j);    // loop over parent's colleages child
@@ -304,13 +304,13 @@ class FMM_Tree {
     const int n_child=8, n_collg=27;
     int c_hash, idx, rel_coord[3];
     int p2n = n->octant;       // octant
-    FMM_Node* p = n->Parent(); // parent node
+    FMM_Node* p = n->parent; // parent node
     std::vector<FMM_Node*>& interac_list = n->interac_list[t];
     switch (t) {
     case P2P0_Type:
       if(p == NULL || !n->IsLeaf()) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* pc = p->Colleague(i);
+        FMM_Node* pc = p->colleague[i];
         if(pc!=NULL && pc->IsLeaf()) {
           rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
           rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
@@ -324,7 +324,7 @@ class FMM_Tree {
     case P2P1_Type:
       if(!n->IsLeaf()) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* col=(FMM_Node*)n->Colleague(i);
+        FMM_Node* col=(FMM_Node*)n->colleague[i];
         if(col!=NULL && col->IsLeaf()) {
           rel_coord[0]=( i %3)-1;
           rel_coord[1]=((i/3)%3)-1;
@@ -338,7 +338,7 @@ class FMM_Tree {
     case P2P2_Type:
       if(!n->IsLeaf()) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* col=(FMM_Node*)n->Colleague(i);
+        FMM_Node* col=(FMM_Node*)n->colleague[i];
         if(col!=NULL && !col->IsLeaf()) {
           for(int j=0; j<n_child; j++) {
             rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
@@ -357,7 +357,7 @@ class FMM_Tree {
     case M2L_Type:
       if(n->IsLeaf()) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* col=(FMM_Node*)n->Colleague(i);
+        FMM_Node* col=(FMM_Node*)n->colleague[i];
         if(col!=NULL && !col->IsLeaf()) {
           rel_coord[0]=( i %3)-1;
           rel_coord[1]=((i/3)%3)-1;
@@ -371,7 +371,7 @@ class FMM_Tree {
     case M2P_Type:
       if(!n->IsLeaf()) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* col=(FMM_Node*)n->Colleague(i);
+        FMM_Node* col=(FMM_Node*)n->colleague[i];
         if(col!=NULL && !col->IsLeaf()) {
           for(int j=0; j<n_child; j++) {
             rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
@@ -387,7 +387,7 @@ class FMM_Tree {
     case P2L_Type:
       if(p == NULL) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* pc=(FMM_Node*)p->Colleague(i);
+        FMM_Node* pc=(FMM_Node*)p->colleague[i];
         if(pc!=NULL && pc->IsLeaf()) {
           rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
           rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
