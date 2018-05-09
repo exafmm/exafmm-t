@@ -28,6 +28,7 @@ class PrecompMat {
     kernel->k_l2l->perm_r.resize(numRelCoords);
     kernel->k_l2l->perm_c.resize(numRelCoords);
     PrecompAll(M2M_Type);
+    PrecompAll(M2L_Helper_Type);
     PrecompAll(M2L_Type);
     PrecompAll(L2L_Type);
   }
@@ -217,7 +218,6 @@ Profile::Toc();
     case M2L_Type: {
       const int* ker_dim=kernel->k_m2l->ker_dim;
       size_t mat_cnt =interacList->rel_coord[M2L_Helper_Type].size();
-      for(size_t k=0; k<mat_cnt; k++) Precomp(M2L_Helper_Type, k);
       const size_t chld_cnt=1UL<<3;
       size_t n1=MULTIPOLE_ORDER*2;
       size_t M_dim=n1*n1*(n1/2+1);
