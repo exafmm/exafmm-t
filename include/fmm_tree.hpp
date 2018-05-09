@@ -128,7 +128,7 @@ class FMM_Tree {
       std::vector<real_t>& pt_c=root_node->pt_coord;
       size_t pt_cnt = pt_c.size()/3;
       pt_mid.resize(pt_cnt);
-      #pragma omp parallel for
+#pragma omp parallel for
       for(size_t i=0; i<pt_cnt; i++)
         pt_mid[i]=MortonId(pt_c[i*3+0], pt_c[i*3+1], pt_c[i*3+2], max_depth);
       HyperQuickSort(pt_mid, pt_sorted);
@@ -143,23 +143,19 @@ class FMM_Tree {
       Profile::Toc();
 
       Profile::Tic("PointerTree", false, 5);
-      int omp_p=1;
-      for(int i=0; i<1; i++) {
-        size_t size=lin_oct.size();
-        size_t idx=0;
-        FMM_Node* n=root_node;
-        while(n!=NULL && idx<size) {
-          MortonId mortonId=n->GetMortonId();
-          if(mortonId.isAncestor(lin_oct[idx])) {
-            if(n->IsLeaf()) n->Subdivide();
-          } else if(mortonId==lin_oct[idx]) {
-            if(!n->IsLeaf()) n->Truncate();
-            assert(n->IsLeaf());
-            idx++;
-          } else
-            n->Truncate();
-          n=PreorderNxt(n);
-        }
+      size_t idx = 0;
+      FMM_Node* n = root_node;
+      while(n!=NULL && idx<lin_oct.size()) {
+        MortonId mortonId = n->GetMortonId();
+        if(mortonId.isAncestor(lin_oct[idx])) {
+          if(n->IsLeaf()) n->Subdivide();
+        } else if(mortonId==lin_oct[idx]) {
+          if(!n->IsLeaf()) n->Truncate();
+          assert(n->IsLeaf());
+          idx++;
+        } else
+          n->Truncate();
+        n = PreorderNxt(n);
       }
       Profile::Toc();
     }
