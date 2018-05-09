@@ -136,27 +136,12 @@ class FMM_Tree {
       Profile::Toc();
 
       Profile::Tic("SortPoints", true, 5);
-      std::vector<std::vector<real_t>*> coord_lst;
-      std::vector<std::vector<real_t>*> value_lst;
-      root_node->NodeDataVec(coord_lst, value_lst);
-      assert(coord_lst.size()==value_lst.size());
       std::vector<size_t> index;
-      for(size_t i=0; i<coord_lst.size(); i++) {
-        if(!coord_lst[i]) continue;
-        std::vector<real_t>& pt_c=*coord_lst[i];
-        size_t pt_cnt=pt_c.size()/3;
-        pt_mid.resize(pt_cnt);
-        #pragma omp parallel for
-        for(size_t j=0; j<pt_cnt; j++)
-          pt_mid[j]=MortonId(pt_c[j*3+0], pt_c[j*3+1], pt_c[j*3+2], max_depth);
-        SortIndex(pt_mid, index);
-        Forward  (pt_c, index);
-        if(value_lst[i]!=NULL) {
-          std::vector<real_t>& pt_v=*value_lst[i];
-          Forward(pt_v, index);
-        }
-      }
+      SortIndex(pt_mid, index);
+      Forward(root_node->pt_coord, index);
+      Forward(root_node->pt_src, index);
       Profile::Toc();
+
       Profile::Tic("PointerTree", false, 5);
       int omp_p=1;
       for(int i=0; i<1; i++) {
