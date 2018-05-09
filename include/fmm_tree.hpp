@@ -80,21 +80,6 @@ class FMM_Tree {
     return 0;
   }
 
-  inline int points2Octree(const std::vector<MortonId>& pt_mid, std::vector<MortonId>& nodes,
-                           unsigned int maxDepth, unsigned int maxNumPts) {
-    Profile::Tic("SortMortonId", true, 10);
-    std::vector<MortonId> pt_sorted;
-    HyperQuickSort(pt_mid, pt_sorted);
-    size_t pt_cnt=pt_sorted.size();
-    Profile::Toc();
-    Profile::Tic("p2o_local", false, 10);
-    nodes.resize(1);
-    nodes[0]=MortonId();
-    p2oLocal(pt_sorted, nodes, maxNumPts, maxDepth);
-    Profile::Toc();
-    return 0;
-  }
-
   FMM_Node* PreorderNxt(FMM_Node* curr_node) {
     assert(curr_node!=NULL);
     int n=(1UL<<3);
@@ -134,17 +119,22 @@ class FMM_Tree {
       root_node=new FMM_Node();
       root_node->Initialize(NULL, 0, init_data);
       Profile::Toc();
+
       Profile::Tic("Points2Octee", true, 5);
       std::vector<MortonId> lin_oct;
-      std::vector<MortonId> pt_mid;
+      lin_oct.resize(1);
+      lin_oct[0] = MortonId();
+      std::vector<MortonId> pt_mid, pt_sorted;
       std::vector<real_t>& pt_c=root_node->pt_coord;
-      size_t pt_cnt=pt_c.size()/3;
+      size_t pt_cnt = pt_c.size()/3;
       pt_mid.resize(pt_cnt);
       #pragma omp parallel for
       for(size_t i=0; i<pt_cnt; i++)
         pt_mid[i]=MortonId(pt_c[i*3+0], pt_c[i*3+1], pt_c[i*3+2], max_depth);
-      points2Octree(pt_mid, lin_oct, max_depth, init_data->max_pts);
+      HyperQuickSort(pt_mid, pt_sorted);
+      p2oLocal(pt_sorted, lin_oct, init_data->max_pts, max_depth);
       Profile::Toc();
+
       Profile::Tic("SortPoints", true, 5);
       std::vector<std::vector<real_t>*> coord_lst;
       std::vector<std::vector<real_t>*> value_lst;
