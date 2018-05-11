@@ -11,17 +11,15 @@ class PrecompMat {
   std::vector<std::vector<Permutation<real_t> > > perm;
   InteracList* interacList;
   const Kernel* kernel;
+  std::vector<Matrix<real_t> > mat_M2L_Helper; 
 
   PrecompMat(InteracList* interacList_, const Kernel* kernel_):
     kernel(kernel_), interacList(interacList_) {
-    gPrecompMat.resize(PrecomputationType);
-    for(int type=0; type<PrecomputationType; type++) {
-      int numRelCoords = interacList->rel_coord[type].size();
-      gPrecompMat[type].resize(numRelCoords);
-    }
     perm.resize(Type_Count);
     perm[M2M_Type].resize(Perm_Count);
     perm[L2L_Type].resize(Perm_Count);
+    mat_M2L.resize(interacList->rel_coord[M2L_Type].size());
+    mat_M2L_Helper.resize(interacList->rel_coord[M2L_Helper_Type].size());
     int numRelCoords = interacList->rel_coord[M2M_Type].size();
     kernel->k_m2m->perm_r.resize(numRelCoords);
     kernel->k_m2m->perm_c.resize(numRelCoords);
@@ -210,7 +208,7 @@ Profile::Toc();
       memcpy(fftw_in, &conv_poten[0], n3*ker_dim[0]*ker_dim[1]*sizeof(real_t));
       fft_execute_dft_r2c(m2l_precomp_fftplan, (real_t*)fftw_in, (fft_complex*)(fftw_out));
       Matrix<real_t> M_(2*n3_*ker_dim[0]*ker_dim[1], 1, (real_t*)fftw_out, false);
-      gPrecompMat[type][mat_indx] = M_;
+      mat_M2L_Helper[mat_indx] = M_;
       free(fftw_in);
       free(fftw_out);
       break;
@@ -237,8 +235,7 @@ Profile::Toc();
             if(ref_coord[0]==rel_coord[0] &&
                 ref_coord[1]==rel_coord[1] &&
                 ref_coord[2]==rel_coord[2]) {
-              Matrix<real_t>& M = gPrecompMat[M2L_Helper_Type][k];
-              M_ptr[j2*chld_cnt+j1]=&M[0][0];
+              M_ptr[j2*chld_cnt+j1]= &mat_M2L_Helper[k][0][0];
               break;
             }
           }
@@ -251,7 +248,7 @@ Profile::Toc();
         }
       }
 
-      gPrecompMat[type][mat_indx] = M;
+      mat_M2L[mat_indx] = M;
       break;
     }
     default:

@@ -411,7 +411,7 @@ class FMM_Tree {
     size_t mat_cnt = interacList->rel_coord[M2L_Type].size();
     std::vector<real_t*> precomp_mat;                    // vector of ptrs which points to Precomputation matrix of each M2L relative position
     for(size_t mat_id=0; mat_id<mat_cnt; mat_id++) {
-      Matrix<real_t>& M = gPrecompMat[M2L_Type][mat_id];
+      Matrix<real_t>& M = mat_M2L[mat_id];
       precomp_mat.push_back(&M[0][0]);                   // precomp_mat.size == M2L's numRelCoords
     }
     // calculate buff_size & numBlocks

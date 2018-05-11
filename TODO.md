@@ -1,7 +1,7 @@
 ###TODO
 -------------
 
-- [ ] Remove gPrecompMat (Chenwu)
+- [x] Remove gPrecompMat (Chenwu)
 - [ ] Move precomputation to individual functions (Chenwu)
 - [ ] Check grad answer in CheckFMMOutput (Chenwu)
 - [ ] Merge potential and grad (Chenwu)
