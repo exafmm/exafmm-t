@@ -3,8 +3,7 @@
 #include "geometry.h"
 #include "intrinsics.h"
 #include "pvfmm.h"
-#include "vec.h"
-#include "fmm_node.hpp"
+
 namespace pvfmm {
 
 struct Kernel {

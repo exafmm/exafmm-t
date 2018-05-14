@@ -5,6 +5,7 @@
 #include <queue>
 #include "geometry.h"
 #include "precomp_mat.hpp"
+#include "build_tree.h"
 
 namespace pvfmm {
 class FMM_Tree {
@@ -25,7 +26,6 @@ class FMM_Tree {
   }
 
   ~FMM_Tree() {
-    if(root_node!=NULL) delete root_node;
     if(m2l_precomp_fft_flag) fft_destroy_plan(m2l_precomp_fftplan);
     if(m2l_list_fft_flag) fft_destroy_plan(m2l_list_fftplan);
     if(m2l_list_ifft_flag) fft_destroy_plan(m2l_list_ifftplan);
@@ -36,50 +36,6 @@ class FMM_Tree {
   /* 1st Part: Tree Construction
    * Interface: Initialize(init_data) */
  private:
-  inline int p2oLocal(std::vector<MortonId> & nodes, std::vector<MortonId>& leaves,
-                      unsigned int maxNumPts, unsigned int maxDepth) {
-    assert(maxDepth<=MAX_DEPTH);
-    std::vector<MortonId> leaves_lst;
-    unsigned int init_size=leaves.size();
-    unsigned int num_pts=nodes.size();
-    MortonId curr_node=leaves[0];
-    MortonId last_node=leaves[init_size-1].NextId();
-    MortonId next_node;
-    unsigned int curr_pt=0;
-    unsigned int next_pt=curr_pt+maxNumPts;
-    while(next_pt <= num_pts) {
-      next_node = curr_node.NextId();
-      while( next_pt < num_pts && next_node > nodes[next_pt] && curr_node.GetDepth() < maxDepth-1 ) {
-        curr_node = curr_node.getDFD(curr_node.GetDepth()+1);
-        next_node = curr_node.NextId();
-      }
-      leaves_lst.push_back(curr_node);
-      curr_node = next_node;
-      unsigned int inc=maxNumPts;
-      while(next_pt < num_pts && curr_node > nodes[next_pt]) {
-        inc=inc<<1;
-        next_pt+=inc;
-        if(next_pt > num_pts) {
-          next_pt = num_pts;
-          break;
-        }
-      }
-      curr_pt = std::lower_bound(&nodes[0]+curr_pt, &nodes[0]+next_pt, curr_node,
-                                 std::less<MortonId>())-&nodes[0];
-      if(curr_pt >= num_pts) break;
-      next_pt = curr_pt + maxNumPts;
-      if(next_pt > num_pts) next_pt = num_pts;
-    }
-    while(curr_node<last_node) {
-      while( curr_node.NextId() > last_node && curr_node.GetDepth() < maxDepth-1 )
-        curr_node = curr_node.getDFD(curr_node.GetDepth()+1);
-      leaves_lst.push_back(curr_node);
-      curr_node = curr_node.NextId();
-    }
-    leaves=leaves_lst;
-    return 0;
-  }
-
   FMM_Node* PreorderNxt(FMM_Node* curr_node) {
     assert(curr_node!=NULL);
     int n=(1UL<<3);
@@ -107,59 +63,6 @@ class FMM_Tree {
       n=PreorderNxt(n);
     }
     return node_lst;
-  }
-
-  void Initialize(InitData* init_data) {
-    Profile::Tic("InitTree", true);
-    {
-      Profile::Tic("InitRoot", false, 5);
-      int max_depth=init_data->max_depth;
-      if(max_depth>MAX_DEPTH) max_depth=MAX_DEPTH;
-      if(root_node) delete root_node;
-      root_node=new FMM_Node();
-      root_node->Initialize(NULL, 0, init_data);
-      Profile::Toc();
-
-      Profile::Tic("Points2Octee", true, 5);
-      std::vector<MortonId> lin_oct;
-      lin_oct.resize(1);
-      lin_oct[0] = MortonId();
-      std::vector<MortonId> pt_mid, pt_sorted;
-      std::vector<real_t>& pt_c=root_node->pt_coord;
-      size_t pt_cnt = pt_c.size()/3;
-      pt_mid.resize(pt_cnt);
-#pragma omp parallel for
-      for(size_t i=0; i<pt_cnt; i++)
-        pt_mid[i]=MortonId(pt_c[i*3+0], pt_c[i*3+1], pt_c[i*3+2], max_depth);
-      HyperQuickSort(pt_mid, pt_sorted);
-      p2oLocal(pt_sorted, lin_oct, init_data->max_pts, max_depth);
-      Profile::Toc();
-
-      Profile::Tic("SortPoints", true, 5);
-      std::vector<size_t> index;
-      SortIndex(pt_mid, index);
-      Forward(root_node->pt_coord, index);
-      Forward(root_node->pt_src, index);
-      Profile::Toc();
-
-      Profile::Tic("PointerTree", false, 5);
-      size_t idx = 0;
-      FMM_Node* n = root_node;
-      while(n!=NULL && idx<lin_oct.size()) {
-        MortonId mortonId = n->GetMortonId();
-        if(mortonId.isAncestor(lin_oct[idx])) {
-          if(n->IsLeaf()) n->Subdivide();
-        } else if(mortonId==lin_oct[idx]) {
-          if(!n->IsLeaf()) n->Truncate();
-          assert(n->IsLeaf());
-          idx++;
-        } else
-          n->Truncate();
-        n = PreorderNxt(n);
-      }
-      Profile::Toc();
-    }
-    Profile::Toc();
   }
   /* End of 1nd Part: Tree Construction */
 

@@ -23,9 +23,7 @@
 #include <matrix.hpp>
 #include <precomp_mat.hpp>
 #include <kernel.hpp>
-#include <mortonid.hpp>
 #include <sort.hpp>
-#include <fmm_node.hpp>
 #include <interac_list.hpp>
 #include <fmm_tree.hpp>
 
@@ -82,9 +80,6 @@ int main(int argc, char **argv) {
   int depth = 15;
   Profile::Enable(true);
   Profile::Tic("Total", true);
-  InitData init_data;
-  init_data.max_depth=depth;
-  init_data.max_pts=M;
   std::vector<real_t> src_coord, src_value;
   srand48(0);
 #if 0
@@ -94,8 +89,33 @@ int main(int argc, char **argv) {
   for(size_t i=0; i<3*N; i++) src_coord.push_back(drand48());
 #endif
   for(size_t i=0; i<N; i++) src_value.push_back(drand48()-0.5);
-  init_data.coord=src_coord;
-  init_data.value=src_value;
+
+  NCRIT = args.ncrit;
+  Bodies bodies(args.numBodies);
+  for(int i=0; i<bodies.size(); i++) {
+    bodies[i].X[0] = src_coord[3*i+0];
+    bodies[i].X[1] = src_coord[3*i+1];
+    bodies[i].X[2] = src_coord[3*i+2];
+    bodies[i].q = src_value[i];
+  }
+
+  FMM_Nodes cells = buildTree(bodies);
+  // fill in pt_coord, pt_src, pt_cnt, correct coord for compatibility
+  // remove this later
+  for(int i=0; i<cells.size(); i++) {
+    for(int d=0; d<3; d++) {
+      cells[i].coord[d] = cells[i].X[d] - cells[i].R;
+    }
+    if(cells[i].IsLeaf()) {
+      for(Body* B=cells[i].body; B<cells[i].body+cells[i].numBodies; B++) {
+        cells[i].pt_coord.push_back(B->X[0]);
+        cells[i].pt_coord.push_back(B->X[1]);
+        cells[i].pt_coord.push_back(B->X[2]);
+        cells[i].pt_src.push_back(B->q);
+      }
+    }
+  }
+
   // initialize equiv surface coords for all levels
   upwd_check_surf.resize(MAX_DEPTH);
   upwd_equiv_surf.resize(MAX_DEPTH);
@@ -129,7 +149,7 @@ int main(int argc, char **argv) {
   FMM_Tree tree(kernel, &interacList, &pmat);
   for(size_t it=0; it<1; it++) {
     Profile::Tic("TotalTime", true);
-    tree.Initialize(&init_data);
+    tree.root_node = &cells[0];
     tree.SetupFMM();
     tree.RunFMM();
     Profile::Toc();

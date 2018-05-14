@@ -37,6 +37,8 @@ typedef fftw_plan fft_plan;
 #endif
 
 typedef vec<3, int> ivec3;                           //!< std::vector of 3 int types
+typedef vec<3,real_t> vec3;                   //!< Vector of 3 real_t types
+
 //! SIMD vector types for AVX512, AVX, and SSE
 const int NSIMD = SIMD_BYTES / int(sizeof(
                                      real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
@@ -82,12 +84,53 @@ typedef enum {
   Perm_Count=12
 } Perm_Type;
 
-struct InitData {
-  int max_depth;
-  size_t max_pts;
-  std::vector<real_t> coord;
-  std::vector<real_t> value;
+//! Structure of bodies
+struct Body {
+  vec3 X;                                     //!< Position
+  real_t q;                                   //!< Charge
+  real_t p;                                   //!< Potential
+  vec3 F;                                     //!< Force
 };
+typedef std::vector<Body> Bodies;             //!< Vector of bodies
+
+//! Structure of cells
+  struct FMM_Node {
+    int numChilds;
+    int numBodies;
+    FMM_Node * fchild;
+    Body * body;
+    vec3 X;
+    real_t R;
+    
+    size_t idx;
+    size_t node_id;
+    int depth;
+    int octant;
+    size_t pt_cnt[2];
+    real_t coord[3];
+    FMM_Node* parent;
+    std::vector<FMM_Node*> child;
+    FMM_Node* colleague[27];
+    std::vector<FMM_Node*> interac_list[Type_Count];
+    std::vector<real_t> pt_coord;
+    std::vector<real_t> pt_src;  // src's charge
+    std::vector<real_t> pt_trg;  // trg's potential
+    std::vector<real_t> upward_equiv; // M
+    std::vector<real_t> dnward_equiv; // L
+
+    bool IsLeaf() {
+      return numChilds == 0;
+    }
+
+    FMM_Node* Child(int id) {
+      return (numChilds == 0) ? NULL : child[id]; 
+    }
+
+    void SetColleague(FMM_Node* node_, int index) {
+      colleague[index] = node_;
+    }
+  };
+typedef std::vector<FMM_Node> FMM_Nodes;              //!< Vector of cells
 
 struct M2LData {
   size_t n_blk0;
@@ -108,7 +151,7 @@ std::vector<std::vector<real_t> > dnwd_equiv_surf;
 std::vector<real_t> allUpwardEquiv;
 std::vector<real_t> allDnwardEquiv;
 
-class FMM_Node;
+//class FMM_Node;
 std::vector<FMM_Node*> leafs, nonleafs, allnodes;
 Matrix<real_t> M2M_U, M2M_V;
 Matrix<real_t> L2L_U, L2L_V;
@@ -118,5 +161,6 @@ std::vector<Matrix<real_t> > mat_M2L;
 int LEVEL;     // depth of octree
 int MULTIPOLE_ORDER;         // order of multipole expansion
 int NSURF;     // number of surface coordinates
+int NCRIT;
 }
 #endif //_PVFMM_COMMON_HPP_
