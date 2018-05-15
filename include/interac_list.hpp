@@ -3,34 +3,32 @@
 #include "pvfmm.h"
 
 namespace pvfmm {
-class InteracList {
- public:
-  std::vector<std::vector<ivec3> > rel_coord;
-  std::vector<std::vector<int> > hash_lut;     // coord_hash -> index in rel_coord
-  std::vector<std::vector<int> > interac_class;  // index -> index of abs_coord of the same class
-  std::vector<std::vector<std::vector<Perm_Type> > >
-  perm_list; // index -> list of permutations needed in order to change from abs_coord to rel_coord
+  //! return x + 10y + 100z + 555
+  int coord_hash(int* c) {
+    const int n=5;
+    return ( (c[2]+n) * (2*n) + (c[1]+n) ) *(2*n) + (c[0]+n);
+  }
 
-  InteracList() {}
-
-  void Initialize() {
-    interac_class.resize(Type_Count);
-    perm_list.resize(Type_Count);
-    rel_coord.resize(Type_Count);
-    hash_lut.resize(Type_Count);
-    InitList(0, 0, 1, M2M_V_Type);
-    InitList(0, 0, 1, M2M_U_Type);
-    InitList(0, 0, 1, L2L_V_Type);
-    InitList(0, 0, 1, L2L_U_Type);
-    InitList(1, 1, 2, M2M_Type); // count = 8, (+1 or -1)
-    InitList(1, 1, 2, L2L_Type);
-    InitList(3, 3, 2, P2P0_Type);  // count = 4^3-2^3 = 56
-    InitList(1, 0, 1, P2P1_Type);
-    InitList(3, 3, 2, P2P2_Type);
-    InitList(3, 2, 1, M2L_Helper_Type);
-    InitList(1, 1, 1, M2L_Type);
-    InitList(5, 5, 2, M2P_Type);
-    InitList(5, 5, 2, P2L_Type);
+  //! swap x,y,z so that |z|>|y|>|x|, return hash of new coord
+  int class_hash(int* c_) {
+    int c[3]= {abs(c_[0]), abs(c_[1]), abs(c_[2])};
+    if(c[1]>c[0] && c[1]>c[2]) {
+      int tmp=c[0];
+      c[0]=c[1];
+      c[1]=tmp;
+    }
+    if(c[0]>c[2]) {
+      int tmp=c[0];
+      c[0]=c[2];
+      c[2]=tmp;
+    }
+    if(c[0]>c[1]) {
+      int tmp=c[0];
+      c[0]=c[1];
+      c[1]=tmp;
+    }
+    assert(c[0]<=c[1] && c[1]<=c[2]);
+    return coord_hash(&c[0]);
   }
 
   void InitList(int max_r, int min_r, int step, Mat_Type t) {
@@ -104,35 +102,24 @@ class InteracList {
     }
   }
 
-  //! return x + 10y + 100z + 555
-  int coord_hash(int* c) {
-    const int n=5;
-    return ( (c[2]+n) * (2*n) + (c[1]+n) ) *(2*n) + (c[0]+n);
+  void InitAll() {
+    interac_class.resize(Type_Count);
+    perm_list.resize(Type_Count);
+    rel_coord.resize(Type_Count);
+    hash_lut.resize(Type_Count);
+    InitList(0, 0, 1, M2M_V_Type);
+    InitList(0, 0, 1, M2M_U_Type);
+    InitList(0, 0, 1, L2L_V_Type);
+    InitList(0, 0, 1, L2L_U_Type);
+    InitList(1, 1, 2, M2M_Type); // count = 8, (+1 or -1)
+    InitList(1, 1, 2, L2L_Type);
+    InitList(3, 3, 2, P2P0_Type);  // count = 4^3-2^3 = 56
+    InitList(1, 0, 1, P2P1_Type);
+    InitList(3, 3, 2, P2P2_Type);
+    InitList(3, 2, 1, M2L_Helper_Type);
+    InitList(1, 1, 1, M2L_Type);
+    InitList(5, 5, 2, M2P_Type);
+    InitList(5, 5, 2, P2L_Type);
   }
-
-  //! swap x,y,z so that |z|>|y|>|x|, return hash of new coord
-  int class_hash(int* c_) {
-    int c[3]= {abs(c_[0]), abs(c_[1]), abs(c_[2])};
-    if(c[1]>c[0] && c[1]>c[2]) {
-      int tmp=c[0];
-      c[0]=c[1];
-      c[1]=tmp;
-    }
-    if(c[0]>c[2]) {
-      int tmp=c[0];
-      c[0]=c[2];
-      c[2]=tmp;
-    }
-    if(c[0]>c[1]) {
-      int tmp=c[0];
-      c[0]=c[1];
-      c[1]=tmp;
-    }
-    assert(c[0]<=c[1] && c[1]<=c[2]);
-    return coord_hash(&c[0]);
-  }
-};
-
-}//end namespace
-
-#endif //_PVFMM_INTERAC_LIST_HPP_
+}
+#endif

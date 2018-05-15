@@ -8,17 +8,16 @@
 namespace pvfmm {
 class PrecompMat {
  public:
-  InteracList* interacList;
   const Kernel* kernel;
   std::vector<Matrix<real_t> > mat_M2L_Helper; 
 
-  PrecompMat(InteracList* interacList_, const Kernel* kernel_):
-    kernel(kernel_), interacList(interacList_) {
+  PrecompMat(const Kernel* kernel_):
+    kernel(kernel_) {
     perm_M2M.resize(Perm_Count);
     perm_L2L.resize(Perm_Count);
-    mat_M2L.resize(interacList->rel_coord[M2L_Type].size());
-    mat_M2L_Helper.resize(interacList->rel_coord[M2L_Helper_Type].size());
-    int numRelCoords = interacList->rel_coord[M2M_Type].size();
+    mat_M2L.resize(rel_coord[M2L_Type].size());
+    mat_M2L_Helper.resize(rel_coord[M2L_Helper_Type].size());
+    int numRelCoords = rel_coord[M2M_Type].size();
     kernel->k_m2m->perm_r.resize(numRelCoords);
     kernel->k_m2m->perm_c.resize(numRelCoords);
     kernel->k_l2l->perm_r.resize(numRelCoords);
@@ -35,7 +34,7 @@ class PrecompMat {
     Permutation<real_t>& row_perm = (type == M2M_Type) ? kernel->k_m2m->perm_r[indx] : kernel->k_l2l->perm_r[indx];
     if(row_perm.Dim()==0) {                                       // if this perm_r entry hasn't been computed
       std::vector<Perm_Type> p_list =
-        interacList->perm_list[type][indx];      // get perm_list of current rel_coord
+        perm_list[type][indx];      // get perm_list of current rel_coord
       // for(int i=0; i<l; i++) p_list.push_back(Scaling);           // push back Scaling operation l times
       Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(0));  // init row_perm to be size npts*src_dim
       for(int i=0; i<C_Perm; i++) {                               // loop over permutation types
@@ -57,7 +56,7 @@ class PrecompMat {
     Matrix<real_t>& M0 = (type == M2M_Type) ? mat_M2M : mat_L2L;
     Permutation<real_t>& col_perm = (type == M2M_Type) ? kernel->k_m2m->perm_c[indx] : kernel->k_l2l->perm_c[indx];
     if(col_perm.Dim()==0) {
-      std::vector<Perm_Type> p_list = interacList->perm_list[type][indx];
+      std::vector<Perm_Type> p_list = perm_list[type][indx];
       Permutation<real_t> col_perm_ = Permutation<real_t>(M0.Dim(1));
       for(int i=0; i<C_Perm; i++) {
         Permutation<real_t>& pc = (type == M2M_Type) ? perm_M2M[C_Perm + i] : perm_L2L[C_Perm + i];
@@ -117,7 +116,7 @@ class PrecompMat {
       real_t c[3]= {0, 0, 0};
       std::vector<real_t> check_surf=u_check_surf(c, level);
       real_t s=powf(0.5, (level+2));
-      ivec3& coord = interacList->rel_coord[type][mat_indx];
+      ivec3& coord = rel_coord[type][mat_indx];
       real_t child_coord[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
       std::vector<real_t> equiv_surf=u_equiv_surf(child_coord, level+1);
       Matrix<real_t> M_ce2c(NSURF*ker_dim[0], NSURF*ker_dim[1]);
@@ -150,7 +149,7 @@ class PrecompMat {
     case L2L_Type: {
       const int* ker_dim=kernel->k_l2l->ker_dim;
       real_t s=powf(0.5, level+1);
-      ivec3& coord=interacList->rel_coord[type][mat_indx];
+      ivec3& coord=rel_coord[type][mat_indx];
       real_t c[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
       std::vector<real_t> check_surf=d_check_surf(c, level);
       real_t parent_coord[3]= {0, 0, 0};
@@ -176,7 +175,7 @@ class PrecompMat {
       int n3 =n1*n1*n1;
       int n3_=n1*n1*(n1/2+1);
       real_t s=powf(0.5, level);
-      ivec3& coord2=interacList->rel_coord[type][mat_indx];
+      ivec3& coord2=rel_coord[type][mat_indx];
       real_t coord_diff[3]= {coord2[0]*s, coord2[1]*s, coord2[2]*s};
       std::vector<real_t> r_trg(3, 0.0);
       std::vector<real_t> conv_poten(n3*ker_dim[0]*ker_dim[1]);
@@ -206,7 +205,7 @@ class PrecompMat {
     }
     case M2L_Type: {
       const int* ker_dim=kernel->k_m2l->ker_dim;
-      size_t mat_cnt =interacList->rel_coord[M2L_Helper_Type].size();
+      size_t mat_cnt =rel_coord[M2L_Helper_Type].size();
       const size_t chld_cnt=1UL<<3;
       size_t n1=MULTIPOLE_ORDER*2;
       size_t M_dim=n1*n1*(n1/2+1);
@@ -214,18 +213,18 @@ class PrecompMat {
       std::vector<real_t> zero_vec(M_dim*ker_dim[0]*ker_dim[1]*2, 0);
       std::vector<real_t*> M_ptr(chld_cnt*chld_cnt);
       for(size_t i=0; i<chld_cnt*chld_cnt; i++) M_ptr[i]=&zero_vec[0];
-      ivec3& rel_coord_=interacList->rel_coord[M2L_Type][mat_indx];
+      ivec3& rel_coord_=rel_coord[M2L_Type][mat_indx];
       for(int j1=0; j1<chld_cnt; j1++)
         for(int j2=0; j2<chld_cnt; j2++) {
-          int rel_coord[3]= {rel_coord_[0]*2-(j1/1)%2+(j2/1)%2,
+          int relCoord[3]= {rel_coord_[0]*2-(j1/1)%2+(j2/1)%2,
                              rel_coord_[1]*2-(j1/2)%2+(j2/2)%2,
                              rel_coord_[2]*2-(j1/4)%2+(j2/4)%2
                             };
           for(size_t k=0; k<mat_cnt; k++) {
-            ivec3& ref_coord=interacList->rel_coord[M2L_Helper_Type][k];
-            if(ref_coord[0]==rel_coord[0] &&
-                ref_coord[1]==rel_coord[1] &&
-                ref_coord[2]==rel_coord[2]) {
+            ivec3& ref_coord = rel_coord[M2L_Helper_Type][k];
+            if(ref_coord[0] == relCoord[0] &&
+                ref_coord[1] == relCoord[1] &&
+                ref_coord[2] == relCoord[2]) {
               M_ptr[j2*chld_cnt+j1]= &mat_M2L_Helper[k][0][0];
               break;
             }
@@ -248,11 +247,11 @@ class PrecompMat {
   }
 
   void PrecompAll(Mat_Type type) {
-    int idx_num = interacList->rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
+    int idx_num = rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
     if (type == M2M_Type || type == L2L_Type) {
       for(int perm_idx=0; perm_idx<Perm_Count; perm_idx++) PrecompPerm(type, (Perm_Type) perm_idx);
       for(int i=0; i<idx_num; i++) {           // i is index of rel_coord
-        if(interacList->interac_class[type][i] == i) { // if i-th coord is a class_coord
+        if(interac_class[type][i] == i) { // if i-th coord is a class_coord
           Precomp(type, i);                       // calculate operator matrix of class_coord
         }
       }

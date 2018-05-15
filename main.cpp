@@ -91,8 +91,8 @@ int main(int argc, char **argv) {
     dnwd_check_surf[depth] = d_check_surf(c, depth);
     dnwd_equiv_surf[depth] = d_equiv_surf(c, depth);
   }
-  InteracList interacList;
-  interacList.Initialize();
+
+  InitAll();    // initialize rel_coord, hash_lut, interac_class, perm_list 
   Kernel potn_ker = BuildKernel<potentialP2P>("laplace", std::pair<int, int>(1, 1));
   Kernel grad_ker = BuildKernel<gradientP2P >("laplace_grad", std::pair<int, int>(1, 3),
                     &potn_ker, &potn_ker, NULL, &potn_ker, &potn_ker, NULL, &potn_ker, NULL);
@@ -103,9 +103,9 @@ int main(int argc, char **argv) {
 #endif
   kernel->Initialize();
   Profile::Tic("Precomputation", true);
-  PrecompMat pmat(&interacList, kernel);
+  PrecompMat pmat(kernel);
   Profile::Toc();
-  FMM_Tree tree(kernel, &interacList, &pmat);
+  FMM_Tree tree(kernel, &pmat);
   for(size_t it=0; it<1; it++) {
     Profile::Tic("TotalTime", true);
     tree.root_node = &cells[0];

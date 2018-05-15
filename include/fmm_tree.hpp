@@ -12,13 +12,12 @@ class FMM_Tree {
  public:
   FMM_Node* root_node;
   const Kernel* kernel;
-  InteracList* interacList;
   PrecompMat* mat;
   std::vector<FMM_Node*> node_lst;
   M2LData M2Ldata;
 
-  FMM_Tree(const Kernel* kernel_, InteracList* interacList_, PrecompMat* mat_):
-    kernel(kernel_), interacList(interacList_), mat(mat_),
+  FMM_Tree(const Kernel* kernel_, PrecompMat* mat_):
+    kernel(kernel_), mat(mat_),
     root_node(NULL) {
     m2l_precomp_fft_flag = false;
     m2l_list_fft_flag = false;
@@ -189,8 +188,8 @@ class FMM_Tree {
           rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
           rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
           rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
-          c_hash = interacList->coord_hash(rel_coord);
-          idx = interacList->hash_lut[t][c_hash];
+          c_hash = coord_hash(rel_coord);
+          idx = hash_lut[t][c_hash];
           if(idx>=0) interac_list[idx] = pc;
         }
       }
@@ -203,8 +202,8 @@ class FMM_Tree {
           rel_coord[0]=( i %3)-1;
           rel_coord[1]=((i/3)%3)-1;
           rel_coord[2]=((i/9)%3)-1;
-          c_hash = interacList->coord_hash(rel_coord);
-          idx = interacList->hash_lut[t][c_hash];
+          c_hash = coord_hash(rel_coord);
+          idx = hash_lut[t][c_hash];
           if(idx>=0) interac_list[idx] = col;
         }
       }
@@ -218,8 +217,8 @@ class FMM_Tree {
             rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
             rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
             rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
-            c_hash = interacList->coord_hash(rel_coord);
-            idx = interacList->hash_lut[t][c_hash];
+            c_hash = coord_hash(rel_coord);
+            idx = hash_lut[t][c_hash];
             if(idx>=0) {
               assert(col->Child(j)->IsLeaf()); //2:1 balanced
               interac_list[idx] = (FMM_Node*)col->Child(j);
@@ -236,8 +235,8 @@ class FMM_Tree {
           rel_coord[0]=( i %3)-1;
           rel_coord[1]=((i/3)%3)-1;
           rel_coord[2]=((i/9)%3)-1;
-          c_hash = interacList->coord_hash(rel_coord);
-          idx=interacList->hash_lut[t][c_hash];
+          c_hash = coord_hash(rel_coord);
+          idx=hash_lut[t][c_hash];
           if(idx>=0) interac_list[idx]=col;
         }
       }
@@ -251,8 +250,8 @@ class FMM_Tree {
             rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
             rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
             rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
-            c_hash = interacList->coord_hash(rel_coord);
-            idx=interacList->hash_lut[t][c_hash];
+            c_hash = coord_hash(rel_coord);
+            idx=hash_lut[t][c_hash];
             if(idx>=0) interac_list[idx]=(FMM_Node*)col->Child(j);
           }
         }
@@ -266,8 +265,8 @@ class FMM_Tree {
           rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
           rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
           rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
-          c_hash = interacList->coord_hash(rel_coord);
-          idx=interacList->hash_lut[t][c_hash];
+          c_hash = coord_hash(rel_coord);
+          idx=hash_lut[t][c_hash];
           if(idx>=0) interac_list[idx]=pc;
         }
       }
@@ -284,7 +283,7 @@ class FMM_Tree {
                                               M2P_Type, P2L_Type, M2L_Type
                                              };
     for(Mat_Type& type : interactionTypes) {
-      int numRelCoord = interacList->rel_coord[type].size();  // num of possible relative positions
+      int numRelCoord = rel_coord[type].size();  // num of possible relative positions
       #pragma omp parallel for
       for(size_t i=0; i<nodes.size(); i++) {
         FMM_Node* node = nodes[i];
@@ -311,7 +310,7 @@ class FMM_Tree {
     size_t n_in = nodes_in.size();
     size_t n_out = nodes_out.size();
     // build ptrs of precompmat
-    size_t mat_cnt = interacList->rel_coord[M2L_Type].size();
+    size_t mat_cnt = rel_coord[M2L_Type].size();
     std::vector<real_t*> precomp_mat;                    // vector of ptrs which points to Precomputation matrix of each M2L relative position
     for(size_t mat_id=0; mat_id<mat_cnt; mat_id++) {
       Matrix<real_t>& M = mat_M2L[mat_id];
