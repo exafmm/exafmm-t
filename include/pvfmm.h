@@ -79,7 +79,6 @@ typedef enum {
   ReflecZ = 3,
   SwapXY  = 4,
   SwapXZ  = 5,
-  R_Perm = 0,
   C_Perm = 6,
   Perm_Count=12
 } Perm_Type;
@@ -157,6 +156,7 @@ Matrix<real_t> M2M_U, M2M_V;
 Matrix<real_t> L2L_U, L2L_V;
 Matrix<real_t> mat_M2M, mat_L2L;
 std::vector<Matrix<real_t> > mat_M2L;
+std::vector<Permutation<real_t> > perm_M2M, perm_L2L;
 
 int LEVEL;     // depth of octree
 int MULTIPOLE_ORDER;         // order of multipole expansion
