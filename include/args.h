@@ -10,7 +10,7 @@ namespace exafmm {
   static struct option long_options[] = {
     {"ncrit",        required_argument, 0, 'c'},
     {"numBodies",    required_argument, 0, 'n'},
-    {"PP",           required_argument, 0, 'P'},
+    {"P",           required_argument, 0, 'P'},
     {"threads",      required_argument, 0, 'T'},
     {0, 0, 0, 0}
   };
@@ -19,7 +19,7 @@ namespace exafmm {
   public:
     int ncrit;
     int numBodies;
-    int PP;
+    int P;
     int threads;
 
   private:
@@ -34,7 +34,7 @@ namespace exafmm {
 	      name,
 	      ncrit,
 	      numBodies,
-	      PP,
+	      P,
 	      threads);
     }
 
@@ -42,7 +42,7 @@ namespace exafmm {
     Args(int argc=0, char ** argv=NULL) :
       ncrit(64),
       numBodies(1000000),
-      PP(4),
+      P(4),
       threads(16) {
       while (1) {
 	int option_index;
@@ -56,7 +56,7 @@ namespace exafmm {
 	  numBodies = atoi(optarg);
 	  break;
 	case 'P':
-	  PP = atoi(optarg);
+	  P = atoi(optarg);
 	  break;
 	case 'T':
 	  threads = atoi(optarg);
