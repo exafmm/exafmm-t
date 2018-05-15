@@ -1,6 +1,6 @@
 #ifndef _PVFMM_INTERAC_LIST_HPP_
 #define _PVFMM_INTERAC_LIST_HPP_
-#include "sort.hpp"
+#include "pvfmm.h"
 
 namespace pvfmm {
 class InteracList {
@@ -42,7 +42,6 @@ class InteracList {
     M.resize(count);
     hash_lut[t].assign(max_hash, -1);
     std::vector<int> class_size_hash(max_hash, 0);
-    std::vector<int> class_disp_hash(max_hash, 0);
     for(int k=-max_r; k<=max_r; k+=step)
       for(int j=-max_r; j<=max_r; j+=step)
         for(int i=-max_r; i<=max_r; i+=step)
@@ -53,7 +52,11 @@ class InteracList {
             class_size_hash[class_hash(c)]++;
           }
     // class count -> class count displacement
-    scan(&class_size_hash[0], &class_disp_hash[0], max_hash);
+    std::vector<int> class_disp_hash(max_hash, 0);
+    for(int i=1; i<max_hash; i++) {
+      class_disp_hash[i] = class_disp_hash[i-1] + class_size_hash[i-1]; 
+    }
+
     int count_=0;
     for(int k=-max_r; k<=max_r; k+=step)
       for(int j=-max_r; j<=max_r; j+=step)

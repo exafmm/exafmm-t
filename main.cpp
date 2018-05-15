@@ -23,7 +23,6 @@
 #include <matrix.hpp>
 #include <precomp_mat.hpp>
 #include <kernel.hpp>
-#include <sort.hpp>
 #include <interac_list.hpp>
 #include <fmm_tree.hpp>
 
