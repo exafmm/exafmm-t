@@ -3,19 +3,19 @@
 #include <cassert>
 #include "pvfmm.h"
 namespace pvfmm {
-  //! Build cells of tree adaptively using a top-down approach based on recursion
-  void buildCells(Body * bodies, Body * buffer, int begin, int end, FMM_Node * cell, FMM_Nodes & cells,
+  //! Build nodes of tree adaptively using a top-down approach based on recursion
+  void buildTree(Body * bodies, Body * buffer, int begin, int end, FMM_Node * node, FMM_Nodes & nodes,
                   const vec3 & X, real_t R, int level=0, bool direction=false) {
-    cell->depth = level;         // depth
-    //! Create a tree cell
-    cell->body = bodies + begin;
-    if(direction) cell->body = buffer + begin;
-    cell->numBodies = end - begin;
-    cell->numChilds = 0;
-    cell->X = X;
-    cell->R = R;
-    //cell->M.resize(NTERM, 0.0);
-    //cell->L.resize(NTERM, 0.0);
+    node->depth = level;         // depth
+    //! Create a tree node
+    node->body = bodies + begin;
+    if(direction) node->body = buffer + begin;
+    node->numBodies = end - begin;
+    node->numChilds = 0;
+    node->X = X;
+    node->R = R;
+    //node->M.resize(NTERM, 0.0);
+    //node->L.resize(NTERM, 0.0);
     //! Count number of bodies in each octant
     int size[8] = {0,0,0,0,0,0,0,0};
     vec3 x;
@@ -30,11 +30,11 @@ namespace pvfmm {
     for (int i=0; i<8; i++) {
       offsets[i] = offset;
       offset += size[i];
-      if (size[i]) cell->numChilds++;
+      if (size[i]) node->numChilds++;
     }
-    //! If cell is a leaf
+    //! If node is a leaf
     if (end - begin <= NCRIT) {
-      cell->numChilds = 0;
+      node->numChilds = 0;
       if (direction) {
         for (int i=begin; i<end; i++) {
           buffer[i].X = bodies[i].X;
@@ -54,11 +54,11 @@ namespace pvfmm {
     }
     //! Loop over children and recurse
     vec3 Xchild;
-    assert(cells.capacity() >= cells.size()+cell->numChilds);
-    cells.resize(cells.size()+cell->numChilds);
-    FMM_Node * child = &cells.back() - cell->numChilds + 1;
-    cell->fchild = child;
-    cell->child.resize(8, NULL);
+    assert(nodes.capacity() >= nodes.size()+node->numChilds);
+    nodes.resize(nodes.size()+node->numChilds);
+    FMM_Node * child = &nodes.back() - node->numChilds + 1;
+    node->fchild = child;
+    node->child.resize(8, NULL);
     for (int i=0, c=0; i<8; i++) {
       Xchild = X;
       real_t Rchild = R / 2;
@@ -66,12 +66,12 @@ namespace pvfmm {
         Xchild[d] += Rchild * (((i & 1 << d) >> d) * 2 - 1);
       }
       if (size[i]) {
-        child[c].parent = cell;
+        child[c].parent = node;
         child[c].octant = i;
-        cell->child[i] = &child[c];
+        node->child[i] = &child[c];
 
-        buildCells(buffer, bodies, offsets[i], offsets[i] + size[i],
-                   &child[c++], cells, Xchild, Rchild, level+1, !direction);
+        buildTree(buffer, bodies, offsets[i], offsets[i] + size[i],
+                   &child[c++], nodes, Xchild, Rchild, level+1, !direction);
       }
     }
   }
@@ -80,12 +80,12 @@ namespace pvfmm {
     real_t R0 = 0.5;
     vec3 X0(0.5);
     Bodies buffer = bodies;
-    FMM_Nodes cells(1);
-    cells[0].parent = NULL;
-    cells[0].octant = 0;
-    cells.reserve(bodies.size()*(32/NCRIT+1));
-    buildCells(&bodies[0], &buffer[0], 0, bodies.size(), &cells[0], cells, X0, R0);
-    return cells;
+    FMM_Nodes nodes(1);
+    nodes[0].parent = NULL;
+    nodes[0].octant = 0;
+    nodes.reserve(bodies.size()*(32/NCRIT+1));
+    buildTree(&bodies[0], &buffer[0], 0, bodies.size(), &nodes[0], nodes, X0, R0);
+    return nodes;
   }
 }
 #endif
