@@ -103,9 +103,9 @@ int main(int argc, char **argv) {
 #endif
   kernel->Initialize();
   Profile::Tic("Precomputation", true);
-  PrecompMat pmat(kernel);
+  PrecompMat(kernel);
   Profile::Toc();
-  FMM_Tree tree(kernel, &pmat);
+  FMM_Tree tree(kernel);
   for(size_t it=0; it<1; it++) {
     Profile::Tic("TotalTime", true);
     tree.root_node = &cells[0];

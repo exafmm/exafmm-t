@@ -161,7 +161,7 @@ namespace pvfmm {
   Matrix<real_t> M2M_U, M2M_V;
   Matrix<real_t> L2L_U, L2L_V;
   Matrix<real_t> mat_M2M, mat_L2L;
-  std::vector<Matrix<real_t> > mat_M2L;
+  std::vector<Matrix<real_t> > mat_M2L, mat_M2L_Helper;
   std::vector<Permutation<real_t> > perm_M2M, perm_L2L;
 
   int LEVEL;     // depth of octree

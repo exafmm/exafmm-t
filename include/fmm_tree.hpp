@@ -12,12 +12,11 @@ class FMM_Tree {
  public:
   FMM_Node* root_node;
   const Kernel* kernel;
-  PrecompMat* mat;
   std::vector<FMM_Node*> node_lst;
   M2LData M2Ldata;
 
-  FMM_Tree(const Kernel* kernel_, PrecompMat* mat_):
-    kernel(kernel_), mat(mat_),
+  FMM_Tree(const Kernel* kernel_):
+    kernel(kernel_),
     root_node(NULL) {
     m2l_precomp_fft_flag = false;
     m2l_list_fft_flag = false;
