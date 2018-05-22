@@ -92,9 +92,9 @@ int main(int argc, char **argv) {
     dnwd_equiv_surf[depth] = d_equiv_surf(c, depth);
   }
 
-  InitAll();    // initialize rel_coord, hash_lut, interac_class, perm_list 
+  InitAll();    // initialize rel_coord, hash_lut, interac_class, perm_list
   Kernel potn_ker = Kernel(std::pair<int, int>(1, 1));
-  Kernel grad_ker = Kernel(std::pair<int, int>(1, 3));
+  Kernel grad_ker = Kernel(std::pair<int, int>(1, 4));
   Kernel * kernel = &grad_ker;
   kernel->Initialize(&potn_ker);
   Profile::Tic("Precomputation", true);

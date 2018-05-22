@@ -10,21 +10,19 @@ namespace pvfmm {
   void Perm_R(Mat_Type type, size_t indx, const Kernel* kernel) {
     Matrix<real_t>& M0 = (type == M2M_Type) ? mat_M2M : mat_L2L;
     Permutation<real_t>& row_perm = (type == M2M_Type) ? kernel->k_m2m->perm_r[indx] : kernel->k_l2l->perm_r[indx];
-    if(row_perm.Dim()==0) {                                       // if this perm_r entry hasn't been computed
-      std::vector<Perm_Type> p_list =
-        perm_list[type][indx];      // get perm_list of current rel_coord
-      // for(int i=0; i<l; i++) p_list.push_back(Scaling);           // push back Scaling operation l times
-      Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(0));  // init row_perm to be size npts*src_dim
-      for(int i=0; i<C_Perm; i++) {                               // loop over permutation types
-        Permutation<real_t>& pr = (type == M2M_Type) ? perm_M2M[i] : perm_L2L[i];      // grab the handle of its mat->perm entry
-        if(!pr.Dim()) row_perm_ = Permutation<real_t> (0);           // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
+    if(row_perm.Dim()==0) { // if this perm_r entry hasn't been computed
+      std::vector<Perm_Type> p_list = perm_list[type][indx]; // get perm_list of current rel_coord
+      // for(int i=0; i<l; i++) p_list.push_back(Scaling); // push back Scaling operation l times
+      Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(0)); // init row_perm to be size npts*src_dim
+      for(int i=0; i<C_Perm; i++) { // loop over permutation types
+        Permutation<real_t>& pr = (type == M2M_Type) ? perm_M2M[i] : perm_L2L[i]; // grab the handle of its mat->perm entry
+        if(!pr.Dim()) row_perm_ = Permutation<real_t> (0); // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
       }
-      if(row_perm_.Dim()>0)                                      // if this type & entry needs permutation
-        for(int i=p_list.size()-1; i>=0; i--) {                   // loop over the operations of perm_list from end to begin
+      if(row_perm_.Dim()>0) // if this type & entry needs permutation
+        for(int i=p_list.size()-1; i>=0; i--) { // loop over the operations of perm_list from end to begin
           //assert(type!=M2L_Helper_Type);
-          Permutation<real_t>& pr = (type == M2M_Type) ? perm_M2M[p_list[i]] : perm_L2L[p_list[i]];      // grab the handle of its mat->perm entry
-          row_perm_=pr.Transpose()
-                    *row_perm_;                     // accumulate the permutation to row_perm (perm_r in precompmat header)
+          Permutation<real_t>& pr = (type == M2M_Type) ? perm_M2M[p_list[i]] : perm_L2L[p_list[i]]; // grab the handle of its mat->perm entry
+          row_perm_ = pr.Transpose() * row_perm_; // accumulate the permutation to row_perm (perm_r in precompmat header)
         }
       row_perm=row_perm_;
     }

@@ -352,15 +352,6 @@ class FMM_Tree {
       }
       for(typename std::set<FMM_Node*>::iterator node=nodes_in.begin(); node != nodes_in.end(); node++)
         nodes_in_.push_back(*node);
-      // reevaluate buff_size, not necessary for CPU code
-#if 0
-      size_t  input_dim=nodes_in_ .size()*ker_dim0*fftsize;
-      size_t output_dim=nodes_out_.size()*ker_dim1*fftsize;
-      size_t buffer_dim=2*(ker_dim0+ker_dim1)*fftsize*omp_p;
-      if(buff_size<(input_dim + output_dim + buffer_dim)*sizeof(real_t))
-        buff_size=(input_dim + output_dim + buffer_dim)*sizeof(real_t);
-std::cout << buff_size / pow(1024,3) << std::endl;
-#endif
       // calculate fft_vec (dsp) and fft_sca
       for(size_t i=0; i<nodes_in_ .size(); i++)
         fft_vec[blk0].push_back(nodes_in_[i]->child[0]->idx * NSURF);  // nodes_in_ is local to the current block
@@ -532,22 +523,18 @@ std::cout << buff_size / pow(1024,3) << std::endl;
                         &trg_poten_dir[a*trg_dof  ]);
     }
     pvfmm::Profile::Toc();
-    real_t max_=0;
-    real_t max_err=0;
-    for(size_t i=0; i<trg_poten_fmm.size(); i++) {
-      real_t err=fabs(trg_poten_dir[i]-trg_poten_fmm[i]);
-      real_t max=fabs(trg_poten_dir[i]);
-      if(err>max_err) max_err=err;
-      if(max>max_) max_=max;
-    }
-    std::cout << std::setw(20) << std::left << "Error" << " : "<<std::scientific<<max_err/max_<<'\n';
-    real_t trg_diff = 0, trg_norm = 0.;
+    real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm=0;
     assert(trg_poten_dir.size() == trg_poten_fmm.size());
-    for(size_t i=0; i<trg_poten_fmm.size(); i++) {
-      trg_diff += (trg_poten_dir[i]-trg_poten_fmm[i])*(trg_poten_dir[i]-trg_poten_fmm[i]);
-      trg_norm += trg_poten_dir[i] * trg_poten_dir[i];
+    for(size_t i=0; i<trg_poten_fmm.size(); i+=4) {
+      p_diff += (trg_poten_dir[i]-trg_poten_fmm[i])*(trg_poten_dir[i]-trg_poten_fmm[i]);
+      p_norm += trg_poten_dir[i] * trg_poten_dir[i];
+      for (int d=1; d<4; d++) {
+        g_diff += (trg_poten_dir[i+d]-trg_poten_fmm[i+d])*(trg_poten_dir[i+d]-trg_poten_fmm[i+d]);
+        g_norm += trg_poten_dir[i+d] * trg_poten_dir[i+d];
+      }
     }
-    std::cout << std::setw(20) << std::left << "L2 Error" << " : " << std::scientific << sqrt(trg_diff/trg_norm) << std::endl;
+    std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << sqrt(p_diff/p_norm) << std::endl;
+    std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << sqrt(g_diff/g_norm) << std::endl;
   }
 };
 

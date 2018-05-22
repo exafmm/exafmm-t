@@ -8,8 +8,8 @@ namespace pvfmm {
 
 void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
   simdvec zero((real_t)0);
-  const real_t OOFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
-  simdvec oofp(OOFP);
+  const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
+  simdvec coef(COEF);
   int src_cnt = src_coord.size() / 3;
   int trg_cnt = trg_coord.size() / 3;
   for(int t=0; t<trg_cnt; t+=NSIMD) {
@@ -26,14 +26,14 @@ void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, Re
       sz = sz - tz;
       simdvec sv(src_value[s]);
       simdvec r2(zero);
-      r2 = r2 + sx*sx;
-      r2 = r2 + sy*sy;
-      r2 = r2 + sz*sz;
+      r2 += sx * sx;
+      r2 += sy * sy;
+      r2 += sz * sz;
       simdvec invR = rsqrt(r2);
       invR &= r2 > zero;
-      tv = tv + invR*sv;
+      tv += invR * sv;
     }
-    tv = tv * oofp;
+    tv *= coef;
     for(int k=0; k<NSIMD && t+k<trg_cnt; k++)
       trg_value[t+k] = tv[k];
   }
@@ -42,8 +42,10 @@ void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, Re
 
 void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
   simdvec zero((real_t)0);
-  const real_t OOFP = -1.0/(4*2*2*6*M_PI);
-  simdvec oofp(OOFP);
+  const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
+  const real_t COEFG = -1.0/(4*2*2*6*M_PI);
+  simdvec coefp(COEFP);
+  simdvec coefg(COEFG);
   int src_cnt = src_coord.size() / 3;
   int trg_cnt = trg_coord.size() / 3;
   for(int t=0; t<trg_cnt; t+=NSIMD) {
@@ -53,6 +55,7 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, Rea
     simdvec tv0(zero);
     simdvec tv1(zero);
     simdvec tv2(zero);
+    simdvec tv3(zero);
     for(int s=0; s<src_cnt; s++) {
       simdvec sx(src_coord[0*src_cnt+s]);
       sx = tx - sx;
@@ -61,25 +64,28 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, Rea
       simdvec sz(src_coord[2*src_cnt+s]);
       sz = tz - sz;
       simdvec r2(zero);
-      r2 = r2 + sx*sx;
-      r2 = r2 + sy*sy;
-      r2 = r2 + sz*sz;
+      r2 += sx * sx;
+      r2 += sy * sy;
+      r2 += sz * sz;
       simdvec invR = rsqrt(r2);
       invR &= r2 > zero;
       simdvec invR3 = (invR*invR) * invR;
       simdvec sv(src_value[s]);
-      sv = invR3 * sv;
-      tv0 = tv0 + sv*sx;
-      tv1 = tv1 + sv*sy;
-      tv2 = tv2 + sv*sz;
+      tv0 += sv*invR;
+      sv *= invR3;
+      tv1 += sv*sx;
+      tv2 += sv*sy;
+      tv3 += sv*sz;
     }
-    tv0 = tv0 * oofp;
-    tv1 = tv1 * oofp;
-    tv2 = tv2 * oofp;
+    tv0 *= coefp;
+    tv1 *= coefg;
+    tv2 *= coefg;
+    tv3 *= coefg;
     for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
-      trg_value[0+3*(t+k)] = tv0[k];
-      trg_value[1+3*(t+k)] = tv1[k];
-      trg_value[2+3*(t+k)] = tv2[k];
+      trg_value[0+4*(t+k)] = tv0[k];
+      trg_value[1+4*(t+k)] = tv1[k];
+      trg_value[2+4*(t+k)] = tv2[k];
+      trg_value[3+4*(t+k)] = tv3[k];
     }
   }
   //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*27);
@@ -90,7 +96,7 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, Rea
 // r_src & r_trg coordinate array: [x1, y1, z1, x2, y2, z2, ...]
 void laplaceP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt,
                 real_t* v_trg, bool grad=false) {
-  int TRG_DIM = (grad) ? 3 : 1;
+  int TRG_DIM = (grad) ? 4 : 1;
   RealVec src_coord(src_cnt * 3);
   RealVec src_value(src_cnt);
   RealVec trg_coord(trg_cnt * 3);
@@ -320,7 +326,7 @@ struct Kernel {
                  &(leaf->pt_coord[0]), leaf->pt_cnt[1], &(leaf->pt_trg[0]));
     }
   }
-  
+
   void P2L() {
     std::vector<FMM_Node*>& targets = allnodes;
     #pragma omp parallel for
