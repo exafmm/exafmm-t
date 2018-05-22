@@ -2,7 +2,7 @@
 -------------
 
 - [ ] Merge potential and grad (Tingyu, Chenwu)
-- [ ] Move precomputation to individual functions (Chenwu)
+- [x] Move precomputation to individual functions (Chenwu)
 - [ ] Remove fmm-tree, precompute class (Tingyu, Chenwu)
 - [ ] Simplify tree structure (Tingyu)
 - [ ] Remove kernel class (Tingyu, Chenwu)
