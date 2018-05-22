@@ -4,6 +4,7 @@
 #include "pvfmm.h"
 #include <queue>
 #include "geometry.h"
+#include "kernel.hpp"
 #include "precomp_mat.hpp"
 #include "build_tree.h"
 
@@ -527,7 +528,7 @@ std::cout << buff_size / pow(1024,3) << std::endl;
     for(int i=0; i<np; i++) {
       size_t a=(i*trg_cnt)/np;
       size_t b=((i+1)*trg_cnt)/np;
-      kernel->ker_poten(&src_coord[0], src_cnt, &src_value[0], &trg_coord[a*3], b-a,
+      gradientP2P(&src_coord[0], src_cnt, &src_value[0], &trg_coord[a*3], b-a,
                         &trg_poten_dir[a*trg_dof  ]);
     }
     pvfmm::Profile::Toc();

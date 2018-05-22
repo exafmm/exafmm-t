@@ -93,15 +93,10 @@ int main(int argc, char **argv) {
   }
 
   InitAll();    // initialize rel_coord, hash_lut, interac_class, perm_list 
-  Kernel potn_ker = BuildKernel<potentialP2P>("laplace", std::pair<int, int>(1, 1));
-  Kernel grad_ker = BuildKernel<gradientP2P >("laplace_grad", std::pair<int, int>(1, 3),
-                    &potn_ker, &potn_ker, NULL, &potn_ker, &potn_ker, NULL, &potn_ker, NULL);
-#if POTENTIAL
-  Kernel * kernel = &potn_ker;
-#else
+  Kernel potn_ker = Kernel(std::pair<int, int>(1, 1));
+  Kernel grad_ker = Kernel(std::pair<int, int>(1, 3));
   Kernel * kernel = &grad_ker;
-#endif
-  kernel->Initialize();
+  kernel->Initialize(&potn_ker);
   Profile::Tic("Precomputation", true);
   PrecompMat(kernel);
   Profile::Toc();
