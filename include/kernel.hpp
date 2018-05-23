@@ -138,7 +138,6 @@ struct Kernel {
   int ker_dim[2];
 
   bool init;
-  std::vector<Permutation<real_t>> perm_vec;
   M2LData M2Ldata;
 
   Kernel* k_p2m;
@@ -154,9 +153,6 @@ struct Kernel {
     ker_dim[0]=k_dim.first;
     ker_dim[1]=k_dim.second;
     init=false;
-    perm_vec.resize(Perm_Count);
-    std::fill(perm_vec.begin(), perm_vec.begin()+C_Perm, Permutation<real_t>(ker_dim[0]));
-    std::fill(perm_vec.begin()+C_Perm, perm_vec.end(), Permutation<real_t>(ker_dim[1]));
     k_p2m=NULL;
     k_p2l=NULL;
     k_p2p=NULL;

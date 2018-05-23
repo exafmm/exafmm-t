@@ -103,11 +103,10 @@ namespace pvfmm {
       kernel->k_l2l->BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_pe2c[0][0]));
 
       Matrix<real_t> M_c2e0, M_c2e1;
-      Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
-      Permutation<real_t> P=equiv_surf_perm(Scaling, ker_perm, 1);
+      Permutation<real_t> ker_perm(1);
+      Permutation<real_t> P = equiv_surf_perm(Scaling, ker_perm, 1);
       M_c2e0 = P * L2L_V;
-      ker_perm=kernel->k_l2l->perm_vec[0     +Scaling];
-      P=equiv_surf_perm(Scaling, ker_perm, 0);
+      P = equiv_surf_perm(Scaling, ker_perm, 0);
       M_c2e1 = L2L_U * P;
       mat_L2L = M_c2e0 * (M_c2e1*M_pe2c);
       break;
