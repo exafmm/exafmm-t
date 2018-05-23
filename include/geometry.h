@@ -4,7 +4,7 @@
 #include "matrix.hpp"
 
 namespace pvfmm {
-  // alpha is the ratio r_surface/r_cell, see 2015Malhotra, page 7 
+  // alpha is the ratio r_surface/r_cell, see 2015Malhotra, page 7
   // 2.95 for upward check surface / downward equivalent surface
   // 1.05 for upward equivalent surface / downward check surface
   std::vector<real_t> surface(int p, real_t* c, real_t alpha, int depth){
@@ -86,7 +86,7 @@ namespace pvfmm {
     return grid;
   }
 
-  Permutation<real_t> equiv_surf_perm(size_t p_indx, const Permutation<real_t>& ker_perm, std::vector<real_t>& scal_exp){
+  Permutation<real_t> equiv_surf_perm(size_t p_indx, const Permutation<real_t>& ker_perm, real_t scal_exp){
     real_t eps=1e-10;
     int dof=ker_perm.Dim();
 
@@ -126,14 +126,9 @@ namespace pvfmm {
     }
 
     if(p_indx==Scaling) {
-      assert(dof==scal_exp.size());
-      std::vector<real_t> scal(scal_exp.size());
-      for(size_t i=0;i<scal.size();i++){
-        scal[i]=powf(2.0, scal_exp[i]);
-      }
       for(int j=0;j<n_trg;j++){
         for(int i=0;i<dof;i++){
-          P.scal[j*dof+i]*=scal[i];
+          P.scal[j*dof+i]=powf(2,scal_exp);
         }
       }
     }

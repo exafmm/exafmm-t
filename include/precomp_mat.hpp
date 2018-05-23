@@ -47,35 +47,29 @@ namespace pvfmm {
     }
   }
 
+
   void PrecompPerm(Mat_Type type, Perm_Type perm_indx, const Kernel* kernel) {
     size_t p_indx=perm_indx % C_Perm;
     Permutation<real_t> P;
     switch (type) {
     case M2M_Type: {
-      std::vector<real_t> scal_exp;
       Permutation<real_t> ker_perm;
       if(perm_indx<C_Perm) {
         ker_perm=kernel->k_m2m->perm_vec[0+p_indx];
-        scal_exp=kernel->k_m2m->src_scal;
       } else {
         ker_perm=kernel->k_m2m->perm_vec[0+p_indx];
-        scal_exp=kernel->k_m2m->src_scal;
       }
-      perm_M2M[perm_indx] = equiv_surf_perm(p_indx, ker_perm, scal_exp);
+      perm_M2M[perm_indx] = equiv_surf_perm(p_indx, ker_perm, 0);
       break;
     }
     case L2L_Type: {
-      std::vector<real_t> scal_exp;
       Permutation<real_t> ker_perm;
       if(perm_indx<C_Perm) {
         ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
-        scal_exp=kernel->k_l2l->trg_scal;
-        for(size_t i=0; i<scal_exp.size(); i++) scal_exp[i]=-scal_exp[i];
       } else {
         ker_perm=kernel->k_l2l->perm_vec[C_Perm+p_indx];
-        scal_exp=kernel->k_l2l->trg_scal;
       }
-      perm_L2L[perm_indx] = equiv_surf_perm(p_indx, ker_perm, scal_exp);
+      perm_L2L[perm_indx] = equiv_surf_perm(p_indx, ker_perm, 0);
       break;
     }
     default:
@@ -135,12 +129,10 @@ namespace pvfmm {
 
       Matrix<real_t> M_c2e0, M_c2e1;
       Permutation<real_t> ker_perm=kernel->k_l2l->perm_vec[C_Perm+Scaling];
-      std::vector<real_t> scal_exp=kernel->k_l2l->trg_scal;
-      Permutation<real_t> P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
+      Permutation<real_t> P=equiv_surf_perm(Scaling, ker_perm, 1);
       M_c2e0 = P * L2L_V;
       ker_perm=kernel->k_l2l->perm_vec[0     +Scaling];
-      scal_exp=kernel->k_l2l->src_scal;
-      P=equiv_surf_perm(Scaling, ker_perm, scal_exp);
+      P=equiv_surf_perm(Scaling, ker_perm, 0);
       M_c2e1 = L2L_U * P;
       mat_L2L = M_c2e0 * (M_c2e1*M_pe2c);
       break;

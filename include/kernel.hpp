@@ -138,8 +138,6 @@ struct Kernel {
   int ker_dim[2];
 
   bool init;
-  std::vector<real_t> src_scal;
-  std::vector<real_t> trg_scal;
   std::vector<Permutation<real_t>> perm_vec;
   std::vector<Permutation<real_t>> perm_r;
   std::vector<Permutation<real_t>> perm_c;
@@ -158,8 +156,6 @@ struct Kernel {
     ker_dim[0]=k_dim.first;
     ker_dim[1]=k_dim.second;
     init=false;
-    src_scal.resize(ker_dim[0], 0.);
-    trg_scal.resize(ker_dim[1], 0.);
     perm_vec.resize(Perm_Count);
     std::fill(perm_vec.begin(), perm_vec.begin()+C_Perm, Permutation<real_t>(ker_dim[0]));
     std::fill(perm_vec.begin()+C_Perm, perm_vec.end(), Permutation<real_t>(ker_dim[1]));
@@ -196,13 +192,6 @@ struct Kernel {
     assert(k_m2l->ker_dim[1]==k_l2l->ker_dim[1]);
     assert(k_p2p->ker_dim[1]==k_m2p->ker_dim[1]);
     assert(k_p2p->ker_dim[1]==k_l2p->ker_dim[1]);
-    potn_ker->InitKernel();
-  }
-
-  void InitKernel() {
-    // hardcoded src & trg scal here, since they are constants for Laplace based on the original code
-    if (ker_dim[1] == 3) std::fill(trg_scal.begin(), trg_scal.end(), 2.);
-    else std::fill(trg_scal.begin(), trg_scal.end(), 1.);
   }
 
   //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)

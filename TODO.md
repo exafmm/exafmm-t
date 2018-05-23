@@ -1,10 +1,8 @@
 ###TODO
 -------------
 
-- [ ] Merge potential and grad (Tingyu, Chenwu)
-- [x] Move precomputation to individual functions (Chenwu)
-- [ ] Remove fmm-tree, precompute class (Tingyu, Chenwu)
-- [ ] Simplify tree structure (Tingyu)
+- [ ] Remove fmm-tree class (Tingyu, Chenwu)
+- [ ] Simplify list structure (Tingyu)
 - [ ] Remove kernel class (Tingyu, Chenwu)
 - [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution (Tingyu)
 - [ ] define global n1,n2,n3,n3\_,fftsize, replace the local copys with the global ones in M2L precomputation & evaluation

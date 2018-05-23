@@ -335,8 +335,6 @@ class FMM_Tree {
     std::vector<std::vector<real_t> > ifft_scl(n_blk0);
     std::vector<std::vector<FMM_Node*> > nodes_blk_in (n_blk0);  // node_in in each block
     std::vector<std::vector<FMM_Node*> > nodes_blk_out(n_blk0);  // node_out in each block
-    std::vector<real_t> src_scal=kernel->k_m2l->src_scal;  // src_scal is 0 for Laplace
-    std::vector<real_t> trg_scal=kernel->k_m2l->trg_scal;  // trg_scal is 1 for Laplace
     for(size_t i=0; i<n_in; i++) nodes_in[i]->node_id=i;
     for(size_t blk0=0; blk0<n_blk0; blk0++) {
       // prepare nodes_in_ & out_ for this block
@@ -357,19 +355,15 @@ class FMM_Tree {
         fft_vec[blk0].push_back(nodes_in_[i]->child[0]->idx * NSURF);  // nodes_in_ is local to the current block
       for(size_t i=0; i<nodes_out_.size(); i++)
         ifft_vec[blk0].push_back(nodes_out[blk0_start+i]->child[0]->idx * NSURF); // nodes_out here is global
-      size_t scal_dim0=src_scal.size();
-      size_t scal_dim1=trg_scal.size();
-      fft_scl [blk0].resize(nodes_in_ .size()*scal_dim0);
-      ifft_scl[blk0].resize(nodes_out_.size()*scal_dim1);
+      fft_scl [blk0].resize(nodes_in_ .size());
+      ifft_scl[blk0].resize(nodes_out_.size());
       for(size_t i=0; i<nodes_in_ .size(); i++) {
         size_t depth=nodes_in_[i]->depth+1;
-        for(size_t j=0; j<scal_dim0; j++)
-          fft_scl[blk0][i*scal_dim0+j]=powf(2.0, src_scal[j]*depth);
+        fft_scl[blk0][i]=1;
       }
       for(size_t i=0; i<nodes_out_.size(); i++) {
         size_t depth=nodes_out_[i]->depth+1;
-        for(size_t j=0; j<scal_dim1; j++)
-          ifft_scl[blk0][i*scal_dim1+j]=powf(2.0, trg_scal[j]*depth);
+        ifft_scl[blk0][i]=powf(2.0, depth);
       }
     }
     // calculate interac_vec & interac_dsp
