@@ -7,15 +7,14 @@
 #include "profile.hpp"
 namespace pvfmm {
   // This is only related to M2M and L2L operator
-  void Perm_R(Mat_Type type, size_t indx, const Kernel* kernel) {
-    Matrix<real_t>& M0 = (type == M2M_Type) ? mat_M2M : mat_L2L;
-    Permutation<real_t>& row_perm = (type == M2M_Type) ? kernel->k_m2m->perm_r[indx] : kernel->k_l2l->perm_r[indx];
+  void Perm_R(size_t indx) {
+    Permutation<real_t>& row_perm = perm_r[indx];
     if(row_perm.Dim()==0) { // if this perm_r entry hasn't been computed
-      std::vector<Perm_Type> p_list = perm_list[type][indx]; // get perm_list of current rel_coord
-      Permutation<real_t> row_perm_=Permutation<real_t>(M0.Dim(0)); // init row_perm to be size npts*src_dim
+      std::vector<Perm_Type> p_list = perm_list[M2M_Type][indx]; // get perm_list of current rel_coord
+      Permutation<real_t> row_perm_=Permutation<real_t>(mat_M2M.Dim(0)); // init row_perm to be size npts*src_dim
       for(int i=0; i<C_Perm; i++) { // loop over permutation types
         Permutation<real_t>& pr = perm_M2M[i]; // grab the handle of its mat->perm entry
-        if(!pr.Dim()) row_perm_ = Permutation<real_t> (0); // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
+        if(!pr.Dim()) row_perm_ = Permutation<real_t>(0); // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
       }
       if(row_perm_.Dim()>0) // if this type & entry needs permutation
         for(int i=p_list.size()-1; i>=0; i--) { // loop over the operations of perm_list from end to begin
@@ -26,12 +25,11 @@ namespace pvfmm {
     }
   }
 
-  void Perm_C(Mat_Type type, size_t indx, const Kernel* kernel) {
-    Matrix<real_t>& M0 = (type == M2M_Type) ? mat_M2M : mat_L2L;
-    Permutation<real_t>& col_perm = (type == M2M_Type) ? kernel->k_m2m->perm_c[indx] : kernel->k_l2l->perm_c[indx];
+  void Perm_C(size_t indx) {
+    Permutation<real_t>& col_perm = perm_c[indx];
     if(col_perm.Dim()==0) {
-      std::vector<Perm_Type> p_list = perm_list[type][indx];
-      Permutation<real_t> col_perm_ = Permutation<real_t>(M0.Dim(1));
+      std::vector<Perm_Type> p_list = perm_list[M2M_Type][indx];
+      Permutation<real_t> col_perm_ = Permutation<real_t>(mat_M2M.Dim(1));
       for(int i=0; i<C_Perm; i++) {
         Permutation<real_t>& pc = perm_M2M[C_Perm + i];
         if(!pc.Dim()) col_perm_ = Permutation<real_t>(0);
@@ -39,7 +37,7 @@ namespace pvfmm {
       if(col_perm_.Dim()>0)
         for(int i=p_list.size()-1; i>=0; i--) {
           Permutation<real_t>& pc = perm_M2M[C_Perm + p_list[i]];
-          col_perm_ = col_perm_*pc;
+          col_perm_ = col_perm_ * pc;
         }
       col_perm = col_perm_;
     }
@@ -194,15 +192,10 @@ namespace pvfmm {
   void PrecompAll(Mat_Type type, const Kernel* kernel) {
     int idx_num = rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
     if (type == M2M_Type || type == L2L_Type) {
-      //for(int perm_idx=0; perm_idx<Perm_Count; perm_idx++) PrecompPerm(type, (Perm_Type) perm_idx, kernel);
       for(int i=0; i<idx_num; i++) {           // i is index of rel_coord
         if(interac_class[type][i] == i) { // if i-th coord is a class_coord
           Precomp(type, i, kernel);                       // calculate operator matrix of class_coord
         }
-      }
-      for(int mat_idx=0; mat_idx<idx_num; mat_idx++) {
-        Perm_R(type, mat_idx, kernel);
-        Perm_C(type, mat_idx, kernel);
       }
     } else {
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++)
@@ -212,19 +205,20 @@ namespace pvfmm {
 
   void PrecompMat(const Kernel* kernel) {
     perm_M2M.resize(Perm_Count);
-    //perm_L2L.resize(Perm_Count);
     mat_M2L.resize(rel_coord[M2L_Type].size());
     mat_M2L_Helper.resize(rel_coord[M2L_Helper_Type].size());
     int numRelCoords = rel_coord[M2M_Type].size();
-    kernel->k_m2m->perm_r.resize(numRelCoords);
-    kernel->k_m2m->perm_c.resize(numRelCoords);
-    kernel->k_l2l->perm_r.resize(numRelCoords);
-    kernel->k_l2l->perm_c.resize(numRelCoords);
+    perm_r.resize(numRelCoords);
+    perm_c.resize(numRelCoords);
     PrecompPerm();
     PrecompAll(M2M_Type, kernel);
     PrecompAll(M2L_Helper_Type, kernel);
     PrecompAll(M2L_Type, kernel);
     PrecompAll(L2L_Type, kernel);
+    for(int mat_idx=0; mat_idx<rel_coord[M2M_Type].size(); mat_idx++) {
+      Perm_R(mat_idx);
+      Perm_C(mat_idx);
+    }
   }
 
 }//end namespace

@@ -139,8 +139,6 @@ struct Kernel {
 
   bool init;
   std::vector<Permutation<real_t>> perm_vec;
-  std::vector<Permutation<real_t>> perm_r;
-  std::vector<Permutation<real_t>> perm_c;
   M2LData M2Ldata;
 
   Kernel* k_p2m;
