@@ -5,187 +5,128 @@
 #include "pvfmm.h"
 
 namespace pvfmm {
-
-void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
-  simdvec zero((real_t)0);
-  const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
-  simdvec coef(COEF);
-  int src_cnt = src_coord.size() / 3;
-  int trg_cnt = trg_coord.size() / 3;
-  for(int t=0; t<trg_cnt; t+=NSIMD) {
-    simdvec tx(&trg_coord[0*trg_cnt+t], (int)sizeof(real_t));
-    simdvec ty(&trg_coord[1*trg_cnt+t], (int)sizeof(real_t));
-    simdvec tz(&trg_coord[2*trg_cnt+t], (int)sizeof(real_t));
-    simdvec tv(zero);
-    for(int s=0; s<src_cnt; s++) {
-      simdvec sx(src_coord[0*src_cnt+s]);
-      sx = sx - tx;
-      simdvec sy(src_coord[1*src_cnt+s]);
-      sy = sy - ty;
-      simdvec sz(src_coord[2*src_cnt+s]);
-      sz = sz - tz;
-      simdvec sv(src_value[s]);
-      simdvec r2(zero);
-      r2 += sx * sx;
-      r2 += sy * sy;
-      r2 += sz * sz;
-      simdvec invR = rsqrt(r2);
-      invR &= r2 > zero;
-      tv += invR * sv;
+  void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+    simdvec zero((real_t)0);
+    const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    simdvec coef(COEF);
+    int src_cnt = src_coord.size() / 3;
+    int trg_cnt = trg_coord.size() / 3;
+    for(int t=0; t<trg_cnt; t+=NSIMD) {
+      simdvec tx(&trg_coord[0*trg_cnt+t], (int)sizeof(real_t));
+      simdvec ty(&trg_coord[1*trg_cnt+t], (int)sizeof(real_t));
+      simdvec tz(&trg_coord[2*trg_cnt+t], (int)sizeof(real_t));
+      simdvec tv(zero);
+      for(int s=0; s<src_cnt; s++) {
+        simdvec sx(src_coord[0*src_cnt+s]);
+        sx = sx - tx;
+        simdvec sy(src_coord[1*src_cnt+s]);
+        sy = sy - ty;
+        simdvec sz(src_coord[2*src_cnt+s]);
+        sz = sz - tz;
+        simdvec sv(src_value[s]);
+        simdvec r2(zero);
+        r2 += sx * sx;
+        r2 += sy * sy;
+        r2 += sz * sz;
+        simdvec invR = rsqrt(r2);
+        invR &= r2 > zero;
+        tv += invR * sv;
+      }
+      tv *= coef;
+      for(int k=0; k<NSIMD && t+k<trg_cnt; k++)
+        trg_value[t+k] = tv[k];
     }
-    tv *= coef;
-    for(int k=0; k<NSIMD && t+k<trg_cnt; k++)
-      trg_value[t+k] = tv[k];
+    //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*20);
   }
-  //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*20);
-}
 
-void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
-  simdvec zero((real_t)0);
-  const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
-  const real_t COEFG = -1.0/(4*2*2*6*M_PI);
-  simdvec coefp(COEFP);
-  simdvec coefg(COEFG);
-  int src_cnt = src_coord.size() / 3;
-  int trg_cnt = trg_coord.size() / 3;
-  for(int t=0; t<trg_cnt; t+=NSIMD) {
-    simdvec tx(&trg_coord[0*trg_cnt+t], (int)sizeof(real_t));
-    simdvec ty(&trg_coord[1*trg_cnt+t], (int)sizeof(real_t));
-    simdvec tz(&trg_coord[2*trg_cnt+t], (int)sizeof(real_t));
-    simdvec tv0(zero);
-    simdvec tv1(zero);
-    simdvec tv2(zero);
-    simdvec tv3(zero);
-    for(int s=0; s<src_cnt; s++) {
-      simdvec sx(src_coord[0*src_cnt+s]);
-      sx = tx - sx;
-      simdvec sy(src_coord[1*src_cnt+s]);
-      sy = ty - sy;
-      simdvec sz(src_coord[2*src_cnt+s]);
-      sz = tz - sz;
-      simdvec r2(zero);
-      r2 += sx * sx;
-      r2 += sy * sy;
-      r2 += sz * sz;
-      simdvec invR = rsqrt(r2);
-      invR &= r2 > zero;
-      simdvec invR3 = (invR*invR) * invR;
-      simdvec sv(src_value[s]);
-      tv0 += sv*invR;
-      sv *= invR3;
-      tv1 += sv*sx;
-      tv2 += sv*sy;
-      tv3 += sv*sz;
+  void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+    simdvec zero((real_t)0);
+    const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    const real_t COEFG = -1.0/(4*2*2*6*M_PI);
+    simdvec coefp(COEFP);
+    simdvec coefg(COEFG);
+    int src_cnt = src_coord.size() / 3;
+    int trg_cnt = trg_coord.size() / 3;
+    for(int t=0; t<trg_cnt; t+=NSIMD) {
+      simdvec tx(&trg_coord[0*trg_cnt+t], (int)sizeof(real_t));
+      simdvec ty(&trg_coord[1*trg_cnt+t], (int)sizeof(real_t));
+      simdvec tz(&trg_coord[2*trg_cnt+t], (int)sizeof(real_t));
+      simdvec tv0(zero);
+      simdvec tv1(zero);
+      simdvec tv2(zero);
+      simdvec tv3(zero);
+      for(int s=0; s<src_cnt; s++) {
+        simdvec sx(src_coord[0*src_cnt+s]);
+        sx = tx - sx;
+        simdvec sy(src_coord[1*src_cnt+s]);
+        sy = ty - sy;
+        simdvec sz(src_coord[2*src_cnt+s]);
+        sz = tz - sz;
+        simdvec r2(zero);
+        r2 += sx * sx;
+        r2 += sy * sy;
+        r2 += sz * sz;
+        simdvec invR = rsqrt(r2);
+        invR &= r2 > zero;
+        simdvec invR3 = (invR*invR) * invR;
+        simdvec sv(src_value[s]);
+        tv0 += sv*invR;
+        sv *= invR3;
+        tv1 += sv*sx;
+        tv2 += sv*sy;
+        tv3 += sv*sz;
+      }
+      tv0 *= coefp;
+      tv1 *= coefg;
+      tv2 *= coefg;
+      tv3 *= coefg;
+      for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
+        trg_value[0+4*(t+k)] = tv0[k];
+        trg_value[1+4*(t+k)] = tv1[k];
+        trg_value[2+4*(t+k)] = tv2[k];
+        trg_value[3+4*(t+k)] = tv3[k];
+      }
     }
-    tv0 *= coefp;
-    tv1 *= coefg;
-    tv2 *= coefg;
-    tv3 *= coefg;
-    for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
-      trg_value[0+4*(t+k)] = tv0[k];
-      trg_value[1+4*(t+k)] = tv1[k];
-      trg_value[2+4*(t+k)] = tv2[k];
-      trg_value[3+4*(t+k)] = tv3[k];
+    //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*27);
+  }
+
+  //! Wrap around the above P2P functions with matrix interface to provide array interface
+  //! Evaluate potential / gradient based on the argument grad
+  // r_src & r_trg coordinate array: [x1, y1, z1, x2, y2, z2, ...]
+  void laplaceP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt,
+                  real_t* v_trg, bool grad=false) {
+    int TRG_DIM = (grad) ? 4 : 1;
+    RealVec src_coord(src_cnt * 3);
+    RealVec src_value(src_cnt);
+    RealVec trg_coord(trg_cnt * 3);
+    RealVec trg_value(trg_cnt * TRG_DIM, 0.);
+    for(size_t i=0; i<src_cnt ; i++) {
+      for(size_t j=0; j<3; j++)
+        src_coord[i+j*src_cnt] = r_src[i*3+j];
+    }
+    for(int i=0; i<src_cnt ; i++)
+      src_value[i]=v_src[i];
+    for(int i=0; i<trg_cnt ; i++) {
+      for(size_t j=0; j<3; j++)
+        trg_coord[i+j*trg_cnt] = r_trg[i*3+j];
+    }
+    if (grad) gradientP2P(src_coord, src_value, trg_coord, trg_value);
+    else potentialP2P(src_coord, src_value, trg_coord, trg_value);
+    for(size_t i=0; i<trg_cnt ; i++) {
+      for(size_t j=0; j<TRG_DIM; j++)
+        v_trg[i*TRG_DIM+j]+=trg_value[i*TRG_DIM+j];
     }
   }
-  //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*27);
-}
 
-//! Wrap around the above P2P functions with matrix interface to provide array interface
-//! Evaluate potential / gradient based on the argument grad
-// r_src & r_trg coordinate array: [x1, y1, z1, x2, y2, z2, ...]
-void laplaceP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt,
-                real_t* v_trg, bool grad=false) {
-  int TRG_DIM = (grad) ? 4 : 1;
-  RealVec src_coord(src_cnt * 3);
-  RealVec src_value(src_cnt);
-  RealVec trg_coord(trg_cnt * 3);
-  RealVec trg_value(trg_cnt * TRG_DIM, 0.);
-  for(size_t i=0; i<src_cnt ; i++) {
-    for(size_t j=0; j<3; j++)
-      src_coord[i+j*src_cnt] = r_src[i*3+j];
+  //! Laplace potential P2P with array interface
+  void potentialP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt,
+                    real_t* v_trg) {
+    laplaceP2P(r_src, src_cnt, v_src,  r_trg, trg_cnt, v_trg, false);
   }
-  for(int i=0; i<src_cnt ; i++)
-    src_value[i]=v_src[i];
-  for(int i=0; i<trg_cnt ; i++) {
-    for(size_t j=0; j<3; j++)
-      trg_coord[i+j*trg_cnt] = r_trg[i*3+j];
-  }
-  if (grad) gradientP2P(src_coord, src_value, trg_coord, trg_value);
-  else potentialP2P(src_coord, src_value, trg_coord, trg_value);
-  for(size_t i=0; i<trg_cnt ; i++) {
-    for(size_t j=0; j<TRG_DIM; j++)
-      v_trg[i*TRG_DIM+j]+=trg_value[i*TRG_DIM+j];
-  }
-}
-
-//! Laplace potential P2P with array interface
-void potentialP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt,
-                  real_t* v_trg) {
-  laplaceP2P(r_src, src_cnt, v_src,  r_trg, trg_cnt, v_trg, false);
-}
-//! Laplace gradient P2P with array interface
-void gradientP2P(real_t* r_src, int src_cnt, real_t* v_src,  real_t* r_trg, int trg_cnt,
-                 real_t* v_trg) {
-  laplaceP2P(r_src, src_cnt, v_src, r_trg, trg_cnt, v_trg, true);
-}
-
-struct Kernel {
- public:
-  typedef void (*Ker_t)(real_t* r_src, int src_cnt, real_t* v_src,
-                        real_t* r_trg, int trg_cnt, real_t* k_out);
-
-  int ker_dim[2];
-
-  bool init;
-  M2LData M2Ldata;
-
-  Kernel* k_p2m;
-  Kernel* k_p2l;
-  Kernel* k_p2p;
-  Kernel* k_m2m;
-  Kernel* k_m2l;
-  Kernel* k_m2p;
-  Kernel* k_l2l;
-  Kernel* k_l2p;
-
-  Kernel(std::pair<int, int> k_dim) {
-    ker_dim[0]=k_dim.first;
-    ker_dim[1]=k_dim.second;
-    init=false;
-    k_p2m=NULL;
-    k_p2l=NULL;
-    k_p2p=NULL;
-    k_m2m=NULL;
-    k_m2l=NULL;
-    k_m2p=NULL;
-    k_l2l=NULL;
-    k_l2p=NULL;
-  }
-
-  void Initialize(Kernel* potn_ker) {
-    if(init) return;
-    init = true;
-    if(!k_p2m) k_p2m=potn_ker;
-    if(!k_p2l) k_p2l=potn_ker;
-    if(!k_p2p) k_p2p=this;
-    if(!k_m2m) k_m2m=potn_ker;
-    if(!k_m2l) k_m2l=potn_ker;
-    if(!k_m2p) k_m2p=this;
-    if(!k_l2l) k_l2l=potn_ker;
-    if(!k_l2p) k_l2p=this;
-    assert(k_p2p->ker_dim[0]==ker_dim[0]);
-    assert(k_p2m->ker_dim[0]==k_p2l->ker_dim[0]);
-    assert(k_p2m->ker_dim[0]==k_p2p->ker_dim[0]);
-    assert(k_m2m->ker_dim[0]==k_m2l->ker_dim[0]);
-    assert(k_m2m->ker_dim[0]==k_m2p->ker_dim[0]);
-    assert(k_l2l->ker_dim[0]==k_l2p->ker_dim[0]);
-    assert(k_p2p->ker_dim[1]==ker_dim[1]);
-    assert(k_p2m->ker_dim[1]==k_m2m->ker_dim[1]);
-    assert(k_p2l->ker_dim[1]==k_l2l->ker_dim[1]);
-    assert(k_m2l->ker_dim[1]==k_l2l->ker_dim[1]);
-    assert(k_p2p->ker_dim[1]==k_m2p->ker_dim[1]);
-    assert(k_p2p->ker_dim[1]==k_l2p->ker_dim[1]);
+  //! Laplace gradient P2P with array interface
+  void gradientP2P(real_t* r_src, int src_cnt, real_t* v_src,  real_t* r_trg, int trg_cnt,
+                   real_t* v_trg) {
+    laplaceP2P(r_src, src_cnt, v_src, r_trg, trg_cnt, v_trg, true);
   }
 
   //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)
@@ -195,9 +136,10 @@ struct Kernel {
   // k_out layout (gradient) : [Fx11, Fy11, Fz11, Fx12, Fy12, Fz13, ... Fx1n, Fy1n, Fz1n, ...
   //                            Fx21, Fy21, Fz21, Fx22, Fy22, Fz22, ... Fx2n, Fy2n, Fz2n, ...
   //                            ...]
-  void BuildMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) const {
+  void BuildMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) {
+    int ker_dim[2] = {1, 1};
     memset(k_out, 0, src_cnt*ker_dim[0]*trg_cnt*ker_dim[1]*sizeof(real_t));
-    for(int i=0; i<src_cnt; i++)
+    for(int i=0; i<src_cnt; i++) {
       for(int j=0; j<ker_dim[0]; j++) {
         std::vector<real_t> v_src(ker_dim[0], 0);
         v_src[j]=1.0;
@@ -205,7 +147,17 @@ struct Kernel {
         potentialP2P(&r_src[i*3], 1, &v_src[0], r_trg, trg_cnt,
                   &k_out[(i*ker_dim[0]+j)*trg_cnt*ker_dim[1]]);
       }
+    }
   }
+
+struct Kernel {
+  int ker_dim[2];
+
+  Kernel(std::pair<int, int> k_dim) {
+    ker_dim[0]=k_dim.first;
+    ker_dim[1]=k_dim.second;
+  }
+};
 
   void P2M() {
     #pragma omp parallel for
@@ -384,63 +336,6 @@ struct Kernel {
                          &(target->pt_coord[0]), target->pt_cnt[1], &(target->pt_trg[0]));
           }
         }
-      }
-    }
-  }
-
-  void M2L(M2LData& M2Ldata) {
-    size_t numNodes = allnodes.size();
-    #pragma omp parallel for collapse(2)
-    for(int i=0; i<numNodes; i++) {
-      for(int j=0; j<NSURF; j++) {
-        allUpwardEquiv[i*NSURF+j] = allnodes[i]->upward_equiv[j];
-        allDnwardEquiv[i*NSURF+j] = allnodes[i]->dnward_equiv[j];
-      }
-    }
-
-    size_t buffersize = 1024*1024*1024;
-    Matrix<real_t> buffer(1, buffersize);
-    real_t* buff = buffer.data_ptr;
-    size_t n_blk0 = M2Ldata.n_blk0;
-    size_t m = MULTIPOLE_ORDER;
-    size_t n1 = m * 2;
-    size_t n2 = n1 * n1;
-    size_t n3_ = n2 * (n1 / 2 + 1);
-    size_t chld_cnt = 8;
-    size_t fftsize = 2 * n3_ * chld_cnt;
-    size_t M_dim = n3_;
-    std::vector<real_t*> precomp_mat = M2Ldata.precomp_mat;
-    std::vector<std::vector<size_t> >&  fft_vec = M2Ldata.fft_vec;
-    std::vector<std::vector<size_t> >& ifft_vec = M2Ldata.ifft_vec;
-    std::vector<std::vector<real_t> >&  fft_scl = M2Ldata.fft_scl;
-    std::vector<std::vector<real_t> >& ifft_scl = M2Ldata.ifft_scl;
-    std::vector<std::vector<size_t> >& interac_vec = M2Ldata.interac_vec;
-    std::vector<std::vector<size_t> >& interac_dsp = M2Ldata.interac_dsp;
-    for(size_t blk0=0; blk0<n_blk0; blk0++) {
-      size_t n_in = fft_vec[blk0].size();  // num of nodes_in in this block
-      size_t n_out=ifft_vec[blk0].size();  // num of nodes_out in this block
-      size_t  input_dim=n_in *fftsize;
-      size_t output_dim=n_out*fftsize;
-      //std::vector<real_t> fft_in(n_in * fftsize, 0);
-      //AlignedVec fft_out(n_out * fftsize, 0);  // fft_out must be aligned
-      Matrix<real_t> fft_in(1, input_dim, (real_t*)buff, false);
-      Matrix<real_t> fft_out(1, output_dim, (real_t*)(buff+input_dim*sizeof(real_t)), false);
-      Profile::Tic("FFT_UpEquiv", false, 5);
-      FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0], allUpwardEquiv, fft_in);
-      Profile::Toc();
-      Profile::Tic("M2LHadamard", false, 5);
-      M2LListHadamard(M_dim, interac_dsp[blk0], interac_vec[blk0], precomp_mat, fft_in, fft_out);
-      Profile::Toc();
-      Profile::Tic("FFT_Check2Equiv", false, 5);
-      FFT_Check2Equiv(m, ifft_vec[blk0], ifft_scl[blk0], fft_out, allDnwardEquiv);
-      Profile::Toc();
-    }
-
-    #pragma omp parallel for collapse(2)
-    for(int i=0; i<numNodes; i++) {
-      for(int j=0; j<NSURF; j++) {
-        allnodes[i]->upward_equiv[j] = allUpwardEquiv[i*NSURF+j];
-        allnodes[i]->dnward_equiv[j] = allDnwardEquiv[i*NSURF+j];
       }
     }
   }
@@ -639,8 +534,62 @@ struct Kernel {
       }
     }
   }
-};
 
+  void M2L(M2LData& M2Ldata) {
+    size_t numNodes = allnodes.size();
+    #pragma omp parallel for collapse(2)
+    for(int i=0; i<numNodes; i++) {
+      for(int j=0; j<NSURF; j++) {
+        allUpwardEquiv[i*NSURF+j] = allnodes[i]->upward_equiv[j];
+        allDnwardEquiv[i*NSURF+j] = allnodes[i]->dnward_equiv[j];
+      }
+    }
+    size_t buffersize = 1024*1024*1024;
+    Matrix<real_t> buffer(1, buffersize);
+    real_t* buff = buffer.data_ptr;
+    size_t n_blk0 = M2Ldata.n_blk0;
+    size_t m = MULTIPOLE_ORDER;
+    size_t n1 = m * 2;
+    size_t n2 = n1 * n1;
+    size_t n3_ = n2 * (n1 / 2 + 1);
+    size_t chld_cnt = 8;
+    size_t fftsize = 2 * n3_ * chld_cnt;
+    size_t M_dim = n3_;
+    std::vector<real_t*> precomp_mat = M2Ldata.precomp_mat;
+    std::vector<std::vector<size_t> >&  fft_vec = M2Ldata.fft_vec;
+    std::vector<std::vector<size_t> >& ifft_vec = M2Ldata.ifft_vec;
+    std::vector<std::vector<real_t> >&  fft_scl = M2Ldata.fft_scl;
+    std::vector<std::vector<real_t> >& ifft_scl = M2Ldata.ifft_scl;
+    std::vector<std::vector<size_t> >& interac_vec = M2Ldata.interac_vec;
+    std::vector<std::vector<size_t> >& interac_dsp = M2Ldata.interac_dsp;
+    for(size_t blk0=0; blk0<n_blk0; blk0++) {
+      size_t n_in = fft_vec[blk0].size();  // num of nodes_in in this block
+      size_t n_out=ifft_vec[blk0].size();  // num of nodes_out in this block
+      size_t  input_dim=n_in *fftsize;
+      size_t output_dim=n_out*fftsize;
+      //std::vector<real_t> fft_in(n_in * fftsize, 0);
+      //AlignedVec fft_out(n_out * fftsize, 0);  // fft_out must be aligned
+      Matrix<real_t> fft_in(1, input_dim, (real_t*)buff, false);
+      Matrix<real_t> fft_out(1, output_dim, (real_t*)(buff+input_dim*sizeof(real_t)), false);
+      Profile::Tic("FFT_UpEquiv", false, 5);
+      FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0], allUpwardEquiv, fft_in);
+      Profile::Toc();
+      Profile::Tic("M2LHadamard", false, 5);
+      M2LListHadamard(M_dim, interac_dsp[blk0], interac_vec[blk0], precomp_mat, fft_in, fft_out);
+      Profile::Toc();
+      Profile::Tic("FFT_Check2Equiv", false, 5);
+      FFT_Check2Equiv(m, ifft_vec[blk0], ifft_scl[blk0], fft_out, allDnwardEquiv);
+      Profile::Toc();
+    }
+
+    #pragma omp parallel for collapse(2)
+    for(int i=0; i<numNodes; i++) {
+      for(int j=0; j<NSURF; j++) {
+        allnodes[i]->upward_equiv[j] = allUpwardEquiv[i*NSURF+j];
+        allnodes[i]->dnward_equiv[j] = allDnwardEquiv[i*NSURF+j];
+      }
+    }
+  }
 }//end namespace
 
 #endif //_PVFMM_FMM_KERNEL_HPP_

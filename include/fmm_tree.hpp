@@ -317,8 +317,8 @@ class FMM_Tree {
       precomp_mat.push_back(&M[0][0]);                   // precomp_mat.size == M2L's numRelCoords
     }
     // calculate buff_size & numBlocks
-    size_t ker_dim0 = kernel->k_m2l->ker_dim[0];
-    size_t ker_dim1 = kernel->k_m2l->ker_dim[1];
+    size_t ker_dim0 = 1;
+    size_t ker_dim1 = 1;
     size_t n1 = MULTIPOLE_ORDER*2;
     size_t n2 = n1*n1;
     size_t n3_ = n2*(n1/2+1);
@@ -426,35 +426,35 @@ class FMM_Tree {
  private:
   void UpwardPass() {
     Profile::Tic("P2M", false, 5);
-    kernel->k_p2m->P2M();
+    P2M();
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
     #pragma omp parallel
     #pragma omp single nowait
-    kernel->k_m2m->M2M(root_node);
+    M2M(root_node);
     Profile::Toc();
   }
 
   void DownwardPass() {
     Profile::Tic("P2L", false, 5);
-    kernel->k_p2l->P2L();
+    P2L();
     Profile::Toc();
     Profile::Tic("M2P", false, 5);
-    kernel->k_m2p->M2P();
+    M2P();
     Profile::Toc();
     Profile::Tic("P2P", false, 5);
-    kernel->k_p2p->P2P();
+    P2P();
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
-    kernel->k_m2l->M2L(M2Ldata);
+    M2L(M2Ldata);
     Profile::Toc();
     Profile::Tic("L2L", false, 5);
     #pragma omp parallel
     #pragma omp single nowait
-    kernel->k_l2l->L2L(root_node);
+    L2L(root_node);
     Profile::Toc();
     Profile::Tic("L2P", false, 5);
-    kernel->k_l2p->L2P();
+    L2P();
     Profile::Toc();
   }
 

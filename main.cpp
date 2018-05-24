@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
   Kernel potn_ker = Kernel(std::pair<int, int>(1, 1));
   Kernel grad_ker = Kernel(std::pair<int, int>(1, 4));
   Kernel * kernel = &grad_ker;
-  kernel->Initialize(&potn_ker);
+  //kernel->Initialize(&potn_ker);
   Profile::Tic("Precomputation", true);
   PrecompMat(kernel);
   Profile::Toc();

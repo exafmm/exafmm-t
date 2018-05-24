@@ -55,9 +55,9 @@ namespace pvfmm {
   void Precomp(Mat_Type type, size_t mat_indx, const Kernel* kernel) {
     int level = 0;
     Matrix<real_t> M;
+    int ker_dim[2] = {1, 1};
     switch (type) {
     case M2M_Type: {
-      const int* ker_dim=kernel->k_m2m->ker_dim;
       real_t c[3]= {0, 0, 0};
       std::vector<real_t> check_surf=u_check_surf(c, level);
       real_t s=powf(0.5, (level+2));
@@ -65,14 +65,13 @@ namespace pvfmm {
       real_t child_coord[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
       std::vector<real_t> equiv_surf=u_equiv_surf(child_coord, level+1);
       Matrix<real_t> M_ce2c(NSURF*ker_dim[0], NSURF*ker_dim[1]);
-      kernel->k_m2m->BuildMatrix(&equiv_surf[0], NSURF,
-                                 &check_surf[0], NSURF, &(M_ce2c[0][0]));
+      BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_ce2c[0][0]));
       // caculate M2M_U and M2M_V
       Matrix<real_t> M_c2e0, M_c2e1;
       std::vector<real_t> uc_coord=u_check_surf(c, level);
       std::vector<real_t> ue_coord=u_equiv_surf(c, level);
       Matrix<real_t> M_e2c(NSURF*ker_dim[0], NSURF*ker_dim[1]);
-      kernel->k_m2m->BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &(M_e2c[0][0]));
+      BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &(M_e2c[0][0]));
       Matrix<real_t> U, S, V;
       Profile::Tic("SVD", false, 4);
       M_e2c.SVD(U, S, V);
@@ -92,7 +91,6 @@ namespace pvfmm {
       break;
     }
     case L2L_Type: {
-      const int* ker_dim=kernel->k_l2l->ker_dim;
       real_t s=powf(0.5, level+1);
       ivec3& coord=rel_coord[type][mat_indx];
       real_t c[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
@@ -100,7 +98,7 @@ namespace pvfmm {
       real_t parent_coord[3]= {0, 0, 0};
       std::vector<real_t> equiv_surf=d_equiv_surf(parent_coord, level-1);
       Matrix<real_t> M_pe2c(NSURF*ker_dim[0], NSURF*ker_dim[1]);
-      kernel->k_l2l->BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_pe2c[0][0]));
+      BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_pe2c[0][0]));
 
       Matrix<real_t> M_c2e0, M_c2e1;
       Permutation<real_t> ker_perm(1);
@@ -112,7 +110,6 @@ namespace pvfmm {
       break;
     }
     case M2L_Helper_Type: {
-      const int* ker_dim=kernel->k_m2l->ker_dim;
       int n1=MULTIPOLE_ORDER*2;
       int n3 =n1*n1*n1;
       int n3_=n1*n1*(n1/2+1);
@@ -122,7 +119,7 @@ namespace pvfmm {
       std::vector<real_t> r_trg(3, 0.0);
       std::vector<real_t> conv_poten(n3*ker_dim[0]*ker_dim[1]);
       std::vector<real_t> conv_coord=conv_grid(coord_diff, level);
-      kernel->k_m2l->BuildMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
+      BuildMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
       Matrix<real_t> M_conv(n3, ker_dim[0]*ker_dim[1], &conv_poten[0], false);
       M_conv=M_conv.Transpose();
       int err, nnn[3]= {n1, n1, n1};
@@ -146,7 +143,6 @@ namespace pvfmm {
       break;
     }
     case M2L_Type: {
-      const int* ker_dim=kernel->k_m2l->ker_dim;
       size_t mat_cnt =rel_coord[M2L_Helper_Type].size();
       const size_t chld_cnt=1UL<<3;
       size_t n1=MULTIPOLE_ORDER*2;
