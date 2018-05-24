@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
   for(size_t it=0; it<1; it++) {
     Profile::Tic("TotalTime", true);
     tree.root_node = &cells[0];
-    tree.SetupFMM();
+    tree.SetupFMM(cells);
     tree.RunFMM();
     Profile::Toc();
   }

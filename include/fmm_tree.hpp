@@ -29,8 +29,6 @@ class FMM_Tree {
     m2l_list_ifft_flag = false;
   }
 
-  /* 1st Part: Tree Construction
-   * Interface: Initialize(init_data) */
  private:
   FMM_Node* PreorderNxt(FMM_Node* curr_node) {
     assert(curr_node!=NULL);
@@ -49,18 +47,6 @@ class FMM_Tree {
           return node->Child(i);
     }
   }
-
- public:
-  std::vector<FMM_Node*>& GetNodeList() {
-    node_lst.clear();
-    FMM_Node* n=root_node;
-    while(n!=NULL) {
-      node_lst.push_back(n);
-      n=PreorderNxt(n);
-    }
-    return node_lst;
-  }
-  /* End of 1nd Part: Tree Construction */
 
   /* 2nd Part: Setup FMM */
  private:
@@ -274,16 +260,16 @@ class FMM_Tree {
   }
 
   // Fill in interac_list of all nodes, assume sources == target for simplicity
-  void BuildInteracLists() {
-    std::vector<FMM_Node*>& nodes = GetNodeList();
+  void BuildInteracLists(FMM_Nodes& cells) {
+    //std::vector<FMM_Node*>& nodes = GetNodeList();
     std::vector<Mat_Type> interactionTypes = {P2P0_Type, P2P1_Type, P2P2_Type,
                                               M2P_Type, P2L_Type, M2L_Type
                                              };
     for(Mat_Type& type : interactionTypes) {
       int numRelCoord = rel_coord[type].size();  // num of possible relative positions
       #pragma omp parallel for
-      for(size_t i=0; i<nodes.size(); i++) {
-        FMM_Node* node = nodes[i];
+      for(size_t i=0; i<cells.size(); i++) {
+        FMM_Node* node = &cells[i];
         node->interac_list[type].resize(numRelCoord, 0);
         BuildList(node, type);
       }
@@ -398,13 +384,13 @@ class FMM_Tree {
   }
 
  public:
-  void SetupFMM() {
+  void SetupFMM(FMM_Nodes& cells) {
     Profile::Tic("SetupFMM", true);
     Profile::Tic("SetColleagues", false, 3);
     SetColleagues();
     Profile::Toc();
     Profile::Tic("BuildLists", false, 3);
-    BuildInteracLists();
+    BuildInteracLists(cells);
     Profile::Toc();
     Profile::Tic("CollectNodeData", false, 3);
     CollectNodeData();
