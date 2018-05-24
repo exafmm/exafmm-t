@@ -1,7 +1,7 @@
 ###TODO
 -------------
 
-- [ ] Remove fmm-tree class (Tingyu, Chenwu)
+- [x] Remove fmm-tree class (Tingyu, Chenwu)
 - [ ] Simplify list structure (Tingyu)
 - [ ] Remove kernel class (Tingyu, Chenwu)
 - [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution (Tingyu)

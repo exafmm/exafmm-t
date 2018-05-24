@@ -52,10 +52,9 @@ namespace pvfmm {
     }
   }
 
-  void Precomp(Mat_Type type, size_t mat_indx, const Kernel* kernel) {
+  void Precomp(Mat_Type type, size_t mat_indx) {
     int level = 0;
     Matrix<real_t> M;
-    int ker_dim[2] = {1, 1};
     switch (type) {
     case M2M_Type: {
       real_t c[3]= {0, 0, 0};
@@ -64,13 +63,13 @@ namespace pvfmm {
       ivec3& coord = rel_coord[type][mat_indx];
       real_t child_coord[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
       std::vector<real_t> equiv_surf=u_equiv_surf(child_coord, level+1);
-      Matrix<real_t> M_ce2c(NSURF*ker_dim[0], NSURF*ker_dim[1]);
+      Matrix<real_t> M_ce2c(NSURF*SRC_DIM, NSURF*POT_DIM);
       BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_ce2c[0][0]));
       // caculate M2M_U and M2M_V
       Matrix<real_t> M_c2e0, M_c2e1;
       std::vector<real_t> uc_coord=u_check_surf(c, level);
       std::vector<real_t> ue_coord=u_equiv_surf(c, level);
-      Matrix<real_t> M_e2c(NSURF*ker_dim[0], NSURF*ker_dim[1]);
+      Matrix<real_t> M_e2c(NSURF*SRC_DIM, NSURF*POT_DIM);
       BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &(M_e2c[0][0]));
       Matrix<real_t> U, S, V;
       Profile::Tic("SVD", false, 4);
@@ -97,7 +96,7 @@ namespace pvfmm {
       std::vector<real_t> check_surf=d_check_surf(c, level);
       real_t parent_coord[3]= {0, 0, 0};
       std::vector<real_t> equiv_surf=d_equiv_surf(parent_coord, level-1);
-      Matrix<real_t> M_pe2c(NSURF*ker_dim[0], NSURF*ker_dim[1]);
+      Matrix<real_t> M_pe2c(NSURF*SRC_DIM, NSURF*POT_DIM);
       BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_pe2c[0][0]));
 
       Matrix<real_t> M_c2e0, M_c2e1;
@@ -117,26 +116,26 @@ namespace pvfmm {
       ivec3& coord2=rel_coord[type][mat_indx];
       real_t coord_diff[3]= {coord2[0]*s, coord2[1]*s, coord2[2]*s};
       std::vector<real_t> r_trg(3, 0.0);
-      std::vector<real_t> conv_poten(n3*ker_dim[0]*ker_dim[1]);
+      std::vector<real_t> conv_poten(n3*SRC_DIM*POT_DIM);
       std::vector<real_t> conv_coord=conv_grid(coord_diff, level);
       BuildMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
-      Matrix<real_t> M_conv(n3, ker_dim[0]*ker_dim[1], &conv_poten[0], false);
+      Matrix<real_t> M_conv(n3, SRC_DIM*POT_DIM, &conv_poten[0], false);
       M_conv=M_conv.Transpose();
       int err, nnn[3]= {n1, n1, n1};
       real_t *fftw_in, *fftw_out;
-      err = posix_memalign((void**)&fftw_in, MEM_ALIGN,   n3 *ker_dim[0]*ker_dim[1]*sizeof(real_t));
-      err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*ker_dim[0]*ker_dim[1]*sizeof(real_t));
+      err = posix_memalign((void**)&fftw_in, MEM_ALIGN,   n3 *SRC_DIM*POT_DIM*sizeof(real_t));
+      err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*SRC_DIM*POT_DIM*sizeof(real_t));
 
       if (!m2l_precomp_fft_flag) {
-        m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, nnn, ker_dim[0]*ker_dim[1],
+        m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, nnn, SRC_DIM*POT_DIM,
                               (real_t*)fftw_in, NULL, 1, n3,
                               (fft_complex*) fftw_out, NULL, 1, n3_,
                               FFTW_ESTIMATE);
         m2l_precomp_fft_flag=true;
       }
-      memcpy(fftw_in, &conv_poten[0], n3*ker_dim[0]*ker_dim[1]*sizeof(real_t));
+      memcpy(fftw_in, &conv_poten[0], n3*SRC_DIM*POT_DIM*sizeof(real_t));
       fft_execute_dft_r2c(m2l_precomp_fftplan, (real_t*)fftw_in, (fft_complex*)(fftw_out));
-      Matrix<real_t> M_(2*n3_*ker_dim[0]*ker_dim[1], 1, (real_t*)fftw_out, false);
+      Matrix<real_t> M_(2*n3_*SRC_DIM*POT_DIM, 1, (real_t*)fftw_out, false);
       mat_M2L_Helper[mat_indx] = M_;
       free(fftw_in);
       free(fftw_out);
@@ -148,7 +147,7 @@ namespace pvfmm {
       size_t n1=MULTIPOLE_ORDER*2;
       size_t M_dim=n1*n1*(n1/2+1);
       size_t n3=n1*n1*n1;
-      std::vector<real_t> zero_vec(M_dim*ker_dim[0]*ker_dim[1]*2, 0);
+      std::vector<real_t> zero_vec(M_dim*SRC_DIM*POT_DIM*2, 0);
       std::vector<real_t*> M_ptr(chld_cnt*chld_cnt);
       for(size_t i=0; i<chld_cnt*chld_cnt; i++) M_ptr[i]=&zero_vec[0];
       ivec3& rel_coord_=rel_coord[M2L_Type][mat_indx];
@@ -168,8 +167,8 @@ namespace pvfmm {
             }
           }
         }
-      M.Resize(ker_dim[0]*ker_dim[1]*M_dim, 2*chld_cnt*chld_cnt);
-      for(int j=0; j<ker_dim[0]*ker_dim[1]*M_dim; j++) {
+      M.Resize(SRC_DIM*POT_DIM*M_dim, 2*chld_cnt*chld_cnt);
+      for(int j=0; j<SRC_DIM*POT_DIM*M_dim; j++) {
         for(size_t k=0; k<chld_cnt*chld_cnt; k++) {
           M[j][k*2+0]=M_ptr[k][j*2+0]/n3;
           M[j][k*2+1]=M_ptr[k][j*2+1]/n3;
@@ -184,21 +183,21 @@ namespace pvfmm {
     }
   }
 
-  void PrecompAll(Mat_Type type, const Kernel* kernel) {
+  void PrecompAll(Mat_Type type) {
     int idx_num = rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
     if (type == M2M_Type || type == L2L_Type) {
       for(int i=0; i<idx_num; i++) {           // i is index of rel_coord
         if(interac_class[type][i] == i) { // if i-th coord is a class_coord
-          Precomp(type, i, kernel);                       // calculate operator matrix of class_coord
+          Precomp(type, i);                       // calculate operator matrix of class_coord
         }
       }
     } else {
       for(int mat_idx=0; mat_idx<idx_num; mat_idx++)
-        Precomp(type, mat_idx, kernel);
+        Precomp(type, mat_idx);
     }
   }
 
-  void PrecompMat(const Kernel* kernel) {
+  void PrecompMat() {
     perm_M2M.resize(Perm_Count);
     mat_M2L.resize(rel_coord[M2L_Type].size());
     mat_M2L_Helper.resize(rel_coord[M2L_Helper_Type].size());
@@ -206,10 +205,10 @@ namespace pvfmm {
     perm_r.resize(numRelCoords);
     perm_c.resize(numRelCoords);
     PrecompPerm();
-    PrecompAll(M2M_Type, kernel);
-    PrecompAll(M2L_Helper_Type, kernel);
-    PrecompAll(M2L_Type, kernel);
-    PrecompAll(L2L_Type, kernel);
+    PrecompAll(M2M_Type);
+    PrecompAll(M2L_Helper_Type);
+    PrecompAll(M2L_Type);
+    PrecompAll(L2L_Type);
     for(int mat_idx=0; mat_idx<rel_coord[M2M_Type].size(); mat_idx++) {
       Perm_R(mat_idx);
       Perm_C(mat_idx);

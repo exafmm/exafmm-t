@@ -4,7 +4,6 @@
 #include "pvfmm.h"
 #include <queue>
 #include "geometry.h"
-#include "kernel.hpp"
 #include "precomp_mat.hpp"
 #include "build_tree.h"
 
@@ -12,12 +11,10 @@ namespace pvfmm {
 class FMM_Tree {
  public:
   FMM_Node* root_node;
-  const Kernel* kernel;
   std::vector<FMM_Node*> node_lst;
   M2LData M2Ldata;
 
-  FMM_Tree(const Kernel* kernel_):
-    kernel(kernel_),
+  FMM_Tree():
     root_node(NULL) {
     m2l_precomp_fft_flag = false;
     m2l_list_fft_flag = false;
@@ -145,7 +142,7 @@ class FMM_Tree {
       FMM_Node* leaf = leafs[i];
       leaf->pt_cnt[0] = leaf->pt_coord.size() / 3;
       leaf->pt_cnt[1] = leaf->pt_coord.size() / 3;
-      leaf->pt_trg.resize(leaf->pt_cnt[1] * kernel->ker_dim[1]);
+      leaf->pt_trg.resize(leaf->pt_cnt[1] * TRG_DIM);
     }
 
     for (long i=nonleafs.size()-1; i>=0; --i) {
@@ -317,15 +314,13 @@ class FMM_Tree {
       precomp_mat.push_back(&M[0][0]);                   // precomp_mat.size == M2L's numRelCoords
     }
     // calculate buff_size & numBlocks
-    size_t ker_dim0 = 1;
-    size_t ker_dim1 = 1;
     size_t n1 = MULTIPOLE_ORDER*2;
     size_t n2 = n1*n1;
     size_t n3_ = n2*(n1/2+1);
     size_t chld_cnt = 8;
     size_t fftsize = 2 * n3_ * chld_cnt;
     size_t buff_size = 1024l*1024l*1024l;    // 1Gb buffer
-    size_t n_blk0 = 2*fftsize*(ker_dim0*n_in +ker_dim1*n_out)*sizeof(real_t)/buff_size;
+    size_t n_blk0 = 2*fftsize*(SRC_DIM*n_in +POT_DIM*n_out)*sizeof(real_t)/buff_size;
     if(n_blk0==0) n_blk0 = 1;
     // calculate fft_dsp(fft_vec) & fft_scal
     int omp_p = omp_get_max_threads();
@@ -383,8 +378,8 @@ class FMM_Tree {
           for(size_t i=blk1_start; i<blk1_end; i++) {
             std::vector<FMM_Node*>& lst=nodes_out_[i]->interac_list[M2L_Type];
             if(lst[k]!=NULL && lst[k]->pt_cnt[0]) {
-              interac_vec[blk0].push_back(lst[k]->node_id*fftsize*ker_dim0);   // node_in dspl
-              interac_vec[blk0].push_back(    i          *fftsize*ker_dim1);   // node_out dspl
+              interac_vec[blk0].push_back(lst[k]->node_id*fftsize*SRC_DIM);   // node_in dspl
+              interac_vec[blk0].push_back(    i          *fftsize*POT_DIM);   // node_out dspl
               interac_dsp_++;
             }
           }
@@ -486,7 +481,7 @@ class FMM_Tree {
       n=static_cast<FMM_Node*>(PreorderNxt(n));
     }
     size_t src_cnt = src_coord.size()/3;
-    int trg_dof = kernel->ker_dim[1];
+    int trg_dof = TRG_DIM;
     std::vector<real_t> trg_coord;
     std::vector<real_t> trg_poten_fmm;
     size_t step_size = 1 + src_cnt*src_cnt*1e-9;

@@ -95,11 +95,11 @@ namespace pvfmm {
   // r_src & r_trg coordinate array: [x1, y1, z1, x2, y2, z2, ...]
   void laplaceP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt,
                   real_t* v_trg, bool grad=false) {
-    int TRG_DIM = (grad) ? 4 : 1;
+    int trg_dim = (grad) ? 4 : 1;
     RealVec src_coord(src_cnt * 3);
     RealVec src_value(src_cnt);
     RealVec trg_coord(trg_cnt * 3);
-    RealVec trg_value(trg_cnt * TRG_DIM, 0.);
+    RealVec trg_value(trg_cnt * trg_dim, 0.);
     for(size_t i=0; i<src_cnt ; i++) {
       for(size_t j=0; j<3; j++)
         src_coord[i+j*src_cnt] = r_src[i*3+j];
@@ -113,8 +113,8 @@ namespace pvfmm {
     if (grad) gradientP2P(src_coord, src_value, trg_coord, trg_value);
     else potentialP2P(src_coord, src_value, trg_coord, trg_value);
     for(size_t i=0; i<trg_cnt ; i++) {
-      for(size_t j=0; j<TRG_DIM; j++)
-        v_trg[i*TRG_DIM+j]+=trg_value[i*TRG_DIM+j];
+      for(size_t j=0; j<trg_dim; j++)
+        v_trg[i*trg_dim+j]+=trg_value[i*trg_dim+j];
     }
   }
 
@@ -137,27 +137,17 @@ namespace pvfmm {
   //                            Fx21, Fy21, Fz21, Fx22, Fy22, Fz22, ... Fx2n, Fy2n, Fz2n, ...
   //                            ...]
   void BuildMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) {
-    int ker_dim[2] = {1, 1};
-    memset(k_out, 0, src_cnt*ker_dim[0]*trg_cnt*ker_dim[1]*sizeof(real_t));
+    memset(k_out, 0, src_cnt*SRC_DIM*trg_cnt*POT_DIM*sizeof(real_t));
     for(int i=0; i<src_cnt; i++) {
-      for(int j=0; j<ker_dim[0]; j++) {
-        std::vector<real_t> v_src(ker_dim[0], 0);
+      for(int j=0; j<SRC_DIM; j++) {
+        std::vector<real_t> v_src(SRC_DIM, 0);
         v_src[j]=1.0;
         // do P2P: i-th source
         potentialP2P(&r_src[i*3], 1, &v_src[0], r_trg, trg_cnt,
-                  &k_out[(i*ker_dim[0]+j)*trg_cnt*ker_dim[1]]);
+                  &k_out[(i*SRC_DIM+j)*trg_cnt*POT_DIM]);
       }
     }
   }
-
-struct Kernel {
-  int ker_dim[2];
-
-  Kernel(std::pair<int, int> k_dim) {
-    ker_dim[0]=k_dim.first;
-    ker_dim[1]=k_dim.second;
-  }
-};
 
   void P2M() {
     #pragma omp parallel for
@@ -592,4 +582,4 @@ struct Kernel {
   }
 }//end namespace
 
-#endif //_PVFMM_FMM_KERNEL_HPP_
+#endif

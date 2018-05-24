@@ -38,6 +38,9 @@ int main(int argc, char **argv) {
   NCRIT = args.ncrit;
   MULTIPOLE_ORDER = args.P;
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
+  SRC_DIM = 1;
+  TRG_DIM = 4;
+  POT_DIM = 1;
   Profile::Enable(true);
   Profile::Tic("Total", true);
   std::vector<real_t> src_coord, src_value;
@@ -93,14 +96,10 @@ int main(int argc, char **argv) {
   }
 
   InitAll();    // initialize rel_coord, hash_lut, interac_class, perm_list
-  Kernel potn_ker = Kernel(std::pair<int, int>(1, 1));
-  Kernel grad_ker = Kernel(std::pair<int, int>(1, 4));
-  Kernel * kernel = &grad_ker;
-  //kernel->Initialize(&potn_ker);
   Profile::Tic("Precomputation", true);
-  PrecompMat(kernel);
+  PrecompMat();
   Profile::Toc();
-  FMM_Tree tree(kernel);
+  FMM_Tree tree;
   for(size_t it=0; it<1; it++) {
     Profile::Tic("TotalTime", true);
     tree.root_node = &cells[0];

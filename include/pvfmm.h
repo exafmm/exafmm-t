@@ -166,8 +166,11 @@ namespace pvfmm {
   std::vector<Permutation<real_t> > perm_r, perm_c;
 
   int LEVEL;     // depth of octree
-  int MULTIPOLE_ORDER;         // order of multipole expansion
+  int MULTIPOLE_ORDER;   // order of multipole expansion
   int NSURF;     // number of surface coordinates
   int NCRIT;
+  int SRC_DIM;    // dimension of source's charge
+  int TRG_DIM;    // dimension of target's value (potential + force)
+  int POT_DIM;    // dimension of target's potential
 }
 #endif
