@@ -121,5 +121,124 @@ namespace pvfmm {
     InitList(5, 5, 2, M2P_Type);
     InitList(5, 5, 2, P2L_Type);
   }
+
+  // Build t-type interaction list for node n
+  void BuildList(FMM_Node* n, Mat_Type t) {
+    const int n_child=8, n_collg=27;
+    int c_hash, idx, rel_coord[3];
+    int p2n = n->octant;       // octant
+    FMM_Node* p = n->parent; // parent node
+    std::vector<FMM_Node*>& interac_list = n->interac_list[t];
+    switch (t) {
+    case P2P0_Type:
+      if(p == NULL || !n->IsLeaf()) return;
+      for(int i=0; i<n_collg; i++) {
+        FMM_Node* pc = p->colleague[i];
+        if(pc!=NULL && pc->IsLeaf()) {
+          rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
+          rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
+          rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
+          c_hash = coord_hash(rel_coord);
+          idx = hash_lut[t][c_hash];
+          if(idx>=0) interac_list[idx] = pc;
+        }
+      }
+      break;
+    case P2P1_Type:
+      if(!n->IsLeaf()) return;
+      for(int i=0; i<n_collg; i++) {
+        FMM_Node* col=(FMM_Node*)n->colleague[i];
+        if(col!=NULL && col->IsLeaf()) {
+          rel_coord[0]=( i %3)-1;
+          rel_coord[1]=((i/3)%3)-1;
+          rel_coord[2]=((i/9)%3)-1;
+          c_hash = coord_hash(rel_coord);
+          idx = hash_lut[t][c_hash];
+          if(idx>=0) interac_list[idx] = col;
+        }
+      }
+      break;
+    case P2P2_Type:
+      if(!n->IsLeaf()) return;
+      for(int i=0; i<n_collg; i++) {
+        FMM_Node* col=(FMM_Node*)n->colleague[i];
+        if(col!=NULL && !col->IsLeaf()) {
+          for(int j=0; j<n_child; j++) {
+            rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
+            rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
+            rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
+            c_hash = coord_hash(rel_coord);
+            idx = hash_lut[t][c_hash];
+            if(idx>=0) {
+              assert(col->Child(j)->IsLeaf()); //2:1 balanced
+              interac_list[idx] = (FMM_Node*)col->Child(j);
+            }
+          }
+        }
+      }
+      break;
+    case M2L_Type:
+      if(n->IsLeaf()) return;
+      for(int i=0; i<n_collg; i++) {
+        FMM_Node* col=(FMM_Node*)n->colleague[i];
+        if(col!=NULL && !col->IsLeaf()) {
+          rel_coord[0]=( i %3)-1;
+          rel_coord[1]=((i/3)%3)-1;
+          rel_coord[2]=((i/9)%3)-1;
+          c_hash = coord_hash(rel_coord);
+          idx=hash_lut[t][c_hash];
+          if(idx>=0) interac_list[idx]=col;
+        }
+      }
+      break;
+    case M2P_Type:
+      if(!n->IsLeaf()) return;
+      for(int i=0; i<n_collg; i++) {
+        FMM_Node* col=(FMM_Node*)n->colleague[i];
+        if(col!=NULL && !col->IsLeaf()) {
+          for(int j=0; j<n_child; j++) {
+            rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
+            rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
+            rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
+            c_hash = coord_hash(rel_coord);
+            idx=hash_lut[t][c_hash];
+            if(idx>=0) interac_list[idx]=(FMM_Node*)col->Child(j);
+          }
+        }
+      }
+      break;
+    case P2L_Type:
+      if(p == NULL) return;
+      for(int i=0; i<n_collg; i++) {
+        FMM_Node* pc=(FMM_Node*)p->colleague[i];
+        if(pc!=NULL && pc->IsLeaf()) {
+          rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
+          rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
+          rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
+          c_hash = coord_hash(rel_coord);
+          idx=hash_lut[t][c_hash];
+          if(idx>=0) interac_list[idx]=pc;
+        }
+      }
+      break;
+    default:
+      abort();
+    }
+  }
+
+  // Fill in interac_list of all nodes, assume sources == target for simplicity
+  void BuildInteracLists(FMM_Nodes& cells) {
+    std::vector<Mat_Type> interactionTypes = {P2P0_Type, P2P1_Type, P2P2_Type,
+                                              M2P_Type, P2L_Type, M2L_Type};
+    for(Mat_Type& type : interactionTypes) {
+      int numRelCoord = rel_coord[type].size();  // num of possible relative positions
+      #pragma omp parallel for
+      for(size_t i=0; i<cells.size(); i++) {
+        FMM_Node* node = &cells[i];
+        node->interac_list[type].resize(numRelCoord, 0);
+        BuildList(node, type);
+      }
+    }
+  }
 }
 #endif
