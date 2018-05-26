@@ -424,19 +424,18 @@ namespace pvfmm {
         map[i]=((size_t)(m-1-surf[i*3]+0.5))+((size_t)(m-1-surf[i*3+1]+0.5))*n1+((size_t)(
                  m-1-surf[i*3+2]+0.5))*n2;
     }
-    if(!m2l_list_fft_flag) {
-      int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
-      real_t *fftw_in, *fftw_out;
-      err = posix_memalign((void**)&fftw_in,  MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
-      err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
-      m2l_list_fftplan = fft_plan_many_dft_r2c(3, nnn, chld_cnt,
-                         (real_t*)fftw_in, NULL, 1, n3,
-                         (fft_complex*)(fftw_out), NULL, 1, n3_,
-                         FFTW_ESTIMATE);
-      free(fftw_in );
-      free(fftw_out);
-      m2l_list_fft_flag=true;
-    }
+
+    int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
+    real_t *fftw_in, *fftw_out;
+    err = posix_memalign((void**)&fftw_in,  MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
+    err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
+    fft_plan m2l_list_fftplan = fft_plan_many_dft_r2c(3, nnn, chld_cnt,
+                                (real_t*)fftw_in, NULL, 1, n3,
+                                (fft_complex*)(fftw_out), NULL, 1, n3_,
+                                FFTW_ESTIMATE);
+    free(fftw_in );
+    free(fftw_out);
+
     size_t n_in = fft_vec.size();
     #pragma omp parallel for
     for(int pid=0; pid<omp_p; pid++) {
@@ -464,6 +463,7 @@ namespace pvfmm {
         }
       }
     }
+    fft_destroy_plan(m2l_list_fftplan);
   }
 
   void FFT_Check2Equiv(size_t m, std::vector<size_t>& ifft_vec, std::vector<real_t>& ifft_scal,
@@ -486,19 +486,18 @@ namespace pvfmm {
         map[i]=((size_t)(m*2-0.5-surf[i*3]))+((size_t)(m*2-0.5-surf[i*3+1]))*n1+((size_t)(
                  m*2-0.5-surf[i*3+2]))*n2;
     }
-    if(!m2l_list_ifft_flag) {
-      int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
-      real_t *fftw_in, *fftw_out;
-      err = posix_memalign((void**)&fftw_in,  MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
-      err = posix_memalign((void**)&fftw_out, MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
-      m2l_list_ifftplan = fft_plan_many_dft_c2r(3, nnn, chld_cnt,
-                          (fft_complex*)fftw_in, NULL, 1, n3_,
-                          (real_t*)(fftw_out), NULL, 1, n3,
-                          FFTW_ESTIMATE);
-      free(fftw_in);
-      free(fftw_out);
-      m2l_list_ifft_flag=true;
-    }
+
+    int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
+    real_t *fftw_in, *fftw_out;
+    err = posix_memalign((void**)&fftw_in,  MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
+    err = posix_memalign((void**)&fftw_out, MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
+    fft_plan m2l_list_ifftplan = fft_plan_many_dft_c2r(3, nnn, chld_cnt,
+                                 (fft_complex*)fftw_in, NULL, 1, n3_,
+                                 (real_t*)(fftw_out), NULL, 1, n3,
+                                 FFTW_ESTIMATE);
+    free(fftw_in);
+    free(fftw_out);
+
     size_t n_out=ifft_vec.size();
     #pragma omp parallel for
     for(int pid=0; pid<omp_p; pid++) {
@@ -523,6 +522,7 @@ namespace pvfmm {
         }
       }
     }
+    fft_destroy_plan(m2l_list_ifftplan);
   }
 
   void M2L(M2LData& M2Ldata) {

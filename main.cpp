@@ -62,6 +62,7 @@ int main(int argc, char **argv) {
   }
 
   FMM_Nodes cells = buildTree(bodies);
+  root_node = &cells[0];
   // fill in pt_coord, pt_src, pt_cnt, correct coord for compatibility
   // remove this later
   for(int i=0; i<cells.size(); i++) {
@@ -99,17 +100,15 @@ int main(int argc, char **argv) {
   Profile::Tic("Precomputation", true);
   PrecompMat();
   Profile::Toc();
-  FMM_Tree tree;
   for(size_t it=0; it<1; it++) {
     Profile::Tic("TotalTime", true);
-    tree.root_node = &cells[0];
-    tree.SetupFMM(cells);
-    tree.RunFMM();
+    SetupFMM(cells);
+    RunFMM();
     Profile::Toc();
   }
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() <<'\n';
   std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< LEVEL <<'\n';
-  tree.CheckFMMOutput("Output");
+  CheckFMMOutput("Output");
   Profile::Toc();
   Profile::print();
   return 0;

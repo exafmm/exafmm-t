@@ -8,28 +8,6 @@
 #include "build_tree.h"
 
 namespace pvfmm {
-class FMM_Tree {
- public:
-  FMM_Node* root_node;
-  std::vector<FMM_Node*> node_lst;
-  M2LData M2Ldata;
-
-  FMM_Tree():
-    root_node(NULL) {
-    m2l_precomp_fft_flag = false;
-    m2l_list_fft_flag = false;
-    m2l_list_ifft_flag = false;
-  }
-
-  ~FMM_Tree() {
-    if(m2l_precomp_fft_flag) fft_destroy_plan(m2l_precomp_fftplan);
-    if(m2l_list_fft_flag) fft_destroy_plan(m2l_list_fftplan);
-    if(m2l_list_ifft_flag) fft_destroy_plan(m2l_list_ifftplan);
-    m2l_list_fft_flag = false;
-    m2l_list_ifft_flag = false;
-  }
-
- private:
   FMM_Node* PreorderNxt(FMM_Node* curr_node) {
     assert(curr_node!=NULL);
     int n=(1UL<<3);
@@ -48,8 +26,6 @@ class FMM_Tree {
     }
   }
 
-  /* 2nd Part: Setup FMM */
- private:
   void SetColleagues(FMM_Node* node=NULL) {
     int n1=27;
     int n2=8;
@@ -383,7 +359,6 @@ class FMM_Tree {
     M2Ldata.interac_dsp = interac_dsp;
   }
 
- public:
   void SetupFMM(FMM_Nodes& cells) {
     Profile::Tic("SetupFMM", true);
     Profile::Tic("SetColleagues", false, 3);
@@ -401,10 +376,7 @@ class FMM_Tree {
     ClearFMMData();
     Profile::Toc();
   }
-  /* End of 2nd Part: Setup FMM */
 
-  /* 3rd Part: Evaluation */
- private:
   void UpwardPass() {
     Profile::Tic("P2M", false, 5);
     P2M();
@@ -439,7 +411,6 @@ class FMM_Tree {
     Profile::Toc();
   }
 
- public:
   void RunFMM() {
     Profile::Tic("RunFMM", true);
     Profile::Tic("UpwardPass", false, 2);
@@ -511,7 +482,5 @@ class FMM_Tree {
     std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << sqrt(p_diff/p_norm) << std::endl;
     std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << sqrt(g_diff/g_norm) << std::endl;
   }
-};
-
 }//end namespace
 #endif //_PVFMM_FMM_TREE_HPP_

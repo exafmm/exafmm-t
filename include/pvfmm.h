@@ -37,7 +37,7 @@ namespace pvfmm {
 #define fft_destroy_plan fftw_destroy_plan
 #endif
 
-  typedef vec<3, int> ivec3;                    //!< std::vector of 3 int types
+  typedef vec<3,int> ivec3;                    //!< std::vector of 3 int types
   typedef vec<3,real_t> vec3;                   //!< Vector of 3 real_t types
 
   //! SIMD vector types for AVX512, AVX, and SSE
@@ -46,13 +46,6 @@ namespace pvfmm {
   typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;
   typedef std::vector<real_t> RealVec;
   typedef std::vector<real_t, AlignAllocator> AlignedVec;
-
-  fft_plan m2l_precomp_fftplan;
-  bool m2l_precomp_fft_flag;
-  fft_plan m2l_list_fftplan;
-  bool m2l_list_fft_flag;
-  fft_plan m2l_list_ifftplan;
-  bool m2l_list_ifft_flag;
 
   typedef enum {
     M2M_V_Type = 0,
@@ -129,6 +122,7 @@ namespace pvfmm {
     }
   };
   typedef std::vector<FMM_Node> FMM_Nodes;              //!< Vector of cells
+  FMM_Node* root_node;
 
   struct M2LData {
     size_t n_blk0;
@@ -140,6 +134,7 @@ namespace pvfmm {
     std::vector<std::vector<size_t> > interac_vec;
     std::vector<std::vector<size_t> > interac_dsp;
   };
+  M2LData M2Ldata;
 
   std::vector<std::vector<real_t> > upwd_check_surf;
   std::vector<std::vector<real_t> > upwd_equiv_surf;

@@ -125,20 +125,17 @@ namespace pvfmm {
       real_t *fftw_in, *fftw_out;
       err = posix_memalign((void**)&fftw_in, MEM_ALIGN,   n3 *SRC_DIM*POT_DIM*sizeof(real_t));
       err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*SRC_DIM*POT_DIM*sizeof(real_t));
-
-      if (!m2l_precomp_fft_flag) {
-        m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, nnn, SRC_DIM*POT_DIM,
-                              (real_t*)fftw_in, NULL, 1, n3,
-                              (fft_complex*) fftw_out, NULL, 1, n3_,
-                              FFTW_ESTIMATE);
-        m2l_precomp_fft_flag=true;
-      }
+      fft_plan m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, nnn, SRC_DIM*POT_DIM,
+                                     (real_t*)fftw_in, NULL, 1, n3,
+                                     (fft_complex*) fftw_out, NULL, 1, n3_,
+                                     FFTW_ESTIMATE);
       memcpy(fftw_in, &conv_poten[0], n3*SRC_DIM*POT_DIM*sizeof(real_t));
       fft_execute_dft_r2c(m2l_precomp_fftplan, (real_t*)fftw_in, (fft_complex*)(fftw_out));
       Matrix<real_t> M_(2*n3_*SRC_DIM*POT_DIM, 1, (real_t*)fftw_out, false);
       mat_M2L_Helper[mat_indx] = M_;
       free(fftw_in);
       free(fftw_out);
+      fft_destroy_plan(m2l_precomp_fftplan);
       break;
     }
     case M2L_Type: {
