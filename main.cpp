@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 
   FMM_Nodes cells = buildTree(bodies);
   root_node = &cells[0];
-  // fill in pt_coord, pt_src, pt_cnt, correct coord for compatibility
+  // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
   for(int i=0; i<cells.size(); i++) {
     for(int d=0; d<3; d++) {

@@ -14,8 +14,8 @@ namespace pvfmm {
     node->numChilds = 0;
     node->X = X;
     node->R = R;
-    //node->M.resize(NTERM, 0.0);
-    //node->L.resize(NTERM, 0.0);
+    node->upward_equiv.resize(NSURF, 0.0);
+    node->dnward_equiv.resize(NSURF, 0.0);
     //! Count number of bodies in each octant
     int size[8] = {0,0,0,0,0,0,0,0};
     vec3 x;

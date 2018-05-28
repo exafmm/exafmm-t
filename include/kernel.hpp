@@ -161,7 +161,7 @@ namespace pvfmm {
         checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
         checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
       }
-      potentialP2P(&(leaf->pt_coord[0]), leaf->pt_cnt[0], &(leaf->pt_src[0]),
+      potentialP2P(&(leaf->pt_coord[0]), leaf->numBodies, &(leaf->pt_src[0]),
                                &checkCoord[0], NSURF, &
                                (leaf->upward_equiv[0]));  // save check potentials in upward_equiv temporarily check surface potential -> equivalent surface charge
       Matrix<real_t> check(1, NSURF, &(leaf->upward_equiv[0]), true);  // check surface potential
@@ -248,7 +248,7 @@ namespace pvfmm {
         equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
       }
       gradientP2P(&equivCoord[0], NSURF, &(leaf->dnward_equiv[0]),
-                 &(leaf->pt_coord[0]), leaf->pt_cnt[1], &(leaf->pt_trg[0]));
+                 &(leaf->pt_coord[0]), leaf->numBodies, &(leaf->pt_trg[0]));
     }
   }
 
@@ -257,7 +257,7 @@ namespace pvfmm {
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       FMM_Node* target = targets[i];
-      if (target->IsLeaf() && target->pt_cnt[1]<=NSURF)
+      if (target->IsLeaf() && target->numBodies<=NSURF)
         continue;
       std::vector<FMM_Node*>& sources = target->interac_list[P2L_Type];
       for(int j=0; j<sources.size(); j++) {
@@ -271,7 +271,7 @@ namespace pvfmm {
             targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
             targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
           }
-          potentialP2P(&(source->pt_coord[0]), source->pt_cnt[0], &(source->pt_src[0]),
+          potentialP2P(&(source->pt_coord[0]), source->numBodies, &(source->pt_src[0]),
                        &targetCheckCoord[0], NSURF, &(target->dnward_equiv[0]));
         }
       }
@@ -287,7 +287,7 @@ namespace pvfmm {
       for(int j=0; j<sources.size(); j++) {
         FMM_Node* source = sources[j];
         if (source != NULL) {
-          if (source->IsLeaf() && source->pt_cnt[0]<=NSURF)
+          if (source->IsLeaf() && source->numBodies<=NSURF)
             continue;
           std::vector<real_t> sourceEquivCoord(NSURF*3);
           int level = source->depth;
@@ -298,7 +298,7 @@ namespace pvfmm {
             sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
           }
           gradientP2P(&sourceEquivCoord[0], NSURF, &(source->upward_equiv[0]),
-                       &(target->pt_coord[0]), target->pt_cnt[1], &(target->pt_trg[0]));
+                      &(target->pt_coord[0]), target->numBodies, &(target->pt_trg[0]));
         }
       }
     }
@@ -314,16 +314,18 @@ namespace pvfmm {
         Mat_Type type = types[k];
         std::vector<FMM_Node*>& sources = target->interac_list[type];
         if (type == P2L_Type)
-          if (target->pt_cnt[1] > NSURF)
+          if (target->numBodies > NSURF) {
             continue;
+          }
         for(int j=0; j<sources.size(); j++) {
           FMM_Node* source = sources[j];
           if (source != NULL) {
             if (type == M2P_Type)
-              if (source->pt_cnt[0] > NSURF)
+              if (source->numBodies > NSURF) {
                 continue;
-            gradientP2P(&(source->pt_coord[0]), source->pt_cnt[0], &(source->pt_src[0]),
-                         &(target->pt_coord[0]), target->pt_cnt[1], &(target->pt_trg[0]));
+              }
+            gradientP2P(&(source->pt_coord[0]), source->numBodies, &(source->pt_src[0]),
+                         &(target->pt_coord[0]), target->numBodies, &(target->pt_trg[0]));
           }
         }
       }

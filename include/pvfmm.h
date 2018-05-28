@@ -97,7 +97,6 @@ namespace pvfmm {
     size_t node_id;
     int depth;
     int octant;
-    size_t pt_cnt[2];
     real_t coord[3];
     FMM_Node* parent;
     std::vector<FMM_Node*> child;

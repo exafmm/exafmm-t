@@ -102,28 +102,12 @@ namespace pvfmm {
 
     for (long i=0; i<leafs.size(); i++) {
       FMM_Node* leaf = leafs[i];
-      leaf->pt_cnt[0] = leaf->pt_coord.size() / 3;
-      leaf->pt_cnt[1] = leaf->pt_coord.size() / 3;
-      leaf->pt_trg.resize(leaf->pt_cnt[1] * TRG_DIM);
-    }
-
-    for (long i=nonleafs.size()-1; i>=0; --i) {
-      FMM_Node* nonleaf = nonleafs[i];
-      nonleaf->pt_trg.clear();
-      for (int j=0; j<8; j++) {
-        FMM_Node* child = nonleaf->Child(j);
-        if (child) {
-          nonleaf->pt_cnt[0] += child->pt_cnt[0];
-          nonleaf->pt_cnt[1] += child->pt_cnt[1];
-        }
-      }
+      leaf->pt_trg.resize(leaf->numBodies * TRG_DIM);
     }
 
     for(long i=0; i<allnodes.size(); i++) {
       FMM_Node* node = allnodes[i];
       node->idx = i;
-      node->upward_equiv.resize(NSURF, 0);
-      node->dnward_equiv.resize(NSURF, 0);
     }
     size_t numNodes = allnodes.size();
     allUpwardEquiv.resize(numNodes*NSURF);
@@ -183,7 +167,7 @@ namespace pvfmm {
       for(size_t i=blk0_start; i<blk0_end; i++) {
         nodes_out_.push_back(nodes_out[i]);
         std::vector<FMM_Node*>& lst=nodes_out[i]->interac_list[M2L_Type];
-        for(size_t k=0; k<mat_cnt; k++) if(lst[k]!=NULL && lst[k]->pt_cnt[0]) nodes_in.insert(lst[k]);
+        for(size_t k=0; k<mat_cnt; k++) if(lst[k]!=NULL) nodes_in.insert(lst[k]);
       }
       for(typename std::set<FMM_Node*>::iterator node=nodes_in.begin(); node != nodes_in.end(); node++)
         nodes_in_.push_back(*node);
@@ -219,7 +203,7 @@ namespace pvfmm {
         for(size_t k=0; k<mat_cnt; k++) {
           for(size_t i=blk1_start; i<blk1_end; i++) {
             std::vector<FMM_Node*>& lst=nodes_out_[i]->interac_list[M2L_Type];
-            if(lst[k]!=NULL && lst[k]->pt_cnt[0]) {
+            if(lst[k]!=NULL) {
               interac_vec[blk0].push_back(lst[k]->node_id*fftsize*SRC_DIM);   // node_in dspl
               interac_vec[blk0].push_back(    i          *fftsize*POT_DIM);   // node_out dspl
               interac_dsp_++;
