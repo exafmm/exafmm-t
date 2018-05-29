@@ -118,17 +118,6 @@ namespace pvfmm {
     }
   }
 
-  //! Laplace potential P2P with array interface
-  void potentialP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt,
-                    real_t* v_trg) {
-    laplaceP2P(r_src, src_cnt, v_src,  r_trg, trg_cnt, v_trg, false);
-  }
-  //! Laplace gradient P2P with array interface
-  void gradientP2P(real_t* r_src, int src_cnt, real_t* v_src,  real_t* r_trg, int trg_cnt,
-                   real_t* v_trg) {
-    laplaceP2P(r_src, src_cnt, v_src, r_trg, trg_cnt, v_trg, true);
-  }
-
   //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)
   // For Laplace: ker_dim[0] = 1, j = 0; Force a unit charge (q=1)
   // r_src layout: [x1, y1, z1, x2, y2, z2, ...]
@@ -143,8 +132,8 @@ namespace pvfmm {
         std::vector<real_t> v_src(SRC_DIM, 0);
         v_src[j]=1.0;
         // do P2P: i-th source
-        potentialP2P(&r_src[i*3], 1, &v_src[0], r_trg, trg_cnt,
-                  &k_out[(i*SRC_DIM+j)*trg_cnt*POT_DIM]);
+        laplaceP2P(&r_src[i*3], 1, &v_src[0], r_trg, trg_cnt,
+                   &k_out[(i*SRC_DIM+j)*trg_cnt*POT_DIM], false);
       }
     }
   }
@@ -161,9 +150,8 @@ namespace pvfmm {
         checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
         checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
       }
-      potentialP2P(&(leaf->pt_coord[0]), leaf->numBodies, &(leaf->pt_src[0]),
-                               &checkCoord[0], NSURF, &
-                               (leaf->upward_equiv[0]));  // save check potentials in upward_equiv temporarily check surface potential -> equivalent surface charge
+      laplaceP2P(&(leaf->pt_coord[0]), leaf->numBodies, &(leaf->pt_src[0]),
+                 &checkCoord[0], NSURF, &(leaf->upward_equiv[0]), false);
       Matrix<real_t> check(1, NSURF, &(leaf->upward_equiv[0]), true);  // check surface potential
       Matrix<real_t> buffer(1, NSURF);
       Matrix<real_t>::GEMM(buffer, check, M2M_V);
@@ -247,8 +235,8 @@ namespace pvfmm {
         equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->coord[1];
         equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
       }
-      gradientP2P(&equivCoord[0], NSURF, &(leaf->dnward_equiv[0]),
-                 &(leaf->pt_coord[0]), leaf->numBodies, &(leaf->pt_trg[0]));
+      laplaceP2P(&equivCoord[0], NSURF, &(leaf->dnward_equiv[0]),
+                 &(leaf->pt_coord[0]), leaf->numBodies, &(leaf->pt_trg[0]), true);
     }
   }
 
@@ -271,8 +259,8 @@ namespace pvfmm {
             targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
             targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
           }
-          potentialP2P(&(source->pt_coord[0]), source->numBodies, &(source->pt_src[0]),
-                       &targetCheckCoord[0], NSURF, &(target->dnward_equiv[0]));
+          laplaceP2P(&(source->pt_coord[0]), source->numBodies, &(source->pt_src[0]),
+                       &targetCheckCoord[0], NSURF, &(target->dnward_equiv[0]), false);
         }
       }
     }
@@ -297,8 +285,8 @@ namespace pvfmm {
             sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
             sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
           }
-          gradientP2P(&sourceEquivCoord[0], NSURF, &(source->upward_equiv[0]),
-                      &(target->pt_coord[0]), target->numBodies, &(target->pt_trg[0]));
+          laplaceP2P(&sourceEquivCoord[0], NSURF, &(source->upward_equiv[0]),
+                     &(target->pt_coord[0]), target->numBodies, &(target->pt_trg[0]), true);
         }
       }
     }
@@ -324,8 +312,8 @@ namespace pvfmm {
               if (source->numBodies > NSURF) {
                 continue;
               }
-            gradientP2P(&(source->pt_coord[0]), source->numBodies, &(source->pt_src[0]),
-                         &(target->pt_coord[0]), target->numBodies, &(target->pt_trg[0]));
+            laplaceP2P(&(source->pt_coord[0]), source->numBodies, &(source->pt_src[0]),
+                       &(target->pt_coord[0]), target->numBodies, &(target->pt_trg[0]), true);
           }
         }
       }

@@ -250,8 +250,8 @@ namespace pvfmm {
     for(int i=0; i<np; i++) {
       size_t a=(i*trg_cnt)/np;
       size_t b=((i+1)*trg_cnt)/np;
-      gradientP2P(&src_coord[0], src_cnt, &src_value[0], &trg_coord[a*3], b-a,
-                        &trg_poten_dir[a*trg_dof  ]);
+      laplaceP2P(&src_coord[0], src_cnt, &src_value[0], &trg_coord[a*3], b-a,
+                 &trg_poten_dir[a*trg_dof], true);
     }
     pvfmm::Profile::Toc();
     real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm=0;
