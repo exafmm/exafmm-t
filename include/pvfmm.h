@@ -115,10 +115,6 @@ namespace pvfmm {
     FMM_Node* Child(int id) {
       return (numChilds == 0) ? NULL : child[id]; 
     }
-
-    void SetColleague(FMM_Node* node_, int index) {
-      colleague[index] = node_;
-    }
   };
   typedef std::vector<FMM_Node> FMM_Nodes;              //!< Vector of cells
   FMM_Node* root_node;

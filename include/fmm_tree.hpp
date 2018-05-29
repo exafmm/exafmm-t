@@ -26,59 +26,6 @@ namespace pvfmm {
     }
   }
 
-  void SetColleagues(FMM_Node* node=NULL) {
-    int n1=27;
-    int n2=8;
-    if(node==NULL) {        // for root node
-      FMM_Node* curr_node=root_node;
-      if(curr_node!=NULL) {
-        curr_node->SetColleague(curr_node, (n1-1)/2);
-        curr_node=PreorderNxt(curr_node);
-      }
-      std::vector<std::vector<FMM_Node*> > nodes(MAX_DEPTH);
-      // traverse all nodes, store nodes at each level in a vector
-      while(curr_node!=NULL) {
-        nodes[curr_node->depth].push_back(curr_node);
-        curr_node=PreorderNxt(curr_node);
-      }
-      for(size_t i=0; i<MAX_DEPTH; i++) { // loop over each level
-        size_t j0=nodes[i].size();        // j0 is num of nodes at level i
-        FMM_Node** nodes_=&nodes[i][0];
-        #pragma omp parallel for
-        for(size_t j=0; j<j0; j++)
-          SetColleagues(nodes_[j]);
-      }
-    } else {
-      FMM_Node* parent_node;
-      FMM_Node* tmp_node1;
-      FMM_Node* tmp_node2;
-      for(int i=0; i<n1; i++)node->SetColleague(NULL, i);
-      parent_node = node->parent;
-      if(parent_node==NULL) return;
-      int l=node->octant;         // l is octant
-      for(int i=0; i<n1; i++) {
-        tmp_node1 = parent_node->colleague[i];  // loop over parent's colleagues
-        if(tmp_node1!=NULL && !tmp_node1->IsLeaf()) {
-          for(int j=0; j<n2; j++) {
-            tmp_node2=tmp_node1->Child(j);    // loop over parent's colleages child
-            if(tmp_node2!=NULL) {
-              bool flag=true;
-              int a=1, b=1, new_indx=0;
-              for(int k=0; k<3; k++) {
-                int indx_diff=(((i/b)%3)-1)*2+((j/a)%2)-((l/a)%2);
-                if(-1>indx_diff || indx_diff>1) flag=false;
-                new_indx+=(indx_diff+1)*b;
-                a*=2;
-                b*=3;
-              }
-              if(flag)
-                node->SetColleague(tmp_node2, new_indx);
-            }
-          }
-        }
-      }
-    }
-  }
 
   // Construct list of leafs, nonleafs and initialize members
   void CollectNodeData() {
@@ -222,9 +169,7 @@ namespace pvfmm {
 
   void SetupFMM(FMM_Nodes& cells) {
     Profile::Tic("SetupFMM", true);
-    Profile::Tic("SetColleagues", false, 3);
-    SetColleagues();
-    Profile::Toc();
+    SetColleagues(cells);
     Profile::Tic("BuildLists", false, 3);
     BuildInteracLists(cells);
     Profile::Toc();
