@@ -61,20 +61,20 @@ int main(int argc, char **argv) {
     bodies[i].q = src_value[i];
   }
 
-  FMM_Nodes cells = buildTree(bodies);
-  root_node = &cells[0];
+  FMM_Nodes nodes = buildTree(bodies);
+  root_node = &nodes[0];
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
-  for(int i=0; i<cells.size(); i++) {
+  for(int i=0; i<nodes.size(); i++) {
     for(int d=0; d<3; d++) {
-      cells[i].coord[d] = cells[i].X[d] - cells[i].R;
+      nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
     }
-    if(cells[i].IsLeaf()) {
-      for(Body* B=cells[i].body; B<cells[i].body+cells[i].numBodies; B++) {
-        cells[i].pt_coord.push_back(B->X[0]);
-        cells[i].pt_coord.push_back(B->X[1]);
-        cells[i].pt_coord.push_back(B->X[2]);
-        cells[i].pt_src.push_back(B->q);
+    if(nodes[i].IsLeaf()) {
+      for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
+        nodes[i].pt_coord.push_back(B->X[0]);
+        nodes[i].pt_coord.push_back(B->X[1]);
+        nodes[i].pt_coord.push_back(B->X[2]);
+        nodes[i].pt_src.push_back(B->q);
       }
     }
   }
@@ -102,13 +102,13 @@ int main(int argc, char **argv) {
   Profile::Toc();
   for(size_t it=0; it<1; it++) {
     Profile::Tic("TotalTime", true);
-    SetupFMM(cells);
+    SetupFMM(nodes);
     RunFMM();
     Profile::Toc();
   }
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() <<'\n';
   std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< LEVEL <<'\n';
-  CheckFMMOutput("Output");
+  CheckFMMOutput(nodes);
   Profile::Toc();
   Profile::print();
   return 0;

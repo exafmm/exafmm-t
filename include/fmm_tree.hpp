@@ -8,25 +8,6 @@
 #include "build_tree.h"
 
 namespace pvfmm {
-  FMM_Node* PreorderNxt(FMM_Node* curr_node) {
-    assert(curr_node!=NULL);
-    int n=(1UL<<3);
-    if(!curr_node->IsLeaf())
-      for(int i=0; i<n; i++)
-        if(curr_node->Child(i)!=NULL)
-          return curr_node->Child(i);
-    FMM_Node* node=curr_node;
-    while(true) {
-      int i=node->octant+1;
-      node = node->parent;
-      if(node==NULL) return NULL;
-      for(; i<n; i++)
-        if(node->Child(i)!=NULL)
-          return node->Child(i);
-    }
-  }
-
-
   // Construct list of leafs, nonleafs and initialize members
   void CollectNodeData() {
     leafs.clear();
@@ -229,28 +210,27 @@ namespace pvfmm {
   }
   /* End of 3rd part: Evaluation */
 
-  void CheckFMMOutput(std::string t_name) {
+  void CheckFMMOutput(FMM_Nodes & nodes) {
     int np=omp_get_max_threads();
     std::vector<real_t> src_coord;
     std::vector<real_t> src_value;
-    FMM_Node* n=root_node;
-    while(n!=NULL) {
+    for (size_t i=0; i<nodes.size(); i++) {
+      FMM_Node * n = &nodes[i];
       if(n->IsLeaf()) {
         std::vector<real_t>& coord_vec=n->pt_coord;
         std::vector<real_t>& value_vec=n->pt_src;
         for(size_t i=0; i<coord_vec.size(); i++) src_coord.push_back(coord_vec[i]);
         for(size_t i=0; i<value_vec.size(); i++) src_value.push_back(value_vec[i]);
       }
-      n=static_cast<FMM_Node*>(PreorderNxt(n));
     }
     size_t src_cnt = src_coord.size()/3;
     int trg_dof = TRG_DIM;
     std::vector<real_t> trg_coord;
     std::vector<real_t> trg_poten_fmm;
     size_t step_size = 1 + src_cnt*src_cnt*1e-9;
-    n = root_node;
     long long trg_iter=0;
-    while(n!=NULL) {
+    for (size_t i=0; i<nodes.size(); i++) {
+      FMM_Node * n = &nodes[i];
       if(n->IsLeaf()) {
         std::vector<real_t>& coord_vec=n->pt_coord;
         std::vector<real_t>& poten_vec=n->pt_trg;
@@ -262,7 +242,6 @@ namespace pvfmm {
           trg_iter++;
         }
       }
-      n=static_cast<FMM_Node*>(PreorderNxt(n));
     }
     size_t trg_cnt = trg_coord.size()/3;
     std::vector<real_t> trg_poten_dir(trg_cnt*trg_dof, 0);
