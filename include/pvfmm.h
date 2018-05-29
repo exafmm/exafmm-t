@@ -140,9 +140,6 @@ namespace pvfmm {
   std::vector<std::vector<real_t> > dnwd_check_surf;
   std::vector<std::vector<real_t> > dnwd_equiv_surf;
 
-  std::vector<real_t> allUpwardEquiv;
-  std::vector<real_t> allDnwardEquiv;
-
   std::vector<FMM_Node*> leafs, nonleafs, allnodes;
 
   // Relative coordinates and interaction lists

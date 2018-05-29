@@ -109,9 +109,6 @@ namespace pvfmm {
       FMM_Node* node = allnodes[i];
       node->idx = i;
     }
-    size_t numNodes = allnodes.size();
-    allUpwardEquiv.resize(numNodes*NSURF);
-    allDnwardEquiv.resize(numNodes*NSURF);
     LEVEL = leafs.back()->depth;
   }
 

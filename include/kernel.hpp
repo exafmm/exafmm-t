@@ -529,6 +529,8 @@ namespace pvfmm {
 
   void M2L(M2LData& M2Ldata) {
     size_t numNodes = allnodes.size();
+    std::vector<real_t> allUpwardEquiv(numNodes*NSURF);
+    std::vector<real_t> allDnwardEquiv(numNodes*NSURF);
     #pragma omp parallel for collapse(2)
     for(int i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
