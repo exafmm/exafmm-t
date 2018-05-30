@@ -53,10 +53,6 @@ namespace pvfmm {
   }
 
   void M2LSetup(M2LData& M2Ldata) {
-    std::vector<FMM_Node*>& nodes_in = nonleafs;
-    std::vector<FMM_Node*>& nodes_out = nonleafs;
-    size_t n_in = nodes_in.size();
-    size_t n_out = nodes_out.size();
     // build ptrs of precompmat
     size_t mat_cnt = rel_coord[M2L_Type].size();
     std::vector<real_t*> precomp_mat;                    // vector of ptrs which points to Precomputation matrix of each M2L relative position
@@ -64,81 +60,63 @@ namespace pvfmm {
       Matrix<real_t>& M = mat_M2L[mat_id];
       precomp_mat.push_back(&M[0][0]);                   // precomp_mat.size == M2L's numRelCoords
     }
-    // calculate buff_size & numBlocks
+    // construct nodes_out & nodes_in
+    std::vector<FMM_Node*>& nodes_out = nonleafs;
+    std::set<FMM_Node*> nodes_in_;
+    for(size_t i=0; i<nodes_out.size(); i++) {
+      std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
+      for(size_t k=0; k<mat_cnt; k++) {
+        if(M2Llist[k]!=NULL)
+          nodes_in_.insert(M2Llist[k]);
+      }
+    }
+    std::vector<FMM_Node*> nodes_in;
+    for(FMM_Node* node : nodes_in_) {
+      nodes_in.push_back(node);
+    }
+    // prepare fft displ & fft scal
+    std::vector<size_t> fft_vec(nodes_in.size());
+    std::vector<size_t> ifft_vec(nodes_out.size());
+    std::vector<real_t> fft_scl(nodes_in.size());
+    std::vector<real_t> ifft_scl(nodes_out.size());
+    for(size_t i=0; i<nodes_in.size(); i++) {
+      fft_vec[i] = nodes_in[i]->child[0]->idx * NSURF;
+      fft_scl[i] = 1;
+    }
+    for(size_t i=0; i<nodes_out.size(); i++) {
+      int depth = nodes_out[i]->depth+1;
+      ifft_vec[i] = nodes_out[i]->child[0]->idx * NSURF;
+      ifft_scl[i] = powf(2.0, depth);
+    }
     size_t n1 = MULTIPOLE_ORDER*2;
     size_t n2 = n1*n1;
     size_t n3_ = n2*(n1/2+1);
     size_t chld_cnt = 8;
     size_t fftsize = 2 * n3_ * chld_cnt;
-    size_t buff_size = 1024l*1024l*1024l;    // 1Gb buffer
-    size_t n_blk0 = 2*fftsize*(SRC_DIM*n_in +POT_DIM*n_out)*sizeof(real_t)/buff_size;
-    if(n_blk0==0) n_blk0 = 1;
-    // calculate fft_dsp(fft_vec) & fft_scal
-    int omp_p = omp_get_max_threads();
-    std::vector<std::vector<size_t> >  fft_vec(n_blk0);
-    std::vector<std::vector<size_t> > ifft_vec(n_blk0);
-    std::vector<std::vector<real_t> >  fft_scl(n_blk0);
-    std::vector<std::vector<real_t> > ifft_scl(n_blk0);
-    std::vector<std::vector<FMM_Node*> > nodes_blk_in (n_blk0);  // node_in in each block
-    std::vector<std::vector<FMM_Node*> > nodes_blk_out(n_blk0);  // node_out in each block
-    for(size_t i=0; i<n_in; i++) nodes_in[i]->node_id=i;
-    for(size_t blk0=0; blk0<n_blk0; blk0++) {
-      // prepare nodes_in_ & out_ for this block
-      size_t blk0_start=(n_out* blk0   )/n_blk0;
-      size_t blk0_end  =(n_out*(blk0+1))/n_blk0;
-      std::vector<FMM_Node*>& nodes_in_ =nodes_blk_in [blk0];
-      std::vector<FMM_Node*>& nodes_out_=nodes_blk_out[blk0];
-      std::set<FMM_Node*> nodes_in;
-      for(size_t i=blk0_start; i<blk0_end; i++) {
-        nodes_out_.push_back(nodes_out[i]);
-        std::vector<FMM_Node*>& lst=nodes_out[i]->interac_list[M2L_Type];
-        for(size_t k=0; k<mat_cnt; k++) if(lst[k]!=NULL) nodes_in.insert(lst[k]);
-      }
-      for(typename std::set<FMM_Node*>::iterator node=nodes_in.begin(); node != nodes_in.end(); node++)
-        nodes_in_.push_back(*node);
-      // calculate fft_vec (dsp) and fft_sca
-      for(size_t i=0; i<nodes_in_ .size(); i++)
-        fft_vec[blk0].push_back(nodes_in_[i]->child[0]->idx * NSURF);  // nodes_in_ is local to the current block
-      for(size_t i=0; i<nodes_out_.size(); i++)
-        ifft_vec[blk0].push_back(nodes_out[blk0_start+i]->child[0]->idx * NSURF); // nodes_out here is global
-      fft_scl [blk0].resize(nodes_in_ .size());
-      ifft_scl[blk0].resize(nodes_out_.size());
-      for(size_t i=0; i<nodes_in_ .size(); i++) {
-        size_t depth=nodes_in_[i]->depth+1;
-        fft_scl[blk0][i]=1;
-      }
-      for(size_t i=0; i<nodes_out_.size(); i++) {
-        size_t depth=nodes_out_[i]->depth+1;
-        ifft_scl[blk0][i]=powf(2.0, depth);
-      }
-    }
     // calculate interac_vec & interac_dsp
-    std::vector<std::vector<size_t> > interac_vec(n_blk0);
-    std::vector<std::vector<size_t> > interac_dsp(n_blk0);
-    for(size_t blk0=0; blk0<n_blk0; blk0++) {
-      std::vector<FMM_Node*>& nodes_in_ =nodes_blk_in [blk0];
-      std::vector<FMM_Node*>& nodes_out_=nodes_blk_out[blk0];
-      for(size_t i=0; i<nodes_in_.size(); i++) nodes_in_[i]->node_id=i;
-      size_t n_blk1=nodes_out_.size()*sizeof(real_t)/CACHE_SIZE;
-      if(n_blk1==0) n_blk1=1;
-      size_t interac_dsp_=0;
-      for(size_t blk1=0; blk1<n_blk1; blk1++) {
-        size_t blk1_start=(nodes_out_.size()* blk1   )/n_blk1;
-        size_t blk1_end  =(nodes_out_.size()*(blk1+1))/n_blk1;
-        for(size_t k=0; k<mat_cnt; k++) {
-          for(size_t i=blk1_start; i<blk1_end; i++) {
-            std::vector<FMM_Node*>& lst=nodes_out_[i]->interac_list[M2L_Type];
-            if(lst[k]!=NULL) {
-              interac_vec[blk0].push_back(lst[k]->node_id*fftsize*SRC_DIM);   // node_in dspl
-              interac_vec[blk0].push_back(    i          *fftsize*POT_DIM);   // node_out dspl
-              interac_dsp_++;
-            }
+    std::vector<size_t> interac_vec;
+    std::vector<size_t> interac_dsp;
+    for(size_t i=0; i<nodes_in.size(); i++) {
+     nodes_in[i]->node_id=i;
+    }
+    size_t n_blk1 = nodes_out.size() * sizeof(real_t) / CACHE_SIZE;
+    if(n_blk1==0) n_blk1 = 1;
+    size_t interac_dsp_ = 0;
+    for(size_t blk1=0; blk1<n_blk1; blk1++) {
+      size_t blk1_start=(nodes_out.size()* blk1   )/n_blk1;
+      size_t blk1_end  =(nodes_out.size()*(blk1+1))/n_blk1;
+      for(size_t k=0; k<mat_cnt; k++) {
+        for(size_t i=blk1_start; i<blk1_end; i++) {
+          std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
+          if(M2Llist[k]!=NULL) {
+            interac_vec.push_back(M2Llist[k]->node_id*fftsize*SRC_DIM);   // node_in dspl
+            interac_vec.push_back(        i          *fftsize*POT_DIM);   // node_out dspl
+            interac_dsp_++;
           }
-          interac_dsp[blk0].push_back(interac_dsp_);
         }
+        interac_dsp.push_back(interac_dsp_);
       }
     }
-    M2Ldata.n_blk0      = n_blk0;
     M2Ldata.precomp_mat = precomp_mat;
     M2Ldata.fft_vec     = fft_vec;
     M2Ldata.ifft_vec    = ifft_vec;

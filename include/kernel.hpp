@@ -526,7 +526,7 @@ namespace pvfmm {
         allDnwardEquiv[i*NSURF+j] = allnodes[i]->dnward_equiv[j];
       }
     }
-    size_t n_blk0 = M2Ldata.n_blk0;
+    size_t n_blk0 = 1;
     size_t m = MULTIPOLE_ORDER;
     size_t n1 = m * 2;
     size_t n2 = n1 * n1;
@@ -535,28 +535,28 @@ namespace pvfmm {
     size_t fftsize = 2 * n3_ * chld_cnt;
     size_t M_dim = n3_;
     std::vector<real_t*> precomp_mat = M2Ldata.precomp_mat;
-    std::vector<std::vector<size_t> >&  fft_vec = M2Ldata.fft_vec;
-    std::vector<std::vector<size_t> >& ifft_vec = M2Ldata.ifft_vec;
-    std::vector<std::vector<real_t> >&  fft_scl = M2Ldata.fft_scl;
-    std::vector<std::vector<real_t> >& ifft_scl = M2Ldata.ifft_scl;
-    std::vector<std::vector<size_t> >& interac_vec = M2Ldata.interac_vec;
-    std::vector<std::vector<size_t> >& interac_dsp = M2Ldata.interac_dsp;
+    std::vector<size_t>&  fft_vec = M2Ldata.fft_vec;
+    std::vector<size_t>& ifft_vec = M2Ldata.ifft_vec;
+    std::vector<real_t>&  fft_scl = M2Ldata.fft_scl;
+    std::vector<real_t>& ifft_scl = M2Ldata.ifft_scl;
+    std::vector<size_t>& interac_vec = M2Ldata.interac_vec;
+    std::vector<size_t>& interac_dsp = M2Ldata.interac_dsp;
     for(size_t blk0=0; blk0<n_blk0; blk0++) {
-      size_t n_in = fft_vec[blk0].size();  // num of nodes_in in this block
-      size_t n_out=ifft_vec[blk0].size();  // num of nodes_out in this block
+      size_t n_in = fft_vec.size();  // num of nodes_in in this block
+      size_t n_out=ifft_vec.size();  // num of nodes_out in this block
       size_t  input_dim=n_in *fftsize;
       size_t output_dim=n_out*fftsize;
       Matrix<real_t> fft_data(1, input_dim+output_dim);
       Matrix<real_t> fft_in(1, input_dim, (real_t*)fft_data.data_ptr, false);
       Matrix<real_t> fft_out(1, output_dim, (real_t*)fft_data.data_ptr+input_dim, false);
       Profile::Tic("FFT_UpEquiv", false, 5);
-      FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0], allUpwardEquiv, fft_in);
+      FFT_UpEquiv(m, fft_vec,  fft_scl, allUpwardEquiv, fft_in);
       Profile::Toc();
       Profile::Tic("M2LHadamard", false, 5);
-      M2LListHadamard(M_dim, interac_dsp[blk0], interac_vec[blk0], precomp_mat, fft_in, fft_out);
+      M2LListHadamard(M_dim, interac_dsp, interac_vec, precomp_mat, fft_in, fft_out);
       Profile::Toc();
       Profile::Tic("FFT_Check2Equiv", false, 5);
-      FFT_Check2Equiv(m, ifft_vec[blk0], ifft_scl[blk0], fft_out, allDnwardEquiv);
+      FFT_Check2Equiv(m, ifft_vec, ifft_scl, fft_out, allDnwardEquiv);
       Profile::Toc();
     }
 

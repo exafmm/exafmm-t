@@ -120,14 +120,13 @@ namespace pvfmm {
   FMM_Node* root_node;
 
   struct M2LData {
-    size_t n_blk0;
     std::vector<real_t*> precomp_mat;
-    std::vector<std::vector<size_t> > fft_vec;   // source's first child's upward_equiv's displacement
-    std::vector<std::vector<size_t> > ifft_vec;  // target's first child's dnward_equiv's displacement
-    std::vector<std::vector<real_t> > fft_scl;
-    std::vector<std::vector<real_t> > ifft_scl;
-    std::vector<std::vector<size_t> > interac_vec;
-    std::vector<std::vector<size_t> > interac_dsp;
+    std::vector<size_t> fft_vec;   // source's first child's upward_equiv's displacement
+    std::vector<size_t> ifft_vec;  // target's first child's dnward_equiv's displacement
+    std::vector<real_t> fft_scl;
+    std::vector<real_t> ifft_scl;
+    std::vector<size_t> interac_vec;
+    std::vector<size_t> interac_dsp;
   };
   M2LData M2Ldata;
 
