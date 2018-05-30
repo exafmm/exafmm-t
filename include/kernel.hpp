@@ -397,47 +397,43 @@ namespace pvfmm {
 
   void FFT_UpEquiv(size_t m, std::vector<size_t>& fft_vec, std::vector<real_t>& fft_scal,
                    std::vector<real_t>& input_data, Matrix<real_t>& output_data) {
-    size_t n1=m*2;
-    size_t n2=n1*n1;
-    size_t n3=n1*n2;
-    size_t n3_=n2*(n1/2+1);
-    size_t chld_cnt=1UL<<3;
-    size_t fftsize_in =2*n3_*chld_cnt;
+    //int m = MULTIPOLE_ORDER;
+    int chld_cnt = 8;
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
     std::vector<real_t> surf = surface(m, c, (real_t)(m-1), 0);
     for(size_t i=0; i<map.size(); i++) {
       map[i] = ((size_t)(m-1-surf[i*3]+0.5))
-             + ((size_t)(m-1-surf[i*3+1]+0.5))*n1
-             + ((size_t)(m-1-surf[i*3+2]+0.5))*n2;
+             + ((size_t)(m-1-surf[i*3+1]+0.5)) * N1
+             + ((size_t)(m-1-surf[i*3+2]+0.5)) * N2;
     }
 
-    int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
+    int err, nnn[3]= {N1, N1, N1};
     real_t *fftw_in, *fftw_out;
-    err = posix_memalign((void**)&fftw_in,  MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
-    err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
+    err = posix_memalign((void**)&fftw_in,  MEM_ALIGN, N3 * chld_cnt * sizeof(real_t));
+    err = posix_memalign((void**)&fftw_out, MEM_ALIGN, FFTSIZE * sizeof(real_t));
     fft_plan m2l_list_fftplan = fft_plan_many_dft_r2c(3, nnn, chld_cnt,
-                                (real_t*)fftw_in, NULL, 1, n3,
-                                (fft_complex*)(fftw_out), NULL, 1, n3_,
+                                (real_t*)fftw_in, NULL, 1, N3,
+                                (fft_complex*)(fftw_out), NULL, 1, N3_,
                                 FFTW_ESTIMATE);
     free(fftw_in);
     free(fftw_out);
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<fft_vec.size(); node_idx++) {
-      std::vector<real_t> buffer(fftsize_in, 0);
+      std::vector<real_t> buffer(FFTSIZE, 0);
       real_t* upward_equiv = &input_data[fft_vec[node_idx]];  // offset ptr of node's 8 child's upward_equiv in allUpwardEquiv, size=8*NSURF
-      real_t* upward_equiv_fft = &output_data[0][fftsize_in*node_idx]; // offset ptr of node_idx in fft_in vector, size=FFTSIZE
-      memset(upward_equiv_fft, 0, fftsize_in*sizeof(real_t));
+      real_t* upward_equiv_fft = &output_data[0][FFTSIZE*node_idx]; // offset ptr of node_idx in fft_in vector, size=FFTSIZE
+      memset(upward_equiv_fft, 0, FFTSIZE*sizeof(real_t));
       for(size_t k=0; k<NSURF; k++) {
         size_t idx=map[k];
         for(int j0=0; j0<(int)chld_cnt; j0++)
-          upward_equiv_fft[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
+          upward_equiv_fft[idx+j0*N3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
       }
       fft_execute_dft_r2c(m2l_list_fftplan, upward_equiv_fft, (fft_complex*)&buffer[0]);
-      for(size_t j=0; j<n3_; j++) {
+      for(size_t j=0; j<N3_; j++) {
         for(size_t k=0; k<chld_cnt; k++) {
-          upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
-          upward_equiv_fft[2*(chld_cnt*j+k)+1]=buffer[2*(n3_*k+j)+1];
+          upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(N3_*k+j)+0];
+          upward_equiv_fft[2*(chld_cnt*j+k)+1]=buffer[2*(N3_*k+j)+1];
         }
       }
     }
@@ -446,52 +442,42 @@ namespace pvfmm {
 
   void FFT_Check2Equiv(size_t m, std::vector<size_t>& ifft_vec, std::vector<real_t>& ifft_scal,
                        Matrix<real_t>& input_data, std::vector<real_t>& output_data) {
-    size_t n1=m*2;
-    size_t n2=n1*n1;
-    size_t n3=n1*n2;
-    size_t n3_=n2*(n1/2+1);
-    size_t chld_cnt=1UL<<3;
-    size_t fftsize_out=2*n3_*chld_cnt;
-    int omp_p=omp_get_max_threads();
-    size_t n=6*(m-1)*(m-1)+2;
-    static std::vector<size_t> map;
-    size_t n_old = map.size();
-    if(n_old!=n) {
-      real_t c[3]= {0, 0, 0};
-      std::vector<real_t> surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
-      map.resize(surf.size()/3);
-      for(size_t i=0; i<map.size(); i++)
-        map[i] = ((size_t)(m*2-0.5-surf[i*3]))
-               +((size_t)(m*2-0.5-surf[i*3+1]))*N1
-               +((size_t)(m*2-0.5-surf[i*3+2]))*N2;
+    size_t chld_cnt = 8;
+    std::vector<size_t> map(NSURF);
+    real_t c[3]= {0, 0, 0};
+    std::vector<real_t> surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
+    for(size_t i=0; i<map.size(); i++) {
+      map[i] = ((size_t)(m*2-0.5-surf[i*3]))
+             +((size_t)(m*2-0.5-surf[i*3+1])) * N1
+             +((size_t)(m*2-0.5-surf[i*3+2])) * N2;
     }
 
-    int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
+    int err, nnn[3]= {N1, N1, N1};
     real_t *fftw_in, *fftw_out;
-    err = posix_memalign((void**)&fftw_in,  MEM_ALIGN, 2*n3_*chld_cnt*sizeof(real_t));
-    err = posix_memalign((void**)&fftw_out, MEM_ALIGN,   n3 *chld_cnt*sizeof(real_t));
+    err = posix_memalign((void**)&fftw_in,  MEM_ALIGN, FFTSIZE*sizeof(real_t));
+    err = posix_memalign((void**)&fftw_out, MEM_ALIGN,  N3 *chld_cnt*sizeof(real_t));
     fft_plan m2l_list_ifftplan = fft_plan_many_dft_c2r(3, nnn, chld_cnt,
-                                 (fft_complex*)fftw_in, NULL, 1, n3_,
-                                 (real_t*)(fftw_out), NULL, 1, n3,
+                                 (fft_complex*)fftw_in, NULL, 1, N3_,
+                                 (real_t*)(fftw_out), NULL, 1, N3,
                                  FFTW_ESTIMATE);
     free(fftw_in);
     free(fftw_out);
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<ifft_vec.size(); node_idx++) {
-      std::vector<real_t> buffer0(fftsize_out, 0);
-      std::vector<real_t> buffer1(fftsize_out, 0);
-      real_t* dnward_check_fft = &input_data[0][fftsize_out*node_idx];  // offset ptr for node_idx in fft_out vector, size=FFTSIZE
+      std::vector<real_t> buffer0(FFTSIZE, 0);
+      std::vector<real_t> buffer1(FFTSIZE, 0);
+      real_t* dnward_check_fft = &input_data[0][FFTSIZE*node_idx];  // offset ptr for node_idx in fft_out vector, size=FFTSIZE
       real_t* dnward_equiv = &output_data[ifft_vec[node_idx]];  // offset ptr for node_idx's child's dnward_equiv in allDnwardEquiv, size=numChilds * NSURF
-      for(size_t j=0; j<n3_; j++)
+      for(size_t j=0; j<N3_; j++)
         for(size_t k=0; k<chld_cnt; k++) {
-          buffer0[2*(n3_*k+j)+0]=dnward_check_fft[2*(chld_cnt*j+k)+0];
-          buffer0[2*(n3_*k+j)+1]=dnward_check_fft[2*(chld_cnt*j+k)+1];
+          buffer0[2*(N3_*k+j)+0]=dnward_check_fft[2*(chld_cnt*j+k)+0];
+          buffer0[2*(N3_*k+j)+1]=dnward_check_fft[2*(chld_cnt*j+k)+1];
         }
       fft_execute_dft_c2r(m2l_list_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
-      for(size_t k=0; k<n; k++) {
+      for(size_t k=0; k<NSURF; k++) {
         size_t idx=map[k];
         for(int j0=0; j0<(int)chld_cnt; j0++)
-          dnward_equiv[n*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
+          dnward_equiv[NSURF*j0+k]+=buffer1[idx+j0*N3]*ifft_scal[node_idx];
       }
     }
     fft_destroy_plan(m2l_list_ifftplan);
@@ -517,7 +503,7 @@ namespace pvfmm {
     FFT_UpEquiv(MULTIPOLE_ORDER, M2Ldata.fft_vec, M2Ldata.fft_scl, allUpwardEquiv, fft_in);
     Profile::Toc();
     Profile::Tic("M2LHadamard", false, 5);
-    M2LListHadamard(N3, M2Ldata.interac_dsp, M2Ldata.interac_vec, M2Ldata.precomp_mat, fft_in, fft_out);
+    M2LListHadamard(N3_, M2Ldata.interac_dsp, M2Ldata.interac_vec, M2Ldata.precomp_mat, fft_in, fft_out);
     Profile::Toc();
     Profile::Tic("FFT_Check2Equiv", false, 5);
     FFT_Check2Equiv(MULTIPOLE_ORDER, M2Ldata.ifft_vec, M2Ldata.ifft_scl, fft_out, allDnwardEquiv);

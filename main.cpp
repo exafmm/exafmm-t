@@ -40,8 +40,9 @@ int main(int argc, char **argv) {
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   N1 = 2 * MULTIPOLE_ORDER;
   N2 = N1 * N1;
-  N3 = N2 * (N1/2+1);
-  FFTSIZE = 2 * 8 * N3;   // 8 denotes number of children
+  N3 = N1 * N2;
+  N3_ = N2 * (N1/2+1);
+  FFTSIZE = 2 * 8 * N3_;   // 8 denotes number of children
   SRC_DIM = 1;
   TRG_DIM = 4;
   POT_DIM = 1;

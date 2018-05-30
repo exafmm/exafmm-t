@@ -158,6 +158,6 @@ namespace pvfmm {
   int SRC_DIM;    // dimension of source's charge
   int TRG_DIM;    // dimension of target's value (potential + force)
   int POT_DIM;    // dimension of target's potential
-  int N1, N2, N3, FFTSIZE;
+  int N1, N2, N3, N3_, FFTSIZE;
 }
 #endif
