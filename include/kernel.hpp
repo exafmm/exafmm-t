@@ -549,10 +549,9 @@ namespace pvfmm {
       size_t n_out=ifft_vec[blk0].size();  // num of nodes_out in this block
       size_t  input_dim=n_in *fftsize;
       size_t output_dim=n_out*fftsize;
-      //std::vector<real_t> fft_in(n_in * fftsize, 0);
-      //AlignedVec fft_out(n_out * fftsize, 0);  // fft_out must be aligned
-      Matrix<real_t> fft_in(1, input_dim, (real_t*)buff, false);
-      Matrix<real_t> fft_out(1, output_dim, (real_t*)(buff+input_dim*sizeof(real_t)), false);
+      Matrix<real_t> fft_data(1, input_dim+output_dim);
+      Matrix<real_t> fft_in(1, input_dim, (real_t*)fft_data.data_ptr, false);
+      Matrix<real_t> fft_out(1, output_dim, (real_t*)fft_data.data_ptr+input_dim*sizeof(real_t), false);
       Profile::Tic("FFT_UpEquiv", false, 5);
       FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0], allUpwardEquiv, fft_in);
       Profile::Toc();

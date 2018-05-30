@@ -1,6 +1,8 @@
 ###TODO
 -------------
 
+- [ ] Remove Matrix
+- [ ] Remove buffer in M2L
 - [ ] Simplify list structure (Tingyu)
 - [x] Remove kernel class (Tingyu, Chenwu)
 - [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution (Tingyu)
