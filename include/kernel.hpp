@@ -433,22 +433,21 @@ namespace pvfmm {
       size_t node_end  =(n_in*(pid+1))/omp_p;
       std::vector<real_t> buffer(fftsize_in, 0);
       for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
-        // upward_equiv.size is numChilds * NSURF
-        real_t* upward_equiv = &input_data[fft_vec[node_idx]];  // offset ptr for node_idx's child's upward_equiv in allUpwardEquiv
-        //real_t* upward_equiv_fft = &output_data[0][fftsize_in*node_idx];  // offset ptr for node_idx in fft_in vector
-        Matrix<real_t> upward_equiv_fft(1, fftsize_in, &output_data[0][fftsize_in*node_idx], false);
-        upward_equiv_fft.SetZero();
+        // offset ptr of node's 8 child's upward_equiv in allUpwardEquiv, size=8*NSURF
+        real_t* upward_equiv = &input_data[fft_vec[node_idx]];
+        // offset ptr of node_idx in fft_in vector, size=FFTSIZE
+        real_t* upward_equiv_fft = &output_data[0][fftsize_in*node_idx];
+        memset(upward_equiv_fft, 0, fftsize_in*sizeof(real_t));
         for(size_t k=0; k<NSURF; k++) {
           size_t idx=map[k];
-          int j1=0;
           for(int j0=0; j0<(int)chld_cnt; j0++)
-            upward_equiv_fft[0][idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
+            upward_equiv_fft[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
         }
-        fft_execute_dft_r2c(m2l_list_fftplan, (real_t*)&upward_equiv_fft[0][0], (fft_complex*)&buffer[0]);
+        fft_execute_dft_r2c(m2l_list_fftplan, upward_equiv_fft, (fft_complex*)&buffer[0]);
         for(size_t j=0; j<n3_; j++) {
           for(size_t k=0; k<chld_cnt; k++) {
-            upward_equiv_fft[0][2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
-            upward_equiv_fft[0][2*(chld_cnt*j+k)+1]=buffer[2*(n3_*k+j)+1];
+            upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
+            upward_equiv_fft[2*(chld_cnt*j+k)+1]=buffer[2*(n3_*k+j)+1];
           }
         }
       }
