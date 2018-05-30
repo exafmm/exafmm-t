@@ -526,9 +526,6 @@ namespace pvfmm {
         allDnwardEquiv[i*NSURF+j] = allnodes[i]->dnward_equiv[j];
       }
     }
-    size_t buffersize = 1024*1024*1024;
-    Matrix<real_t> buffer(1, buffersize);
-    real_t* buff = buffer.data_ptr;
     size_t n_blk0 = M2Ldata.n_blk0;
     size_t m = MULTIPOLE_ORDER;
     size_t n1 = m * 2;
@@ -551,7 +548,7 @@ namespace pvfmm {
       size_t output_dim=n_out*fftsize;
       Matrix<real_t> fft_data(1, input_dim+output_dim);
       Matrix<real_t> fft_in(1, input_dim, (real_t*)fft_data.data_ptr, false);
-      Matrix<real_t> fft_out(1, output_dim, (real_t*)fft_data.data_ptr+input_dim*sizeof(real_t), false);
+      Matrix<real_t> fft_out(1, output_dim, (real_t*)fft_data.data_ptr+input_dim, false);
       Profile::Tic("FFT_UpEquiv", false, 5);
       FFT_UpEquiv(m, fft_vec[blk0],  fft_scl[blk0], allUpwardEquiv, fft_in);
       Profile::Toc();
