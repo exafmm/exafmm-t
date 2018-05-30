@@ -88,11 +88,6 @@ namespace pvfmm {
       ifft_vec[i] = nodes_out[i]->child[0]->idx * NSURF;
       ifft_scl[i] = powf(2.0, depth);
     }
-    size_t n1 = MULTIPOLE_ORDER*2;
-    size_t n2 = n1*n1;
-    size_t n3_ = n2*(n1/2+1);
-    size_t chld_cnt = 8;
-    size_t fftsize = 2 * n3_ * chld_cnt;
     // calculate interac_vec & interac_dsp
     std::vector<size_t> interac_vec;
     std::vector<size_t> interac_dsp;
@@ -109,8 +104,8 @@ namespace pvfmm {
         for(size_t i=blk1_start; i<blk1_end; i++) {
           std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
           if(M2Llist[k]!=NULL) {
-            interac_vec.push_back(M2Llist[k]->node_id*fftsize*SRC_DIM);   // node_in dspl
-            interac_vec.push_back(        i          *fftsize*POT_DIM);   // node_out dspl
+            interac_vec.push_back(M2Llist[k]->node_id * FFTSIZE * SRC_DIM);   // node_in dspl
+            interac_vec.push_back(        i           * FFTSIZE * POT_DIM);   // node_out dspl
             interac_dsp_++;
           }
         }
