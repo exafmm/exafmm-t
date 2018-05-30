@@ -403,16 +403,13 @@ namespace pvfmm {
     size_t n3_=n2*(n1/2+1);
     size_t chld_cnt=1UL<<3;
     size_t fftsize_in =2*n3_*chld_cnt;
-    int omp_p=omp_get_max_threads();
-    static std::vector<size_t> map;
-    size_t n_old = map.size();
-    if(n_old!=NSURF) {
-      real_t c[3]= {0, 0, 0};
-      std::vector<real_t> surf = surface(m, c, (real_t)(m-1), 0);
-      map.resize(surf.size()/3);
-      for(size_t i=0; i<map.size(); i++)
-        map[i]=((size_t)(m-1-surf[i*3]+0.5))+((size_t)(m-1-surf[i*3+1]+0.5))*n1+((size_t)(
-                 m-1-surf[i*3+2]+0.5))*n2;
+    std::vector<size_t> map(NSURF);
+    real_t c[3]= {0, 0, 0};
+    std::vector<real_t> surf = surface(m, c, (real_t)(m-1), 0);
+    for(size_t i=0; i<map.size(); i++) {
+      map[i] = ((size_t)(m-1-surf[i*3]+0.5))
+             + ((size_t)(m-1-surf[i*3+1]+0.5))*n1
+             + ((size_t)(m-1-surf[i*3+2]+0.5))*n2;
     }
 
     int err, nnn[3]= {(int)n1, (int)n1, (int)n1};
@@ -423,32 +420,24 @@ namespace pvfmm {
                                 (real_t*)fftw_in, NULL, 1, n3,
                                 (fft_complex*)(fftw_out), NULL, 1, n3_,
                                 FFTW_ESTIMATE);
-    free(fftw_in );
+    free(fftw_in);
     free(fftw_out);
-
-    size_t n_in = fft_vec.size();
     #pragma omp parallel for
-    for(int pid=0; pid<omp_p; pid++) {
-      size_t node_start=(n_in*(pid  ))/omp_p;
-      size_t node_end  =(n_in*(pid+1))/omp_p;
+    for(size_t node_idx=0; node_idx<fft_vec.size(); node_idx++) {
       std::vector<real_t> buffer(fftsize_in, 0);
-      for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
-        // offset ptr of node's 8 child's upward_equiv in allUpwardEquiv, size=8*NSURF
-        real_t* upward_equiv = &input_data[fft_vec[node_idx]];
-        // offset ptr of node_idx in fft_in vector, size=FFTSIZE
-        real_t* upward_equiv_fft = &output_data[0][fftsize_in*node_idx];
-        memset(upward_equiv_fft, 0, fftsize_in*sizeof(real_t));
-        for(size_t k=0; k<NSURF; k++) {
-          size_t idx=map[k];
-          for(int j0=0; j0<(int)chld_cnt; j0++)
-            upward_equiv_fft[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
-        }
-        fft_execute_dft_r2c(m2l_list_fftplan, upward_equiv_fft, (fft_complex*)&buffer[0]);
-        for(size_t j=0; j<n3_; j++) {
-          for(size_t k=0; k<chld_cnt; k++) {
-            upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
-            upward_equiv_fft[2*(chld_cnt*j+k)+1]=buffer[2*(n3_*k+j)+1];
-          }
+      real_t* upward_equiv = &input_data[fft_vec[node_idx]];  // offset ptr of node's 8 child's upward_equiv in allUpwardEquiv, size=8*NSURF
+      real_t* upward_equiv_fft = &output_data[0][fftsize_in*node_idx]; // offset ptr of node_idx in fft_in vector, size=FFTSIZE
+      memset(upward_equiv_fft, 0, fftsize_in*sizeof(real_t));
+      for(size_t k=0; k<NSURF; k++) {
+        size_t idx=map[k];
+        for(int j0=0; j0<(int)chld_cnt; j0++)
+          upward_equiv_fft[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
+      }
+      fft_execute_dft_r2c(m2l_list_fftplan, upward_equiv_fft, (fft_complex*)&buffer[0]);
+      for(size_t j=0; j<n3_; j++) {
+        for(size_t k=0; k<chld_cnt; k++) {
+          upward_equiv_fft[2*(chld_cnt*j+k)+0]=buffer[2*(n3_*k+j)+0];
+          upward_equiv_fft[2*(chld_cnt*j+k)+1]=buffer[2*(n3_*k+j)+1];
         }
       }
     }
@@ -487,29 +476,22 @@ namespace pvfmm {
                                  FFTW_ESTIMATE);
     free(fftw_in);
     free(fftw_out);
-
-    size_t n_out=ifft_vec.size();
     #pragma omp parallel for
-    for(int pid=0; pid<omp_p; pid++) {
-      size_t node_start=(n_out*(pid  ))/omp_p;
-      size_t node_end  =(n_out*(pid+1))/omp_p;
+    for(size_t node_idx=0; node_idx<ifft_vec.size(); node_idx++) {
       std::vector<real_t> buffer0(fftsize_out, 0);
       std::vector<real_t> buffer1(fftsize_out, 0);
-      for(size_t node_idx=node_start; node_idx<node_end; node_idx++) {
-        real_t* dnward_check_fft = &input_data[0][fftsize_out*node_idx];  // offset ptr for node_idx in fft_out vector
-        // dnward_equiv.size is numChilds * NSURF
-        real_t* dnward_equiv = &output_data[ifft_vec[node_idx]];  // offset ptr for node_idx's child's dnward_equiv in allDnwardEquiv
-        for(size_t j=0; j<n3_; j++)
-          for(size_t k=0; k<chld_cnt; k++) {
-            buffer0[2*(n3_*k+j)+0]=dnward_check_fft[2*(chld_cnt*j+k)+0];
-            buffer0[2*(n3_*k+j)+1]=dnward_check_fft[2*(chld_cnt*j+k)+1];
-          }
-        fft_execute_dft_c2r(m2l_list_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
-        for(size_t k=0; k<n; k++) {
-          size_t idx=map[k];
-          for(int j0=0; j0<(int)chld_cnt; j0++)
-            dnward_equiv[n*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
+      real_t* dnward_check_fft = &input_data[0][fftsize_out*node_idx];  // offset ptr for node_idx in fft_out vector, size=FFTSIZE
+      real_t* dnward_equiv = &output_data[ifft_vec[node_idx]];  // offset ptr for node_idx's child's dnward_equiv in allDnwardEquiv, size=numChilds * NSURF
+      for(size_t j=0; j<n3_; j++)
+        for(size_t k=0; k<chld_cnt; k++) {
+          buffer0[2*(n3_*k+j)+0]=dnward_check_fft[2*(chld_cnt*j+k)+0];
+          buffer0[2*(n3_*k+j)+1]=dnward_check_fft[2*(chld_cnt*j+k)+1];
         }
+      fft_execute_dft_c2r(m2l_list_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
+      for(size_t k=0; k<n; k++) {
+        size_t idx=map[k];
+        for(int j0=0; j0<(int)chld_cnt; j0++)
+          dnward_equiv[n*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
       }
     }
     fft_destroy_plan(m2l_list_ifftplan);
