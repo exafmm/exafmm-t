@@ -152,7 +152,7 @@ namespace pvfmm {
       }
       laplaceP2P(&(leaf->pt_coord[0]), leaf->numBodies, &(leaf->pt_src[0]),
                  &checkCoord[0], NSURF, &(leaf->upward_equiv[0]), false);
-      Matrix<real_t> check(1, NSURF, &(leaf->upward_equiv[0]), true);  // check surface potential
+      Matrix<real_t> check(1, NSURF, &(leaf->upward_equiv[0]));  // check surface potential
       Matrix<real_t> buffer(1, NSURF);
       Matrix<real_t>::GEMM(buffer, check, M2M_V);
       Matrix<real_t> equiv(1, NSURF);  // equivalent surface charge
@@ -221,7 +221,7 @@ namespace pvfmm {
       int level = leaf->depth;
       real_t scal = pow(0.5, level);
       // check surface potential -> equivalent surface charge
-      Matrix<real_t> check(1, NSURF, &(leaf->dnward_equiv[0]), true);  // check surface potential
+      Matrix<real_t> check(1, NSURF, &(leaf->dnward_equiv[0]));  // check surface potential
       Matrix<real_t> buffer(1, NSURF);
       Matrix<real_t>::GEMM(buffer, check, L2L_V);
       Matrix<real_t> equiv(1, NSURF);  // equivalent surface charge
@@ -322,7 +322,7 @@ namespace pvfmm {
 
   void M2LListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp,
                        std::vector<size_t>& interac_vec,
-                       std::vector<real_t*>& precomp_mat, Matrix<real_t>& fft_in, Matrix<real_t>& fft_out) {
+                       std::vector<real_t*>& precomp_mat, real_t* fft_in, real_t* fft_out, int fft_out_size) {
     size_t chld_cnt=1UL<<3;
     size_t fftsize_in =M_dim*chld_cnt*2;
     size_t fftsize_out=M_dim*chld_cnt*2;
@@ -330,8 +330,9 @@ namespace pvfmm {
     real_t * zero_vec0, * zero_vec1;
     err = posix_memalign((void**)&zero_vec0, MEM_ALIGN, fftsize_in *sizeof(real_t));
     err = posix_memalign((void**)&zero_vec1, MEM_ALIGN, fftsize_out*sizeof(real_t));
-    size_t n_out=fft_out.dim[0] * fft_out.dim[1]/fftsize_out;
-    fft_out.SetZero();
+    size_t n_out = fft_out_size/fftsize_out;
+    // fft_out.SetZero();
+    memset(fft_out, 0, fft_out_size*sizeof(real_t));
 
     size_t mat_cnt=precomp_mat.size();
     size_t blk1_cnt=interac_dsp.size()/mat_cnt;
@@ -345,8 +346,8 @@ namespace pvfmm {
       size_t interac_dsp1 =                    interac_dsp[interac_blk1  ] ;
       size_t interac_cnt  = interac_dsp1-interac_dsp0;
       for(size_t j=0; j<interac_cnt; j++) {
-        IN_ [BLOCK_SIZE*interac_blk1 +j]=&fft_in[0][interac_vec[(interac_dsp0+j)*2+0]];
-        OUT_[BLOCK_SIZE*interac_blk1 +j]=&fft_out[0][interac_vec[(interac_dsp0+j)*2+1]];
+        IN_ [BLOCK_SIZE*interac_blk1 +j]=&fft_in[interac_vec[(interac_dsp0+j)*2+0]];
+        OUT_[BLOCK_SIZE*interac_blk1 +j]=&fft_out[interac_vec[(interac_dsp0+j)*2+1]];
       }
       IN_ [BLOCK_SIZE*interac_blk1 +interac_cnt]=zero_vec0;
       OUT_[BLOCK_SIZE*interac_blk1 +interac_cnt]=zero_vec1;
@@ -396,7 +397,7 @@ namespace pvfmm {
   }
 
   void FFT_UpEquiv(size_t m, std::vector<size_t>& fft_vec, std::vector<real_t>& fft_scal,
-                   std::vector<real_t>& input_data, Matrix<real_t>& output_data) {
+                   std::vector<real_t>& input_data, real_t* output_data) {
     //int m = MULTIPOLE_ORDER;
     int chld_cnt = 8;
     std::vector<size_t> map(NSURF);
@@ -422,7 +423,8 @@ namespace pvfmm {
     for(size_t node_idx=0; node_idx<fft_vec.size(); node_idx++) {
       std::vector<real_t> buffer(FFTSIZE, 0);
       real_t* upward_equiv = &input_data[fft_vec[node_idx]];  // offset ptr of node's 8 child's upward_equiv in allUpwardEquiv, size=8*NSURF
-      real_t* upward_equiv_fft = &output_data[0][FFTSIZE*node_idx]; // offset ptr of node_idx in fft_in vector, size=FFTSIZE
+      // real_t* upward_equiv_fft = &output_data[0][FFTSIZE*node_idx]; // offset ptr of node_idx in fft_in vector, size=FFTSIZE
+      real_t* upward_equiv_fft = &output_data[FFTSIZE*node_idx]; // offset ptr of node_idx in fft_in vector, size=FFTSIZE
       memset(upward_equiv_fft, 0, FFTSIZE*sizeof(real_t));
       for(size_t k=0; k<NSURF; k++) {
         size_t idx=map[k];
@@ -441,7 +443,7 @@ namespace pvfmm {
   }
 
   void FFT_Check2Equiv(size_t m, std::vector<size_t>& ifft_vec, std::vector<real_t>& ifft_scal,
-                       Matrix<real_t>& input_data, std::vector<real_t>& output_data) {
+                       real_t* input_data, std::vector<real_t>& output_data) {
     size_t chld_cnt = 8;
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
@@ -466,7 +468,7 @@ namespace pvfmm {
     for(size_t node_idx=0; node_idx<ifft_vec.size(); node_idx++) {
       std::vector<real_t> buffer0(FFTSIZE, 0);
       std::vector<real_t> buffer1(FFTSIZE, 0);
-      real_t* dnward_check_fft = &input_data[0][FFTSIZE*node_idx];  // offset ptr for node_idx in fft_out vector, size=FFTSIZE
+      real_t* dnward_check_fft = &input_data[FFTSIZE*node_idx];  // offset ptr for node_idx in fft_out vector, size=FFTSIZE
       real_t* dnward_equiv = &output_data[ifft_vec[node_idx]];  // offset ptr for node_idx's child's dnward_equiv in allDnwardEquiv, size=numChilds * NSURF
       for(size_t j=0; j<N3_; j++)
         for(size_t k=0; k<chld_cnt; k++) {
@@ -497,13 +499,13 @@ namespace pvfmm {
     size_t input_dim = M2Ldata.fft_vec.size() * FFTSIZE;
     size_t output_dim = M2Ldata.ifft_vec.size() * FFTSIZE;
     Matrix<real_t> fft_data(1, input_dim+output_dim);
-    Matrix<real_t> fft_in(1, input_dim, (real_t*)fft_data.data_ptr, false);
-    Matrix<real_t> fft_out(1, output_dim, (real_t*)fft_data.data_ptr+input_dim, false);
+    real_t* fft_in = fft_data.data_ptr;
+    real_t* fft_out = fft_data.data_ptr+input_dim;
     Profile::Tic("FFT_UpEquiv", false, 5);
     FFT_UpEquiv(MULTIPOLE_ORDER, M2Ldata.fft_vec, M2Ldata.fft_scl, allUpwardEquiv, fft_in);
     Profile::Toc();
     Profile::Tic("M2LHadamard", false, 5);
-    M2LListHadamard(N3_, M2Ldata.interac_dsp, M2Ldata.interac_vec, M2Ldata.precomp_mat, fft_in, fft_out);
+    M2LListHadamard(N3_, M2Ldata.interac_dsp, M2Ldata.interac_vec, M2Ldata.precomp_mat, fft_in, fft_out, output_dim);
     Profile::Toc();
     Profile::Tic("FFT_Check2Equiv", false, 5);
     FFT_Check2Equiv(MULTIPOLE_ORDER, M2Ldata.ifft_vec, M2Ldata.ifft_scl, fft_out, allDnwardEquiv);

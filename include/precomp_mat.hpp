@@ -119,8 +119,6 @@ namespace pvfmm {
       std::vector<real_t> conv_poten(n3*SRC_DIM*POT_DIM);
       std::vector<real_t> conv_coord=conv_grid(coord_diff, level);
       BuildMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
-      Matrix<real_t> M_conv(n3, SRC_DIM*POT_DIM, &conv_poten[0], false);
-      M_conv=M_conv.Transpose();
       int err, nnn[3]= {n1, n1, n1};
       real_t *fftw_in, *fftw_out;
       err = posix_memalign((void**)&fftw_in, MEM_ALIGN,   n3 *SRC_DIM*POT_DIM*sizeof(real_t));
@@ -131,10 +129,8 @@ namespace pvfmm {
                                      FFTW_ESTIMATE);
       memcpy(fftw_in, &conv_poten[0], n3*SRC_DIM*POT_DIM*sizeof(real_t));
       fft_execute_dft_r2c(m2l_precomp_fftplan, (real_t*)fftw_in, (fft_complex*)(fftw_out));
-      Matrix<real_t> M_(2*n3_*SRC_DIM*POT_DIM, 1, (real_t*)fftw_out, false);
-      mat_M2L_Helper[mat_indx] = M_;
+      mat_M2L_Helper[mat_indx] = fftw_out;
       free(fftw_in);
-      free(fftw_out);
       fft_destroy_plan(m2l_precomp_fftplan);
       break;
     }
@@ -159,7 +155,7 @@ namespace pvfmm {
             if(ref_coord[0] == relCoord[0] &&
                 ref_coord[1] == relCoord[1] &&
                 ref_coord[2] == relCoord[2]) {
-              M_ptr[j2*chld_cnt+j1]= &mat_M2L_Helper[k][0][0];
+              M_ptr[j2*chld_cnt+j1]= &mat_M2L_Helper[k][0];
               break;
             }
           }
