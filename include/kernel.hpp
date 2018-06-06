@@ -336,7 +336,7 @@ namespace pvfmm {
 
     size_t mat_cnt=precomp_mat.size();
     size_t blk1_cnt=interac_dsp.size()/mat_cnt;
-    int BLOCK_SIZE = CACHE_SIZE * 4 / sizeof(real_t);
+    int BLOCK_SIZE = CACHE_SIZE * 2 / sizeof(real_t);
     real_t **IN_, **OUT_;
     err = posix_memalign((void**)&IN_, MEM_ALIGN, BLOCK_SIZE*blk1_cnt*mat_cnt*sizeof(real_t*));
     err = posix_memalign((void**)&OUT_, MEM_ALIGN, BLOCK_SIZE*blk1_cnt*mat_cnt*sizeof(real_t*));
@@ -352,42 +352,40 @@ namespace pvfmm {
       IN_ [BLOCK_SIZE*interac_blk1 +interac_cnt]=zero_vec0;
       OUT_[BLOCK_SIZE*interac_blk1 +interac_cnt]=zero_vec1;
     }
-    int omp_p=omp_get_max_threads();
+
+    for(size_t blk1=0; blk1<blk1_cnt; blk1++) {
     #pragma omp parallel for
-    for(int pid=0; pid<omp_p; pid++) {
-      size_t a=( pid   *M_dim)/omp_p;
-      size_t b=((pid+1)*M_dim)/omp_p;
-      for(size_t     blk1=0;     blk1<blk1_cnt;    blk1++)
-        for(size_t        k=a;        k<       b;       k++)
-          for(size_t mat_indx=0; mat_indx< mat_cnt; mat_indx++) {
-            size_t interac_blk1 = blk1*mat_cnt+mat_indx;
-            size_t interac_dsp0 = (interac_blk1==0?0:interac_dsp[interac_blk1-1]);
-            size_t interac_dsp1 =                    interac_dsp[interac_blk1  ] ;
-            size_t interac_cnt  = interac_dsp1-interac_dsp0;
-            real_t** IN = IN_ + BLOCK_SIZE*interac_blk1;
-            real_t** OUT= OUT_+ BLOCK_SIZE*interac_blk1;
-            real_t* M = precomp_mat[mat_indx] + k*chld_cnt*chld_cnt*2;
-            for(size_t j=0; j<interac_cnt; j+=2) {
-              real_t* M_   = M;
-              real_t* IN0  = IN [j+0] + k*chld_cnt*2;
-              real_t* IN1  = IN [j+1] + k*chld_cnt*2;
-              real_t* OUT0 = OUT[j+0] + k*chld_cnt*2;
-              real_t* OUT1 = OUT[j+1] + k*chld_cnt*2;
-#ifdef __SSE__
-              if (j+2 < interac_cnt) {
-                _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
-                _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-                _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
-                _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-                _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
-                _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-                _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
-                _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-              }
-#endif
-              matmult_8x8x2(M_, IN0, IN1, OUT0, OUT1);
+      for(size_t k=0; k<M_dim; k++) {
+        for(size_t mat_indx=0; mat_indx< mat_cnt; mat_indx++) {
+          size_t interac_blk1 = blk1*mat_cnt+mat_indx;
+          size_t interac_dsp0 = (interac_blk1==0?0:interac_dsp[interac_blk1-1]);
+          size_t interac_dsp1 =                    interac_dsp[interac_blk1  ] ;
+          size_t interac_cnt  = interac_dsp1-interac_dsp0;
+          real_t** IN = IN_ + BLOCK_SIZE*interac_blk1;
+          real_t** OUT= OUT_+ BLOCK_SIZE*interac_blk1;
+          real_t* M = precomp_mat[mat_indx] + k*chld_cnt*chld_cnt*2;
+          for(size_t j=0; j<interac_cnt; j+=2) {
+            real_t* M_   = M;
+            real_t* IN0  = IN [j+0] + k*chld_cnt*2;
+            real_t* IN1  = IN [j+1] + k*chld_cnt*2;
+            real_t* OUT0 = OUT[j+0] + k*chld_cnt*2;
+            real_t* OUT1 = OUT[j+1] + k*chld_cnt*2;
+#if 0
+            if (j+2 < interac_cnt) {
+              _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
+              _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
+              _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
+              _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
+              _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
+              _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
+              _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
+              _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
             }
+#endif
+            matmult_8x8x2(M_, IN0, IN1, OUT0, OUT1);
           }
+        }
+      }
     }
     Profile::Add_FLOP(8*8*8*(interac_vec.size()/2)*M_dim);
     free(IN_ );
@@ -398,7 +396,6 @@ namespace pvfmm {
 
   void FFT_UpEquiv(size_t m, std::vector<size_t>& fft_vec, std::vector<real_t>& fft_scal,
                    std::vector<real_t>& input_data, real_t* output_data) {
-    //int m = MULTIPOLE_ORDER;
     int chld_cnt = 8;
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
@@ -423,7 +420,9 @@ namespace pvfmm {
     for(size_t node_idx=0; node_idx<fft_vec.size(); node_idx++) {
       std::vector<real_t> buffer(FFTSIZE, 0);
       real_t* upward_equiv = &input_data[fft_vec[node_idx]];  // offset ptr of node's 8 child's upward_equiv in allUpwardEquiv, size=8*NSURF
-      // real_t* upward_equiv_fft = &output_data[0][FFTSIZE*node_idx]; // offset ptr of node_idx in fft_in vector, size=FFTSIZE
+      // upward_equiv_fft (input of r2c) here should have a size of N3*chld_cnt
+      // the node_idx's chunk of fft_out has a size of 2*N3_*chld_cnt
+      // since it's larger than what we need,  we can use fft_out as fftw_in buffer here
       real_t* upward_equiv_fft = &output_data[FFTSIZE*node_idx]; // offset ptr of node_idx in fft_in vector, size=FFTSIZE
       memset(upward_equiv_fft, 0, FFTSIZE*sizeof(real_t));
       for(size_t k=0; k<NSURF; k++) {
