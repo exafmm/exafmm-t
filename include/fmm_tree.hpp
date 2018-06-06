@@ -53,13 +53,7 @@ namespace pvfmm {
   }
 
   void M2LSetup(M2LData& M2Ldata) {
-    // build ptrs of precompmat
     size_t mat_cnt = rel_coord[M2L_Type].size();
-    std::vector<real_t*> precomp_mat;                    // vector of ptrs which points to Precomputation matrix of each M2L relative position
-    for(size_t mat_id=0; mat_id<mat_cnt; mat_id++) {
-      Matrix<real_t>& M = mat_M2L[mat_id];
-      precomp_mat.push_back(&M[0][0]);                   // precomp_mat.size == M2L's numRelCoords
-    }
     // construct nodes_out & nodes_in
     std::vector<FMM_Node*>& nodes_out = nonleafs;
     std::set<FMM_Node*> nodes_in_;
@@ -112,7 +106,6 @@ namespace pvfmm {
         interac_dsp.push_back(interac_dsp_);
       }
     }
-    M2Ldata.precomp_mat = precomp_mat;
     M2Ldata.fft_vec     = fft_vec;
     M2Ldata.ifft_vec    = ifft_vec;
     M2Ldata.fft_scl     = fft_scl;

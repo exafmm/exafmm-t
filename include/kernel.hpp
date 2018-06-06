@@ -322,7 +322,7 @@ namespace pvfmm {
 
   void M2LListHadamard(size_t M_dim, std::vector<size_t>& interac_dsp,
                        std::vector<size_t>& interac_vec,
-                       std::vector<real_t*>& precomp_mat, real_t* fft_in, real_t* fft_out, int fft_out_size) {
+                       real_t* fft_in, real_t* fft_out, int fft_out_size) {
     size_t chld_cnt=1UL<<3;
     size_t fftsize_in =M_dim*chld_cnt*2;
     size_t fftsize_out=M_dim*chld_cnt*2;
@@ -334,7 +334,7 @@ namespace pvfmm {
     // fft_out.SetZero();
     memset(fft_out, 0, fft_out_size*sizeof(real_t));
 
-    size_t mat_cnt=precomp_mat.size();
+    size_t mat_cnt = mat_M2L.size();
     size_t blk1_cnt=interac_dsp.size()/mat_cnt;
     int BLOCK_SIZE = CACHE_SIZE * 2 / sizeof(real_t);
     real_t **IN_, **OUT_;
@@ -363,10 +363,10 @@ namespace pvfmm {
           size_t interac_cnt  = interac_dsp1-interac_dsp0;
           real_t** IN = IN_ + BLOCK_SIZE*interac_blk1;
           real_t** OUT= OUT_+ BLOCK_SIZE*interac_blk1;
-          real_t* M = precomp_mat[mat_indx] + k*chld_cnt*chld_cnt*2;
+          real_t* M = &mat_M2L[mat_indx][k][0]; // k-th row in precomp_mat[mat_indx]
           for(size_t j=0; j<interac_cnt; j+=2) {
             real_t* M_   = M;
-            real_t* IN0  = IN [j+0] + k*chld_cnt*2;
+            real_t* IN0  = IN [j+0] + k*chld_cnt*2;   // go to k-th freq chunk
             real_t* IN1  = IN [j+1] + k*chld_cnt*2;
             real_t* OUT0 = OUT[j+0] + k*chld_cnt*2;
             real_t* OUT1 = OUT[j+1] + k*chld_cnt*2;
@@ -504,7 +504,7 @@ namespace pvfmm {
     FFT_UpEquiv(MULTIPOLE_ORDER, M2Ldata.fft_vec, M2Ldata.fft_scl, allUpwardEquiv, fft_in);
     Profile::Toc();
     Profile::Tic("M2LHadamard", false, 5);
-    M2LListHadamard(N3_, M2Ldata.interac_dsp, M2Ldata.interac_vec, M2Ldata.precomp_mat, fft_in, fft_out, output_dim);
+    M2LListHadamard(N3_, M2Ldata.interac_dsp, M2Ldata.interac_vec, fft_in, fft_out, output_dim);
     Profile::Toc();
     Profile::Tic("FFT_Check2Equiv", false, 5);
     FFT_Check2Equiv(MULTIPOLE_ORDER, M2Ldata.ifft_vec, M2Ldata.ifft_scl, fft_out, allDnwardEquiv);
