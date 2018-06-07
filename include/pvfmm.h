@@ -15,6 +15,7 @@ namespace pvfmm {
 
 #define MAX_DEPTH 62
 #define MEM_ALIGN 64
+#define CACHE_SIZE 512
 
 #if FLOAT
   typedef float real_t;
