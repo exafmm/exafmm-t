@@ -331,59 +331,54 @@ namespace pvfmm {
     err = posix_memalign((void**)&zero_vec0, MEM_ALIGN, fftsize_in *sizeof(real_t));
     err = posix_memalign((void**)&zero_vec1, MEM_ALIGN, fftsize_out*sizeof(real_t));
     size_t n_out = fft_out_size/fftsize_out;
-    // fft_out.SetZero();
     memset(fft_out, 0, fft_out_size*sizeof(real_t));
 
     size_t mat_cnt = mat_M2L.size();
-    size_t blk1_cnt=interac_dsp.size()/mat_cnt;
-    int BLOCK_SIZE = CACHE_SIZE * 2 / sizeof(real_t);
+    int BLOCK_SIZE = interac_vec.size() + 1;  // number of interactions for each relative position
     real_t **IN_, **OUT_;
-    err = posix_memalign((void**)&IN_, MEM_ALIGN, BLOCK_SIZE*blk1_cnt*mat_cnt*sizeof(real_t*));
-    err = posix_memalign((void**)&OUT_, MEM_ALIGN, BLOCK_SIZE*blk1_cnt*mat_cnt*sizeof(real_t*));
+    err = posix_memalign((void**)&IN_, MEM_ALIGN, BLOCK_SIZE*mat_cnt*sizeof(real_t*));
+    err = posix_memalign((void**)&OUT_, MEM_ALIGN, BLOCK_SIZE*mat_cnt*sizeof(real_t*));
     #pragma omp parallel for
-    for(size_t interac_blk1=0; interac_blk1<blk1_cnt*mat_cnt; interac_blk1++) {
-      size_t interac_dsp0 = (interac_blk1==0?0:interac_dsp[interac_blk1-1]);
-      size_t interac_dsp1 =                    interac_dsp[interac_blk1  ] ;
-      size_t interac_cnt  = interac_dsp1-interac_dsp0;
+    for(size_t mat_idx=0; mat_idx<mat_cnt; mat_idx++) {
+      size_t interac_dsp0 = (mat_idx==0) ? 0:interac_dsp[mat_idx-1];
+      size_t interac_dsp1 = interac_dsp[mat_idx];
+      size_t interac_cnt = interac_dsp1 - interac_dsp0;
       for(size_t j=0; j<interac_cnt; j++) {
-        IN_ [BLOCK_SIZE*interac_blk1 +j]=&fft_in[interac_vec[(interac_dsp0+j)*2+0]];
-        OUT_[BLOCK_SIZE*interac_blk1 +j]=&fft_out[interac_vec[(interac_dsp0+j)*2+1]];
+        IN_ [BLOCK_SIZE*mat_idx+j] = &fft_in[interac_vec[(interac_dsp0+j)*2+0]];
+        OUT_[BLOCK_SIZE*mat_idx+j] = &fft_out[interac_vec[(interac_dsp0+j)*2+1]];
       }
-      IN_ [BLOCK_SIZE*interac_blk1 +interac_cnt]=zero_vec0;
-      OUT_[BLOCK_SIZE*interac_blk1 +interac_cnt]=zero_vec1;
+      IN_ [BLOCK_SIZE*mat_idx+interac_cnt] = zero_vec0;
+      OUT_[BLOCK_SIZE*mat_idx+interac_cnt] = zero_vec1;
     }
 
-    for(size_t blk1=0; blk1<blk1_cnt; blk1++) {
-    #pragma omp parallel for
-      for(size_t k=0; k<M_dim; k++) {
-        for(size_t mat_indx=0; mat_indx< mat_cnt; mat_indx++) {
-          size_t interac_blk1 = blk1*mat_cnt+mat_indx;
-          size_t interac_dsp0 = (interac_blk1==0?0:interac_dsp[interac_blk1-1]);
-          size_t interac_dsp1 =                    interac_dsp[interac_blk1  ] ;
-          size_t interac_cnt  = interac_dsp1-interac_dsp0;
-          real_t** IN = IN_ + BLOCK_SIZE*interac_blk1;
-          real_t** OUT= OUT_+ BLOCK_SIZE*interac_blk1;
-          real_t* M = &mat_M2L[mat_indx][k][0]; // k-th row in precomp_mat[mat_indx]
-          for(size_t j=0; j<interac_cnt; j+=2) {
-            real_t* M_   = M;
-            real_t* IN0  = IN [j+0] + k*chld_cnt*2;   // go to k-th freq chunk
-            real_t* IN1  = IN [j+1] + k*chld_cnt*2;
-            real_t* OUT0 = OUT[j+0] + k*chld_cnt*2;
-            real_t* OUT1 = OUT[j+1] + k*chld_cnt*2;
-#if 0
-            if (j+2 < interac_cnt) {
-              _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
-              _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-              _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
-              _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-              _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
-              _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-              _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
-              _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
-            }
-#endif
-            matmult_8x8x2(M_, IN0, IN1, OUT0, OUT1);
+    #pragma omp parallel for schedule (dynamic)
+    for(size_t k=0; k<M_dim; k++) {
+      for(size_t mat_idx=0; mat_idx< mat_cnt; mat_idx++) {
+        size_t interac_dsp0 = (mat_idx==0) ? 0:interac_dsp[mat_idx-1];
+        size_t interac_dsp1 = interac_dsp[mat_idx];
+        size_t interac_cnt = interac_dsp1 - interac_dsp0;
+        real_t** IN = IN_ + BLOCK_SIZE*mat_idx;
+        real_t** OUT= OUT_+ BLOCK_SIZE*mat_idx;
+        real_t* M = &mat_M2L[mat_idx][k][0]; // k-th row in precomp_mat[mat_idx]
+        for(size_t j=0; j<interac_cnt; j+=2) {
+          real_t* M_   = M;
+          real_t* IN0  = IN [j+0] + k*chld_cnt*2;   // go to k-th freq chunk
+          real_t* IN1  = IN [j+1] + k*chld_cnt*2;
+          real_t* OUT0 = OUT[j+0] + k*chld_cnt*2;
+          real_t* OUT1 = OUT[j+1] + k*chld_cnt*2;
+#ifdef __SSE__
+          if (j+2 < interac_cnt) {
+            _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
+            _mm_prefetch(((char *)(IN[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
+            _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
+            _mm_prefetch(((char *)(IN[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
+            _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2)), _MM_HINT_T0);
+            _mm_prefetch(((char *)(OUT[j+2] + k*chld_cnt*2) + 64), _MM_HINT_T0);
+            _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2)), _MM_HINT_T0);
+            _mm_prefetch(((char *)(OUT[j+3] + k*chld_cnt*2) + 64), _MM_HINT_T0);
           }
+#endif
+          matmult_8x8x2(M_, IN0, IN1, OUT0, OUT1);
         }
       }
     }

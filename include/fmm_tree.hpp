@@ -88,23 +88,17 @@ namespace pvfmm {
     for(size_t i=0; i<nodes_in.size(); i++) {
      nodes_in[i]->node_id=i;
     }
-    size_t n_blk1 = nodes_out.size() * sizeof(real_t) / CACHE_SIZE;
-    if(n_blk1==0) n_blk1 = 1;
     size_t interac_dsp_ = 0;
-    for(size_t blk1=0; blk1<n_blk1; blk1++) {
-      size_t blk1_start=(nodes_out.size()* blk1   )/n_blk1;
-      size_t blk1_end  =(nodes_out.size()*(blk1+1))/n_blk1;
-      for(size_t k=0; k<mat_cnt; k++) {
-        for(size_t i=blk1_start; i<blk1_end; i++) {
-          std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
-          if(M2Llist[k]!=NULL) {
-            interac_vec.push_back(M2Llist[k]->node_id * FFTSIZE * SRC_DIM);   // node_in dspl
-            interac_vec.push_back(        i           * FFTSIZE * POT_DIM);   // node_out dspl
-            interac_dsp_++;
-          }
+    for(size_t k=0; k<mat_cnt; k++) {
+      for(size_t i=0; i<nodes_out.size(); i++) {
+        std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
+        if(M2Llist[k]!=NULL) {
+          interac_vec.push_back(M2Llist[k]->node_id * FFTSIZE * SRC_DIM);   // node_in dspl
+          interac_vec.push_back(        i           * FFTSIZE * POT_DIM);   // node_out dspl
+          interac_dsp_++;
         }
-        interac_dsp.push_back(interac_dsp_);
       }
+      interac_dsp.push_back(interac_dsp_);
     }
     M2Ldata.fft_vec     = fft_vec;
     M2Ldata.ifft_vec    = ifft_vec;
