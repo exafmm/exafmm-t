@@ -10,12 +10,6 @@ LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-pfloat: main.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o main.o -DFLOAT -DPOTENTIAL
-
-pdouble: main.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o main.o -DPOTENTIAL
-
 float: main.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o main.o -DFLOAT
 

@@ -23,32 +23,25 @@ class Matrix {
  public:
   T* data_ptr;
   int dim[2];
-  bool own_data;
 
   Matrix() {
     dim[0]=0;
     dim[1]=0;
-    own_data=true;
     data_ptr=NULL;
   }
 
-  Matrix(int dim1, int dim2, T* data_=NULL, bool own_data_=true) {
+  Matrix(int dim1, int dim2, T* data_=NULL) {
     dim[0]=dim1;
     dim[1]=dim2;
-    own_data=own_data_;
-    if(own_data) {
-      if(dim[0]*dim[1]>0) {
-        int err = posix_memalign((void**)&data_ptr, MEM_ALIGN, dim[0]*dim[1]*sizeof(T));
-        if(data_!=NULL) memcpy(data_ptr, data_, dim[0]*dim[1]*sizeof(T));
-      } else data_ptr=NULL;
-    } else
-      data_ptr=data_;
+    if(dim[0]*dim[1]>0) {
+      int err = posix_memalign((void**)&data_ptr, MEM_ALIGN, dim[0]*dim[1]*sizeof(T));
+      if(data_!=NULL) memcpy(data_ptr, data_, dim[0]*dim[1]*sizeof(T));
+    } else data_ptr=NULL;
   }
 
   Matrix(const Matrix<T>& M) {
     dim[0]=M.dim[0];
     dim[1]=M.dim[1];
-    own_data=true;
     if(dim[0]*dim[1]>0) {
       int err = posix_memalign((void**)&data_ptr, MEM_ALIGN, dim[0]*dim[1]*sizeof(T));
       memcpy(data_ptr, M.data_ptr, dim[0]*dim[1]*sizeof(T));
@@ -57,10 +50,7 @@ class Matrix {
   }
 
   ~Matrix() {
-    if(own_data) {
-      if(data_ptr!=NULL)
-        free(data_ptr);
-    }
+    if(data_ptr!=NULL) free(data_ptr);
     data_ptr=NULL;
     dim[0]=0;
     dim[1]=0;
@@ -69,24 +59,21 @@ class Matrix {
   void Swap(Matrix<T>& M) {
     int dim_[2]= {dim[0], dim[1]};
     T* data_ptr_=data_ptr;
-    bool own_data_=own_data;
     dim[0]=M.dim[0];
     dim[1]=M.dim[1];
     data_ptr=M.data_ptr;
-    own_data=M.own_data;
     M.dim[0]=dim_[0];
     M.dim[1]=dim_[1];
     M.data_ptr=data_ptr_;
-    M.own_data=own_data_;
   }
 
-  void ReInit(int dim1, int dim2, T* data_=NULL, bool own_data_=true) {
-    if(own_data_ && own_data && dim[0]*dim[1]>=dim1*dim2) {
+  void ReInit(int dim1, int dim2, T* data_=NULL) {
+    if(dim[0]*dim[1]>=dim1*dim2) {
       dim[0]=dim1;
       dim[1]=dim2;
       if(data_) memcpy(data_ptr, data_, dim[0]*dim[1]*sizeof(T));
     } else {
-      Matrix<T> tmp(dim1, dim2, data_, own_data_);
+      Matrix<T> tmp(dim1, dim2, data_);
       this->Swap(tmp);
     }
   }
