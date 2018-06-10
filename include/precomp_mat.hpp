@@ -108,43 +108,6 @@ namespace pvfmm {
       mat_L2L = M_c2e0 * (M_c2e1*M_pe2c);
       break;
     }
-    case M2L_Type: {
-      size_t mat_cnt =rel_coord[M2L_Helper_Type].size();
-      const size_t chld_cnt=1UL<<3;
-      size_t n1=MULTIPOLE_ORDER*2;
-      size_t M_dim=n1*n1*(n1/2+1);
-      size_t n3=n1*n1*n1;
-      std::vector<real_t> zero_vec(M_dim*SRC_DIM*POT_DIM*2, 0);
-      std::vector<real_t*> M_ptr(chld_cnt*chld_cnt);
-      for(size_t i=0; i<chld_cnt*chld_cnt; i++) M_ptr[i]=&zero_vec[0];
-      ivec3& rel_coord_=rel_coord[M2L_Type][mat_indx];
-      for(int j1=0; j1<chld_cnt; j1++)
-        for(int j2=0; j2<chld_cnt; j2++) {
-          int relCoord[3]= {rel_coord_[0]*2-(j1/1)%2+(j2/1)%2,
-                             rel_coord_[1]*2-(j1/2)%2+(j2/2)%2,
-                             rel_coord_[2]*2-(j1/4)%2+(j2/4)%2
-                            };
-          for(size_t k=0; k<mat_cnt; k++) {
-            ivec3& ref_coord = rel_coord[M2L_Helper_Type][k];
-            if(ref_coord[0] == relCoord[0] &&
-                ref_coord[1] == relCoord[1] &&
-                ref_coord[2] == relCoord[2]) {
-              M_ptr[j2*chld_cnt+j1]= &mat_M2L_Helper[k][0];
-              break;
-            }
-          }
-        }
-      M.Resize(SRC_DIM*POT_DIM*M_dim, 2*chld_cnt*chld_cnt);
-      for(int j=0; j<SRC_DIM*POT_DIM*M_dim; j++) {
-        for(size_t k=0; k<chld_cnt*chld_cnt; k++) {
-          M[j][k*2+0]=M_ptr[k][j*2+0]/n3;
-          M[j][k*2+1]=M_ptr[k][j*2+1]/n3;
-        }
-      }
-
-      mat_M2L[mat_indx] = M;
-      break;
-    }
     default:
       break;
     }
@@ -166,9 +129,9 @@ namespace pvfmm {
 
   void PrecompM2LHelper() {
     // create fftw plan
-    std::vector<real_t> fftw_in(N3*SRC_DIM*POT_DIM);
-    std::vector<real_t> fftw_out(2*N3_*SRC_DIM*POT_DIM);
-    fft_plan plan = fft_plan_many_dft_r2c(3, FFTDIM, SRC_DIM*POT_DIM,
+    std::vector<real_t> fftw_in(N3);
+    std::vector<real_t> fftw_out(2*N3_);
+    fft_plan plan = fft_plan_many_dft_r2c(3, FFTDIM, 1,
                     &fftw_in[0], NULL, 1, N3,
                     (fft_complex*)(&fftw_out[0]), NULL, 1, N3_, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
@@ -182,29 +145,64 @@ namespace pvfmm {
       }
       std::vector<real_t> conv_coord = conv_grid(coord, 0);
       std::vector<real_t> r_trg(3, 0.0);
-      std::vector<real_t> conv_poten(N3*SRC_DIM*POT_DIM);
+      std::vector<real_t> conv_poten(N3);
       BuildMatrix(&conv_coord[0], N3, &r_trg[0], 1, &conv_poten[0]);
-      mat_M2L_Helper[i].resize(2*N3_*SRC_DIM*POT_DIM);
+      mat_M2L_Helper[i].resize(2*N3_);
       fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i][0]));
     }
     fft_destroy_plan(plan);
   }
 
+  void PrecompM2L() {
+    int numParentRelCoord = rel_coord[M2L_Type].size();
+    int numChildRelCoord = rel_coord[M2L_Helper_Type].size();
+    mat_M2L.resize(numParentRelCoord);
+    std::vector<real_t> zero_vec(N3_*2, 0);
+#pragma omp parallel for schedule (dynamic)
+    for(int i=0; i<numParentRelCoord; i++) {
+      ivec3& parentRelCoord = rel_coord[M2L_Type][i];
+      std::vector<real_t*> M_ptr(NCHILD*NCHILD, &zero_vec[0]);
+      for(int j1=0; j1<NCHILD; j1++) {
+        for(int j2=0; j2<NCHILD; j2++) {
+          int childRelCoord[3]= { parentRelCoord[0]*2 - (j1/1)%2 + (j2/1)%2,
+                                  parentRelCoord[1]*2 - (j1/2)%2 + (j2/2)%2,
+                                  parentRelCoord[2]*2 - (j1/4)%2 + (j2/4)%2 };
+          for(int k=0; k<numChildRelCoord; k++) {
+            ivec3& childRefCoord = rel_coord[M2L_Helper_Type][k];
+            if (childRelCoord[0] == childRefCoord[0] &&
+                childRelCoord[1] == childRefCoord[1] &&
+                childRelCoord[2] == childRefCoord[2]) {
+              M_ptr[j2*NCHILD+j1] = &mat_M2L_Helper[k][0];
+              break;
+            }
+          }
+        }
+      }
+      mat_M2L[i].resize(N3_*2*NCHILD*NCHILD);  // N3 by (2*NCHILD*NCHILD) matrix
+      for(int k=0; k<N3_; k++) {                      // loop over frequencies
+        for(size_t j=0; j<NCHILD*NCHILD; j++) {       // loop over child's relative positions
+          int index = k*(2*NCHILD*NCHILD) + 2*j;
+          mat_M2L[i][index+0] = M_ptr[j][k*2+0]/N3;   // real
+          mat_M2L[i][index+1] = M_ptr[j][k*2+1]/N3;   // imag
+        }
+      }
+    }
+  }
+
   void PrecompMat() {
     perm_M2M.resize(Perm_Count);
-    mat_M2L.resize(rel_coord[M2L_Type].size());
     int numRelCoords = rel_coord[M2M_Type].size();
     perm_r.resize(numRelCoords);
     perm_c.resize(numRelCoords);
     PrecompPerm();
     PrecompAll(M2M_Type);
-    PrecompM2LHelper();
-    PrecompAll(M2L_Type);
     PrecompAll(L2L_Type);
     for(int mat_idx=0; mat_idx<rel_coord[M2M_Type].size(); mat_idx++) {
       Perm_R(mat_idx);
       Perm_C(mat_idx);
     }
+    PrecompM2LHelper();
+    PrecompM2L();
   }
 
 }//end namespace

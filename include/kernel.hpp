@@ -354,7 +354,7 @@ namespace pvfmm {
           size_t interac_cnt  = interac_dsp1-interac_dsp0;
           real_t** IN = &IN_[BLOCK_SIZE*interac_blk1];
           real_t** OUT= &OUT_[BLOCK_SIZE*interac_blk1];
-          real_t* M = &mat_M2L[mat_indx][k][0]; // k-th row in precomp_mat[mat_indx]
+          real_t* M = &mat_M2L[mat_indx][k*2*NCHILD*NCHILD]; // k-th freq's (row) offset in mat_M2L[mat_indx]
           for(size_t j=0; j<interac_cnt; j+=2) {
             real_t* M_   = M;
             real_t* IN0  = IN [j+0] + k*NCHILD*2;   // go to k-th freq chunk
