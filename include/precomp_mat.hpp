@@ -109,28 +109,25 @@ namespace pvfmm {
       break;
     }
     case M2L_Helper_Type: {
-      int n1=MULTIPOLE_ORDER*2;
-      int n3 =n1*n1*n1;
-      int n3_=n1*n1*(n1/2+1);
-      real_t s=powf(0.5, level);
-      ivec3& coord2=rel_coord[type][mat_indx];
-      real_t coord_diff[3]= {coord2[0]*s, coord2[1]*s, coord2[2]*s};
+      ivec3& coord = rel_coord[type][mat_indx];
+      real_t coord_diff[3]= {coord[0], coord[1], coord[2]};
       std::vector<real_t> r_trg(3, 0.0);
-      std::vector<real_t> conv_poten(n3*SRC_DIM*POT_DIM);
-      std::vector<real_t> conv_coord=conv_grid(coord_diff, level);
-      BuildMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
-      int err, nnn[3]= {n1, n1, n1};
+      std::vector<real_t> conv_poten(N3*SRC_DIM*POT_DIM);
+      std::vector<real_t> conv_coord = conv_grid(coord_diff, 0);
+      BuildMatrix(&conv_coord[0], N3, &r_trg[0], 1, &conv_poten[0]);
       real_t *fftw_in, *fftw_out;
-      err = posix_memalign((void**)&fftw_in, MEM_ALIGN,   n3 *SRC_DIM*POT_DIM*sizeof(real_t));
-      err = posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*n3_*SRC_DIM*POT_DIM*sizeof(real_t));
-      fft_plan m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, nnn, SRC_DIM*POT_DIM,
-                                     (real_t*)fftw_in, NULL, 1, n3,
-                                     (fft_complex*) fftw_out, NULL, 1, n3_,
+      posix_memalign((void**)&fftw_in, MEM_ALIGN, N3 *SRC_DIM*POT_DIM*sizeof(real_t));
+      posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*N3_*SRC_DIM*POT_DIM*sizeof(real_t));
+      fft_plan m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, FFTDIM, SRC_DIM*POT_DIM,
+                                     (real_t*)fftw_in, NULL, 1, N3,
+                                     (fft_complex*) fftw_out, NULL, 1, N3_,
                                      FFTW_ESTIMATE);
-      memcpy(fftw_in, &conv_poten[0], n3*SRC_DIM*POT_DIM*sizeof(real_t));
+      memcpy(fftw_in, &conv_poten[0], N3*SRC_DIM*POT_DIM*sizeof(real_t));
       fft_execute_dft_r2c(m2l_precomp_fftplan, (real_t*)fftw_in, (fft_complex*)(fftw_out));
-      mat_M2L_Helper[mat_indx] = fftw_out;
+      Matrix<real_t> M_(2*N3_*SRC_DIM*POT_DIM, 1, fftw_out);
+      mat_M2L_Helper[mat_indx] = M_;
       free(fftw_in);
+      free(fftw_out);
       fft_destroy_plan(m2l_precomp_fftplan);
       break;
     }
@@ -155,7 +152,7 @@ namespace pvfmm {
             if(ref_coord[0] == relCoord[0] &&
                 ref_coord[1] == relCoord[1] &&
                 ref_coord[2] == relCoord[2]) {
-              M_ptr[j2*chld_cnt+j1]= &mat_M2L_Helper[k][0];
+              M_ptr[j2*chld_cnt+j1]= &mat_M2L_Helper[k][0][0];
               break;
             }
           }
