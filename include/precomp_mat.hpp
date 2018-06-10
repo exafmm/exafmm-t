@@ -108,29 +108,6 @@ namespace pvfmm {
       mat_L2L = M_c2e0 * (M_c2e1*M_pe2c);
       break;
     }
-    case M2L_Helper_Type: {
-      ivec3& coord = rel_coord[type][mat_indx];
-      real_t coord_diff[3]= {coord[0], coord[1], coord[2]};
-      std::vector<real_t> r_trg(3, 0.0);
-      std::vector<real_t> conv_poten(N3*SRC_DIM*POT_DIM);
-      std::vector<real_t> conv_coord = conv_grid(coord_diff, 0);
-      BuildMatrix(&conv_coord[0], N3, &r_trg[0], 1, &conv_poten[0]);
-      real_t *fftw_in, *fftw_out;
-      posix_memalign((void**)&fftw_in, MEM_ALIGN, N3 *SRC_DIM*POT_DIM*sizeof(real_t));
-      posix_memalign((void**)&fftw_out, MEM_ALIGN, 2*N3_*SRC_DIM*POT_DIM*sizeof(real_t));
-      fft_plan m2l_precomp_fftplan = fft_plan_many_dft_r2c(3, FFTDIM, SRC_DIM*POT_DIM,
-                                     (real_t*)fftw_in, NULL, 1, N3,
-                                     (fft_complex*) fftw_out, NULL, 1, N3_,
-                                     FFTW_ESTIMATE);
-      memcpy(fftw_in, &conv_poten[0], N3*SRC_DIM*POT_DIM*sizeof(real_t));
-      fft_execute_dft_r2c(m2l_precomp_fftplan, (real_t*)fftw_in, (fft_complex*)(fftw_out));
-      Matrix<real_t> M_(2*N3_*SRC_DIM*POT_DIM, 1, fftw_out);
-      mat_M2L_Helper[mat_indx] = M_;
-      free(fftw_in);
-      free(fftw_out);
-      fft_destroy_plan(m2l_precomp_fftplan);
-      break;
-    }
     case M2L_Type: {
       size_t mat_cnt =rel_coord[M2L_Helper_Type].size();
       const size_t chld_cnt=1UL<<3;
@@ -152,7 +129,7 @@ namespace pvfmm {
             if(ref_coord[0] == relCoord[0] &&
                 ref_coord[1] == relCoord[1] &&
                 ref_coord[2] == relCoord[2]) {
-              M_ptr[j2*chld_cnt+j1]= &mat_M2L_Helper[k][0][0];
+              M_ptr[j2*chld_cnt+j1]= &mat_M2L_Helper[k][0];
               break;
             }
           }
@@ -187,16 +164,41 @@ namespace pvfmm {
     }
   }
 
+  void PrecompM2LHelper() {
+    // create fftw plan
+    std::vector<real_t> fftw_in(N3*SRC_DIM*POT_DIM);
+    std::vector<real_t> fftw_out(2*N3_*SRC_DIM*POT_DIM);
+    fft_plan plan = fft_plan_many_dft_r2c(3, FFTDIM, SRC_DIM*POT_DIM,
+                    &fftw_in[0], NULL, 1, N3,
+                    (fft_complex*)(&fftw_out[0]), NULL, 1, N3_, FFTW_ESTIMATE);
+    // evaluate DFTs of potentials at convolution grids
+    int numRelCoord = rel_coord[M2L_Helper_Type].size();
+    mat_M2L_Helper.resize(numRelCoord);
+#pragma omp parallel for
+    for(int i=0; i<numRelCoord; i++) {
+      real_t coord[3];
+      for(int d=0; d<3; d++) {
+        coord[d] = rel_coord[M2L_Helper_Type][i][d];
+      }
+      std::vector<real_t> conv_coord = conv_grid(coord, 0);
+      std::vector<real_t> r_trg(3, 0.0);
+      std::vector<real_t> conv_poten(N3*SRC_DIM*POT_DIM);
+      BuildMatrix(&conv_coord[0], N3, &r_trg[0], 1, &conv_poten[0]);
+      mat_M2L_Helper[i].resize(2*N3_*SRC_DIM*POT_DIM);
+      fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i][0]));
+    }
+    fft_destroy_plan(plan);
+  }
+
   void PrecompMat() {
     perm_M2M.resize(Perm_Count);
     mat_M2L.resize(rel_coord[M2L_Type].size());
-    mat_M2L_Helper.resize(rel_coord[M2L_Helper_Type].size());
     int numRelCoords = rel_coord[M2M_Type].size();
     perm_r.resize(numRelCoords);
     perm_c.resize(numRelCoords);
     PrecompPerm();
     PrecompAll(M2M_Type);
-    PrecompAll(M2L_Helper_Type);
+    PrecompM2LHelper();
     PrecompAll(M2L_Type);
     PrecompAll(L2L_Type);
     for(int mat_idx=0; mat_idx<rel_coord[M2M_Type].size(); mat_idx++) {
