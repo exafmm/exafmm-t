@@ -497,17 +497,16 @@ namespace pvfmm {
     }
     size_t input_dim = M2Ldata.fft_vec.size() * FFTSIZE;
     size_t output_dim = M2Ldata.ifft_vec.size() * FFTSIZE;
-    Matrix<real_t> fft_data(1, input_dim+output_dim);
-    real_t* fft_in = fft_data.data_ptr;
-    real_t* fft_out = fft_data.data_ptr+input_dim;
+    AlignedVec fft_in(input_dim, 0.);
+    AlignedVec fft_out(output_dim, 0.);
     Profile::Tic("FFT_UpEquiv", false, 5);
-    FFT_UpEquiv(MULTIPOLE_ORDER, M2Ldata.fft_vec, M2Ldata.fft_scl, allUpwardEquiv, fft_in);
+    FFT_UpEquiv(MULTIPOLE_ORDER, M2Ldata.fft_vec, M2Ldata.fft_scl, allUpwardEquiv, &fft_in[0]);
     Profile::Toc();
     Profile::Tic("M2LHadamard", false, 5);
-    M2LListHadamard(N3_, M2Ldata.interac_dsp, M2Ldata.interac_vec, fft_in, fft_out, output_dim);
+    M2LListHadamard(N3_, M2Ldata.interac_dsp, M2Ldata.interac_vec, &fft_in[0], &fft_out[0], output_dim);
     Profile::Toc();
     Profile::Tic("FFT_Check2Equiv", false, 5);
-    FFT_Check2Equiv(MULTIPOLE_ORDER, M2Ldata.ifft_vec, M2Ldata.ifft_scl, fft_out, allDnwardEquiv);
+    FFT_Check2Equiv(MULTIPOLE_ORDER, M2Ldata.ifft_vec, M2Ldata.ifft_scl, &fft_out[0], allDnwardEquiv);
     Profile::Toc();
 
     #pragma omp parallel for collapse(2)
