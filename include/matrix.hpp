@@ -125,13 +125,6 @@ class Matrix {
     return M_r;
   }
 
-  static void GEMM(Matrix<T>& M_r, const Matrix<T>& A, const Matrix<T>& B, T beta=0.0) {
-    if(A.Dim(0)*A.Dim(1)==0 || B.Dim(0)*B.Dim(1)==0) return;
-    assert(M_r.dim[0] == A.dim[0]);
-    assert(M_r.dim[1] == B.dim[1]);
-    M_r = A * B;
-  }
-
 #define B1 128
 #define B2 32
 

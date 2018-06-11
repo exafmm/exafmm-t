@@ -43,7 +43,6 @@ namespace pvfmm {
     }
   }
 
-
   void PrecompPerm() {
     Permutation<real_t> ker_perm(1);
     for(int p=0; p<Perm_Count; p++) { 

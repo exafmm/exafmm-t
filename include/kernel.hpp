@@ -123,19 +123,17 @@ namespace pvfmm {
         checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
       }
       potentialP2P(leaf->pt_coord, leaf->pt_src, checkCoord, leaf->upward_equiv);
-      Matrix<real_t> check(1, NSURF, &(leaf->upward_equiv[0]));  // check surface potential
-      Matrix<real_t> buffer(1, NSURF);
-      Matrix<real_t>::GEMM(buffer, check, M2M_V);
-      Matrix<real_t> equiv(1, NSURF);  // equivalent surface charge
-      Matrix<real_t>::GEMM(equiv, buffer, M2M_U);
+      RealVec buffer(NSURF);
+      RealVec equiv(NSURF);
+      gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), M2M_V.data_ptr, &buffer[0]);
+      gemm(1, NSURF, NSURF, &buffer[0], M2M_U.data_ptr, &equiv[0]);
       for(int k=0; k<NSURF; k++)
-        leaf->upward_equiv[k] = scal * equiv[0][k];
+        leaf->upward_equiv[k] = scal * equiv[k];
     }
   }
 
   void M2M(FMM_Node* node) {
     if(node->IsLeaf()) return;
-    Matrix<real_t>& M = mat_M2M;
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL)
         #pragma omp task untied
@@ -147,34 +145,33 @@ namespace pvfmm {
         FMM_Node* child = node->child[octant];
         std::vector<size_t>& perm_in = perm_r[octant].perm;
         std::vector<size_t>& perm_out = perm_c[octant].perm;
-        Matrix<real_t> buffer_in(1, NSURF);
-        Matrix<real_t> buffer_out(1, NSURF);
+        RealVec buffer_in(NSURF);
+        RealVec buffer_out(NSURF);
         for(int k=0; k<NSURF; k++) {
-          buffer_in[0][k] = child->upward_equiv[perm_in[k]]; // input perm
+          buffer_in[k] = child->upward_equiv[perm_in[k]]; // input perm
         }
-        Matrix<real_t>::GEMM(buffer_out, buffer_in, M);
+        gemm(1, NSURF, NSURF, &buffer_in[0], mat_M2M.data_ptr, &buffer_out[0]);
         for(int k=0; k<NSURF; k++)
-          node->upward_equiv[k] += buffer_out[0][perm_out[k]];
+          node->upward_equiv[k] += buffer_out[perm_out[k]];
       }
     }
   }
 
   void L2L(FMM_Node* node) {
     if(node->IsLeaf()) return;
-    Matrix<real_t>& M = mat_L2L;
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
         FMM_Node* child = node->child[octant];
         std::vector<size_t>& perm_in = perm_r[octant].perm;
         std::vector<size_t>& perm_out = perm_c[octant].perm;
-        Matrix<real_t> buffer_in(1, NSURF);
-        Matrix<real_t> buffer_out(1, NSURF);
+        RealVec buffer_in(NSURF);
+        RealVec buffer_out(NSURF);
         for(int k=0; k<NSURF; k++) {
-          buffer_in[0][k] = node->dnward_equiv[perm_in[k]]; // input perm
+          buffer_in[k] = node->dnward_equiv[perm_in[k]]; // input perm
         }
-        Matrix<real_t>::GEMM(buffer_out, buffer_in, M);
+        gemm(1, NSURF, NSURF, &buffer_in[0], mat_L2L.data_ptr, &buffer_out[0]);
         for(int k=0; k<NSURF; k++)
-          child->dnward_equiv[k] += buffer_out[0][perm_out[k]];
+          child->dnward_equiv[k] += buffer_out[perm_out[k]];
       }
     }
     for(int octant=0; octant<8; octant++) {
@@ -192,13 +189,12 @@ namespace pvfmm {
       int level = leaf->depth;
       real_t scal = pow(0.5, level);
       // check surface potential -> equivalent surface charge
-      Matrix<real_t> check(1, NSURF, &(leaf->dnward_equiv[0]));  // check surface potential
-      Matrix<real_t> buffer(1, NSURF);
-      Matrix<real_t>::GEMM(buffer, check, L2L_V);
-      Matrix<real_t> equiv(1, NSURF);  // equivalent surface charge
-      Matrix<real_t>::GEMM(equiv, buffer, L2L_U);
+      RealVec buffer(NSURF);
+      RealVec equiv(NSURF);
+      gemm(1, NSURF, NSURF, &(leaf->dnward_equiv[0]), L2L_V.data_ptr, &buffer[0]);
+      gemm(1, NSURF, NSURF, &buffer[0], L2L_U.data_ptr, &equiv[0]);
       for(int k=0; k<NSURF; k++)
-        leaf->dnward_equiv[k] = scal * equiv[0][k];
+        leaf->dnward_equiv[k] = scal * equiv[k];
       // equivalent surface charge -> target potential
       std::vector<real_t> equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {

@@ -40,6 +40,17 @@ namespace pvfmm {
   typedef vec<3,int> ivec3;                    //!< std::vector of 3 int types
   typedef vec<3,real_t> vec3;                   //!< Vector of 3 real_t types
 
+  //! using blas gemm with row major data
+  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C) {
+    char transA = 'N', transB = 'N';
+    real_t alpha = 1.0, beta = 0.0;
+#if FLOAT
+    sgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#else
+    dgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#endif
+  }
+
   //! SIMD vector types for AVX512, AVX, and SSE
   const int NSIMD = SIMD_BYTES / int(sizeof(real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
   typedef vec<NSIMD, real_t> simdvec;                  //!< SIMD vector type
