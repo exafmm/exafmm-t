@@ -49,7 +49,6 @@ int main(int argc, char **argv) {
   TRG_DIM = 4;
   POT_DIM = 1;
   Profile::Enable(true);
-  Profile::Tic("Total", true);
   std::vector<real_t> src_coord, src_value;
   srand48(0);
 #if 0
@@ -108,15 +107,14 @@ int main(int argc, char **argv) {
   PrecompMat();
   Profile::Toc();
   for(size_t it=0; it<1; it++) {
-    Profile::Tic("TotalTime", true);
+    Profile::Tic("Total", true);
     SetupFMM(nodes);
     RunFMM();
     Profile::Toc();
   }
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() <<'\n';
   std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< LEVEL <<'\n';
-  CheckFMMOutput(nodes);
-  Profile::Toc();
+  CheckFMMOutput(leafs);
   Profile::print();
   return 0;
 }

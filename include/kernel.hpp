@@ -12,16 +12,16 @@ namespace pvfmm {
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for(int t=0; t<trg_cnt; t+=NSIMD) {
-      simdvec tx(&trg_coord[0*trg_cnt+t], (int)sizeof(real_t));
-      simdvec ty(&trg_coord[1*trg_cnt+t], (int)sizeof(real_t));
-      simdvec tz(&trg_coord[2*trg_cnt+t], (int)sizeof(real_t));
+      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
+      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
+      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
       simdvec tv(zero);
       for(int s=0; s<src_cnt; s++) {
-        simdvec sx(src_coord[0*src_cnt+s]);
+        simdvec sx(src_coord[3*s+0]);
         sx = sx - tx;
-        simdvec sy(src_coord[1*src_cnt+s]);
+        simdvec sy(src_coord[3*s+1]);
         sy = sy - ty;
-        simdvec sz(src_coord[2*src_cnt+s]);
+        simdvec sz(src_coord[3*s+2]);
         sz = sz - tz;
         simdvec sv(src_value[s]);
         simdvec r2(zero);
@@ -33,8 +33,9 @@ namespace pvfmm {
         tv += invR * sv;
       }
       tv *= coef;
-      for(int k=0; k<NSIMD && t+k<trg_cnt; k++)
-        trg_value[t+k] = tv[k];
+      for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
+        trg_value[t+k] += tv[k];
+      }
     }
     //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*20);
   }
@@ -48,19 +49,19 @@ namespace pvfmm {
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for(int t=0; t<trg_cnt; t+=NSIMD) {
-      simdvec tx(&trg_coord[0*trg_cnt+t], (int)sizeof(real_t));
-      simdvec ty(&trg_coord[1*trg_cnt+t], (int)sizeof(real_t));
-      simdvec tz(&trg_coord[2*trg_cnt+t], (int)sizeof(real_t));
+      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
+      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
+      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
       simdvec tv0(zero);
       simdvec tv1(zero);
       simdvec tv2(zero);
       simdvec tv3(zero);
       for(int s=0; s<src_cnt; s++) {
-        simdvec sx(src_coord[0*src_cnt+s]);
+        simdvec sx(src_coord[3*s+0]);
         sx = tx - sx;
-        simdvec sy(src_coord[1*src_cnt+s]);
+        simdvec sy(src_coord[3*s+1]);
         sy = ty - sy;
-        simdvec sz(src_coord[2*src_cnt+s]);
+        simdvec sz(src_coord[3*s+2]);
         sz = tz - sz;
         simdvec r2(zero);
         r2 += sx * sx;
@@ -81,41 +82,13 @@ namespace pvfmm {
       tv2 *= coefg;
       tv3 *= coefg;
       for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
-        trg_value[0+4*(t+k)] = tv0[k];
-        trg_value[1+4*(t+k)] = tv1[k];
-        trg_value[2+4*(t+k)] = tv2[k];
-        trg_value[3+4*(t+k)] = tv3[k];
+        trg_value[0+4*(t+k)] += tv0[k];
+        trg_value[1+4*(t+k)] += tv1[k];
+        trg_value[2+4*(t+k)] += tv2[k];
+        trg_value[3+4*(t+k)] += tv3[k];
       }
     }
     //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*27);
-  }
-
-  //! Wrap around the above P2P functions with matrix interface to provide array interface
-  //! Evaluate potential / gradient based on the argument grad
-  // r_src & r_trg coordinate array: [x1, y1, z1, x2, y2, z2, ...]
-  void laplaceP2P(real_t* r_src, int src_cnt, real_t* v_src, real_t* r_trg, int trg_cnt,
-                  real_t* v_trg, bool grad=false) {
-    int trg_dim = (grad) ? 4 : 1;
-    RealVec src_coord(src_cnt * 3);
-    RealVec src_value(src_cnt);
-    RealVec trg_coord(trg_cnt * 3);
-    RealVec trg_value(trg_cnt * trg_dim, 0.);
-    for(size_t i=0; i<src_cnt ; i++) {
-      for(size_t j=0; j<3; j++)
-        src_coord[i+j*src_cnt] = r_src[i*3+j];
-    }
-    for(int i=0; i<src_cnt ; i++)
-      src_value[i]=v_src[i];
-    for(int i=0; i<trg_cnt ; i++) {
-      for(size_t j=0; j<3; j++)
-        trg_coord[i+j*trg_cnt] = r_trg[i*3+j];
-    }
-    if (grad) gradientP2P(src_coord, src_value, trg_coord, trg_value);
-    else potentialP2P(src_coord, src_value, trg_coord, trg_value);
-    for(size_t i=0; i<trg_cnt ; i++) {
-      for(size_t j=0; j<trg_dim; j++)
-        v_trg[i*trg_dim+j]+=trg_value[i*trg_dim+j];
-    }
   }
 
   //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)
@@ -126,15 +99,14 @@ namespace pvfmm {
   //                            Fx21, Fy21, Fz21, Fx22, Fy22, Fz22, ... Fx2n, Fy2n, Fz2n, ...
   //                            ...]
   void BuildMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) {
-    memset(k_out, 0, src_cnt*SRC_DIM*trg_cnt*POT_DIM*sizeof(real_t));
+    RealVec src_value(1, 1.);
+    RealVec trg_coord(r_trg, r_trg+3*trg_cnt);
+    #pragma omp parallel for
     for(int i=0; i<src_cnt; i++) {
-      for(int j=0; j<SRC_DIM; j++) {
-        std::vector<real_t> v_src(SRC_DIM, 0);
-        v_src[j]=1.0;
-        // do P2P: i-th source
-        laplaceP2P(&r_src[i*3], 1, &v_src[0], r_trg, trg_cnt,
-                   &k_out[(i*SRC_DIM+j)*trg_cnt*POT_DIM], false);
-      }
+      RealVec src_coord(r_src+3*i, r_src+3*(i+1));
+      RealVec trg_value(trg_cnt, 0.);
+      potentialP2P(src_coord, src_value, trg_coord, trg_value);
+      std::copy(trg_value.begin(), trg_value.end(), &k_out[i*trg_cnt]);
     }
   }
 
@@ -150,8 +122,7 @@ namespace pvfmm {
         checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
         checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
       }
-      laplaceP2P(&(leaf->pt_coord[0]), leaf->numBodies, &(leaf->pt_src[0]),
-                 &checkCoord[0], NSURF, &(leaf->upward_equiv[0]), false);
+      potentialP2P(leaf->pt_coord, leaf->pt_src, checkCoord, leaf->upward_equiv);
       Matrix<real_t> check(1, NSURF, &(leaf->upward_equiv[0]));  // check surface potential
       Matrix<real_t> buffer(1, NSURF);
       Matrix<real_t>::GEMM(buffer, check, M2M_V);
@@ -235,8 +206,7 @@ namespace pvfmm {
         equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->coord[1];
         equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
       }
-      laplaceP2P(&equivCoord[0], NSURF, &(leaf->dnward_equiv[0]),
-                 &(leaf->pt_coord[0]), leaf->numBodies, &(leaf->pt_trg[0]), true);
+      gradientP2P(equivCoord, leaf->dnward_equiv, leaf->pt_coord, leaf->pt_trg);
     }
   }
 
@@ -259,8 +229,7 @@ namespace pvfmm {
             targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
             targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
           }
-          laplaceP2P(&(source->pt_coord[0]), source->numBodies, &(source->pt_src[0]),
-                       &targetCheckCoord[0], NSURF, &(target->dnward_equiv[0]), false);
+          potentialP2P(source->pt_coord, source->pt_src, targetCheckCoord, target->dnward_equiv);
         }
       }
     }
@@ -285,8 +254,7 @@ namespace pvfmm {
             sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
             sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
           }
-          laplaceP2P(&sourceEquivCoord[0], NSURF, &(source->upward_equiv[0]),
-                     &(target->pt_coord[0]), target->numBodies, &(target->pt_trg[0]), true);
+          gradientP2P(sourceEquivCoord, source->upward_equiv, target->pt_coord, target->pt_trg);
         }
       }
     }
@@ -308,12 +276,12 @@ namespace pvfmm {
         for(int j=0; j<sources.size(); j++) {
           FMM_Node* source = sources[j];
           if (source != NULL) {
-            if (type == M2P_Type)
+            if (type == M2P_Type) {
               if (source->numBodies > NSURF) {
                 continue;
               }
-            laplaceP2P(&(source->pt_coord[0]), source->numBodies, &(source->pt_src[0]),
-                       &(target->pt_coord[0]), target->numBodies, &(target->pt_trg[0]), true);
+            }
+            gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
           }
         }
       }

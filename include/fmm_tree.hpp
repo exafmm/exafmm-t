@@ -174,60 +174,31 @@ namespace pvfmm {
     Profile::Toc();
     Profile::Toc();
   }
-  /* End of 3rd part: Evaluation */
 
-  void CheckFMMOutput(FMM_Nodes & nodes) {
-    int np=omp_get_max_threads();
-    std::vector<real_t> src_coord;
-    std::vector<real_t> src_value;
-    for (size_t i=0; i<nodes.size(); i++) {
-      FMM_Node * n = &nodes[i];
-      if(n->IsLeaf()) {
-        std::vector<real_t>& coord_vec=n->pt_coord;
-        std::vector<real_t>& value_vec=n->pt_src;
-        for(size_t i=0; i<coord_vec.size(); i++) src_coord.push_back(coord_vec[i]);
-        for(size_t i=0; i<value_vec.size(); i++) src_value.push_back(value_vec[i]);
+  void CheckFMMOutput(std::vector<FMM_Node*>& leafs) {
+    int numTargets = 10;
+    int stride = leafs.size() / numTargets;
+    FMM_Nodes targets;
+    for(size_t i=0; i<numTargets; i++) {
+      targets.push_back(*(leafs[i*stride]));
+    }
+    FMM_Nodes targets2 = targets;    // used for direct summation
+#pragma omp parallel for
+    for(size_t i=0; i<targets2.size(); i++) {
+      FMM_Node *target = &targets2[i]; 
+      std::fill(target->pt_trg.begin(), target->pt_trg.end(), 0.);
+      for(size_t j=0; j<leafs.size(); j++) {
+        gradientP2P(leafs[j]->pt_coord, leafs[j]->pt_src, target->pt_coord, target->pt_trg);
       }
     }
-    size_t src_cnt = src_coord.size()/3;
-    int trg_dof = TRG_DIM;
-    std::vector<real_t> trg_coord;
-    std::vector<real_t> trg_poten_fmm;
-    size_t step_size = 1 + src_cnt*src_cnt*1e-9;
-    long long trg_iter=0;
-    for (size_t i=0; i<nodes.size(); i++) {
-      FMM_Node * n = &nodes[i];
-      if(n->IsLeaf()) {
-        std::vector<real_t>& coord_vec=n->pt_coord;
-        std::vector<real_t>& poten_vec=n->pt_trg;
-        for(size_t i=0; i<coord_vec.size()/3; i++) {
-          if(trg_iter%step_size == 0) {
-            for(int j=0; j<3        ; j++) trg_coord    .push_back(coord_vec[i*3        +j]);
-            for(int j=0; j<trg_dof  ; j++) trg_poten_fmm.push_back(poten_vec[i*trg_dof  +j]);
-          }
-          trg_iter++;
-        }
-      }
-    }
-    size_t trg_cnt = trg_coord.size()/3;
-    std::vector<real_t> trg_poten_dir(trg_cnt*trg_dof, 0);
-    pvfmm::Profile::Tic("N-Body Direct", false, 1);
-    #pragma omp parallel for
-    for(int i=0; i<np; i++) {
-      size_t a=(i*trg_cnt)/np;
-      size_t b=((i+1)*trg_cnt)/np;
-      laplaceP2P(&src_coord[0], src_cnt, &src_value[0], &trg_coord[a*3], b-a,
-                 &trg_poten_dir[a*trg_dof], true);
-    }
-    pvfmm::Profile::Toc();
-    real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm=0;
-    assert(trg_poten_dir.size() == trg_poten_fmm.size());
-    for(size_t i=0; i<trg_poten_fmm.size(); i+=4) {
-      p_diff += (trg_poten_dir[i]-trg_poten_fmm[i])*(trg_poten_dir[i]-trg_poten_fmm[i]);
-      p_norm += trg_poten_dir[i] * trg_poten_dir[i];
-      for (int d=1; d<4; d++) {
-        g_diff += (trg_poten_dir[i+d]-trg_poten_fmm[i+d])*(trg_poten_dir[i+d]-trg_poten_fmm[i+d]);
-        g_norm += trg_poten_dir[i+d] * trg_poten_dir[i+d];
+
+    real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm = 0;
+    for(size_t i=0; i<targets.size(); i++) {
+      p_norm += targets2[i].pt_trg[0] * targets2[i].pt_trg[0];
+      p_diff += (targets2[i].pt_trg[0] - targets[i].pt_trg[0]) * (targets2[i].pt_trg[0] - targets[i].pt_trg[0]);
+      for(int d=1; d<4; d++) {
+        g_diff += (targets2[i].pt_trg[d] - targets[i].pt_trg[d]) * (targets2[i].pt_trg[d] - targets[i].pt_trg[d]); 
+        g_norm += targets2[i].pt_trg[d] * targets2[i].pt_trg[d]; 
       }
     }
     std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << sqrt(p_diff/p_norm) << std::endl;
