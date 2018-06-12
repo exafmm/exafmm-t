@@ -4,6 +4,17 @@
 #include "matrix.hpp"
 #include "vec.h"
 
+extern "C" {
+  void sgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, float* ALPHA, float* A,
+              int* LDA, float* B, int* LDB, float* BETA, float* C, int* LDC);
+  void dgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, double* ALPHA, double* A,
+              int* LDA, double* B, int* LDB, double* BETA, double* C, int* LDC);
+  void sgesvd_(char *JOBU, char *JOBVT, int *M, int *N, float *A, int *LDA,
+               float *S, float *U, int *LDU, float *VT, int *LDVT, float *WORK, int *LWORK, int *INFO);
+  void dgesvd_(char *JOBU, char *JOBVT, int *M, int *N, double *A, int *LDA,
+               double *S, double *U, int *LDU, double *VT, int *LDVT, double *WORK, int *LWORK, int *INFO);
+}
+
 namespace pvfmm {
 #ifndef NULL
 #define NULL 0
@@ -49,6 +60,37 @@ namespace pvfmm {
 #else
     dgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #endif
+  }
+
+  //! lapack svd with row major data: A = U*S*VT, A is m by n
+  void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT) {
+    char JOBU = 'S', JOBVT = 'S';
+    int INFO;
+    int LWORK = std::max(3*std::min(m,n)+std::max(m,n), 5*std::min(m,n));
+    LWORK = std::max(LWORK, 1);
+    int k = std::min(m, n);
+    std::vector<real_t> tS(k, 0.); 
+    std::vector<real_t> WORK(LWORK);
+#if FLOAT
+    sgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &INFO);
+#else
+    dgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &INFO);
+#endif
+    // copy singular values from 1d layout (tS) to 2d layout (S)
+    for(int i=0; i<k; i++) {
+      S[i*n+i] = tS[i];
+    }
+  }
+
+  std::vector<real_t> transpose(std::vector<real_t>& vec, int m, int n) {
+    std::vector<real_t> temp(vec.size());
+#pragma omp for collapse(2)
+    for(int i=0; i<m; i++) {
+      for(int j=0; j<n; j++) {
+        temp[j*m+i] = vec[i*n+j];
+      }
+    }
+    return temp;
   }
 
   //! SIMD vector types for AVX512, AVX, and SSE
@@ -154,9 +196,9 @@ namespace pvfmm {
   std::vector<std::vector<std::vector<Perm_Type> > > perm_list;// index -> list of permutations needed in order to change from abs_coord to rel_coord
 
   // Precomputation matrices and permutations
-  Matrix<real_t> M2M_U, M2M_V;
-  Matrix<real_t> L2L_U, L2L_V;
-  Matrix<real_t> mat_M2M, mat_L2L;
+  RealVec M2M_U, M2M_V;
+  RealVec L2L_U, L2L_V;
+  RealVec mat_M2M, mat_L2L;
   std::vector<std::vector<real_t>> mat_M2L;
   std::vector<std::vector<real_t>> mat_M2L_Helper; 
   std::vector<Permutation<real_t> > perm_M2M;

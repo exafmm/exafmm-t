@@ -125,8 +125,8 @@ namespace pvfmm {
       potentialP2P(leaf->pt_coord, leaf->pt_src, checkCoord, leaf->upward_equiv);
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), M2M_V.data_ptr, &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], M2M_U.data_ptr, &equiv[0]);
+      gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &M2M_V[0], &buffer[0]);
+      gemm(1, NSURF, NSURF, &buffer[0], &M2M_U[0], &equiv[0]);
       for(int k=0; k<NSURF; k++)
         leaf->upward_equiv[k] = scal * equiv[k];
     }
@@ -150,7 +150,7 @@ namespace pvfmm {
         for(int k=0; k<NSURF; k++) {
           buffer_in[k] = child->upward_equiv[perm_in[k]]; // input perm
         }
-        gemm(1, NSURF, NSURF, &buffer_in[0], mat_M2M.data_ptr, &buffer_out[0]);
+        gemm(1, NSURF, NSURF, &buffer_in[0], &mat_M2M[0], &buffer_out[0]);
         for(int k=0; k<NSURF; k++)
           node->upward_equiv[k] += buffer_out[perm_out[k]];
       }
@@ -170,7 +170,7 @@ namespace pvfmm {
         for(int k=0; k<NSURF; k++) {
           buffer_in[k] = node->dnward_equiv[perm_in[k]]; // input perm
         }
-        gemm(1, NSURF, NSURF, &buffer_in[0], mat_L2L.data_ptr, &buffer_out[0]);
+        gemm(1, NSURF, NSURF, &buffer_in[0], &mat_L2L[0], &buffer_out[0]);
         for(int k=0; k<NSURF; k++)
           child->dnward_equiv[k] += buffer_out[perm_out[k]] * scal;
       }
@@ -192,8 +192,8 @@ namespace pvfmm {
       // check surface potential -> equivalent surface charge
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &(leaf->dnward_equiv[0]), L2L_V.data_ptr, &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], L2L_U.data_ptr, &equiv[0]);
+      gemm(1, NSURF, NSURF, &(leaf->dnward_equiv[0]), &L2L_V[0], &buffer[0]);
+      gemm(1, NSURF, NSURF, &buffer[0], &L2L_U[0], &equiv[0]);
       for(int k=0; k<NSURF; k++)
         leaf->dnward_equiv[k] = scal * equiv[k];
       // equivalent surface charge -> target potential

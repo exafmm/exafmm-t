@@ -11,7 +11,7 @@ namespace pvfmm {
     Permutation<real_t>& row_perm = perm_r[indx];
     if(row_perm.Dim()==0) { // if this perm_r entry hasn't been computed
       std::vector<Perm_Type> p_list = perm_list[M2M_Type][indx]; // get perm_list of current rel_coord
-      Permutation<real_t> row_perm_=Permutation<real_t>(mat_M2M.Dim(0)); // init row_perm to be size npts*src_dim
+      Permutation<real_t> row_perm_=Permutation<real_t>(NSURF); // init row_perm to be size npts*src_dim
       for(int i=0; i<C_Perm; i++) { // loop over permutation types
         Permutation<real_t>& pr = perm_M2M[i]; // grab the handle of its mat->perm entry
         if(!pr.Dim()) row_perm_ = Permutation<real_t>(0); // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
@@ -29,7 +29,7 @@ namespace pvfmm {
     Permutation<real_t>& col_perm = perm_c[indx];
     if(col_perm.Dim()==0) {
       std::vector<Perm_Type> p_list = perm_list[M2M_Type][indx];
-      Permutation<real_t> col_perm_ = Permutation<real_t>(mat_M2M.Dim(1));
+      Permutation<real_t> col_perm_ = Permutation<real_t>(NSURF);
       for(int i=0; i<C_Perm; i++) {
         Permutation<real_t>& pc = perm_M2M[C_Perm + i];
         if(!pc.Dim()) col_perm_ = Permutation<real_t>(0);
@@ -53,52 +53,60 @@ namespace pvfmm {
 
   void Precomp(Mat_Type type, size_t mat_indx) {
     int level = 0;
-    Matrix<real_t> M;
     switch (type) {
     case M2M_Type: {
       real_t c[3]= {0, 0, 0};
-      std::vector<real_t> check_surf=u_check_surf(c, level);
-      real_t s=powf(0.5, (level+2));
+      std::vector<real_t> check_surf = u_check_surf(c, level);
+      real_t s = powf(0.5, level+2);
       ivec3& coord = rel_coord[type][mat_indx];
       real_t child_coord[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-      std::vector<real_t> equiv_surf=u_equiv_surf(child_coord, level+1);
-      Matrix<real_t> M_ce2c(NSURF, NSURF);
-      BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_ce2c[0][0]));
+      std::vector<real_t> equiv_surf = u_equiv_surf(child_coord, level+1);
+      RealVec M_ce2c(NSURF*NSURF);
+      BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &M_ce2c[0]);
       // caculate M2M_U and M2M_V
-      Matrix<real_t> M_c2e0, M_c2e1;
       std::vector<real_t> uc_coord=u_check_surf(c, level);
       std::vector<real_t> ue_coord=u_equiv_surf(c, level);
-      Matrix<real_t> M_e2c(NSURF, NSURF);
-      BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &(M_e2c[0][0]));
-      Matrix<real_t> U, S, V;
-      Profile::Tic("SVD", false, 4);
-      M_e2c.SVD(U, S, V);
-      Profile::Toc();
-      real_t eps=1, max_S=0;
-      while(eps*(real_t)0.5+(real_t)1.0>1.0) eps*=0.5;
-      for(size_t i=0; i<std::min(S.Dim(0), S.Dim(1)); i++) {
-        if(fabs(S[i][i])>max_S) max_S=fabs(S[i][i]);
-      }
-      for(size_t i=0; i<S.Dim(0); i++) S[i][i]=(S[i][i]>eps*max_S*4?1.0/S[i][i]:0.0);
-      M2M_V = V.Transpose()*S;
-      M2M_U = U.Transpose();
-      L2L_V = U*S;
-      L2L_U = V;
+      RealVec M_e2c(NSURF*NSURF);
+      BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &M_e2c[0]);
+      RealVec U(NSURF*NSURF), S(NSURF*NSURF), V(NSURF*NSURF);
+      svd(NSURF, NSURF, &M_e2c[0], &S[0], &U[0], &V[0]);
 
-      mat_M2M = (M_ce2c * M2M_V) * M2M_U;
+      real_t eps = 1, max_S = 0;
+      while(eps*(real_t)0.5+(real_t)1.0>1.0) eps*=0.5;
+      for(size_t i=0; i<NSURF; i++) {
+        if(fabs(S[i*NSURF+i])>max_S) max_S = fabs(S[i*NSURF+i]);
+      }
+      for(size_t i=0; i<NSURF; i++) S[i*NSURF+i]=(S[i*NSURF+i]>eps*max_S*4?1.0/S[i*NSURF+i]:0.0);
+
+      RealVec VT = transpose(V, NSURF, NSURF);
+      M2M_V.resize(NSURF*NSURF);
+      M2M_U = transpose(U, NSURF, NSURF); 
+      gemm(NSURF, NSURF, NSURF, &VT[0], &S[0], &M2M_V[0]);
+      
+      L2L_V.resize(NSURF*NSURF);
+      L2L_U = V;
+      gemm(NSURF, NSURF, NSURF, &U[0], &S[0], &L2L_V[0]);
+
+      mat_M2M.resize(NSURF*NSURF);
+      RealVec buffer(NSURF*NSURF);
+      gemm(NSURF, NSURF, NSURF, &M_ce2c[0], &M2M_V[0], &buffer[0]);
+      gemm(NSURF, NSURF, NSURF, &buffer[0], &M2M_U[0], &mat_M2M[0]);
       break;
     }
     case L2L_Type: {
-      real_t s=powf(0.5, level+1);
-      ivec3& coord=rel_coord[type][mat_indx];
+      real_t s = powf(0.5, level+1);
+      ivec3& coord = rel_coord[type][mat_indx];
       real_t c[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-      std::vector<real_t> check_surf=d_check_surf(c, level);
-      real_t parent_coord[3]= {0, 0, 0};
-      std::vector<real_t> equiv_surf=d_equiv_surf(parent_coord, level-1);
-      Matrix<real_t> M_pe2c(NSURF, NSURF);
-      BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_pe2c[0][0]));
+      std::vector<real_t> check_surf = d_check_surf(c, level);
+      real_t parent_coord[3] = {0, 0, 0};
+      std::vector<real_t> equiv_surf = d_equiv_surf(parent_coord, level-1);
+      RealVec M_pe2c(NSURF*NSURF);
+      BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &M_pe2c[0]);
 
-      mat_L2L = L2L_V * (L2L_U * M_pe2c);
+      mat_L2L.resize(NSURF*NSURF);
+      RealVec buffer(NSURF*NSURF);
+      gemm(NSURF, NSURF, NSURF, &L2L_U[0], &M_pe2c[0], &buffer[0]);
+      gemm(NSURF, NSURF, NSURF, &L2L_V[0], &buffer[0], &mat_L2L[0]);
       break;
     }
     default:
@@ -108,15 +116,10 @@ namespace pvfmm {
 
   void PrecompAll(Mat_Type type) {
     int idx_num = rel_coord[type].size(); // num of relative pts (rel_coord) w.r.t this type
-    if (type == M2M_Type || type == L2L_Type) {
-      for(int i=0; i<idx_num; i++) {           // i is index of rel_coord
-        if(interac_class[type][i] == i) { // if i-th coord is a class_coord
-          Precomp(type, i);                       // calculate operator matrix of class_coord
-        }
+    for(int i=0; i<idx_num; i++) {           // i is index of rel_coord
+      if(interac_class[type][i] == i) { // if i-th coord is a class_coord
+        Precomp(type, i);                       // calculate operator matrix of class_coord
       }
-    } else {
-      for(int mat_idx=0; mat_idx<idx_num; mat_idx++)
-        Precomp(type, mat_idx);
     }
   }
 
@@ -151,7 +154,7 @@ namespace pvfmm {
     int numChildRelCoord = rel_coord[M2L_Helper_Type].size();
     mat_M2L.resize(numParentRelCoord);
     std::vector<real_t> zero_vec(N3_*2, 0);
-#pragma omp parallel for schedule (dynamic)
+#pragma omp parallel for schedule(dynamic)
     for(int i=0; i<numParentRelCoord; i++) {
       ivec3& parentRelCoord = rel_coord[M2L_Type][i];
       std::vector<real_t*> M_ptr(NCHILD*NCHILD, &zero_vec[0]);
