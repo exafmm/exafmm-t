@@ -98,8 +98,8 @@ namespace pvfmm {
         for(size_t i=blk1_start; i<blk1_end; i++) {
           std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
           if(M2Llist[k]!=NULL) {
-            interac_vec.push_back(M2Llist[k]->node_id * FFTSIZE * SRC_DIM);   // node_in dspl
-            interac_vec.push_back(        i           * FFTSIZE * POT_DIM);   // node_out dspl
+            interac_vec.push_back(M2Llist[k]->node_id * FFTSIZE);   // node_in dspl
+            interac_vec.push_back(        i           * FFTSIZE);   // node_out dspl
             interac_dsp_++;
           }
         }

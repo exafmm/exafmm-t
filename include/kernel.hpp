@@ -159,6 +159,7 @@ namespace pvfmm {
 
   void L2L(FMM_Node* node) {
     if(node->IsLeaf()) return;
+    int scal = 2;   // to remove scaling factor in L2L precomputation
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
         FMM_Node* child = node->child[octant];
@@ -171,7 +172,7 @@ namespace pvfmm {
         }
         gemm(1, NSURF, NSURF, &buffer_in[0], mat_L2L.data_ptr, &buffer_out[0]);
         for(int k=0; k<NSURF; k++)
-          child->dnward_equiv[k] += buffer_out[perm_out[k]];
+          child->dnward_equiv[k] += buffer_out[perm_out[k]] * scal;
       }
     }
     for(int octant=0; octant<8; octant++) {

@@ -45,9 +45,7 @@ int main(int argc, char **argv) {
   N3_ = N2 * (N1/2+1);
   FFTDIM[0] = N1; FFTDIM[1] = N1; FFTDIM[2] = N1;
   FFTSIZE = 2 * 8 * N3_;   // 8 denotes number of children
-  SRC_DIM = 1;
   TRG_DIM = 4;
-  POT_DIM = 1;
   Profile::Enable(true);
   std::vector<real_t> src_coord, src_value;
   srand48(0);

@@ -62,13 +62,13 @@ namespace pvfmm {
       ivec3& coord = rel_coord[type][mat_indx];
       real_t child_coord[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
       std::vector<real_t> equiv_surf=u_equiv_surf(child_coord, level+1);
-      Matrix<real_t> M_ce2c(NSURF*SRC_DIM, NSURF*POT_DIM);
+      Matrix<real_t> M_ce2c(NSURF, NSURF);
       BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_ce2c[0][0]));
       // caculate M2M_U and M2M_V
       Matrix<real_t> M_c2e0, M_c2e1;
       std::vector<real_t> uc_coord=u_check_surf(c, level);
       std::vector<real_t> ue_coord=u_equiv_surf(c, level);
-      Matrix<real_t> M_e2c(NSURF*SRC_DIM, NSURF*POT_DIM);
+      Matrix<real_t> M_e2c(NSURF, NSURF);
       BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &(M_e2c[0][0]));
       Matrix<real_t> U, S, V;
       Profile::Tic("SVD", false, 4);
@@ -95,16 +95,10 @@ namespace pvfmm {
       std::vector<real_t> check_surf=d_check_surf(c, level);
       real_t parent_coord[3]= {0, 0, 0};
       std::vector<real_t> equiv_surf=d_equiv_surf(parent_coord, level-1);
-      Matrix<real_t> M_pe2c(NSURF*SRC_DIM, NSURF*POT_DIM);
+      Matrix<real_t> M_pe2c(NSURF, NSURF);
       BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &(M_pe2c[0][0]));
 
-      Matrix<real_t> M_c2e0, M_c2e1;
-      Permutation<real_t> ker_perm(1);
-      Permutation<real_t> P = equiv_surf_perm(Scaling, ker_perm, 1);
-      M_c2e0 = P * L2L_V;
-      P = equiv_surf_perm(Scaling, ker_perm, 0);
-      M_c2e1 = L2L_U * P;
-      mat_L2L = M_c2e0 * (M_c2e1*M_pe2c);
+      mat_L2L = L2L_V * (L2L_U * M_pe2c);
       break;
     }
     default:
