@@ -2,7 +2,7 @@
 -------------
 
 - [ ] Simplify perm_r, perm_c, remove scal member from Permutation class
-- [ ] Split PrecompAll to PrecompM2M and PrecompL2L
+- [x] Split PrecompAll to PrecompM2M and PrecompL2L
 - [x] Remove Matrix
 - [x] Remove buffer in M2L
 - [ ] Simplify list structure (Tingyu)
