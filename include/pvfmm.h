@@ -30,6 +30,7 @@ namespace pvfmm {
 
 #if FLOAT
   typedef float real_t;
+  const real_t EPS = 1e-8f;
   typedef fftwf_complex fft_complex;
   typedef fftwf_plan fft_plan;
 #define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c
@@ -39,6 +40,7 @@ namespace pvfmm {
 #define fft_destroy_plan fftwf_destroy_plan
 #else
   typedef double real_t;
+  const real_t EPS = 1e-16;
   typedef fftw_complex fft_complex;
   typedef fftw_plan fft_plan;
 #define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c

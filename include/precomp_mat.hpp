@@ -52,9 +52,9 @@ namespace pvfmm {
   }
 
   void Precomp(Mat_Type type, size_t mat_indx) {
-    int level = 0;
     switch (type) {
     case M2M_Type: {
+      int level = 0;
       real_t c[3]= {0, 0, 0};
       std::vector<real_t> check_surf = u_check_surf(c, level);
       real_t s = powf(0.5, level+2);
@@ -70,13 +70,14 @@ namespace pvfmm {
       BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &M_e2c[0]);
       RealVec U(NSURF*NSURF), S(NSURF*NSURF), V(NSURF*NSURF);
       svd(NSURF, NSURF, &M_e2c[0], &S[0], &U[0], &V[0]);
-
-      real_t eps = 1, max_S = 0;
-      while(eps*(real_t)0.5+(real_t)1.0>1.0) eps*=0.5;
+      // inverse S
+      real_t max_S = 0;
       for(size_t i=0; i<NSURF; i++) {
-        if(fabs(S[i*NSURF+i])>max_S) max_S = fabs(S[i*NSURF+i]);
+        max_S = fabs(S[i*NSURF+i])>max_S ? fabs(S[i*NSURF+i]) : max_S;
       }
-      for(size_t i=0; i<NSURF; i++) S[i*NSURF+i]=(S[i*NSURF+i]>eps*max_S*4?1.0/S[i*NSURF+i]:0.0);
+      for(size_t i=0; i<NSURF; i++) {
+        S[i*NSURF+i] = S[i*NSURF+i]>EPS*max_S*4 ? 1.0/S[i*NSURF+i] : 0.0;
+      }
 
       RealVec VT = transpose(V, NSURF, NSURF);
       M2M_V.resize(NSURF*NSURF);
@@ -94,6 +95,7 @@ namespace pvfmm {
       break;
     }
     case L2L_Type: {
+      int level = 0;
       real_t s = powf(0.5, level+1);
       ivec3& coord = rel_coord[type][mat_indx];
       real_t c[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
