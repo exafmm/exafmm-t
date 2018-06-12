@@ -6,54 +6,49 @@
 #include "geometry.h"
 #include "profile.hpp"
 namespace pvfmm {
-  // This is only related to M2M and L2L operator
-  void Perm_R(size_t indx) {
-    Permutation<real_t>& row_perm = perm_r[indx];
-    if(row_perm.Dim()==0) { // if this perm_r entry hasn't been computed
-      std::vector<Perm_Type> p_list = perm_list[M2M_Type][indx]; // get perm_list of current rel_coord
-      Permutation<real_t> row_perm_=Permutation<real_t>(NSURF); // init row_perm to be size npts*src_dim
-      for(int i=0; i<C_Perm; i++) { // loop over permutation types
-        Permutation<real_t>& pr = perm_M2M[i]; // grab the handle of its mat->perm entry
-        if(!pr.Dim()) row_perm_ = Permutation<real_t>(0); // if PrecompPerm never called for this type and entry: this entry does not need permutation so set it empty
-      }
-      if(row_perm_.Dim()>0) // if this type & entry needs permutation
-        for(int i=p_list.size()-1; i>=0; i--) { // loop over the operations of perm_list from end to begin
-          Permutation<real_t>& pr = perm_M2M[p_list[i]]; // grab the handle of its mat->perm entry
-          row_perm_ = pr.Transpose() * row_perm_; // accumulate the permutation to row_perm (perm_r in precompmat header)
-        }
-      row_perm=row_perm_;
-    }
-  }
-
-  void Perm_C(size_t indx) {
-    Permutation<real_t>& col_perm = perm_c[indx];
-    if(col_perm.Dim()==0) {
-      std::vector<Perm_Type> p_list = perm_list[M2M_Type][indx];
-      Permutation<real_t> col_perm_ = Permutation<real_t>(NSURF);
-      for(int i=0; i<C_Perm; i++) {
-        Permutation<real_t>& pc = perm_M2M[C_Perm + i];
-        if(!pc.Dim()) col_perm_ = Permutation<real_t>(0);
-      }
-      if(col_perm_.Dim()>0)
-        for(int i=p_list.size()-1; i>=0; i--) {
-          Permutation<real_t>& pc = perm_M2M[C_Perm + p_list[i]];
-          col_perm_ = col_perm_ * pc;
-        }
-      col_perm = col_perm_;
-    }
-  }
-
   void PrecompPerm() {
+    perm_M2M.resize(Perm_Count);
     Permutation<real_t> ker_perm(1);
+    #pragma omp parallel for
     for(int p=0; p<Perm_Count; p++) { 
       size_t p_indx = p % C_Perm;
       perm_M2M[p] = equiv_surf_perm(p_indx, ker_perm, 0);
     }
   }
 
+  void Perm_R() {
+    int numRelCoord = rel_coord[M2M_Type].size();
+    perm_r.resize(numRelCoord);
+    #pragma omp parallel for
+    for(int i=0; i<numRelCoord; i++) {
+      std::vector<Perm_Type> p_list = perm_list[M2M_Type][i];   // get perm_list of current rel_coord
+      Permutation<real_t> row_perm_ = Permutation<real_t>(NSURF); // init row_perm to be size NSURF
+      for(int j=p_list.size()-1; j>=0; j--) { // loop over the operations of perm_list from end to begin
+        Permutation<real_t>& pr = perm_M2M[p_list[j]]; // grab the handle of its mat->perm entry
+        row_perm_ = pr.Transpose() * row_perm_; // accumulate the permutation to row_perm (perm_r in precompmat header)
+      }
+      perm_r[i] = row_perm_;
+    }
+  }
+
+  void Perm_C() {
+    int numRelCoord = rel_coord[M2M_Type].size();
+    perm_c.resize(numRelCoord);
+    #pragma omp parallel for
+    for(int i=0; i<numRelCoord; i++) {
+      std::vector<Perm_Type> p_list = perm_list[M2M_Type][i];
+      Permutation<real_t> col_perm_ = Permutation<real_t>(NSURF);
+        for(int j=p_list.size()-1; j>=0; j--) {
+          Permutation<real_t>& pc = perm_M2M[C_Perm + p_list[j]];
+          col_perm_ = col_perm_ * pc;
+        }
+      perm_c[i] = col_perm_;
+    }
+  }
+
   void PrecompM2M() {
     int level = 0;
-    real_t c[3]= {0, 0, 0};
+    real_t c[3] = {0, 0, 0};
     std::vector<real_t> check_surf = u_check_surf(c, level);
     real_t s = powf(0.5, level+2);
     int class_coord_idx = interac_class[M2M_Type][0];
@@ -121,7 +116,7 @@ namespace pvfmm {
     // evaluate DFTs of potentials at convolution grids
     int numRelCoord = rel_coord[M2L_Helper_Type].size();
     mat_M2L_Helper.resize(numRelCoord);
-#pragma omp parallel for
+    #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
       real_t coord[3];
       for(int d=0; d<3; d++) {
@@ -142,7 +137,7 @@ namespace pvfmm {
     int numChildRelCoord = rel_coord[M2L_Helper_Type].size();
     mat_M2L.resize(numParentRelCoord);
     std::vector<real_t> zero_vec(N3_*2, 0);
-#pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<numParentRelCoord; i++) {
       ivec3& parentRelCoord = rel_coord[M2L_Type][i];
       std::vector<real_t*> M_ptr(NCHILD*NCHILD, &zero_vec[0]);
@@ -173,22 +168,14 @@ namespace pvfmm {
     }
   }
 
-  void PrecompMat() {
-    perm_M2M.resize(Perm_Count);
-    int numRelCoords = rel_coord[M2M_Type].size();
-    perm_r.resize(numRelCoords);
-    perm_c.resize(numRelCoords);
+  void Precompute() {
     PrecompPerm();
-    for(int mat_idx=0; mat_idx<rel_coord[M2M_Type].size(); mat_idx++) {
-      Perm_R(mat_idx);
-      Perm_C(mat_idx);
-    }
+    Perm_R();
+    Perm_C();
     PrecompM2M();
     PrecompL2L();
     PrecompM2LHelper();
     PrecompM2L();
   }
-
 }//end namespace
-
 #endif //_PrecompMAT_HPP_

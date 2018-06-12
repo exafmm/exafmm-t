@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
 
   InitAll();    // initialize rel_coord, hash_lut, interac_class, perm_list
   Profile::Tic("Precomputation", true);
-  PrecompMat();
+  Precompute();
   Profile::Toc();
   for(size_t it=0; it<1; it++) {
     Profile::Tic("Total", true);
