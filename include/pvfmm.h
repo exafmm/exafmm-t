@@ -71,7 +71,7 @@ namespace pvfmm {
     int LWORK = std::max(3*std::min(m,n)+std::max(m,n), 5*std::min(m,n));
     LWORK = std::max(LWORK, 1);
     int k = std::min(m, n);
-    std::vector<real_t> tS(k, 0.); 
+    std::vector<real_t> tS(k, 0.);
     std::vector<real_t> WORK(LWORK);
 #if FLOAT
     sgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &INFO);
@@ -147,7 +147,7 @@ namespace pvfmm {
     Body * body;
     vec3 X;
     real_t R;
-    
+
     size_t idx;
     size_t node_id;
     int depth;
@@ -168,7 +168,7 @@ namespace pvfmm {
     }
 
     FMM_Node* Child(int id) {
-      return (numChilds == 0) ? NULL : child[id]; 
+      return (numChilds == 0) ? NULL : child[id];
     }
   };
   typedef std::vector<FMM_Node> FMM_Nodes;              //!< Vector of cells
@@ -201,8 +201,8 @@ namespace pvfmm {
   RealVec M2M_U, M2M_V;
   RealVec L2L_U, L2L_V;
   RealVec mat_M2M, mat_L2L;
-  std::vector<std::vector<real_t>> mat_M2L;
-  std::vector<std::vector<real_t>> mat_M2L_Helper; 
+  std::vector<std::vector<real_t> > mat_M2L;
+  std::vector<std::vector<real_t> > mat_M2L_Helper;
   std::vector<Permutation<real_t> > perm_M2M;
   std::vector<Permutation<real_t> > perm_r, perm_c;
 

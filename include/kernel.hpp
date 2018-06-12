@@ -326,18 +326,6 @@ namespace pvfmm {
             real_t* IN1  = IN [j+1] + k*NCHILD*2;
             real_t* OUT0 = OUT[j+0] + k*NCHILD*2;
             real_t* OUT1 = OUT[j+1] + k*NCHILD*2;
-#if 0
-            if (j+2 < interac_cnt) {
-              _mm_prefetch(((char *)(IN[j+2] + k*NCHILD*2)), _MM_HINT_T0);
-              _mm_prefetch(((char *)(IN[j+2] + k*NCHILD*2) + 64), _MM_HINT_T0);
-              _mm_prefetch(((char *)(IN[j+3] + k*NCHILD*2)), _MM_HINT_T0);
-              _mm_prefetch(((char *)(IN[j+3] + k*NCHILD*2) + 64), _MM_HINT_T0);
-              _mm_prefetch(((char *)(OUT[j+2] + k*NCHILD*2)), _MM_HINT_T0);
-              _mm_prefetch(((char *)(OUT[j+2] + k*NCHILD*2) + 64), _MM_HINT_T0);
-              _mm_prefetch(((char *)(OUT[j+3] + k*NCHILD*2)), _MM_HINT_T0);
-              _mm_prefetch(((char *)(OUT[j+3] + k*NCHILD*2) + 64), _MM_HINT_T0);
-            }
-#endif
             matmult_8x8x2(M_, IN0, IN1, OUT0, OUT1);
           }
         }
@@ -359,7 +347,7 @@ namespace pvfmm {
 
     AlignedVec fftw_in(N3 * NCHILD);
     AlignedVec fftw_out(FFTSIZE);
-    fft_plan m2l_list_fftplan = fft_plan_many_dft_r2c(3, FFTDIM, NCHILD, 
+    fft_plan m2l_list_fftplan = fft_plan_many_dft_r2c(3, FFTDIM, NCHILD,
                                 (real_t*)&fftw_in[0], NULL, 1, N3,
                                 (fft_complex*)(&fftw_out[0]), NULL, 1, N3_,
                                 FFTW_ESTIMATE);

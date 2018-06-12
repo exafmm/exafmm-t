@@ -65,8 +65,8 @@ namespace pvfmm {
       }
     }
     std::vector<FMM_Node*> nodes_in;
-    for(FMM_Node* node : nodes_in_) {
-      nodes_in.push_back(node);
+    for(std::set<FMM_Node*>::iterator node=nodes_in_.begin(); node!=nodes_in_.end(); node++) {
+      nodes_in.push_back(*node);
     }
     // prepare fft displ & fft scal
     std::vector<size_t> fft_vec(nodes_in.size());
@@ -185,7 +185,7 @@ namespace pvfmm {
     FMM_Nodes targets2 = targets;    // used for direct summation
 #pragma omp parallel for
     for(size_t i=0; i<targets2.size(); i++) {
-      FMM_Node *target = &targets2[i]; 
+      FMM_Node *target = &targets2[i];
       std::fill(target->pt_trg.begin(), target->pt_trg.end(), 0.);
       for(size_t j=0; j<leafs.size(); j++) {
         gradientP2P(leafs[j]->pt_coord, leafs[j]->pt_src, target->pt_coord, target->pt_trg);
@@ -197,8 +197,8 @@ namespace pvfmm {
       p_norm += targets2[i].pt_trg[0] * targets2[i].pt_trg[0];
       p_diff += (targets2[i].pt_trg[0] - targets[i].pt_trg[0]) * (targets2[i].pt_trg[0] - targets[i].pt_trg[0]);
       for(int d=1; d<4; d++) {
-        g_diff += (targets2[i].pt_trg[d] - targets[i].pt_trg[d]) * (targets2[i].pt_trg[d] - targets[i].pt_trg[d]); 
-        g_norm += targets2[i].pt_trg[d] * targets2[i].pt_trg[d]; 
+        g_diff += (targets2[i].pt_trg[d] - targets[i].pt_trg[d]) * (targets2[i].pt_trg[d] - targets[i].pt_trg[d]);
+        g_norm += targets2[i].pt_trg[d] * targets2[i].pt_trg[d];
       }
     }
     std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << sqrt(p_diff/p_norm) << std::endl;

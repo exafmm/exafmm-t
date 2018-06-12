@@ -1,13 +1,9 @@
 ###TODO
 -------------
 
-- [ ] Simplify perm_r, perm_c, remove scal member from Permutation class
-- [x] Split PrecompAll to PrecompM2M and PrecompL2L
-- [x] Remove Matrix
-- [x] Remove buffer in M2L
+- [ ] Simplify perm_r, perm_c, remove scal member from Permutation class (Tingyu)
 - [ ] Simplify list structure (Tingyu)
-- [x] Remove kernel class (Tingyu, Chenwu)
 - [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution (Tingyu)
-- [x] define global n1,n2,n3,n3\_,fftsize, replace the local copys with the global ones in M2L precomputation & evaluation
-- [ ] remove node_lst from FMM_Tree, organize traversal calls in CollectNodeData
-- [ ] Make exafmm and exafmm-t kernels swappable
+- [ ] Scaling during evaluation, remove MAX_DEPTH (Chenwu)
+- [ ] Change std::vector<real_t> to RealVec (Chenwu)
+- [ ] Change FMM_Node to Node (Chenwu)

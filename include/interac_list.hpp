@@ -52,7 +52,7 @@ namespace pvfmm {
     // class count -> class count displacement
     std::vector<int> class_disp_hash(max_hash, 0);
     for(int i=1; i<max_hash; i++) {
-      class_disp_hash[i] = class_disp_hash[i-1] + class_size_hash[i-1]; 
+      class_disp_hash[i] = class_disp_hash[i-1] + class_size_hash[i-1];
     }
 
     int count_=0;
@@ -230,7 +230,8 @@ namespace pvfmm {
   void BuildInteracLists(FMM_Nodes& cells) {
     std::vector<Mat_Type> interactionTypes = {P2P0_Type, P2P1_Type, P2P2_Type,
                                               M2P_Type, P2L_Type, M2L_Type};
-    for(Mat_Type& type : interactionTypes) {
+    for(int j=0; j<interactionTypes.size(); j++) {
+      Mat_Type type = interactionTypes[j];
       int numRelCoord = rel_coord[type].size();  // num of possible relative positions
       #pragma omp parallel for
       for(size_t i=0; i<cells.size(); i++) {
