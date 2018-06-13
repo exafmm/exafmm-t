@@ -7,9 +7,9 @@ namespace pvfmm {
   // alpha is the ratio r_surface/r_cell, see 2015Malhotra, page 7
   // 2.95 for upward check surface / downward equivalent surface
   // 1.05 for upward equivalent surface / downward check surface
-  std::vector<real_t> surface(int p, real_t* c, real_t alpha, int depth){
+  RealVec surface(int p, real_t* c, real_t alpha, int depth){
     size_t n_=(6*(p-1)*(p-1)+2);
-    std::vector<real_t> coord(n_*3);
+    RealVec coord(n_*3);
     coord[0]=coord[1]=coord[2]=-1.0;
     size_t cnt=1;
     for(int i=0;i<p-1;i++)
@@ -44,38 +44,38 @@ namespace pvfmm {
     return coord;
   }
 
-  std::vector<real_t> u_check_surf(real_t* c, int depth){
+  RealVec u_check_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
     real_t coord[3]={(real_t)(c[0]-r*1.95),(real_t)(c[1]-r*1.95),(real_t)(c[2]-r*1.95)};
     return surface(MULTIPOLE_ORDER,coord,2.95,depth);
   }
 
-  std::vector<real_t> u_equiv_surf(real_t* c, int depth){
+  RealVec u_equiv_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
     real_t coord[3]={(real_t)(c[0]-r*0.05),(real_t)(c[1]-r*0.05),(real_t)(c[2]-r*0.05)};
     return surface(MULTIPOLE_ORDER,coord,1.05,depth);
   }
 
-  std::vector<real_t> d_check_surf(real_t* c, int depth){
+  RealVec d_check_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
     real_t coord[3]={(real_t)(c[0]-r*0.05),(real_t)(c[1]-r*0.05),(real_t)(c[2]-r*0.05)};
     return surface(MULTIPOLE_ORDER,coord,1.05,depth);
   }
 
-  std::vector<real_t> d_equiv_surf(real_t* c, int depth){
+  RealVec d_equiv_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
     real_t coord[3]={(real_t)(c[0]-r*1.95),(real_t)(c[1]-r*1.95),(real_t)(c[2]-r*1.95)};
     return surface(MULTIPOLE_ORDER,coord,2.95,depth);
   }
 
-  std::vector<real_t> conv_grid(real_t* c, int depth){
+  RealVec conv_grid(real_t* c, int depth){
     real_t r=powf(0.5,depth);
     real_t a=r*1.05;
     real_t coord[3]={c[0],c[1],c[2]};
     int n1=MULTIPOLE_ORDER*2;
     int n2=n1*n1;
     int n3=n1*n1*n1;
-    std::vector<real_t> grid(n3*3);
+    RealVec grid(n3*3);
     for(int i=0;i<n1;i++)
     for(int j=0;j<n1;j++)
     for(int k=0;k<n1;k++){
@@ -91,7 +91,7 @@ namespace pvfmm {
     int dof=ker_perm.Dim();
 
     real_t c[3]={-0.5,-0.5,-0.5};
-    std::vector<real_t> trg_coord=d_check_surf(c,0);
+    RealVec trg_coord=d_check_surf(c,0);
     int n_trg=trg_coord.size()/3;
 
     Permutation<real_t> P=Permutation<real_t>(n_trg*dof);

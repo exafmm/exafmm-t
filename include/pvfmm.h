@@ -53,6 +53,13 @@ namespace pvfmm {
   typedef vec<3,int> ivec3;                    //!< std::vector of 3 int types
   typedef vec<3,real_t> vec3;                   //!< Vector of 3 real_t types
 
+  //! SIMD vector types for AVX512, AVX, and SSE
+  const int NSIMD = SIMD_BYTES / int(sizeof(real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
+  typedef vec<NSIMD, real_t> simdvec;                  //!< SIMD vector type
+  typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;
+  typedef std::vector<real_t> RealVec;
+  typedef std::vector<real_t, AlignAllocator> AlignedVec;
+
   //! using blas gemm with row major data
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C) {
     char transA = 'N', transB = 'N';
@@ -71,8 +78,8 @@ namespace pvfmm {
     int LWORK = std::max(3*std::min(m,n)+std::max(m,n), 5*std::min(m,n));
     LWORK = std::max(LWORK, 1);
     int k = std::min(m, n);
-    std::vector<real_t> tS(k, 0.);
-    std::vector<real_t> WORK(LWORK);
+    RealVec tS(k, 0.);
+    RealVec WORK(LWORK);
 #if FLOAT
     sgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &INFO);
 #else
@@ -84,8 +91,8 @@ namespace pvfmm {
     }
   }
 
-  std::vector<real_t> transpose(std::vector<real_t>& vec, int m, int n) {
-    std::vector<real_t> temp(vec.size());
+  RealVec transpose(RealVec& vec, int m, int n) {
+    RealVec temp(vec.size());
 #pragma omp for collapse(2)
     for(int i=0; i<m; i++) {
       for(int j=0; j<n; j++) {
@@ -95,12 +102,6 @@ namespace pvfmm {
     return temp;
   }
 
-  //! SIMD vector types for AVX512, AVX, and SSE
-  const int NSIMD = SIMD_BYTES / int(sizeof(real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
-  typedef vec<NSIMD, real_t> simdvec;                  //!< SIMD vector type
-  typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;
-  typedef std::vector<real_t> RealVec;
-  typedef std::vector<real_t, AlignAllocator> AlignedVec;
 
   typedef enum {
     M2M_V_Type = 0,
@@ -157,11 +158,11 @@ namespace pvfmm {
     std::vector<FMM_Node*> child;
     FMM_Node* colleague[27];
     std::vector<FMM_Node*> interac_list[Type_Count];
-    std::vector<real_t> pt_coord;
-    std::vector<real_t> pt_src;  // src's charge
-    std::vector<real_t> pt_trg;  // trg's potential
-    std::vector<real_t> upward_equiv; // M
-    std::vector<real_t> dnward_equiv; // L
+    RealVec pt_coord;
+    RealVec pt_src;  // src's charge
+    RealVec pt_trg;  // trg's potential
+    RealVec upward_equiv; // M
+    RealVec dnward_equiv; // L
 
     bool IsLeaf() {
       return numChilds == 0;
@@ -177,17 +178,17 @@ namespace pvfmm {
   struct M2LData {
     std::vector<size_t> fft_vec;   // source's first child's upward_equiv's displacement
     std::vector<size_t> ifft_vec;  // target's first child's dnward_equiv's displacement
-    std::vector<real_t> fft_scl;
-    std::vector<real_t> ifft_scl;
+    RealVec fft_scl;
+    RealVec ifft_scl;
     std::vector<size_t> interac_vec;
     std::vector<size_t> interac_dsp;
   };
   M2LData M2Ldata;
 
-  std::vector<std::vector<real_t> > upwd_check_surf;
-  std::vector<std::vector<real_t> > upwd_equiv_surf;
-  std::vector<std::vector<real_t> > dnwd_check_surf;
-  std::vector<std::vector<real_t> > dnwd_equiv_surf;
+  std::vector<RealVec> upwd_check_surf;
+  std::vector<RealVec> upwd_equiv_surf;
+  std::vector<RealVec> dnwd_check_surf;
+  std::vector<RealVec> dnwd_equiv_surf;
 
   std::vector<FMM_Node*> leafs, nonleafs, allnodes;
 
@@ -201,8 +202,8 @@ namespace pvfmm {
   RealVec M2M_U, M2M_V;
   RealVec L2L_U, L2L_V;
   RealVec mat_M2M, mat_L2L;
-  std::vector<std::vector<real_t> > mat_M2L;
-  std::vector<std::vector<real_t> > mat_M2L_Helper;
+  std::vector<RealVec> mat_M2L;
+  std::vector<RealVec> mat_M2L_Helper;
   std::vector<Permutation<real_t> > perm_M2M;
   std::vector<Permutation<real_t> > perm_r, perm_c;
 

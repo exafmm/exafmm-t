@@ -43,9 +43,9 @@ namespace pvfmm {
 
   void ClearFMMData() {
     for(size_t i=0; i<allnodes.size(); i++) {
-      std::vector<real_t>& upward_equiv = allnodes[i]->upward_equiv;
-      std::vector<real_t>& dnward_equiv = allnodes[i]->dnward_equiv;
-      std::vector<real_t>& pt_trg = allnodes[i]->pt_trg;
+      RealVec& upward_equiv = allnodes[i]->upward_equiv;
+      RealVec& dnward_equiv = allnodes[i]->dnward_equiv;
+      RealVec& pt_trg = allnodes[i]->pt_trg;
       std::fill(upward_equiv.begin(), upward_equiv.end(), 0);
       std::fill(dnward_equiv.begin(), dnward_equiv.end(), 0);
       std::fill(pt_trg.begin(), pt_trg.end(), 0);

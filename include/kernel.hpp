@@ -116,7 +116,7 @@ namespace pvfmm {
       FMM_Node* leaf = leafs[i];
       int level = leaf->depth;
       real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
-      std::vector<real_t> checkCoord(NSURF*3);
+      RealVec checkCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
         checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->coord[0];
         checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
@@ -197,7 +197,7 @@ namespace pvfmm {
       for(int k=0; k<NSURF; k++)
         leaf->dnward_equiv[k] = scal * equiv[k];
       // equivalent surface charge -> target potential
-      std::vector<real_t> equivCoord(NSURF*3);
+      RealVec equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
         equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->coord[0];
         equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->coord[1];
@@ -218,7 +218,7 @@ namespace pvfmm {
       for(int j=0; j<sources.size(); j++) {
         FMM_Node* source = sources[j];
         if (source != NULL) {
-          std::vector<real_t> targetCheckCoord(NSURF*3);
+          RealVec targetCheckCoord(NSURF*3);
           int level = target->depth;
           // target cell's check coord = relative check coord + cell's origin
           for(int k=0; k<NSURF; k++) {
@@ -243,7 +243,7 @@ namespace pvfmm {
         if (source != NULL) {
           if (source->IsLeaf() && source->numBodies<=NSURF)
             continue;
-          std::vector<real_t> sourceEquivCoord(NSURF*3);
+          RealVec sourceEquivCoord(NSURF*3);
           int level = source->depth;
           // source cell's equiv coord = relative equiv coord + cell's origin
           for(int k=0; k<NSURF; k++) {
@@ -304,8 +304,8 @@ namespace pvfmm {
     // prepare fft displ & fft scal
     std::vector<size_t> fft_vec(nodes_in.size());
     std::vector<size_t> ifft_vec(nodes_out.size());
-    std::vector<real_t> fft_scl(nodes_in.size());
-    std::vector<real_t> ifft_scl(nodes_out.size());
+    RealVec fft_scl(nodes_in.size());
+    RealVec ifft_scl(nodes_out.size());
     for(size_t i=0; i<nodes_in.size(); i++) {
       fft_vec[i] = nodes_in[i]->child[0]->idx * NSURF;
       fft_scl[i] = 1;
@@ -398,11 +398,11 @@ namespace pvfmm {
     Profile::Add_FLOP(8*8*8*(interac_vec.size()/2)*N3_);
   }
 
-  void FFT_UpEquiv(std::vector<size_t>& fft_vec, std::vector<real_t>& fft_scal,
-                   std::vector<real_t>& input_data, AlignedVec& fft_in) {
+  void FFT_UpEquiv(std::vector<size_t>& fft_vec, RealVec& fft_scal,
+                   RealVec& input_data, AlignedVec& fft_in) {
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
-    std::vector<real_t> surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
+    RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
     for(size_t i=0; i<map.size(); i++) {
       map[i] = ((size_t)(MULTIPOLE_ORDER-1-surf[i*3]+0.5))
              + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+1]+0.5)) * N1
@@ -419,7 +419,7 @@ namespace pvfmm {
                                 FFTW_ESTIMATE);
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<fft_vec.size(); node_idx++) {
-      std::vector<real_t> buffer(fftsize, 0);
+      RealVec buffer(fftsize, 0);
       real_t* upward_equiv = &input_data[fft_vec[node_idx]];  // offset ptr of node's 8 child's upward_equiv in allUpwardEquiv, size=8*NSURF
       // upward_equiv_fft (input of r2c) here should have a size of N3*NCHILD
       // the node_idx's chunk of fft_out has a size of 2*N3_*NCHILD
@@ -441,11 +441,11 @@ namespace pvfmm {
     fft_destroy_plan(m2l_list_fftplan);
   }
 
-  void FFT_Check2Equiv(std::vector<size_t>& ifft_vec, std::vector<real_t>& ifft_scal,
-                       AlignedVec& fft_out, std::vector<real_t>& output_data) {
+  void FFT_Check2Equiv(std::vector<size_t>& ifft_vec, RealVec& ifft_scal,
+                       AlignedVec& fft_out, RealVec& output_data) {
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
-    std::vector<real_t> surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
+    RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
     for(size_t i=0; i<map.size(); i++) {
       map[i] = ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3]))
              + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+1])) * N1
@@ -462,8 +462,8 @@ namespace pvfmm {
                                  FFTW_ESTIMATE);
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<ifft_vec.size(); node_idx++) {
-      std::vector<real_t> buffer0(fftsize, 0);
-      std::vector<real_t> buffer1(fftsize, 0);
+      RealVec buffer0(fftsize, 0);
+      RealVec buffer1(fftsize, 0);
       real_t* dnward_check_fft = &fft_out[fftsize*node_idx];  // offset ptr for node_idx in fft_out vector, size=fftsize
       real_t* dnward_equiv = &output_data[ifft_vec[node_idx]];  // offset ptr for node_idx's child's dnward_equiv in allDnwardEquiv, size=numChilds * NSURF
       for(size_t j=0; j<N3_; j++)
@@ -483,8 +483,8 @@ namespace pvfmm {
 
   void M2L(M2LData& M2Ldata) {
     size_t numNodes = allnodes.size();
-    std::vector<real_t> allUpwardEquiv(numNodes*NSURF);
-    std::vector<real_t> allDnwardEquiv(numNodes*NSURF);
+    RealVec allUpwardEquiv(numNodes*NSURF);
+    RealVec allDnwardEquiv(numNodes*NSURF);
     #pragma omp parallel for collapse(2)
     for(int i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {

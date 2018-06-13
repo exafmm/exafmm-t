@@ -49,17 +49,17 @@ namespace pvfmm {
   void PrecompM2M() {
     int level = 0;
     real_t c[3] = {0, 0, 0};
-    std::vector<real_t> check_surf = u_check_surf(c, level);
+    RealVec check_surf = u_check_surf(c, level);
     real_t s = powf(0.5, level+2);
     int class_coord_idx = interac_class[M2M_Type][0];
     ivec3& coord = rel_coord[M2M_Type][class_coord_idx];
     real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-    std::vector<real_t> equiv_surf = u_equiv_surf(child_coord, level+1);
+    RealVec equiv_surf = u_equiv_surf(child_coord, level+1);
     RealVec M_ce2c(NSURF*NSURF);
     BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &M_ce2c[0]);
     // caculate M2M_U and M2M_V
-    std::vector<real_t> uc_coord = u_check_surf(c, level);
-    std::vector<real_t> ue_coord = u_equiv_surf(c, level);
+    RealVec uc_coord = u_check_surf(c, level);
+    RealVec ue_coord = u_equiv_surf(c, level);
     RealVec M_e2c(NSURF*NSURF);
     BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &M_e2c[0]);
     RealVec U(NSURF*NSURF), S(NSURF*NSURF), V(NSURF*NSURF);
@@ -94,9 +94,9 @@ namespace pvfmm {
     real_t s = powf(0.5, level+1);
     ivec3& coord = rel_coord[L2L_Type][class_coord_idx];
     real_t c[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-    std::vector<real_t> check_surf = d_check_surf(c, level);
+    RealVec check_surf = d_check_surf(c, level);
     real_t parent_coord[3] = {0, 0, 0};
-    std::vector<real_t> equiv_surf = d_equiv_surf(parent_coord, level-1);
+    RealVec equiv_surf = d_equiv_surf(parent_coord, level-1);
     RealVec M_pe2c(NSURF*NSURF);
     BuildMatrix(&equiv_surf[0], NSURF, &check_surf[0], NSURF, &M_pe2c[0]);
 
@@ -108,8 +108,8 @@ namespace pvfmm {
 
   void PrecompM2LHelper() {
     // create fftw plan
-    std::vector<real_t> fftw_in(N3);
-    std::vector<real_t> fftw_out(2*N3_);
+    RealVec fftw_in(N3);
+    RealVec fftw_out(2*N3_);
     int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
     fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, &fftw_in[0], NULL, 1, N3,
                     (fft_complex*)(&fftw_out[0]), NULL, 1, N3_, FFTW_ESTIMATE);
@@ -122,9 +122,9 @@ namespace pvfmm {
       for(int d=0; d<3; d++) {
         coord[d] = rel_coord[M2L_Helper_Type][i][d];
       }
-      std::vector<real_t> conv_coord = conv_grid(coord, 0);
-      std::vector<real_t> r_trg(3, 0.0);
-      std::vector<real_t> conv_poten(N3);
+      RealVec conv_coord = conv_grid(coord, 0);
+      RealVec r_trg(3, 0.0);
+      RealVec conv_poten(N3);
       BuildMatrix(&conv_coord[0], N3, &r_trg[0], 1, &conv_poten[0]);
       mat_M2L_Helper[i].resize(2*N3_);
       fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i][0]));
@@ -136,7 +136,7 @@ namespace pvfmm {
     int numParentRelCoord = rel_coord[M2L_Type].size();
     int numChildRelCoord = rel_coord[M2L_Helper_Type].size();
     mat_M2L.resize(numParentRelCoord);
-    std::vector<real_t> zero_vec(N3_*2, 0);
+    RealVec zero_vec(N3_*2, 0);
     #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<numParentRelCoord; i++) {
       ivec3& parentRelCoord = rel_coord[M2L_Type][i];
