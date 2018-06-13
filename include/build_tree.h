@@ -4,7 +4,7 @@
 #include "pvfmm.h"
 namespace pvfmm {
   //! Build nodes of tree adaptively using a top-down approach based on recursion
-  void buildTree(Body * bodies, Body * buffer, int begin, int end, FMM_Node * node, FMM_Nodes & nodes,
+  void buildTree(Body * bodies, Body * buffer, int begin, int end, Node * node, Nodes & nodes,
                   const vec3 & X, real_t R, int level=0, bool direction=false) {
     node->depth = level;         // depth
     //! Create a tree node
@@ -56,7 +56,7 @@ namespace pvfmm {
     vec3 Xchild;
     assert(nodes.capacity() >= nodes.size()+node->numChilds);
     nodes.resize(nodes.size()+node->numChilds);
-    FMM_Node * child = &nodes.back() - node->numChilds + 1;
+    Node * child = &nodes.back() - node->numChilds + 1;
     node->fchild = child;
     node->child.resize(8, NULL);
     for (int i=0, c=0; i<8; i++) {
@@ -76,11 +76,11 @@ namespace pvfmm {
     }
   }
 
-  FMM_Nodes buildTree(Bodies & bodies) {
+  Nodes buildTree(Bodies & bodies) {
     real_t R0 = 0.5;
     vec3 X0(0.5);
     Bodies buffer = bodies;
-    FMM_Nodes nodes(1);
+    Nodes nodes(1);
     nodes[0].parent = NULL;
     nodes[0].octant = 0;
     nodes.reserve(bodies.size()*(32/NCRIT+1));

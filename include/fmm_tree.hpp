@@ -13,28 +13,28 @@ namespace pvfmm {
     leafs.clear();
     nonleafs.clear();
     allnodes.clear();
-    std::queue<FMM_Node*> nodesQueue;
+    std::queue<Node*> nodesQueue;
     nodesQueue.push(root_node);
     while (!nodesQueue.empty()) {
-      FMM_Node* curr = nodesQueue.front();
+      Node* curr = nodesQueue.front();
       nodesQueue.pop();
       if (curr != root_node)  allnodes.push_back(curr);
       if (!curr->IsLeaf()) nonleafs.push_back(curr);
       else leafs.push_back(curr);
       for (int i=0; i<8; i++) {
-        FMM_Node* child = curr->Child(i);
+        Node* child = curr->Child(i);
         if (child!=NULL) nodesQueue.push(child);
       }
     }
     allnodes.push_back(root_node);   // level 0 root is the last one
 
     for (long i=0; i<leafs.size(); i++) {
-      FMM_Node* leaf = leafs[i];
+      Node* leaf = leafs[i];
       leaf->pt_trg.resize(leaf->numBodies * 4);
     }
 
     for(long i=0; i<allnodes.size(); i++) {
-      FMM_Node* node = allnodes[i];
+      Node* node = allnodes[i];
       node->idx = i;
     }
     LEVEL = leafs.back()->depth;
@@ -52,7 +52,7 @@ namespace pvfmm {
     }
   }
 
-  void SetupFMM(FMM_Nodes& cells) {
+  void SetupFMM(Nodes& cells) {
     Profile::Tic("SetupFMM", true);
     SetColleagues(cells);
     Profile::Tic("BuildLists", false, 3);
@@ -113,17 +113,17 @@ namespace pvfmm {
     Profile::Toc();
   }
 
-  void CheckFMMOutput(std::vector<FMM_Node*>& leafs) {
+  void CheckFMMOutput(std::vector<Node*>& leafs) {
     int numTargets = 10;
     int stride = leafs.size() / numTargets;
-    FMM_Nodes targets;
+    Nodes targets;
     for(size_t i=0; i<numTargets; i++) {
       targets.push_back(*(leafs[i*stride]));
     }
-    FMM_Nodes targets2 = targets;    // used for direct summation
+    Nodes targets2 = targets;    // used for direct summation
 #pragma omp parallel for
     for(size_t i=0; i<targets2.size(); i++) {
-      FMM_Node *target = &targets2[i];
+      Node *target = &targets2[i];
       std::fill(target->pt_trg.begin(), target->pt_trg.end(), 0.);
       for(size_t j=0; j<leafs.size(); j++) {
         gradientP2P(leafs[j]->pt_coord, leafs[j]->pt_src, target->pt_coord, target->pt_trg);

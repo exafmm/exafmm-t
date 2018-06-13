@@ -113,7 +113,7 @@ namespace pvfmm {
   void P2M() {
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
-      FMM_Node* leaf = leafs[i];
+      Node* leaf = leafs[i];
       int level = leaf->depth;
       real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
       RealVec checkCoord(NSURF*3);
@@ -132,7 +132,7 @@ namespace pvfmm {
     }
   }
 
-  void M2M(FMM_Node* node) {
+  void M2M(Node* node) {
     if(node->IsLeaf()) return;
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL)
@@ -142,7 +142,7 @@ namespace pvfmm {
     #pragma omp taskwait
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
-        FMM_Node* child = node->child[octant];
+        Node* child = node->child[octant];
         std::vector<size_t>& perm_in = perm_r[octant].perm;
         std::vector<size_t>& perm_out = perm_c[octant].perm;
         RealVec buffer_in(NSURF);
@@ -157,12 +157,12 @@ namespace pvfmm {
     }
   }
 
-  void L2L(FMM_Node* node) {
+  void L2L(Node* node) {
     if(node->IsLeaf()) return;
     int scal = 2;   // to remove scaling factor in L2L precomputation
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
-        FMM_Node* child = node->child[octant];
+        Node* child = node->child[octant];
         std::vector<size_t>& perm_in = perm_r[octant].perm;
         std::vector<size_t>& perm_out = perm_c[octant].perm;
         RealVec buffer_in(NSURF);
@@ -186,7 +186,7 @@ namespace pvfmm {
   void L2P() {
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
-      FMM_Node* leaf = leafs[i];
+      Node* leaf = leafs[i];
       int level = leaf->depth;
       real_t scal = pow(0.5, level);
       // check surface potential -> equivalent surface charge
@@ -208,15 +208,15 @@ namespace pvfmm {
   }
 
   void P2L() {
-    std::vector<FMM_Node*>& targets = allnodes;
+    std::vector<Node*>& targets = allnodes;
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
-      FMM_Node* target = targets[i];
+      Node* target = targets[i];
       if (target->IsLeaf() && target->numBodies<=NSURF)
         continue;
-      std::vector<FMM_Node*>& sources = target->interac_list[P2L_Type];
+      std::vector<Node*>& sources = target->interac_list[P2L_Type];
       for(int j=0; j<sources.size(); j++) {
-        FMM_Node* source = sources[j];
+        Node* source = sources[j];
         if (source != NULL) {
           RealVec targetCheckCoord(NSURF*3);
           int level = target->depth;
@@ -233,13 +233,13 @@ namespace pvfmm {
   }
 
   void M2P() {
-    std::vector<FMM_Node*>& targets = leafs;  // leafs
+    std::vector<Node*>& targets = leafs;  // leafs
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
-      FMM_Node* target = targets[i];
-      std::vector<FMM_Node*>& sources = target->interac_list[M2P_Type];
+      Node* target = targets[i];
+      std::vector<Node*>& sources = target->interac_list[M2P_Type];
       for(int j=0; j<sources.size(); j++) {
-        FMM_Node* source = sources[j];
+        Node* source = sources[j];
         if (source != NULL) {
           if (source->IsLeaf() && source->numBodies<=NSURF)
             continue;
@@ -258,20 +258,20 @@ namespace pvfmm {
   }
 
   void P2P() {
-    std::vector<FMM_Node*>& targets = leafs;   // leafs, assume sources == targets
+    std::vector<Node*>& targets = leafs;   // leafs, assume sources == targets
     std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type, P2L_Type, M2P_Type};
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
-      FMM_Node* target = targets[i];
+      Node* target = targets[i];
       for(int k=0; k<types.size(); k++) {
         Mat_Type type = types[k];
-        std::vector<FMM_Node*>& sources = target->interac_list[type];
+        std::vector<Node*>& sources = target->interac_list[type];
         if (type == P2L_Type)
           if (target->numBodies > NSURF) {
             continue;
           }
         for(int j=0; j<sources.size(); j++) {
-          FMM_Node* source = sources[j];
+          Node* source = sources[j];
           if (source != NULL) {
             if (type == M2P_Type) {
               if (source->numBodies > NSURF) {
@@ -288,17 +288,17 @@ namespace pvfmm {
   void M2LSetup(M2LData& M2Ldata) {
     size_t mat_cnt = rel_coord[M2L_Type].size();
     // construct nodes_out & nodes_in
-    std::vector<FMM_Node*>& nodes_out = nonleafs;
-    std::set<FMM_Node*> nodes_in_;
+    std::vector<Node*>& nodes_out = nonleafs;
+    std::set<Node*> nodes_in_;
     for(size_t i=0; i<nodes_out.size(); i++) {
-      std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
+      std::vector<Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
       for(size_t k=0; k<mat_cnt; k++) {
         if(M2Llist[k]!=NULL)
           nodes_in_.insert(M2Llist[k]);
       }
     }
-    std::vector<FMM_Node*> nodes_in;
-    for(std::set<FMM_Node*>::iterator node=nodes_in_.begin(); node!=nodes_in_.end(); node++) {
+    std::vector<Node*> nodes_in;
+    for(std::set<Node*>::iterator node=nodes_in_.begin(); node!=nodes_in_.end(); node++) {
       nodes_in.push_back(*node);
     }
     // prepare fft displ & fft scal
@@ -330,7 +330,7 @@ namespace pvfmm {
       size_t blk1_end  =(nodes_out.size()*(blk1+1))/n_blk1;
       for(size_t k=0; k<mat_cnt; k++) {
         for(size_t i=blk1_start; i<blk1_end; i++) {
-          std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
+          std::vector<Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
           if(M2Llist[k]!=NULL) {
             interac_vec.push_back(M2Llist[k]->node_id * fftsize);   // node_in dspl
             interac_vec.push_back(        i           * fftsize);   // node_out dspl

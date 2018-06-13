@@ -141,10 +141,10 @@ namespace pvfmm {
   typedef std::vector<Body> Bodies;             //!< Vector of bodies
 
   //! Structure of cells
-  struct FMM_Node {
+  struct Node {
     int numChilds;
     int numBodies;
-    FMM_Node * fchild;
+    Node * fchild;
     Body * body;
     vec3 X;
     real_t R;
@@ -154,10 +154,10 @@ namespace pvfmm {
     int depth;
     int octant;
     real_t coord[3];
-    FMM_Node* parent;
-    std::vector<FMM_Node*> child;
-    FMM_Node* colleague[27];
-    std::vector<FMM_Node*> interac_list[Type_Count];
+    Node* parent;
+    std::vector<Node*> child;
+    Node* colleague[27];
+    std::vector<Node*> interac_list[Type_Count];
     RealVec pt_coord;
     RealVec pt_src;  // src's charge
     RealVec pt_trg;  // trg's potential
@@ -168,12 +168,12 @@ namespace pvfmm {
       return numChilds == 0;
     }
 
-    FMM_Node* Child(int id) {
+    Node* Child(int id) {
       return (numChilds == 0) ? NULL : child[id];
     }
   };
-  typedef std::vector<FMM_Node> FMM_Nodes;              //!< Vector of cells
-  FMM_Node* root_node;
+  typedef std::vector<Node> Nodes;              //!< Vector of cells
+  Node* root_node;
 
   struct M2LData {
     std::vector<size_t> fft_vec;   // source's first child's upward_equiv's displacement
@@ -190,7 +190,7 @@ namespace pvfmm {
   std::vector<RealVec> dnwd_check_surf;
   std::vector<RealVec> dnwd_equiv_surf;
 
-  std::vector<FMM_Node*> leafs, nonleafs, allnodes;
+  std::vector<Node*> leafs, nonleafs, allnodes;
 
   // Relative coordinates and interaction lists
   std::vector<std::vector<ivec3> > rel_coord;

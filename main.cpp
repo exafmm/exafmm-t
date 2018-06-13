@@ -28,8 +28,8 @@
 
 using namespace pvfmm;
 using namespace exafmm;
-std::vector<real_t> plummer(int);
-std::vector<real_t> nonuniform(int);
+RealVec plummer(int);
+RealVec nonuniform(int);
 
 int main(int argc, char **argv) {
   Args args(argc, argv);
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
   N3 = N1 * N2;
   N3_ = N2 * (N1/2+1);
   Profile::Enable(true);
-  std::vector<real_t> src_coord, src_value;
+  RealVec src_coord, src_value;
   srand48(0);
 #if 0
   //src_coord = plummer(N);
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     bodies[i].q = src_value[i];
   }
 
-  FMM_Nodes nodes = buildTree(bodies);
+  Nodes nodes = buildTree(bodies);
   root_node = &nodes[0];
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
@@ -114,9 +114,9 @@ int main(int argc, char **argv) {
 }
 
 // generate plummer distribution in 0 to 1 cube
-std::vector<real_t> plummer(int numBodies) {
+RealVec plummer(int numBodies) {
   srand48(0);
-  std::vector<real_t> coord;
+  RealVec coord;
   int i = 0;
   while (i < numBodies) {
     real_t X1 = drand48();
@@ -140,9 +140,9 @@ std::vector<real_t> plummer(int numBodies) {
   return coord;
 }
 
-std::vector<real_t> nonuniform(int numBodies) {
+RealVec nonuniform(int numBodies) {
   srand48(0);
-  std::vector<real_t> coord;
+  RealVec coord;
   for(size_t i=0; i<3*numBodies; i++) {
     if (i/3 < 0.1*numBodies) coord.push_back(drand48()*0.5);
     else {

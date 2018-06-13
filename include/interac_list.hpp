@@ -123,17 +123,17 @@ namespace pvfmm {
   }
 
   // Build t-type interaction list for node n
-  void BuildList(FMM_Node* n, Mat_Type t) {
+  void BuildList(Node* n, Mat_Type t) {
     const int n_child=8, n_collg=27;
     int c_hash, idx, rel_coord[3];
     int p2n = n->octant;       // octant
-    FMM_Node* p = n->parent; // parent node
-    std::vector<FMM_Node*>& interac_list = n->interac_list[t];
+    Node* p = n->parent; // parent node
+    std::vector<Node*>& interac_list = n->interac_list[t];
     switch (t) {
     case P2P0_Type:
       if(p == NULL || !n->IsLeaf()) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* pc = p->colleague[i];
+        Node* pc = p->colleague[i];
         if(pc!=NULL && pc->IsLeaf()) {
           rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
           rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
@@ -147,7 +147,7 @@ namespace pvfmm {
     case P2P1_Type:
       if(!n->IsLeaf()) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* col=(FMM_Node*)n->colleague[i];
+        Node* col=(Node*)n->colleague[i];
         if(col!=NULL && col->IsLeaf()) {
           rel_coord[0]=( i %3)-1;
           rel_coord[1]=((i/3)%3)-1;
@@ -161,7 +161,7 @@ namespace pvfmm {
     case P2P2_Type:
       if(!n->IsLeaf()) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* col=(FMM_Node*)n->colleague[i];
+        Node* col=(Node*)n->colleague[i];
         if(col!=NULL && !col->IsLeaf()) {
           for(int j=0; j<n_child; j++) {
             rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
@@ -171,7 +171,7 @@ namespace pvfmm {
             idx = hash_lut[t][c_hash];
             if(idx>=0) {
               assert(col->Child(j)->IsLeaf()); //2:1 balanced
-              interac_list[idx] = (FMM_Node*)col->Child(j);
+              interac_list[idx] = (Node*)col->Child(j);
             }
           }
         }
@@ -180,7 +180,7 @@ namespace pvfmm {
     case M2L_Type:
       if(n->IsLeaf()) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* col=(FMM_Node*)n->colleague[i];
+        Node* col=(Node*)n->colleague[i];
         if(col!=NULL && !col->IsLeaf()) {
           rel_coord[0]=( i %3)-1;
           rel_coord[1]=((i/3)%3)-1;
@@ -194,7 +194,7 @@ namespace pvfmm {
     case M2P_Type:
       if(!n->IsLeaf()) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* col=(FMM_Node*)n->colleague[i];
+        Node* col=(Node*)n->colleague[i];
         if(col!=NULL && !col->IsLeaf()) {
           for(int j=0; j<n_child; j++) {
             rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
@@ -202,7 +202,7 @@ namespace pvfmm {
             rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
             c_hash = coord_hash(rel_coord);
             idx=hash_lut[t][c_hash];
-            if(idx>=0) interac_list[idx]=(FMM_Node*)col->Child(j);
+            if(idx>=0) interac_list[idx]=(Node*)col->Child(j);
           }
         }
       }
@@ -210,7 +210,7 @@ namespace pvfmm {
     case P2L_Type:
       if(p == NULL) return;
       for(int i=0; i<n_collg; i++) {
-        FMM_Node* pc=(FMM_Node*)p->colleague[i];
+        Node* pc=(Node*)p->colleague[i];
         if(pc!=NULL && pc->IsLeaf()) {
           rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
           rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
@@ -227,7 +227,7 @@ namespace pvfmm {
   }
 
   // Fill in interac_list of all nodes, assume sources == target for simplicity
-  void BuildInteracLists(FMM_Nodes& cells) {
+  void BuildInteracLists(Nodes& cells) {
     std::vector<Mat_Type> interactionTypes = {P2P0_Type, P2P1_Type, P2P2_Type,
                                               M2P_Type, P2L_Type, M2L_Type};
     for(int j=0; j<interactionTypes.size(); j++) {
@@ -235,17 +235,17 @@ namespace pvfmm {
       int numRelCoord = rel_coord[type].size();  // num of possible relative positions
       #pragma omp parallel for
       for(size_t i=0; i<cells.size(); i++) {
-        FMM_Node* node = &cells[i];
+        Node* node = &cells[i];
         node->interac_list[type].resize(numRelCoord, 0);
         BuildList(node, type);
       }
     }
   }
 
-  void SetColleagues(FMM_Node* node=NULL) {
-    FMM_Node* parent_node;
-    FMM_Node* tmp_node1;
-    FMM_Node* tmp_node2;
+  void SetColleagues(Node* node=NULL) {
+    Node* parent_node;
+    Node* tmp_node1;
+    Node* tmp_node2;
     for(int i=0; i<27; i++) node->colleague[i] = NULL;
     parent_node = node->parent;
     if(parent_node==NULL) return;
@@ -273,7 +273,7 @@ namespace pvfmm {
     }
   }
 
-  void SetColleagues(FMM_Nodes& nodes) {
+  void SetColleagues(Nodes& nodes) {
     nodes[0].colleague[13] = &nodes[0];
     for(int i=1; i<nodes.size(); i++) {
       SetColleagues(&nodes[i]);
