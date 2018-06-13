@@ -285,10 +285,74 @@ namespace pvfmm {
     }
   }
 
+  void M2LSetup(M2LData& M2Ldata) {
+    size_t mat_cnt = rel_coord[M2L_Type].size();
+    // construct nodes_out & nodes_in
+    std::vector<FMM_Node*>& nodes_out = nonleafs;
+    std::set<FMM_Node*> nodes_in_;
+    for(size_t i=0; i<nodes_out.size(); i++) {
+      std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
+      for(size_t k=0; k<mat_cnt; k++) {
+        if(M2Llist[k]!=NULL)
+          nodes_in_.insert(M2Llist[k]);
+      }
+    }
+    std::vector<FMM_Node*> nodes_in;
+    for(std::set<FMM_Node*>::iterator node=nodes_in_.begin(); node!=nodes_in_.end(); node++) {
+      nodes_in.push_back(*node);
+    }
+    // prepare fft displ & fft scal
+    std::vector<size_t> fft_vec(nodes_in.size());
+    std::vector<size_t> ifft_vec(nodes_out.size());
+    std::vector<real_t> fft_scl(nodes_in.size());
+    std::vector<real_t> ifft_scl(nodes_out.size());
+    for(size_t i=0; i<nodes_in.size(); i++) {
+      fft_vec[i] = nodes_in[i]->child[0]->idx * NSURF;
+      fft_scl[i] = 1;
+    }
+    for(size_t i=0; i<nodes_out.size(); i++) {
+      int depth = nodes_out[i]->depth+1;
+      ifft_vec[i] = nodes_out[i]->child[0]->idx * NSURF;
+      ifft_scl[i] = powf(2.0, depth);
+    }
+    // calculate interac_vec & interac_dsp
+    std::vector<size_t> interac_vec;
+    std::vector<size_t> interac_dsp;
+    for(size_t i=0; i<nodes_in.size(); i++) {
+     nodes_in[i]->node_id=i;
+    }
+    size_t n_blk1 = nodes_out.size() * sizeof(real_t) / CACHE_SIZE;
+    if(n_blk1==0) n_blk1 = 1;
+    size_t interac_dsp_ = 0;
+    size_t fftsize = 2 * 8 * N3_;
+    for(size_t blk1=0; blk1<n_blk1; blk1++) {
+      size_t blk1_start=(nodes_out.size()* blk1   )/n_blk1;
+      size_t blk1_end  =(nodes_out.size()*(blk1+1))/n_blk1;
+      for(size_t k=0; k<mat_cnt; k++) {
+        for(size_t i=blk1_start; i<blk1_end; i++) {
+          std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
+          if(M2Llist[k]!=NULL) {
+            interac_vec.push_back(M2Llist[k]->node_id * fftsize);   // node_in dspl
+            interac_vec.push_back(        i           * fftsize);   // node_out dspl
+            interac_dsp_++;
+          }
+        }
+        interac_dsp.push_back(interac_dsp_);
+      }
+    }
+    M2Ldata.fft_vec     = fft_vec;
+    M2Ldata.ifft_vec    = ifft_vec;
+    M2Ldata.fft_scl     = fft_scl;
+    M2Ldata.ifft_scl    = ifft_scl;
+    M2Ldata.interac_vec = interac_vec;
+    M2Ldata.interac_dsp = interac_dsp;
+  }
+
   void M2LListHadamard(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
                        AlignedVec& fft_in, AlignedVec& fft_out) {
-    AlignedVec zero_vec0(FFTSIZE, 0.);
-    AlignedVec zero_vec1(FFTSIZE, 0.);
+    size_t fftsize = 2 * 8 * N3_;
+    AlignedVec zero_vec0(fftsize, 0.);
+    AlignedVec zero_vec1(fftsize, 0.);
 
     size_t mat_cnt = mat_M2L.size();
     size_t blk1_cnt = interac_dsp.size()/mat_cnt;
@@ -345,20 +409,22 @@ namespace pvfmm {
              + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+2]+0.5)) * N2;
     }
 
+    size_t fftsize = 2 * 8 * N3_;
     AlignedVec fftw_in(N3 * NCHILD);
-    AlignedVec fftw_out(FFTSIZE);
-    fft_plan m2l_list_fftplan = fft_plan_many_dft_r2c(3, FFTDIM, NCHILD,
+    AlignedVec fftw_out(fftsize);
+    int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
+    fft_plan m2l_list_fftplan = fft_plan_many_dft_r2c(3, dim, NCHILD,
                                 (real_t*)&fftw_in[0], NULL, 1, N3,
                                 (fft_complex*)(&fftw_out[0]), NULL, 1, N3_,
                                 FFTW_ESTIMATE);
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<fft_vec.size(); node_idx++) {
-      std::vector<real_t> buffer(FFTSIZE, 0);
+      std::vector<real_t> buffer(fftsize, 0);
       real_t* upward_equiv = &input_data[fft_vec[node_idx]];  // offset ptr of node's 8 child's upward_equiv in allUpwardEquiv, size=8*NSURF
       // upward_equiv_fft (input of r2c) here should have a size of N3*NCHILD
       // the node_idx's chunk of fft_out has a size of 2*N3_*NCHILD
       // since it's larger than what we need,  we can use fft_out as fftw_in buffer here
-      real_t* upward_equiv_fft = &fft_in[FFTSIZE*node_idx]; // offset ptr of node_idx in fft_in vector, size=FFTSIZE
+      real_t* upward_equiv_fft = &fft_in[fftsize*node_idx]; // offset ptr of node_idx in fft_in vector, size=fftsize
       for(size_t k=0; k<NSURF; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<(int)NCHILD; j0++)
@@ -386,17 +452,19 @@ namespace pvfmm {
              + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+2])) * N2;
     }
 
-    AlignedVec fftw_in(FFTSIZE);
+    size_t fftsize = 2 * 8 * N3_;
+    AlignedVec fftw_in(fftsize);
     AlignedVec fftw_out(N3 * NCHILD);
-    fft_plan m2l_list_ifftplan = fft_plan_many_dft_c2r(3, FFTDIM, NCHILD,
+    int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
+    fft_plan m2l_list_ifftplan = fft_plan_many_dft_c2r(3, dim, NCHILD,
                                  (fft_complex*)&fftw_in[0], NULL, 1, N3_,
                                  (real_t*)(&fftw_out[0]), NULL, 1, N3,
                                  FFTW_ESTIMATE);
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<ifft_vec.size(); node_idx++) {
-      std::vector<real_t> buffer0(FFTSIZE, 0);
-      std::vector<real_t> buffer1(FFTSIZE, 0);
-      real_t* dnward_check_fft = &fft_out[FFTSIZE*node_idx];  // offset ptr for node_idx in fft_out vector, size=FFTSIZE
+      std::vector<real_t> buffer0(fftsize, 0);
+      std::vector<real_t> buffer1(fftsize, 0);
+      real_t* dnward_check_fft = &fft_out[fftsize*node_idx];  // offset ptr for node_idx in fft_out vector, size=fftsize
       real_t* dnward_equiv = &output_data[ifft_vec[node_idx]];  // offset ptr for node_idx's child's dnward_equiv in allDnwardEquiv, size=numChilds * NSURF
       for(size_t j=0; j<N3_; j++)
         for(size_t k=0; k<NCHILD; k++) {
@@ -424,8 +492,9 @@ namespace pvfmm {
         allDnwardEquiv[i*NSURF+j] = allnodes[i]->dnward_equiv[j];
       }
     }
-    AlignedVec fft_in(M2Ldata.fft_vec.size()*FFTSIZE, 0.);
-    AlignedVec fft_out(M2Ldata.ifft_vec.size()*FFTSIZE, 0.);
+    size_t fftsize = 2 * 8 * N3_;
+    AlignedVec fft_in(M2Ldata.fft_vec.size()*fftsize, 0.);
+    AlignedVec fft_out(M2Ldata.ifft_vec.size()*fftsize, 0.);
 
     FFT_UpEquiv(M2Ldata.fft_vec, M2Ldata.fft_scl, allUpwardEquiv, fft_in);
     M2LListHadamard(M2Ldata.interac_dsp, M2Ldata.interac_vec, fft_in, fft_out);

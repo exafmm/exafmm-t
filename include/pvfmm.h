@@ -210,9 +210,7 @@ namespace pvfmm {
   int MULTIPOLE_ORDER;   // order of multipole expansion
   int NSURF;     // number of surface coordinates
   int NCRIT;
-  int TRG_DIM;    // dimension of target's value (potential + force)
-  int N1, N2, N3, N3_, FFTSIZE;
-  int FFTDIM[3];  // the size of DFT dimensions
-  int NCHILD;     // max number of childs per node
+  int N1, N2, N3, N3_;
+  const int NCHILD = 8;
 }
 #endif

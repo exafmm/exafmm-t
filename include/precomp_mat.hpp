@@ -10,7 +10,7 @@ namespace pvfmm {
     perm_M2M.resize(Perm_Count);
     Permutation<real_t> ker_perm(1);
     #pragma omp parallel for
-    for(int p=0; p<Perm_Count; p++) { 
+    for(int p=0; p<Perm_Count; p++) {
       size_t p_indx = p % C_Perm;
       perm_M2M[p] = equiv_surf_perm(p_indx, ker_perm, 0);
     }
@@ -75,9 +75,9 @@ namespace pvfmm {
 
     RealVec VT = transpose(V, NSURF, NSURF);
     M2M_V.resize(NSURF*NSURF);
-    M2M_U = transpose(U, NSURF, NSURF); 
+    M2M_U = transpose(U, NSURF, NSURF);
     gemm(NSURF, NSURF, NSURF, &VT[0], &S[0], &M2M_V[0]);
-    
+
     L2L_V.resize(NSURF*NSURF);
     L2L_U = V;
     gemm(NSURF, NSURF, NSURF, &U[0], &S[0], &L2L_V[0]);
@@ -110,8 +110,8 @@ namespace pvfmm {
     // create fftw plan
     std::vector<real_t> fftw_in(N3);
     std::vector<real_t> fftw_out(2*N3_);
-    fft_plan plan = fft_plan_many_dft_r2c(3, FFTDIM, 1,
-                    &fftw_in[0], NULL, 1, N3,
+    int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
+    fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, &fftw_in[0], NULL, 1, N3,
                     (fft_complex*)(&fftw_out[0]), NULL, 1, N3_, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
     int numRelCoord = rel_coord[M2L_Helper_Type].size();

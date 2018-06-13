@@ -37,15 +37,11 @@ int main(int argc, char **argv) {
   size_t N = args.numBodies;
   NCRIT = args.ncrit;
   MULTIPOLE_ORDER = args.P;
-  NCHILD = 8;
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   N1 = 2 * MULTIPOLE_ORDER;
   N2 = N1 * N1;
   N3 = N1 * N2;
   N3_ = N2 * (N1/2+1);
-  FFTDIM[0] = N1; FFTDIM[1] = N1; FFTDIM[2] = N1;
-  FFTSIZE = 2 * 8 * N3_;   // 8 denotes number of children
-  TRG_DIM = 4;
   Profile::Enable(true);
   std::vector<real_t> src_coord, src_value;
   srand48(0);

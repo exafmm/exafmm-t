@@ -30,7 +30,7 @@ namespace pvfmm {
 
     for (long i=0; i<leafs.size(); i++) {
       FMM_Node* leaf = leafs[i];
-      leaf->pt_trg.resize(leaf->numBodies * TRG_DIM);
+      leaf->pt_trg.resize(leaf->numBodies * 4);
     }
 
     for(long i=0; i<allnodes.size(); i++) {
@@ -50,68 +50,6 @@ namespace pvfmm {
       std::fill(dnward_equiv.begin(), dnward_equiv.end(), 0);
       std::fill(pt_trg.begin(), pt_trg.end(), 0);
     }
-  }
-
-  void M2LSetup(M2LData& M2Ldata) {
-    size_t mat_cnt = rel_coord[M2L_Type].size();
-    // construct nodes_out & nodes_in
-    std::vector<FMM_Node*>& nodes_out = nonleafs;
-    std::set<FMM_Node*> nodes_in_;
-    for(size_t i=0; i<nodes_out.size(); i++) {
-      std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
-      for(size_t k=0; k<mat_cnt; k++) {
-        if(M2Llist[k]!=NULL)
-          nodes_in_.insert(M2Llist[k]);
-      }
-    }
-    std::vector<FMM_Node*> nodes_in;
-    for(std::set<FMM_Node*>::iterator node=nodes_in_.begin(); node!=nodes_in_.end(); node++) {
-      nodes_in.push_back(*node);
-    }
-    // prepare fft displ & fft scal
-    std::vector<size_t> fft_vec(nodes_in.size());
-    std::vector<size_t> ifft_vec(nodes_out.size());
-    std::vector<real_t> fft_scl(nodes_in.size());
-    std::vector<real_t> ifft_scl(nodes_out.size());
-    for(size_t i=0; i<nodes_in.size(); i++) {
-      fft_vec[i] = nodes_in[i]->child[0]->idx * NSURF;
-      fft_scl[i] = 1;
-    }
-    for(size_t i=0; i<nodes_out.size(); i++) {
-      int depth = nodes_out[i]->depth+1;
-      ifft_vec[i] = nodes_out[i]->child[0]->idx * NSURF;
-      ifft_scl[i] = powf(2.0, depth);
-    }
-    // calculate interac_vec & interac_dsp
-    std::vector<size_t> interac_vec;
-    std::vector<size_t> interac_dsp;
-    for(size_t i=0; i<nodes_in.size(); i++) {
-     nodes_in[i]->node_id=i;
-    }
-    size_t n_blk1 = nodes_out.size() * sizeof(real_t) / CACHE_SIZE;
-    if(n_blk1==0) n_blk1 = 1;
-    size_t interac_dsp_ = 0;
-    for(size_t blk1=0; blk1<n_blk1; blk1++) {
-      size_t blk1_start=(nodes_out.size()* blk1   )/n_blk1;
-      size_t blk1_end  =(nodes_out.size()*(blk1+1))/n_blk1;
-      for(size_t k=0; k<mat_cnt; k++) {
-        for(size_t i=blk1_start; i<blk1_end; i++) {
-          std::vector<FMM_Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
-          if(M2Llist[k]!=NULL) {
-            interac_vec.push_back(M2Llist[k]->node_id * FFTSIZE);   // node_in dspl
-            interac_vec.push_back(        i           * FFTSIZE);   // node_out dspl
-            interac_dsp_++;
-          }
-        }
-        interac_dsp.push_back(interac_dsp_);
-      }
-    }
-    M2Ldata.fft_vec     = fft_vec;
-    M2Ldata.ifft_vec    = ifft_vec;
-    M2Ldata.fft_scl     = fft_scl;
-    M2Ldata.ifft_scl    = ifft_scl;
-    M2Ldata.interac_vec = interac_vec;
-    M2Ldata.interac_dsp = interac_dsp;
   }
 
   void SetupFMM(FMM_Nodes& cells) {
