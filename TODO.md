@@ -1,6 +1,10 @@
 ###TODO
 -------------
 
+- [ ] Clean main.cpp (Tingyu)
+- [ ] Write wrapper for BEM (Tingyu)
+- [ ] Rename header files (Tingyu)
+- [ ] Add Helmholtz kernel (Tingyu)
 - [ ] Simplify perm_r, perm_c, remove scal member from Permutation class (Tingyu)
 - [ ] Simplify list structure (Tingyu)
 - [ ] get 2:1 balanced tree working, refer to pvfmm's repo, test with plummer distribution (Tingyu)
