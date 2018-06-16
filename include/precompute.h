@@ -1,11 +1,10 @@
-#ifndef _PVFMM_PrecompMAT_HPP_
-#define _PVFMM_PrecompMAT_HPP_
-#include "pvfmm.h"
-#include "kernel.hpp"
-#include "interac_list.hpp"
+#ifndef precompute_h
+#define precompute_h
+#include "exafmm_t.h"
 #include "geometry.h"
-#include "profile.hpp"
-namespace pvfmm {
+#include "kernel.h"
+
+namespace exafmm_t {
   void PrecompPerm() {
     perm_M2M.resize(Perm_Count);
     Permutation<real_t> ker_perm(1);
@@ -178,4 +177,4 @@ namespace pvfmm {
     PrecompM2L();
   }
 }//end namespace
-#endif //_PrecompMAT_HPP_
+#endif

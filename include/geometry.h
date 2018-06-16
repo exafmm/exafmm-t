@@ -1,10 +1,9 @@
 #ifndef geometry_h
 #define geometry_h
-#include "pvfmm.h"
-#include "matrix.hpp"
+#include "exafmm_t.h"
 
-namespace pvfmm {
-  // alpha is the ratio r_surface/r_cell, see 2015Malhotra, page 7
+namespace exafmm_t {
+  // alpha is the ratio r_surface/r_node
   // 2.95 for upward check surface / downward equivalent surface
   // 1.05 for upward equivalent surface / downward check surface
   RealVec surface(int p, real_t* c, real_t alpha, int depth){

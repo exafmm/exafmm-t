@@ -1,8 +1,8 @@
 #ifndef buildtree_h
 #define buildtree_h
-#include <cassert>
-#include "pvfmm.h"
-namespace pvfmm {
+#include "exafmm_t.h"
+
+namespace exafmm_t {
   //! Build nodes of tree adaptively using a top-down approach based on recursion
   void buildTree(Body * bodies, Body * buffer, int begin, int end, Node * node, Nodes & nodes,
                   const vec3 & X, real_t R, int level=0, bool direction=false) {

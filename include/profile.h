@@ -1,8 +1,10 @@
-#ifndef _PVFMM_PROFILE_HPP_
-#define _PVFMM_PROFILE_HPP_
+#ifndef profile_h
+#define profile_h
+#include <iomanip>
+#include <iostream>
+#include <stack>
 
-namespace pvfmm {
-
+namespace exafmm_t {
 class Profile {
  public:
 
@@ -171,5 +173,4 @@ std::vector<long long> Profile::m_log;
 std::vector<long long> Profile::max_m_log;
 
 }//end namespace
-
-#endif //_PVFMM_PROFILE_HPP_
+#endif

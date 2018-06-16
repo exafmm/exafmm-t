@@ -1,7 +1,7 @@
 #ifndef intrinsics_h
 #define intrinsics_h
 
-namespace pvfmm {
+namespace exafmm_t {
 #ifdef __AVX__
   inline void matmult_8x8x2(double*& M_, double*& IN0, double*& IN1, double*& OUT0, double*& OUT1){
     __m256d out00,out01,out10,out11;

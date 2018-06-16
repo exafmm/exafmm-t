@@ -1,8 +1,8 @@
-#ifndef _PVFMM_INTERAC_LIST_HPP_
-#define _PVFMM_INTERAC_LIST_HPP_
-#include "pvfmm.h"
+#ifndef interaction_list
+#define interaction_list
+#include "exafmm_t.h"
 
-namespace pvfmm {
+namespace exafmm_t {
   //! return x + 10y + 100z + 555
   int coord_hash(int* c) {
     const int n=5;
@@ -227,15 +227,15 @@ namespace pvfmm {
   }
 
   // Fill in interac_list of all nodes, assume sources == target for simplicity
-  void BuildInteracLists(Nodes& cells) {
+  void BuildInteracLists(Nodes& nodes) {
     std::vector<Mat_Type> interactionTypes = {P2P0_Type, P2P1_Type, P2P2_Type,
                                               M2P_Type, P2L_Type, M2L_Type};
     for(int j=0; j<interactionTypes.size(); j++) {
       Mat_Type type = interactionTypes[j];
       int numRelCoord = rel_coord[type].size();  // num of possible relative positions
       #pragma omp parallel for
-      for(size_t i=0; i<cells.size(); i++) {
-        Node* node = &cells[i];
+      for(size_t i=0; i<nodes.size(); i++) {
+        Node* node = &nodes[i];
         node->interac_list[type].resize(numRelCoord, 0);
         BuildList(node, type);
       }

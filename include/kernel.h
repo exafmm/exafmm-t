@@ -1,10 +1,12 @@
-#ifndef _PVFMM_FMM_KERNEL_HPP_
-#define _PVFMM_FMM_KERNEL_HPP_
+#ifndef kernel_h 
+#define kernel_h
+#include <map>
+#include <set>
+#include "exafmm_t.h"
 #include "geometry.h"
 #include "intrinsics.h"
-#include "pvfmm.h"
 
-namespace pvfmm {
+namespace exafmm_t {
   void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
     simdvec zero((real_t)0);
     const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
@@ -220,7 +222,7 @@ namespace pvfmm {
         if (source != NULL) {
           RealVec targetCheckCoord(NSURF*3);
           int level = target->depth;
-          // target cell's check coord = relative check coord + cell's origin
+          // target node's check coord = relative check coord + node's origin
           for(int k=0; k<NSURF; k++) {
             targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
             targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
@@ -245,7 +247,7 @@ namespace pvfmm {
             continue;
           RealVec sourceEquivCoord(NSURF*3);
           int level = source->depth;
-          // source cell's equiv coord = relative equiv coord + cell's origin
+          // source node's equiv coord = relative equiv coord + node's origin
           for(int k=0; k<NSURF; k++) {
             sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->coord[0];
             sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];

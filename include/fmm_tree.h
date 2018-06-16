@@ -1,13 +1,11 @@
-#ifndef _PVFMM_FMM_TREE_HPP_
-#define _PVFMM_FMM_TREE_HPP_
-#include "intrinsics.h"
-#include "pvfmm.h"
+#ifndef fmm_tree 
+#define fmm_tree
 #include <queue>
-#include "geometry.h"
-#include "precomp_mat.hpp"
-#include "build_tree.h"
+#include "exafmm_t.h"
+#include "kernel.h"
+#include "interaction_list.h"
 
-namespace pvfmm {
+namespace exafmm_t {
   // Construct list of leafs, nonleafs and initialize members
   void CollectNodeData() {
     leafs.clear();
@@ -52,11 +50,11 @@ namespace pvfmm {
     }
   }
 
-  void SetupFMM(Nodes& cells) {
+  void SetupFMM(Nodes& nodes) {
     Profile::Tic("SetupFMM", true);
-    SetColleagues(cells);
+    SetColleagues(nodes);
     Profile::Tic("BuildLists", false, 3);
-    BuildInteracLists(cells);
+    BuildInteracLists(nodes);
     Profile::Toc();
     Profile::Tic("CollectNodeData", false, 3);
     CollectNodeData();
@@ -143,4 +141,4 @@ namespace pvfmm {
     std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << sqrt(g_diff/g_norm) << std::endl;
   }
 }//end namespace
-#endif //_PVFMM_FMM_TREE_HPP_
+#endif

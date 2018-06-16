@@ -7,13 +7,13 @@ CXX = mpiicpc
 CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -debug all -traceback -I./include
 LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
 
-%.o: %.cpp
+%.o: %.cxx
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-float: main.cpp
+float: main.cxx
 	time $(CXX) $(CXXFLAGS) -c $< -o main.o -DFLOAT
 
-double: main.cpp
+double: main.cxx
 	time $(CXX) $(CXXFLAGS) -c $< -o main.o
 
 link: main.o
@@ -21,12 +21,6 @@ link: main.o
 
 clean:
 	rm -f *.o *.out
-
-cleandat:
-	rm -f $(PVFMM_DIR)/*f.data
-
-tags:
-	find . -name "*.cpp" -o -name "*.hpp" | xargs etags -f TAGS
 
 p4:
 	./a.out -T 8 -n 1000000 -P 4 -c 64

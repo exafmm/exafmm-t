@@ -3,7 +3,7 @@
 
 - [ ] Clean main.cpp (Tingyu)
 - [ ] Write wrapper for BEM (Tingyu)
-- [ ] Rename header files (Tingyu)
+- [x] Rename header files (Tingyu)
 - [ ] Add Helmholtz kernel (Tingyu)
 - [ ] Simplify perm_r, perm_c, remove scal member from Permutation class (Tingyu)
 - [ ] Simplify list structure (Tingyu)

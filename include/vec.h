@@ -16,7 +16,7 @@ const int SIMD_BYTES = 16;
 #define EXAFMM_RSQRT_APPROX 1
 #endif
 
-namespace pvfmm {
+namespace exafmm_t {
 #ifndef __CUDACC__
   template<int N, typename T>
   class vec {

@@ -1,32 +1,12 @@
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <fftw3.h>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <map>
 #include <omp.h>
-#include <set>
-#include <sstream>
-#include <stack>
-#include <stdint.h>
-#include <string>
-#include <sys/stat.h>
-#include <vector>
+#include "args.h"
+#include "build_tree.h"
+#include "fmm_tree.h"
+#include "interaction_list.h"
+#include "kernel.h"
+#include "precompute.h"
 
-#include <pvfmm.h>
-#include <args.h>
-#include <profile.hpp>
-#include <matrix.hpp>
-#include <precomp_mat.hpp>
-#include <kernel.hpp>
-#include <interac_list.hpp>
-#include <fmm_tree.hpp>
-
-using namespace pvfmm;
+using namespace exafmm_t;
 using namespace exafmm;
 RealVec plummer(int);
 RealVec nonuniform(int);

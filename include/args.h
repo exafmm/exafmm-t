@@ -2,8 +2,8 @@
 #define args_h
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <getopt.h>
 
 namespace exafmm {
@@ -27,7 +27,7 @@ namespace exafmm {
       fprintf(stderr,
 	      "Usage: %s [options]\n"
 	      "Long option (short option)     : Description (Default value)\n"
-	      " --ncrit (-c)                  : Number of bodies per leaf cell (%d)\n"
+	      " --ncrit (-c)                  : Number of bodies per leaf node (%d)\n"
 	      " --numBodies (-n)              : Number of bodies (%d)\n"
 	      " --P (-P)                      : Order of expansion (%d)\n"
 	      " --threads (-T)                : Number of threads (%d)\n",

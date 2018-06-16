@@ -1,7 +1,13 @@
-#ifndef pvfmm_h
-#define pvfmm_h
+#ifndef exafmm_t_h
+#define exafmm_t_h
+#include <algorithm>
+#include <cassert>
+#include <fftw3.h>
+#include <vector>
+
 #include "align.h"
-#include "matrix.hpp"
+#include "permutation.h"
+#include "profile.h"
 #include "vec.h"
 
 extern "C" {
@@ -15,15 +21,7 @@ extern "C" {
                double *S, double *U, int *LDU, double *VT, int *LDVT, double *WORK, int *LWORK, int *INFO);
 }
 
-namespace pvfmm {
-#ifndef NULL
-#define NULL 0
-#endif
-
-#ifndef NDEBUG
-#define NDEBUG
-#endif
-
+namespace exafmm_t {
 #define MAX_DEPTH 62
 #define MEM_ALIGN 64
 #define CACHE_SIZE 512
@@ -102,7 +100,6 @@ namespace pvfmm {
     return temp;
   }
 
-
   typedef enum {
     M2M_V_Type = 0,
     M2M_U_Type = 1,
@@ -140,7 +137,7 @@ namespace pvfmm {
   };
   typedef std::vector<Body> Bodies;             //!< Vector of bodies
 
-  //! Structure of cells
+  //! Structure of nodes
   struct Node {
     int numChilds;
     int numBodies;
@@ -172,7 +169,7 @@ namespace pvfmm {
       return (numChilds == 0) ? NULL : child[id];
     }
   };
-  typedef std::vector<Node> Nodes;              //!< Vector of cells
+  typedef std::vector<Node> Nodes;              //!< Vector of nodes
   Node* root_node;
 
   struct M2LData {
@@ -204,8 +201,8 @@ namespace pvfmm {
   RealVec mat_M2M, mat_L2L;
   std::vector<RealVec> mat_M2L;
   std::vector<RealVec> mat_M2L_Helper;
-  std::vector<Permutation<real_t> > perm_M2M;
-  std::vector<Permutation<real_t> > perm_r, perm_c;
+  std::vector<Permutation<real_t>> perm_M2M;
+  std::vector<Permutation<real_t>> perm_r, perm_c;
 
   int LEVEL;     // depth of octree
   int MULTIPOLE_ORDER;   // order of multipole expansion
