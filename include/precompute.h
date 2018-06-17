@@ -94,13 +94,13 @@ namespace exafmm_t {
 
   void PrecompL2L() {
     int level = 0;
-    real_t s = powf(0.5, level+1);
+    real_t s = powf(0.5, level+2);
     int class_coord_idx = interac_class[L2L_Type][0];
     ivec3& coord = rel_coord[L2L_Type][class_coord_idx];
     real_t c[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-    RealVec c_check_surf = d_check_surf(c, level);
+    RealVec c_check_surf = d_check_surf(c, level+1);
     real_t parent_coord[3] = {0, 0, 0};
-    RealVec p_equiv_surf = d_equiv_surf(parent_coord, level-1);
+    RealVec p_equiv_surf = d_equiv_surf(parent_coord, level);
     RealVec M_pe2c(NSURF*NSURF);
     BuildMatrix(&p_equiv_surf[0], NSURF, &c_check_surf[0], NSURF, &M_pe2c[0]);
 

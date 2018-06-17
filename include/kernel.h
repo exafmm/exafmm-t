@@ -161,7 +161,6 @@ namespace exafmm_t {
 
   void L2L(Node* node) {
     if(node->IsLeaf()) return;
-    int scal = 2;   // to remove scaling factor in L2L precomputation
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
         Node* child = node->child[octant];
@@ -174,7 +173,7 @@ namespace exafmm_t {
         }
         gemm(1, NSURF, NSURF, &buffer_in[0], &mat_L2L[0], &buffer_out[0]);
         for(int k=0; k<NSURF; k++)
-          child->dnward_equiv[k] += buffer_out[perm_out[k]] * scal;
+          child->dnward_equiv[k] += buffer_out[perm_out[k]];
       }
     }
     for(int octant=0; octant<8; octant++) {
