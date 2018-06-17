@@ -42,40 +42,23 @@ namespace exafmm_t {
 
     int numRelCoord = rel_coord[M2M_Type].size();
     mat_M2M.resize(numRelCoord);
+    mat_L2L.resize(numRelCoord);
 #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
       ivec3& coord = rel_coord[M2M_Type][i];
       real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
       RealVec c_equiv_surf = u_equiv_surf(child_coord, level+1);
-      RealVec M_ce2c(NSURF*NSURF);
-      BuildMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_ce2c[0]);
-     
+      RealVec M_e2c(NSURF*NSURF);
+      BuildMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_e2c[0]);
+      // M2M: child's upward_equiv to parent's check
+      RealVec buffer(NSURF*NSURF);
       mat_M2M[i].resize(NSURF*NSURF);
-      RealVec buffer(NSURF*NSURF);
-      gemm(NSURF, NSURF, NSURF, &M_ce2c[0], &M2M_V[0], &buffer[0]);
+      gemm(NSURF, NSURF, NSURF, &M_e2c[0], &M2M_V[0], &buffer[0]);
       gemm(NSURF, NSURF, NSURF, &buffer[0], &M2M_U[0], &(mat_M2M[i][0]));
-    }
-  }
-
-  void PrecompL2L() {
-    int level = 0;
-    real_t parent_coord[3] = {0, 0, 0};
-    RealVec p_equiv_surf = d_equiv_surf(parent_coord, level);
-    real_t s = powf(0.5, level+2);
-
-    int numRelCoord = rel_coord[L2L_Type].size();
-    mat_L2L.resize(numRelCoord);
-#pragma omp parallel for
-    for(int i=0; i<numRelCoord; i++) {
-      ivec3& coord = rel_coord[L2L_Type][i];
-      real_t child_coord[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-      RealVec c_check_surf = d_check_surf(child_coord, level+1);
-      RealVec M_pe2c(NSURF*NSURF);
-      BuildMatrix(&p_equiv_surf[0], NSURF, &c_check_surf[0], NSURF, &M_pe2c[0]);
-
+      // L2L: parent's dnward_equiv to child's check, reuse surface coordinates
+      M_e2c = transpose(M_e2c, NSURF, NSURF);
       mat_L2L[i].resize(NSURF*NSURF);
-      RealVec buffer(NSURF*NSURF);
-      gemm(NSURF, NSURF, NSURF, &L2L_U[0], &M_pe2c[0], &buffer[0]);
+      gemm(NSURF, NSURF, NSURF, &L2L_U[0], &M_e2c[0], &buffer[0]);
       gemm(NSURF, NSURF, NSURF, &L2L_V[0], &buffer[0], &(mat_L2L[i][0]));
     }
   }
@@ -145,7 +128,6 @@ namespace exafmm_t {
   void Precompute() {
     PrecompCheck2Equiv();
     PrecompM2M();
-    PrecompL2L();
     PrecompM2LHelper();
     PrecompM2L();
   }

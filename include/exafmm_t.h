@@ -90,7 +90,6 @@ namespace exafmm_t {
 
   RealVec transpose(RealVec& vec, int m, int n) {
     RealVec temp(vec.size());
-#pragma omp for collapse(2)
     for(int i=0; i<m; i++) {
       for(int j=0; j<n; j++) {
         temp[j*m+i] = vec[i*n+j];
