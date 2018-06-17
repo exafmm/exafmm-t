@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "align.h"
-#include "permutation.h"
 #include "profile.h"
 #include "vec.h"
 
@@ -190,19 +189,15 @@ namespace exafmm_t {
   std::vector<Node*> leafs, nonleafs, allnodes;
 
   // Relative coordinates and interaction lists
-  std::vector<std::vector<ivec3> > rel_coord;
-  std::vector<std::vector<int> > hash_lut;     // coord_hash -> index in rel_coord
-  std::vector<std::vector<int> > interac_class;  // index -> index of abs_coord of the same class
-  std::vector<std::vector<std::vector<Perm_Type> > > perm_list;// index -> list of permutations needed in order to change from abs_coord to rel_coord
+  std::vector<std::vector<ivec3>> rel_coord;
+  std::vector<std::vector<int>> hash_lut;     // coord_hash -> index in rel_coord
 
-  // Precomputation matrices and permutations
+  // Precomputation matrices
   RealVec M2M_U, M2M_V;
   RealVec L2L_U, L2L_V;
-  RealVec mat_M2M, mat_L2L;
+  std::vector<RealVec> mat_M2M, mat_L2L;
   std::vector<RealVec> mat_M2L;
   std::vector<RealVec> mat_M2L_Helper;
-  std::vector<Permutation<real_t>> perm_M2M;
-  std::vector<Permutation<real_t>> perm_r, perm_c;
 
   int LEVEL;     // depth of octree
   int MULTIPOLE_ORDER;   // order of multipole expansion

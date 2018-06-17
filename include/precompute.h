@@ -5,46 +5,6 @@
 #include "kernel.h"
 
 namespace exafmm_t {
-  void PrecompPerm() {
-    perm_M2M.resize(Perm_Count);
-    Permutation<real_t> ker_perm(1);
-    #pragma omp parallel for
-    for(int p=0; p<Perm_Count; p++) {
-      size_t p_indx = p % C_Perm;
-      perm_M2M[p] = equiv_surf_perm(p_indx, ker_perm, 0);
-    }
-  }
-
-  void Perm_R() {
-    int numRelCoord = rel_coord[M2M_Type].size();
-    perm_r.resize(numRelCoord);
-    #pragma omp parallel for
-    for(int i=0; i<numRelCoord; i++) {
-      std::vector<Perm_Type> p_list = perm_list[M2M_Type][i];   // get perm_list of current rel_coord
-      Permutation<real_t> row_perm_ = Permutation<real_t>(NSURF); // init row_perm to be size NSURF
-      for(int j=p_list.size()-1; j>=0; j--) { // loop over the operations of perm_list from end to begin
-        Permutation<real_t>& pr = perm_M2M[p_list[j]]; // grab the handle of its mat->perm entry
-        row_perm_ = pr.Transpose() * row_perm_; // accumulate the permutation to row_perm (perm_r in precompmat header)
-      }
-      perm_r[i] = row_perm_;
-    }
-  }
-
-  void Perm_C() {
-    int numRelCoord = rel_coord[M2M_Type].size();
-    perm_c.resize(numRelCoord);
-    #pragma omp parallel for
-    for(int i=0; i<numRelCoord; i++) {
-      std::vector<Perm_Type> p_list = perm_list[M2M_Type][i];
-      Permutation<real_t> col_perm_ = Permutation<real_t>(NSURF);
-        for(int j=p_list.size()-1; j>=0; j--) {
-          Permutation<real_t>& pc = perm_M2M[C_Perm + p_list[j]];
-          col_perm_ = col_perm_ * pc;
-        }
-      perm_c[i] = col_perm_;
-    }
-  }
-
   void PrecompCheck2Equiv() {
     int level = 0;
     real_t c[3] = {0, 0, 0};
@@ -76,38 +36,48 @@ namespace exafmm_t {
 
   void PrecompM2M() {
     int level = 0;
-    real_t c[3] = {0, 0, 0};
-    RealVec p_check_surf = u_check_surf(c, level);
+    real_t parent_coord[3] = {0, 0, 0};
+    RealVec p_check_surf = u_check_surf(parent_coord, level);
     real_t s = powf(0.5, level+2);
-    int class_coord_idx = interac_class[M2M_Type][0];
-    ivec3& coord = rel_coord[M2M_Type][class_coord_idx];
-    real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-    RealVec c_equiv_surf = u_equiv_surf(child_coord, level+1);
-    RealVec M_ce2c(NSURF*NSURF);
-    BuildMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_ce2c[0]);
-   
-    mat_M2M.resize(NSURF*NSURF);
-    RealVec buffer(NSURF*NSURF);
-    gemm(NSURF, NSURF, NSURF, &M_ce2c[0], &M2M_V[0], &buffer[0]);
-    gemm(NSURF, NSURF, NSURF, &buffer[0], &M2M_U[0], &mat_M2M[0]);
+
+    int numRelCoord = rel_coord[M2M_Type].size();
+    mat_M2M.resize(numRelCoord);
+#pragma omp parallel for
+    for(int i=0; i<numRelCoord; i++) {
+      ivec3& coord = rel_coord[M2M_Type][i];
+      real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
+      RealVec c_equiv_surf = u_equiv_surf(child_coord, level+1);
+      RealVec M_ce2c(NSURF*NSURF);
+      BuildMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_ce2c[0]);
+     
+      mat_M2M[i].resize(NSURF*NSURF);
+      RealVec buffer(NSURF*NSURF);
+      gemm(NSURF, NSURF, NSURF, &M_ce2c[0], &M2M_V[0], &buffer[0]);
+      gemm(NSURF, NSURF, NSURF, &buffer[0], &M2M_U[0], &(mat_M2M[i][0]));
+    }
   }
 
   void PrecompL2L() {
     int level = 0;
-    real_t s = powf(0.5, level+2);
-    int class_coord_idx = interac_class[L2L_Type][0];
-    ivec3& coord = rel_coord[L2L_Type][class_coord_idx];
-    real_t c[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-    RealVec c_check_surf = d_check_surf(c, level+1);
     real_t parent_coord[3] = {0, 0, 0};
     RealVec p_equiv_surf = d_equiv_surf(parent_coord, level);
-    RealVec M_pe2c(NSURF*NSURF);
-    BuildMatrix(&p_equiv_surf[0], NSURF, &c_check_surf[0], NSURF, &M_pe2c[0]);
+    real_t s = powf(0.5, level+2);
 
-    mat_L2L.resize(NSURF*NSURF);
-    RealVec buffer(NSURF*NSURF);
-    gemm(NSURF, NSURF, NSURF, &L2L_U[0], &M_pe2c[0], &buffer[0]);
-    gemm(NSURF, NSURF, NSURF, &L2L_V[0], &buffer[0], &mat_L2L[0]);
+    int numRelCoord = rel_coord[L2L_Type].size();
+    mat_L2L.resize(numRelCoord);
+#pragma omp parallel for
+    for(int i=0; i<numRelCoord; i++) {
+      ivec3& coord = rel_coord[L2L_Type][i];
+      real_t child_coord[3]= {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
+      RealVec c_check_surf = d_check_surf(child_coord, level+1);
+      RealVec M_pe2c(NSURF*NSURF);
+      BuildMatrix(&p_equiv_surf[0], NSURF, &c_check_surf[0], NSURF, &M_pe2c[0]);
+
+      mat_L2L[i].resize(NSURF*NSURF);
+      RealVec buffer(NSURF*NSURF);
+      gemm(NSURF, NSURF, NSURF, &L2L_U[0], &M_pe2c[0], &buffer[0]);
+      gemm(NSURF, NSURF, NSURF, &L2L_V[0], &buffer[0], &(mat_L2L[i][0]));
+    }
   }
 
   void PrecompM2LHelper() {
@@ -173,9 +143,6 @@ namespace exafmm_t {
   }
 
   void Precompute() {
-    PrecompPerm();
-    Perm_R();
-    Perm_C();
     PrecompCheck2Equiv();
     PrecompM2M();
     PrecompL2L();

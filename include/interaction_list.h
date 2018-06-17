@@ -68,43 +68,9 @@ namespace exafmm_t {
             idx++;
           }
     assert(count_==count);
-    interac_class[t].resize(count);
-    perm_list[t].resize(count);
-    for(int j=0; j<count; j++) {      // j is now the index of sorted rel_coord
-      if(M[j][0]<0) perm_list[t][j].push_back(ReflecX);
-      if(M[j][1]<0) perm_list[t][j].push_back(ReflecY);
-      if(M[j][2]<0) perm_list[t][j].push_back(ReflecZ);
-      int coord[3];
-      coord[0]=abs(M[j][0]);
-      coord[1]=abs(M[j][1]);
-      coord[2]=abs(M[j][2]);
-      if(coord[1]>coord[0] && coord[1]>coord[2]) {
-        perm_list[t][j].push_back(SwapXY);
-        int tmp=coord[0];
-        coord[0]=coord[1];
-        coord[1]=tmp;
-      }
-      if(coord[0]>coord[2]) {
-        perm_list[t][j].push_back(SwapXZ);
-        int tmp=coord[0];
-        coord[0]=coord[2];
-        coord[2]=tmp;
-      }
-      if(coord[0]>coord[1]) {
-        perm_list[t][j].push_back(SwapXY);
-        int tmp=coord[0];
-        coord[0]=coord[1];
-        coord[1]=tmp;
-      }
-      assert(coord[0]<=coord[1] && coord[1]<=coord[2]);
-      int c_hash = coord_hash(&coord[0]);
-      interac_class[t][j]=hash_lut[t][c_hash];  // j-th rel_coord -> abs coord of the same class
-    }
   }
 
   void InitAll() {
-    interac_class.resize(Type_Count);
-    perm_list.resize(Type_Count);
     rel_coord.resize(Type_Count);
     hash_lut.resize(Type_Count);
     InitList(0, 0, 1, M2M_V_Type);

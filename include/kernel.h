@@ -145,16 +145,11 @@ namespace exafmm_t {
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
         Node* child = node->child[octant];
-        std::vector<size_t>& perm_in = perm_r[octant].perm;
-        std::vector<size_t>& perm_out = perm_c[octant].perm;
-        RealVec buffer_in(NSURF);
-        RealVec buffer_out(NSURF);
+        RealVec buffer(NSURF);
+        gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++) {
-          buffer_in[k] = child->upward_equiv[perm_in[k]]; // input perm
+          node->upward_equiv[k] += buffer[k];
         }
-        gemm(1, NSURF, NSURF, &buffer_in[0], &mat_M2M[0], &buffer_out[0]);
-        for(int k=0; k<NSURF; k++)
-          node->upward_equiv[k] += buffer_out[perm_out[k]];
       }
     }
   }
@@ -164,16 +159,10 @@ namespace exafmm_t {
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
         Node* child = node->child[octant];
-        std::vector<size_t>& perm_in = perm_r[octant].perm;
-        std::vector<size_t>& perm_out = perm_c[octant].perm;
-        RealVec buffer_in(NSURF);
-        RealVec buffer_out(NSURF);
-        for(int k=0; k<NSURF; k++) {
-          buffer_in[k] = node->dnward_equiv[perm_in[k]]; // input perm
-        }
-        gemm(1, NSURF, NSURF, &buffer_in[0], &mat_L2L[0], &buffer_out[0]);
+        RealVec buffer(NSURF);
+        gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++)
-          child->dnward_equiv[k] += buffer_out[perm_out[k]];
+          child->dnward_equiv[k] += buffer[k];
       }
     }
     for(int octant=0; octant<8; octant++) {
