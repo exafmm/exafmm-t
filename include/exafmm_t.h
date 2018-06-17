@@ -4,7 +4,6 @@
 #include <cassert>
 #include <fftw3.h>
 #include <vector>
-
 #include "align.h"
 #include "profile.h"
 #include "vec.h"
@@ -99,32 +98,17 @@ namespace exafmm_t {
   }
 
   typedef enum {
-    M2M_V_Type = 0,
-    M2M_U_Type = 1,
-    L2L_V_Type = 2,
-    L2L_U_Type = 3,
-    M2M_Type = 4,
-    L2L_Type = 5,
-    M2L_Helper_Type = 6,
-    M2L_Type = 7,
-    P2P0_Type = 10,
-    P2P1_Type = 11,
-    P2P2_Type = 12,
-    M2P_Type = 13,
-    P2L_Type = 14,
-    Type_Count = 15
+    M2M_Type = 0,
+    L2L_Type = 1,
+    M2L_Helper_Type = 2,
+    M2L_Type = 3,
+    P2P0_Type = 4,
+    P2P1_Type = 5,
+    P2P2_Type = 6,
+    M2P_Type = 7,
+    P2L_Type = 8,
+    Type_Count = 9
   } Mat_Type;
-
-  typedef enum {
-    Scaling = 0,
-    ReflecX = 1,
-    ReflecY = 2,
-    ReflecZ = 3,
-    SwapXY  = 4,
-    SwapXZ  = 5,
-    C_Perm = 6,
-    Perm_Count = 12
-  } Perm_Type;
 
   //! Structure of bodies
   struct Body {

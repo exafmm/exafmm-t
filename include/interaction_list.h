@@ -73,10 +73,6 @@ namespace exafmm_t {
   void InitAll() {
     rel_coord.resize(Type_Count);
     hash_lut.resize(Type_Count);
-    InitList(0, 0, 1, M2M_V_Type);
-    InitList(0, 0, 1, M2M_U_Type);
-    InitList(0, 0, 1, L2L_V_Type);
-    InitList(0, 0, 1, L2L_U_Type);
     InitList(1, 1, 2, M2M_Type); // count = 8, (+1 or -1)
     InitList(1, 1, 2, L2L_Type);
     InitList(3, 3, 2, P2P0_Type);  // count = 4^3-2^3 = 56
