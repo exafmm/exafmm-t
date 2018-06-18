@@ -52,9 +52,9 @@ namespace exafmm_t {
 
   void SetupFMM(Nodes& nodes) {
     Profile::Tic("SetupFMM", true);
-    SetColleagues(nodes);
+    setColleagues(nodes);
     Profile::Tic("BuildLists", false, 3);
-    BuildInteracLists(nodes);
+    buildList(nodes);
     Profile::Toc();
     Profile::Tic("CollectNodeData", false, 3);
     CollectNodeData();

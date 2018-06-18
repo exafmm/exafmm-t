@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     dnwd_equiv_surf[depth] = d_equiv_surf(c, depth);
   }
 
-  InitAll();    // initialize relative coords
+  initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();
   Profile::Toc();
