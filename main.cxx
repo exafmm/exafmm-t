@@ -1,7 +1,6 @@
 #include <omp.h>
 #include "args.h"
 #include "build_tree.h"
-#include "fmm_tree.h"
 #include "interaction_list.h"
 #include "kernel.h"
 #include "precompute.h"
@@ -88,9 +87,11 @@ int main(int argc, char **argv) {
   upwardPass(nodes, leafs);
   downwardPass(nodes, leafs);
   Profile::Toc();
-  std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() <<'\n';
-  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< leafs.back()->depth <<'\n';
-  CheckFMMOutput(leafs);
+  RealVec error = verify(leafs);
+  std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
+  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< leafs.back()->depth << std::endl;
+  std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;
+  std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << error[1] << std::endl;
   Profile::print();
   return 0;
 }
