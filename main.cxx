@@ -41,8 +41,9 @@ int main(int argc, char **argv) {
     bodies[i].q = src_value[i];
   }
 
-  Nodes nodes = buildTree(bodies);
-  root_node = &nodes[0];
+  std::vector<Node*> leafs, nonleafs;
+  Nodes nodes = buildTree(bodies, leafs, nonleafs);
+
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
   for(int i=0; i<nodes.size(); i++) {
@@ -76,18 +77,19 @@ int main(int argc, char **argv) {
     dnwd_equiv_surf[depth] = d_equiv_surf(c, depth);
   }
 
+  Profile::Tic("Total", true);
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();
   Profile::Toc();
-  for(size_t it=0; it<1; it++) {
-    Profile::Tic("Total", true);
-    SetupFMM(nodes);
-    RunFMM();
-    Profile::Toc();
-  }
+  setColleagues(nodes);
+  buildList(nodes);
+  M2LSetup(M2Ldata, nonleafs);
+  upwardPass(nodes, leafs);
+  downwardPass(nodes, leafs);
+  Profile::Toc();
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() <<'\n';
-  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< LEVEL <<'\n';
+  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< leafs.back()->depth <<'\n';
   CheckFMMOutput(leafs);
   Profile::print();
   return 0;

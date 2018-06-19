@@ -112,7 +112,7 @@ namespace exafmm_t {
     }
   }
 
-  void P2M() {
+  void P2M(std::vector<Node*>& leafs) {
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
@@ -173,7 +173,7 @@ namespace exafmm_t {
     #pragma omp taskwait
   }
 
-  void L2P() {
+  void L2P(std::vector<Node*>& leafs) {
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
@@ -197,11 +197,11 @@ namespace exafmm_t {
     }
   }
 
-  void P2L() {
-    std::vector<Node*>& targets = allnodes;
+  void P2L(Nodes& nodes) {
+    Nodes& targets = nodes;
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
-      Node* target = targets[i];
+      Node* target = &targets[i];
       if (target->IsLeaf() && target->numBodies<=NSURF)
         continue;
       std::vector<Node*>& sources = target->interac_list[P2L_Type];
@@ -222,7 +222,7 @@ namespace exafmm_t {
     }
   }
 
-  void M2P() {
+  void M2P(std::vector<Node*>& leafs) {
     std::vector<Node*>& targets = leafs;  // leafs
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
@@ -247,7 +247,7 @@ namespace exafmm_t {
     }
   }
 
-  void P2P() {
+  void P2P(std::vector<Node*>& leafs) {
     std::vector<Node*>& targets = leafs;   // leafs, assume sources == targets
     std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type, P2L_Type, M2P_Type};
     #pragma omp parallel for
@@ -275,7 +275,7 @@ namespace exafmm_t {
     }
   }
 
-  void M2LSetup(M2LData& M2Ldata) {
+  void M2LSetup(M2LData& M2Ldata, std::vector<Node*>& nonleafs) {
     size_t mat_cnt = rel_coord[M2L_Type].size();
     // construct nodes_out & nodes_in
     std::vector<Node*>& nodes_out = nonleafs;
@@ -471,15 +471,15 @@ namespace exafmm_t {
     fft_destroy_plan(m2l_list_ifftplan);
   }
 
-  void M2L(M2LData& M2Ldata) {
-    size_t numNodes = allnodes.size();
+  void M2L(M2LData& M2Ldata, Nodes& nodes) {
+    size_t numNodes = nodes.size();
     RealVec allUpwardEquiv(numNodes*NSURF);
     RealVec allDnwardEquiv(numNodes*NSURF);
     #pragma omp parallel for collapse(2)
     for(int i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
-        allUpwardEquiv[i*NSURF+j] = allnodes[i]->upward_equiv[j];
-        allDnwardEquiv[i*NSURF+j] = allnodes[i]->dnward_equiv[j];
+        allUpwardEquiv[i*NSURF+j] = nodes[i].upward_equiv[j];
+        allDnwardEquiv[i*NSURF+j] = nodes[i].dnward_equiv[j];
       }
     }
     size_t fftsize = 2 * 8 * N3_;
@@ -493,8 +493,8 @@ namespace exafmm_t {
     #pragma omp parallel for collapse(2)
     for(int i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
-        allnodes[i]->upward_equiv[j] = allUpwardEquiv[i*NSURF+j];
-        allnodes[i]->dnward_equiv[j] = allDnwardEquiv[i*NSURF+j];
+        nodes[i].upward_equiv[j] = allUpwardEquiv[i*NSURF+j];
+        nodes[i].dnward_equiv[j] = allDnwardEquiv[i*NSURF+j];
       }
     }
   }
