@@ -42,6 +42,8 @@ int main(int argc, char **argv) {
 
   std::vector<Node*> leafs, nonleafs;
   Nodes nodes = buildTree(bodies, leafs, nonleafs);
+  MAXLEVEL = leafs.back()->depth;
+  std::cout << MAXLEVEL << std::endl;
 
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
@@ -58,24 +60,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
-  // initialize equiv surface coords for all levels
-  upwd_check_surf.resize(MAX_DEPTH);
-  upwd_equiv_surf.resize(MAX_DEPTH);
-  dnwd_check_surf.resize(MAX_DEPTH);
-  dnwd_equiv_surf.resize(MAX_DEPTH);
-  for(size_t depth=0; depth<MAX_DEPTH; depth++) {
-    real_t c[3] = {0.0};
-    upwd_check_surf[depth].resize(NSURF*3);
-    upwd_equiv_surf[depth].resize(NSURF*3);
-    dnwd_check_surf[depth].resize(NSURF*3);
-    dnwd_equiv_surf[depth].resize(NSURF*3);
-    upwd_check_surf[depth] = u_check_surf(c, depth);
-    upwd_equiv_surf[depth] = u_equiv_surf(c, depth);
-    dnwd_check_surf[depth] = d_check_surf(c, depth);
-    dnwd_equiv_surf[depth] = d_equiv_surf(c, depth);
-  }
-
   Profile::Tic("Total", true);
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
