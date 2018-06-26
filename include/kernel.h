@@ -113,6 +113,13 @@ namespace exafmm_t {
   }
 
   void P2M() {
+    real_t c[3] = {0.0};
+    std::vector<RealVec> upwd_check_surf;
+    upwd_check_surf.resize(LEVEL+1);
+    for(size_t depth=0; depth<=LEVEL; depth++) {
+      upwd_check_surf[depth].resize(NSURF*3);
+      upwd_check_surf[depth] = u_check_surf(c, depth);
+    }
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
@@ -174,6 +181,13 @@ namespace exafmm_t {
   }
 
   void L2P() {
+    real_t c[3] = {0.0};
+    std::vector<RealVec> dnwd_equiv_surf;
+    dnwd_equiv_surf.resize(LEVEL+1);
+    for(size_t depth=0; depth<=LEVEL; depth++) {
+      dnwd_equiv_surf[depth].resize(NSURF*3);
+      dnwd_equiv_surf[depth] = d_equiv_surf(c, depth);
+    }
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
@@ -199,6 +213,13 @@ namespace exafmm_t {
 
   void P2L() {
     std::vector<Node*>& targets = allnodes;
+    real_t c[3] = {0.0};
+    std::vector<RealVec> dnwd_check_surf;
+    dnwd_check_surf.resize(LEVEL+1);
+    for(size_t depth=0; depth<=LEVEL; depth++) {
+      dnwd_check_surf[depth].resize(NSURF*3);
+      dnwd_check_surf[depth] = d_check_surf(c, depth);
+    }
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
@@ -224,6 +245,13 @@ namespace exafmm_t {
 
   void M2P() {
     std::vector<Node*>& targets = leafs;  // leafs
+    real_t c[3] = {0.0};
+    std::vector<RealVec> upwd_equiv_surf;
+    upwd_equiv_surf.resize(LEVEL+1);
+    for(size_t depth = 0; depth <= LEVEL; depth++) {
+      upwd_equiv_surf[depth].resize(NSURF*3);
+      upwd_equiv_surf[depth] = u_equiv_surf(c, depth);
+    }
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
@@ -235,6 +263,7 @@ namespace exafmm_t {
             continue;
           RealVec sourceEquivCoord(NSURF*3);
           int level = source->depth;
+          std::cout << level << std::endl;
           // source node's equiv coord = relative equiv coord + node's origin
           for(int k=0; k<NSURF; k++) {
             sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->coord[0];

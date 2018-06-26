@@ -20,7 +20,6 @@ extern "C" {
 }
 
 namespace exafmm_t {
-#define MAX_DEPTH 62
 #define MEM_ALIGN 64
 #define CACHE_SIZE 512
 
@@ -163,11 +162,6 @@ namespace exafmm_t {
     std::vector<size_t> interac_dsp;
   };
   M2LData M2Ldata;
-
-  std::vector<RealVec> upwd_check_surf;
-  std::vector<RealVec> upwd_equiv_surf;
-  std::vector<RealVec> dnwd_check_surf;
-  std::vector<RealVec> dnwd_equiv_surf;
 
   std::vector<Node*> leafs, nonleafs, allnodes;
 
