@@ -151,7 +151,6 @@ namespace exafmm_t {
     }
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes
-  Node* root_node;
 
   struct M2LData {
     std::vector<size_t> fft_vec;   // source's first child's upward_equiv's displacement
@@ -162,8 +161,6 @@ namespace exafmm_t {
     std::vector<size_t> interac_dsp;
   };
   M2LData M2Ldata;
-
-  std::vector<Node*> leafs, nonleafs, allnodes;
 
   // Relative coordinates and interaction lists
   std::vector<std::vector<ivec3>> rel_coord;
@@ -176,10 +173,10 @@ namespace exafmm_t {
   std::vector<RealVec> mat_M2L;
   std::vector<RealVec> mat_M2L_Helper;
 
-  int LEVEL;     // depth of octree
   int MULTIPOLE_ORDER;   // order of multipole expansion
   int NSURF;     // number of surface coordinates
   int NCRIT;
+  int MAXLEVEL;
   int N1, N2, N3, N3_;
   const int NCHILD = 8;
 }

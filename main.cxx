@@ -1,7 +1,6 @@
 #include <omp.h>
 #include "args.h"
 #include "build_tree.h"
-#include "fmm_tree.h"
 #include "interaction_list.h"
 #include "kernel.h"
 #include "precompute.h"
@@ -41,8 +40,9 @@ int main(int argc, char **argv) {
     bodies[i].q = src_value[i];
   }
 
-  Nodes nodes = buildTree(bodies);
-  root_node = &nodes[0];
+  std::vector<Node*> leafs, nonleafs;
+  Nodes nodes = buildTree(bodies, leafs, nonleafs);
+
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
   for(int i=0; i<nodes.size(); i++) {
@@ -58,19 +58,40 @@ int main(int argc, char **argv) {
       }
     }
   }
+
+  // initialize equiv surface coords for all levels
+  upwd_check_surf.resize(MAX_DEPTH);
+  upwd_equiv_surf.resize(MAX_DEPTH);
+  dnwd_check_surf.resize(MAX_DEPTH);
+  dnwd_equiv_surf.resize(MAX_DEPTH);
+  for(size_t depth=0; depth<MAX_DEPTH; depth++) {
+    real_t c[3] = {0.0};
+    upwd_check_surf[depth].resize(NSURF*3);
+    upwd_equiv_surf[depth].resize(NSURF*3);
+    dnwd_check_surf[depth].resize(NSURF*3);
+    dnwd_equiv_surf[depth].resize(NSURF*3);
+    upwd_check_surf[depth] = u_check_surf(c, depth);
+    upwd_equiv_surf[depth] = u_equiv_surf(c, depth);
+    dnwd_check_surf[depth] = d_check_surf(c, depth);
+    dnwd_equiv_surf[depth] = d_equiv_surf(c, depth);
+  }
+
+  Profile::Tic("Total", true);
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();
   Profile::Toc();
-  for(size_t it=0; it<1; it++) {
-    Profile::Tic("Total", true);
-    SetupFMM(nodes);
-    RunFMM();
-    Profile::Toc();
-  }
-  std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() <<'\n';
-  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< LEVEL <<'\n';
-  CheckFMMOutput(leafs);
+  setColleagues(nodes);
+  buildList(nodes);
+  M2LSetup(M2Ldata, nonleafs);
+  upwardPass(nodes, leafs);
+  downwardPass(nodes, leafs);
+  Profile::Toc();
+  RealVec error = verify(leafs);
+  std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
+  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< leafs.back()->depth << std::endl;
+  std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;
+  std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << error[1] << std::endl;
   Profile::print();
   return 0;
 }

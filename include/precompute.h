@@ -12,7 +12,7 @@ namespace exafmm_t {
     RealVec uc_coord = u_check_surf(c, level);
     RealVec ue_coord = u_equiv_surf(c, level);
     RealVec M_e2c(NSURF*NSURF);
-    BuildMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &M_e2c[0]);
+    kernelMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &M_e2c[0]);
     RealVec U(NSURF*NSURF), S(NSURF*NSURF), V(NSURF*NSURF);
     svd(NSURF, NSURF, &M_e2c[0], &S[0], &U[0], &V[0]);
     // inverse S
@@ -49,7 +49,7 @@ namespace exafmm_t {
       real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
       RealVec c_equiv_surf = u_equiv_surf(child_coord, level+1);
       RealVec M_e2c(NSURF*NSURF);
-      BuildMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_e2c[0]);
+      kernelMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_e2c[0]);
       // M2M: child's upward_equiv to parent's check
       RealVec buffer(NSURF*NSURF);
       mat_M2M[i].resize(NSURF*NSURF);
@@ -82,7 +82,7 @@ namespace exafmm_t {
       RealVec conv_coord = conv_grid(coord, 0);
       RealVec r_trg(3, 0.0);
       RealVec conv_poten(N3);
-      BuildMatrix(&conv_coord[0], N3, &r_trg[0], 1, &conv_poten[0]);
+      kernelMatrix(&conv_coord[0], N3, &r_trg[0], 1, &conv_poten[0]);
       mat_M2L_Helper[i].resize(2*N3_);
       fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i][0]));
     }
