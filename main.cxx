@@ -17,10 +17,6 @@ int main(int argc, char **argv) {
   NCRIT = args.ncrit;
   MULTIPOLE_ORDER = args.P;
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
-  N1 = 2 * MULTIPOLE_ORDER;
-  N2 = N1 * N1;
-  N3 = N1 * N2;
-  N3_ = N2 * (N1/2+1);
   Profile::Enable(true);
   RealVec src_coord, src_value;
   srand48(0);

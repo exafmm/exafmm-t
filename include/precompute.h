@@ -64,12 +64,15 @@ namespace exafmm_t {
   }
 
   void PrecompM2LHelper() {
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
     // create fftw plan
-    RealVec fftw_in(N3);
-    RealVec fftw_out(2*N3_);
+    RealVec fftw_in(n3);
+    RealVec fftw_out(2*n3_);
     int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
-    fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, &fftw_in[0], NULL, 1, N3,
-                    (fft_complex*)(&fftw_out[0]), NULL, 1, N3_, FFTW_ESTIMATE);
+    fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, &fftw_in[0], NULL, 1, n3,
+                    (fft_complex*)(&fftw_out[0]), NULL, 1, n3_, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
     int numRelCoord = rel_coord[M2L_Helper_Type].size();
     mat_M2L_Helper.resize(numRelCoord);
@@ -81,19 +84,22 @@ namespace exafmm_t {
       }
       RealVec conv_coord = conv_grid(coord, 0);
       RealVec r_trg(3, 0.0);
-      RealVec conv_poten(N3);
-      kernelMatrix(&conv_coord[0], N3, &r_trg[0], 1, &conv_poten[0]);
-      mat_M2L_Helper[i].resize(2*N3_);
+      RealVec conv_poten(n3);
+      kernelMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
+      mat_M2L_Helper[i].resize(2*n3_);
       fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i][0]));
     }
     fft_destroy_plan(plan);
   }
 
   void PrecompM2L() {
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
     int numParentRelCoord = rel_coord[M2L_Type].size();
     int numChildRelCoord = rel_coord[M2L_Helper_Type].size();
     mat_M2L.resize(numParentRelCoord);
-    RealVec zero_vec(N3_*2, 0);
+    RealVec zero_vec(n3_*2, 0);
     #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<numParentRelCoord; i++) {
       ivec3& parentRelCoord = rel_coord[M2L_Type][i];
@@ -114,12 +120,12 @@ namespace exafmm_t {
           }
         }
       }
-      mat_M2L[i].resize(N3_*2*NCHILD*NCHILD);  // N3 by (2*NCHILD*NCHILD) matrix
-      for(int k=0; k<N3_; k++) {                      // loop over frequencies
+      mat_M2L[i].resize(n3_*2*NCHILD*NCHILD);  // N3 by (2*NCHILD*NCHILD) matrix
+      for(int k=0; k<n3_; k++) {                      // loop over frequencies
         for(size_t j=0; j<NCHILD*NCHILD; j++) {       // loop over child's relative positions
           int index = k*(2*NCHILD*NCHILD) + 2*j;
-          mat_M2L[i][index+0] = M_ptr[j][k*2+0]/N3;   // real
-          mat_M2L[i][index+1] = M_ptr[j][k*2+1]/N3;   // imag
+          mat_M2L[i][index+0] = M_ptr[j][k*2+0]/n3;   // real
+          mat_M2L[i][index+1] = M_ptr[j][k*2+1]/n3;   // imag
         }
       }
     }

@@ -177,7 +177,6 @@ namespace exafmm_t {
   int NSURF;     // number of surface coordinates
   int NCRIT;
   int MAXLEVEL;
-  int N1, N2, N3, N3_;
   const int NCHILD = 8;
 }
 #endif
