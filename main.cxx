@@ -38,8 +38,10 @@ int main(int argc, char **argv) {
 
   std::vector<Node*> leafs, nonleafs;
   Nodes nodes = buildTree(bodies, leafs, nonleafs);
-  MAXLEVEL = leafs.back()->depth;
-  std::cout << MAXLEVEL << std::endl;
+  MAXLEVEL = 0;
+  for(size_t i=0; i<leafs.size(); i++) {
+    MAXLEVEL = std::max(MAXLEVEL, leafs[i]->depth);
+  }
 
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
