@@ -1,5 +1,5 @@
-#ifndef kernel_h 
-#define kernel_h
+#ifndef laplace_h 
+#define laplace_h
 #include <map>
 #include <set>
 #include "exafmm_t.h"

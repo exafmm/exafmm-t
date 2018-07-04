@@ -2,7 +2,7 @@
 #define precompute_h
 #include "exafmm_t.h"
 #include "geometry.h"
-#include "kernel.h"
+#include "laplace.h"
 
 namespace exafmm_t {
   void PrecompCheck2Equiv() {

@@ -2,7 +2,7 @@
 #include "args.h"
 #include "build_tree.h"
 #include "interaction_list.h"
-#include "kernel.h"
+#include "laplace.h"
 #include "precompute.h"
 
 using namespace exafmm_t;
