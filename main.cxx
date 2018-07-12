@@ -1,6 +1,7 @@
 #include <omp.h>
 #include "args.h"
 #include "build_tree.h"
+#include "dataset.h"
 #include "interaction_list.h"
 #include "laplace.h"
 #include "precompute.h"
@@ -19,23 +20,8 @@ int main(int argc, char **argv) {
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   Profile::Enable(true);
   RealVec src_coord, src_value;
-  srand48(0);
-#if 0
-  //src_coord = plummer(N);
-  src_coord = nonuniform(N);
-#else
-  for(size_t i=0; i<3*N; i++) src_coord.push_back(drand48());
-#endif
-  for(size_t i=0; i<N; i++) src_value.push_back(drand48()-0.5);
 
-  Bodies bodies(args.numBodies);
-  for(int i=0; i<bodies.size(); i++) {
-    bodies[i].X[0] = src_coord[3*i+0];
-    bodies[i].X[1] = src_coord[3*i+1];
-    bodies[i].X[2] = src_coord[3*i+2];
-    bodies[i].q = src_value[i];
-  }
-
+  Bodies bodies = cube(args.numBodies, 0);
   std::vector<Node*> leafs, nonleafs;
   Nodes nodes = buildTree(bodies, leafs, nonleafs);
   MAXLEVEL = 0;
@@ -76,44 +62,4 @@ int main(int argc, char **argv) {
   std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << error[1] << std::endl;
   Profile::print();
   return 0;
-}
-
-// generate plummer distribution in 0 to 1 cube
-RealVec plummer(int numBodies) {
-  srand48(0);
-  RealVec coord;
-  int i = 0;
-  while (i < numBodies) {
-    real_t X1 = drand48();
-    real_t X2 = drand48();
-    real_t X3 = drand48();
-    real_t R = 1.0 / sqrt( (pow(X1, -2.0 / 3.0) - 1.0) );
-    if (R < 100) {
-      real_t Z = (1.0 - 2.0 * X2) * R;
-      real_t X = sqrt(R * R - Z * Z) * std::cos(2.0 * M_PI * X3);
-      real_t Y = sqrt(R * R - Z * Z) * std::sin(2.0 * M_PI * X3);
-      coord.push_back(X);
-      coord.push_back(Y);
-      coord.push_back(Z);
-      i++;
-    }
-  }
-  real_t Xmax = *std::max_element(coord.begin(), coord.end());
-  real_t Xmin = *std::min_element(coord.begin(), coord.end());
-  real_t scale = 0.5 / (std::max(fabs(Xmax), fabs(Xmin)) + 1);
-  for(int i=0; i<coord.size(); i++) coord[i] = coord[i]*scale + 0.5;
-  return coord;
-}
-
-RealVec nonuniform(int numBodies) {
-  srand48(0);
-  RealVec coord;
-  for(size_t i=0; i<3*numBodies; i++) {
-    if (i/3 < 0.1*numBodies) coord.push_back(drand48()*0.5);
-    else {
-      if (i/3 < 0.2*numBodies) coord.push_back(0.5 + drand48()*0.5);
-      else coord.push_back(drand48());
-    }
-  }
-  return coord;
 }
