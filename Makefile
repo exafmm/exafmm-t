@@ -6,6 +6,9 @@ WFLAGS = -fmudflap -fno-strict-aliasing -fsanitize=address -fsanitize=leak -fsta
 CXX = mpiicpc
 CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -debug all -traceback -I./include
 LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
+#CXX = mpicxx
+#CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include
+#LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm
 
 %.o: %.cxx
 	$(CXX) $(CXXFLAGS) -c $< -o $@

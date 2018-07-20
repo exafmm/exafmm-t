@@ -2,6 +2,7 @@
 #define exafmm_t_h
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <fftw3.h>
 #include <vector>
 #include "align.h"
