@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
   Profile::Enable(true);
   RealVec src_coord, src_value;
 
+  Profile::Tic("Total", true);
   Bodies bodies = cube(args.numBodies, 0);
   std::vector<Node*> leafs, nonleafs;
   Nodes nodes = buildTree(bodies, leafs, nonleafs);
@@ -44,7 +45,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-  Profile::Tic("Total", true);
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();
