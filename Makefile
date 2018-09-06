@@ -1,4 +1,4 @@
-.SUFFIXES: .cpp
+.SUFFIXES: .cpp .cu
 
 WFLAGS = -fmudflap -fno-strict-aliasing -fsanitize=address -fsanitize=leak -fstack-protector -ftrapv -Wall -Warray-bounds -Wcast-align -Wcast-qual -Wextra -Wfatal-errors -Wformat=2 -Wformat-nonliteral -Wformat-security -Winit-self -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wno-missing-field-initializers -Wno-overloaded-virtual -Wno-unused-local-typedefs -Wno-unused-parameter -Wno-unused-variable -Wpointer-arith -Wredundant-decls -Wreturn-type -Wshadow -Wstrict-aliasing -Wstrict-overflow=5 -Wswitch-enum -Wuninitialized -Wunreachable-code -Wunused-but-set-variable -Wwrite-strings -Wno-error=missing-field-initializers -Wno-error=overloaded-virtual -Wno-error=unused-local-typedefs -Wno-error=unused-parameter -Wno-error=unused-variable
 # -Wsign-compare -Werror
@@ -10,16 +10,12 @@ LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp
 #CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include
 #LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm
 
-%.o: %.cxx
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+OBJ = main.o
 
-float: main.cxx
-	time $(CXX) $(CXXFLAGS) -c $< -o main.o -DFLOAT
+%.o: %.cpp
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -D${TYPE}
 
-double: main.cxx
-	time $(CXX) $(CXXFLAGS) -c $< -o main.o
-
-link: main.o
+all: $(OBJ)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
 clean:
