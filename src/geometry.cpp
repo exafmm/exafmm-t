@@ -42,22 +42,6 @@ namespace exafmm_t {
     return coord;
   }
 
-  RealVec u_check_surf(real_t* c, int depth){
-    return surface(MULTIPOLE_ORDER,c,2.95,depth);
-  }
-
-  RealVec u_equiv_surf(real_t* c, int depth){
-    return surface(MULTIPOLE_ORDER,c,1.05,depth);
-  }
-
-  RealVec d_check_surf(real_t* c, int depth){
-    return surface(MULTIPOLE_ORDER,c,1.05,depth);
-  }
-
-  RealVec d_equiv_surf(real_t* c, int depth){
-    return surface(MULTIPOLE_ORDER,c,2.95,depth);
-  }
-
   RealVec conv_grid(real_t* c, int depth){
     real_t r=powf(0.5,depth);
     real_t a=r*1.05;

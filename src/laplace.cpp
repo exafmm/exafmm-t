@@ -226,7 +226,7 @@ namespace exafmm_t {
     dnwd_equiv_surf.resize(MAXLEVEL+1);
     for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
       dnwd_equiv_surf[depth].resize(NSURF*3);
-      dnwd_equiv_surf[depth] = d_equiv_surf(c, depth);
+      dnwd_equiv_surf[depth] = surface(MULTIPOLE_ORDER,c,2.95,depth);
     }
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
@@ -258,7 +258,7 @@ namespace exafmm_t {
     dnwd_check_surf.resize(MAXLEVEL+1);
     for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
       dnwd_check_surf[depth].resize(NSURF*3);
-      dnwd_check_surf[depth] = d_check_surf(c, depth);
+      dnwd_check_surf[depth] = surface(MULTIPOLE_ORDER,c,1.05,depth);
     }
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
