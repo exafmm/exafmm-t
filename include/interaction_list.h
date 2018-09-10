@@ -3,6 +3,9 @@
 #include "exafmm_t.h"
 
 namespace exafmm_t {
+  std::vector<std::vector<ivec3>> rel_coord;
+  std::vector<std::vector<int>> hash_lut;     // coord_hash -> index in rel_coord
+
   //! return x + 10y + 100z + 555
   int hash(ivec3& coord) {
     const int n = 5;

@@ -6,7 +6,7 @@
 #include <iostream>
 #include <getopt.h>
 
-namespace exafmm {
+namespace exafmm_t {
   static struct option long_options[] = {
     {"ncrit",        required_argument, 0, 'c'},
     {"numBodies",    required_argument, 0, 'n'},

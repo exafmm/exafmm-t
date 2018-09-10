@@ -5,6 +5,17 @@
 #include "laplace.h"
 
 namespace exafmm_t {
+  RealVec M2M_U, M2M_V;
+  RealVec L2L_U, L2L_V;
+  std::vector<RealVec> mat_M2L_Helper;
+  std::vector<RealVec> mat_M2M;
+  std::vector<RealVec> mat_M2L;
+  std::vector<RealVec> mat_L2L;
+
+  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
+  void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
+  RealVec transpose(RealVec& vec, int m, int n);
+
   void PrecompCheck2Equiv() {
     int level = 0;
     real_t c[3] = {0, 0, 0};

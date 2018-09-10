@@ -2,6 +2,7 @@
 #define profile_h
 #include <iomanip>
 #include <iostream>
+#include <omp.h>
 #include <stack>
 
 namespace exafmm_t {

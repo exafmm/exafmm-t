@@ -1,13 +1,11 @@
-#include <omp.h>
-#include "args.h"
 #include "build_tree.h"
 #include "dataset.h"
 #include "interaction_list.h"
 #include "laplace.h"
 #include "precompute.h"
+#include "traverse.h"
 
 using namespace exafmm_t;
-using namespace exafmm;
 RealVec plummer(int);
 RealVec nonuniform(int);
 
@@ -15,7 +13,6 @@ int main(int argc, char **argv) {
   Args args(argc, argv);
   omp_set_num_threads(args.threads);
   size_t N = args.numBodies;
-  NCRIT = args.ncrit;
   MULTIPOLE_ORDER = args.P;
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   Profile::Enable(true);
@@ -24,7 +21,7 @@ int main(int argc, char **argv) {
   Profile::Tic("Total", true);
   Bodies bodies = cube(args.numBodies, 0);
   std::vector<Node*> leafs, nonleafs;
-  Nodes nodes = buildTree(bodies, leafs, nonleafs);
+  Nodes nodes = buildTree(bodies, leafs, nonleafs, args);
   MAXLEVEL = 0;
   for(size_t i=0; i<leafs.size(); i++) {
     MAXLEVEL = std::max(MAXLEVEL, leafs[i]->depth);
@@ -51,7 +48,7 @@ int main(int argc, char **argv) {
   Profile::Toc();
   setColleagues(nodes);
   buildList(nodes);
-  M2LSetup(M2Ldata, nonleafs);
+  M2LSetup(nonleafs);
   upwardPass(nodes, leafs);
   downwardPass(nodes, leafs);
   Profile::Toc();
