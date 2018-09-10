@@ -467,6 +467,7 @@ namespace exafmm_t {
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
+    for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
     RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
     for(size_t i=0; i<map.size(); i++) {
       map[i] = ((size_t)(MULTIPOLE_ORDER-1-surf[i*3]+0.5))
@@ -513,6 +514,7 @@ namespace exafmm_t {
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
+    for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
     RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
     for(size_t i=0; i<map.size(); i++) {
       map[i] = ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3]))
