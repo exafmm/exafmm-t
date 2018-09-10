@@ -5,6 +5,7 @@ namespace exafmm_t {
   // 2.95 for upward check surface / downward equivalent surface
   // 1.05 for upward equivalent surface / downward check surface
   RealVec surface(int p, real_t* c, real_t alpha, int depth){
+    real_t r=0.5*powf(0.5,depth);
     size_t n_=(6*(p-1)*(p-1)+2);
     RealVec coord(n_*3);
     coord[0]=coord[1]=coord[2]=-1.0;
@@ -31,7 +32,6 @@ namespace exafmm_t {
         cnt++;
       }
     for(size_t i=0;i<(n_/2)*3;i++) coord[cnt*3+i]=-coord[i];
-    real_t r = 0.5*powf(0.5,depth);
     real_t b = alpha*r;
     for(size_t i=0;i<n_;i++){
       coord[i*3+0]=(coord[i*3+0]+1.0)*b+c[0];
@@ -42,26 +42,30 @@ namespace exafmm_t {
   }
 
   RealVec u_check_surf(real_t* c, int depth){
-    real_t r=0.5*powf(0.5,depth);
-    real_t coord[3]={(real_t)(c[0]-r*1.95),(real_t)(c[1]-r*1.95),(real_t)(c[2]-r*1.95)};
-    return surface(MULTIPOLE_ORDER,coord,2.95,depth);
+    real_t r = 0.5*powf(0.5,depth);
+    real_t c2[3]={c[0],c[1],c[2]};
+    for(int d=0; d<3; d++) c2[d] -= r*1.95;
+    return surface(MULTIPOLE_ORDER,c2,2.95,depth);
   }
 
   RealVec u_equiv_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
-    real_t coord[3]={(real_t)(c[0]-r*0.05),(real_t)(c[1]-r*0.05),(real_t)(c[2]-r*0.05)};
+    real_t coord[3]={c[0],c[1],c[2]};
+    for(int d=0; d<3; d++) coord[d] -= r*0.05;
     return surface(MULTIPOLE_ORDER,coord,1.05,depth);
   }
 
   RealVec d_check_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
-    real_t coord[3]={(real_t)(c[0]-r*0.05),(real_t)(c[1]-r*0.05),(real_t)(c[2]-r*0.05)};
+    real_t coord[3]={c[0],c[1],c[2]};
+    for(int d=0; d<3; d++) coord[d] -= r*0.05;
     return surface(MULTIPOLE_ORDER,coord,1.05,depth);
   }
 
   RealVec d_equiv_surf(real_t* c, int depth){
     real_t r=0.5*powf(0.5,depth);
-    real_t coord[3]={(real_t)(c[0]-r*1.95),(real_t)(c[1]-r*1.95),(real_t)(c[2]-r*1.95)};
+    real_t coord[3]={c[0],c[1],c[2]};
+    for(int d=0; d<3; d++) coord[d] -= r*1.95;
     return surface(MULTIPOLE_ORDER,coord,2.95,depth);
   }
 
