@@ -56,11 +56,13 @@ namespace exafmm_t {
     }
     real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm = 0;
     for(size_t i=0; i<targets.size(); i++) {
-      p_norm += targets2[i].pt_trg[0] * targets2[i].pt_trg[0];
-      p_diff += (targets2[i].pt_trg[0] - targets[i].pt_trg[0]) * (targets2[i].pt_trg[0] - targets[i].pt_trg[0]);
-      for(int d=1; d<4; d++) {
-        g_diff += (targets2[i].pt_trg[d] - targets[i].pt_trg[d]) * (targets2[i].pt_trg[d] - targets[i].pt_trg[d]);
-        g_norm += targets2[i].pt_trg[d] * targets2[i].pt_trg[d];
+      if (targets2[i].numBodies != 0) {  // if current leaf is not empty
+        p_norm += targets2[i].pt_trg[0] * targets2[i].pt_trg[0];
+        p_diff += (targets2[i].pt_trg[0] - targets[i].pt_trg[0]) * (targets2[i].pt_trg[0] - targets[i].pt_trg[0]);
+        for(int d=1; d<4; d++) {
+          g_diff += (targets2[i].pt_trg[d] - targets[i].pt_trg[d]) * (targets2[i].pt_trg[d] - targets[i].pt_trg[d]);
+          g_norm += targets2[i].pt_trg[d] * targets2[i].pt_trg[d];
+        }
       }
     }
     RealVec l2_error(2);
