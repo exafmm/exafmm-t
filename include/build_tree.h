@@ -24,7 +24,7 @@ namespace exafmm_t {
     ivec3 iX = get3DIndex(X, level);
     node->key = getKey(iX, level);
     //! Count number of bodies in each octant
-    int size[8] = {0,0,0,0,0,0,0,0};
+    int size[8] = {0};
     vec3 x;
     for (int i=begin; i<end; i++) {
       x = bodies[i].X;
@@ -37,7 +37,6 @@ namespace exafmm_t {
     for (int i=0; i<8; i++) {
       offsets[i] = offset;
       offset += size[i];
-      if (size[i]) node->numChilds++;
     }
     //! If node is a leaf
     if (end - begin <= args.ncrit) {
@@ -63,6 +62,7 @@ namespace exafmm_t {
       counter[octant]++;
     }
     //! Loop over children and recurse
+    node->numChilds = 8;
     vec3 Xchild;
     assert(nodes.capacity() >= nodes.size()+node->numChilds);
     nodes.resize(nodes.size()+node->numChilds);
@@ -75,14 +75,12 @@ namespace exafmm_t {
       for (int d=0; d<3; d++) {
         Xchild[d] += Rchild * (((i & 1 << d) >> d) * 2 - 1);
       }
-      if (size[i]) {
-        child[c].parent = node;
-        child[c].octant = i;
-        node->child[i] = &child[c];
-        buildTree(buffer, bodies, offsets[i], offsets[i] + size[i],
-                  &child[c++], nodes, Xchild, Rchild, leafs, nonleafs,
-                  args, level+1, !direction);
-      }
+      child[c].parent = node;
+      child[c].octant = i;
+      node->child[i] = &child[c];
+      buildTree(buffer, bodies, offsets[i], offsets[i] + size[i],
+                &child[c++], nodes, Xchild, Rchild, leafs, nonleafs,
+                args, level+1, !direction);
     }
   }
 

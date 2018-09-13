@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
   RealVec src_coord, src_value;
 
   Profile::Tic("Total", true);
-  Bodies bodies = cube(args.numBodies, 0);
+  Bodies bodies = plummer(args.numBodies, 0);
   std::vector<Node*> leafs, nonleafs;
   Nodes nodes = buildTree(bodies, leafs, nonleafs, args);
   MAXLEVEL = 0;
