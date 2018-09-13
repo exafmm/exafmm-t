@@ -1,5 +1,7 @@
 #ifndef buildtree_h
 #define buildtree_h
+#include <unordered_map>
+#include <queue>
 #include "exafmm_t.h"
 #include "hilbert.h"
 
@@ -94,6 +96,104 @@ namespace exafmm_t {
     nodes.reserve(bodies.size()*(32/args.ncrit+1));
     buildTree(&bodies[0], &buffer[0], 0, bodies.size(), &nodes[0], nodes, X0, R0, leafs, nonleafs, args);
     return nodes;
+  }
+
+  // Given root, generate a level-order Morton keys
+  Keys breadthFirstTraversal(Node* root, std::unordered_map<uint64_t, size_t>& key2id) {
+    assert(root != NULL);
+    Keys keys;
+    std::queue<Node*> buffer;
+    buffer.push(root);
+    int level = 0;
+    std::set<uint64_t> keys_;
+    while (!buffer.empty()) {
+      Node* curr = buffer.front();
+      if (curr->depth != level) {
+        keys.push_back(keys_);
+        keys_.clear();
+        level = curr->depth;
+      }
+      keys_.insert(curr->key);
+      key2id[curr->key] = curr->idx;
+      buffer.pop();
+      for (int i=0; i<curr->numChilds; i++) {
+        buffer.push(curr->fchild+i);
+      }
+    }
+    if (keys_.size())
+      keys.push_back(keys_);
+    return keys;
+  }
+
+  Keys balanceTree(Keys& keys, std::unordered_map<uint64_t, size_t>& key2id, Nodes& nodes) {
+    int nlevels = keys.size();
+    int maxlevel = nlevels - 1;
+    Keys bkeys(keys.size());      // balanced Morton keys
+    std::set<uint64_t> S, N;
+    std::set<uint64_t>::iterator it;
+    for (int l=maxlevel; l>0; --l) {
+      // N <- S + nonleafs
+      N.clear();
+      for (it=keys[l].begin(); it!=keys[l].end(); ++it)
+        if (!nodes[key2id[*it]].IsLeaf()) // choose nonleafs
+          N.insert(*it); 
+      N.insert(S.begin(), S.end());       // N = S + nonleafs
+      S.clear();
+      // S <- Parent(Colleagues(N))
+      for (it=N.begin(); it!=N.end(); ++it) {
+        ivec3 iX = get3DIndex(*it);       // find N's colleagues
+        ivec3 ciX;
+        for (int m=-1; m<=1; ++m) {
+          for (int n=-1; n<=1; ++n) {
+            for (int p=-1; p<=1; ++p) {
+              if (m||n||p) {
+                ciX[0] = iX[0] + m;
+                ciX[1] = iX[1] + n;
+                ciX[2] = iX[2] + p;
+              }
+              if (ciX[0]>=0 && ciX[0]<pow(2,l) &&  // boundary check
+                  ciX[1]>=0 && ciX[1]<pow(2,l) &&
+                  ciX[2]>=0 && ciX[2]<pow(2,l)) {
+                uint64_t colleague = getKey(ciX, l);
+                uint64_t parent = getParent(colleague);
+                S.insert(parent);          // S: parent of N's colleague
+              }
+            }
+          }
+        }
+      } 
+      // T <- T + Children(N)
+      if (l!=maxlevel) {
+        std::set<uint64_t>& T = bkeys[l+1];
+        for (it=N.begin(); it!=N.end(); ++it) {
+          uint64_t child = getChild(*it);
+          for (int i=0; i<8; ++i) {
+            T.insert(child+i);
+          }
+        }
+      }
+    }
+    // manually add keys for lvl 0 and 1
+    bkeys[0].insert(0);
+    for(int i=1; i<9; ++i) bkeys[1].insert(i);
+    return bkeys;
+  }
+
+  Keys findLeafKeys(Keys& keys) {
+    std::set<uint64_t>::iterator it;
+    Keys leafkeys(keys.size());
+    for (int l=keys.size()-1; l>=1; --l) {
+      std::set<uint64_t> parentkeys = keys[l-1];
+      // remove nonleaf keys
+      for (it=keys[l].begin(); it!=keys[l].end(); ++it) {
+        uint64_t parentkey = getParent(*it);
+        std::set<uint64_t>::iterator it2 = parentkeys.find(parentkey);
+        if (it2 != parentkeys.end()) parentkeys.erase(it2);
+      }
+      leafkeys[l-1] = parentkeys;
+    }
+    leafkeys[keys.size()-1] = keys.back();
+    return leafkeys;
   }
 }
 #endif

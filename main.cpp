@@ -27,6 +27,12 @@ int main(int argc, char **argv) {
     MAXLEVEL = std::max(MAXLEVEL, leafs[i]->depth);
   }
 
+  // balanced tree
+  std::unordered_map<uint64_t, size_t> key2id;
+  Keys keys = breadthFirstTraversal(&nodes[0], key2id);
+  Keys bkeys = balanceTree(keys, key2id, nodes);
+  Keys leafkeys = findLeafKeys(bkeys);
+
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
   for(int i=0; i<nodes.size(); i++) {
