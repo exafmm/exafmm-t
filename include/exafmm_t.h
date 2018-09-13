@@ -5,6 +5,7 @@
 #include <cmath>
 #include <fftw3.h>
 #include <iostream>
+#include <set>
 #include <vector>
 #include "align.h"
 #include "args.h"
@@ -76,6 +77,7 @@ namespace exafmm_t {
     Body * body;
     vec3 X;
     real_t R;
+    uint64_t key;
 
     size_t idx;
     size_t node_id;
@@ -101,6 +103,7 @@ namespace exafmm_t {
     }
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes
+  typedef std::vector<std::set<uint64_t>> Keys; //!< Vector of Morton keys of each level
 
   struct M2LData {
     std::vector<size_t> fft_vec;   // source's first child's upward_equiv's displacement
