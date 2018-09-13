@@ -71,5 +71,20 @@ namespace exafmm_t {
     }
     return bodies;
   }
+
+  Bodies initBodies(int numBodies, const char * distribution, int seed) {
+    Bodies bodies;
+    switch (distribution[0]) {
+      case 'c':
+        bodies = cube(numBodies, seed);
+        break;
+      case 'p':
+        bodies = plummer(numBodies, seed);
+        break;
+      default:
+        fprintf(stderr, "Unknown data distribution %s\n", distribution);
+    }
+    return bodies;
+  }
 }
 #endif
