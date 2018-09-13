@@ -1,6 +1,7 @@
 #ifndef buildtree_h
 #define buildtree_h
 #include "exafmm_t.h"
+#include "hilbert.h"
 
 namespace exafmm_t {
   //! Build nodes of tree adaptively using a top-down approach based on recursion
