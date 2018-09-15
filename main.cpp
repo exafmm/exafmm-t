@@ -19,13 +19,20 @@ int main(int argc, char **argv) {
   RealVec src_coord, src_value;
 
   Profile::Tic("Total", true);
-  Bodies bodies = cube(args.numBodies, 0);
+  Bodies bodies = initBodies(args.numBodies, args.distribution, 0);
   std::vector<Node*> leafs, nonleafs;
   Nodes nodes = buildTree(bodies, leafs, nonleafs, args);
-  MAXLEVEL = 0;
-  for(size_t i=0; i<leafs.size(); i++) {
-    MAXLEVEL = std::max(MAXLEVEL, leafs[i]->depth);
-  }
+
+  // balanced tree
+  std::unordered_map<uint64_t, size_t> key2id;
+  Keys keys = breadthFirstTraversal(&nodes[0], key2id);
+  Keys bkeys = balanceTree(keys, key2id, nodes);
+  Keys leafkeys = findLeafKeys(bkeys);
+  nodes.clear();
+  leafs.clear();
+  nonleafs.clear();
+  nodes = buildTree(bodies, leafs, nonleafs, args, leafkeys);  // rebuild 2:1 balanced tree
+  MAXLEVEL = keys.size() - 1;
 
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
@@ -54,7 +61,7 @@ int main(int argc, char **argv) {
   Profile::Toc();
   RealVec error = verify(leafs);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
-  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< leafs.back()->depth << std::endl;
+  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< MAXLEVEL << std::endl;
   std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;
   std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << error[1] << std::endl;
   Profile::print();
