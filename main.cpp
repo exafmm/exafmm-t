@@ -16,7 +16,6 @@ int main(int argc, char **argv) {
   MULTIPOLE_ORDER = args.P;
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   Profile::Enable(true);
-  RealVec src_coord, src_value;
 
   Profile::Tic("Total", true);
   Bodies bodies = initBodies(args.numBodies, args.distribution, 0);
