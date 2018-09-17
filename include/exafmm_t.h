@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <complex>
 #include <fftw3.h>
 #include <iostream>
 #include <set>
@@ -37,14 +38,17 @@ namespace exafmm_t {
 #define fft_destroy_plan fftw_destroy_plan
 #endif
 
-  typedef vec<3,int> ivec3;                    //!< std::vector of 3 int types
-  typedef vec<3,real_t> vec3;                   //!< Vector of 3 real_t types
+  typedef std::complex<real_t> complex_t;
+  typedef vec<3,int> ivec3;                     //!< std::vector of 3 int types
+  typedef vec<3,real_t> vec3;                   //!< std::vector of 3 real_t types
+  typedef vec<3,complex_t> cvec3;               //!< std::vector of 3 complex_t types
 
   //! SIMD vector types for AVX512, AVX, and SSE
   const int NSIMD = SIMD_BYTES / int(sizeof(real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
   typedef vec<NSIMD, real_t> simdvec;                  //!< SIMD vector type
-  typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;
   typedef std::vector<real_t> RealVec;
+  typedef std::vector<complex_t> ComplexVec;
+  typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;
   typedef std::vector<real_t, AlignAllocator> AlignedVec;
 
   typedef enum {

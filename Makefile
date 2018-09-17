@@ -10,12 +10,15 @@ LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp
 #CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include
 #LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm
 
-OBJ = main.o src/geometry.o src/laplace.o
+OBJ = main.o main_c.o src/geometry.o src/laplace.o src/laplace_c.o
 
 %.o: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -D${TYPE}
 
-all: $(OBJ)
+laplace: main.o src/geometry.o src/laplace.o
+	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
+
+laplace_c: main_c.o src/geometry.o src/laplace_c.o
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
 clean:
