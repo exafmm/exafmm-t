@@ -10,16 +10,24 @@ LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp
 #CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include
 #LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm
 
-OBJ = main.o src/geometry.o src/laplace.o
+OBJF = main.fo src/geometry.fo src/laplace.fo
 
-%.o: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -D${TYPE}
+OBJD = main.do src/geometry.do src/laplace.do
 
-all: $(OBJ)
+%.fo: %.cpp
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT
+
+%.do: %.cpp
+	time $(CXX) $(CXXFLAGS) -c $< -o $@
+
+float: $(OBJF)
+	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
+
+double: $(OBJD)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) *.out
+	rm -f $(OBJF) $(OBJD) *.out
 
 p4:
 	./a.out -T 8 -n 1000000 -P 4 -c 64
