@@ -47,5 +47,17 @@ int main(int argc, char **argv) {
     }
   }
 #endif
+
+#if TEST_SCGEMM
+  std::cout << M2M_U.size() << std::endl;
+  ComplexVec q(NSURF), result(NSURF);
+  for(int i=0; i<NSURF; ++i) {
+    q[i] = complex_t(drand48(), drand48()); 
+  }
+  gemm(1, NSURF, NSURF, &q[0], &M2M_U[0], &result[0]);
+  for(int i=0; i<NSURF; ++i) {
+    std::cout << result[i] << std::endl;
+  }
+#endif
   return 0;
 }

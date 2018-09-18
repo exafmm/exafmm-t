@@ -17,6 +17,17 @@ namespace exafmm_t {
 #endif
   }
 
+  // mixed-type gemm: A is complex_t matrix; B is real_t matrix
+  void gemm(int m, int n, int k, complex_t* A, real_t* B, complex_t* C) {
+    char transA = 'N', transB = 'N';
+    complex_t alpha(1., 0.), beta(0.,0.);
+#if FLOAT
+    scgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#else
+    dzgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#endif
+  }
+
   //! lapack svd with row major data: A = U*S*VT, A is m by n
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT) {
     char JOBU = 'S', JOBVT = 'S';
