@@ -124,20 +124,25 @@ namespace exafmm_t {
     }
   }
 
-  //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)
-  // For Laplace: ker_dim[0] = 1, j = 0; Force a unit charge (q=1)
-  // r_src layout: [x1, y1, z1, x2, y2, z2, ...]
-  // k_out layout (potential): [p11, p12, p13, ..., p21, p22, ...]  (1st digit: src_idx; 2nd: trg_idx)
-  // k_out layout (gradient) : [Fx11, Fy11, Fz11, Fx12, Fy12, Fz13, ... Fx1n, Fy1n, Fz1n, ...
-  //                            Fx21, Fy21, Fz21, Fx22, Fy22, Fz22, ... Fx2n, Fy2n, Fz2n, ...
-  //                            ...]
   void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) {
-    RealVec src_value(1, 1.);
+    RealVec src_value(1, 1);
     RealVec trg_coord(r_trg, r_trg+3*trg_cnt);
     #pragma omp parallel for
     for(int i=0; i<src_cnt; i++) {
       RealVec src_coord(r_src+3*i, r_src+3*(i+1));
-      RealVec trg_value(trg_cnt, 0.);
+      RealVec trg_value(trg_cnt, 0);
+      potentialP2P(src_coord, src_value, trg_coord, trg_value);
+      std::copy(trg_value.begin(), trg_value.end(), &k_out[i*trg_cnt]);
+    }
+  }
+ 
+  void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, complex_t* k_out) {
+    ComplexVec src_value(1, complex_t(1,0));
+    RealVec trg_coord(r_trg, r_trg+3*trg_cnt);
+    #pragma omp parallel for
+    for(int i=0; i<src_cnt; i++) {
+      RealVec src_coord(r_src+3*i, r_src+3*(i+1));
+      ComplexVec trg_value(trg_cnt, complex_t(0,0));
       potentialP2P(src_coord, src_value, trg_coord, trg_value);
       std::copy(trg_value.begin(), trg_value.end(), &k_out[i*trg_cnt]);
     }

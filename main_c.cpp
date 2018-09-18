@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   Profile::Enable(true);
   
+#if TEST_P2P
   int n = 20;
   RealVec src_coord(3*n), trg_coord(3*n);
   ComplexVec src_value(n), trg_value(n, complex_t(0.,0.));
@@ -32,5 +33,19 @@ int main(int argc, char **argv) {
   for(int i=0; i<n; ++i) {
     std::cout << trg_value[i] << std::endl;
   }
+#endif
+
+  initRelCoord();    // initialize relative coords
+  Precompute();
+
+#if TEST_PRECOMP
+  std::cout << mat_M2L.size() << std::endl;
+  for(int i=0; i<mat_M2L.size(); ++i) {
+    int len = mat_M2L[i].size();
+    for(int j=0; j<len; j+=3) {
+      std::cout << mat_M2L[i][j] << std::endl;
+    }
+  }
+#endif
   return 0;
 }
