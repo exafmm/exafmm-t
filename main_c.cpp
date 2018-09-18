@@ -13,8 +13,39 @@ int main(int argc, char **argv) {
   size_t N = args.numBodies;
   MULTIPOLE_ORDER = args.P;
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
-  Profile::Enable(true);
-  
+  Profile::Enable(true); 
+
+  Bodies bodies = initBodies(args.numBodies, args.distribution, 0);
+  std::vector<Node*> leafs, nonleafs;
+  Nodes nodes = buildTree(bodies, leafs, nonleafs, args);
+
+  // balanced tree
+  std::unordered_map<uint64_t, size_t> key2id;
+  Keys keys = breadthFirstTraversal(&nodes[0], key2id);
+  Keys bkeys = balanceTree(keys, key2id, nodes);
+  Keys leafkeys = findLeafKeys(bkeys);
+  nodes.clear();
+  leafs.clear();
+  nonleafs.clear();
+  nodes = buildTree(bodies, leafs, nonleafs, args, leafkeys);  // rebuild 2:1 balanced tree
+  MAXLEVEL = keys.size() - 1;
+
+  // fill in pt_coord, pt_src, correct coord for compatibility
+  // remove this later
+  for(int i=0; i<nodes.size(); i++) {
+    for(int d=0; d<3; d++) {
+      nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
+    }
+    if(nodes[i].IsLeaf()) {
+      for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
+        nodes[i].pt_coord.push_back(B->X[0]);
+        nodes[i].pt_coord.push_back(B->X[1]);
+        nodes[i].pt_coord.push_back(B->X[2]);
+        nodes[i].pt_src.push_back(B->q);
+      }
+    }
+  }
+
 #if TEST_P2P
   int n = 20;
   RealVec src_coord(3*n), trg_coord(3*n);

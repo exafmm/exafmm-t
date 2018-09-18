@@ -71,9 +71,15 @@ namespace exafmm_t {
   //! Structure of bodies
   struct Body {
     vec3 X;                                     //!< Position
+#if COMPLEX
+    complex_t q;                                   //!< Charge
+    complex_t p;                                   //!< Potential
+    cvec3 F;                                     //!< Force
+#else
     real_t q;                                   //!< Charge
     real_t p;                                   //!< Potential
     vec3 F;                                     //!< Force
+#endif
   };
   typedef std::vector<Body> Bodies;             //!< Vector of bodies
 
@@ -97,10 +103,17 @@ namespace exafmm_t {
     Node* colleague[27];
     std::vector<Node*> interac_list[Type_Count];
     RealVec pt_coord;
+#if COMPLEX
+    ComplexVec pt_src;  // src's charge
+    ComplexVec pt_trg;  // trg's potential
+    ComplexVec upward_equiv; // M
+    ComplexVec dnward_equiv; // L
+#else
     RealVec pt_src;  // src's charge
     RealVec pt_trg;  // trg's potential
     RealVec upward_equiv; // M
     RealVec dnward_equiv; // L
+#endif
 
     bool IsLeaf() {
       return numChilds == 0;
