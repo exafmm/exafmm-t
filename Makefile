@@ -5,15 +5,20 @@ WFLAGS = -fmudflap -fno-strict-aliasing -fsanitize=address -fsanitize=leak -fsta
 
 CXX = mpiicpc
 CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -debug all -traceback -I./include
-LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
+
+NVCC = nvcc
+NVCCFLAGS = -use_fast_math -arch=sm_60 -Xcompiler "-g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include"
+LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -lcudart
 #CXX = mpicxx
 #CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include
 #LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm
 
-OBJ = main.o src/geometry.o src/laplace.o
+OBJ = main.o src/geometry.o src/laplace.o src/laplace_cuda.o
 
 %.o: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -D${TYPE}
+%.o: %.cu
+	time $(NVCC) $(NVCCFLAGS) -c $<  -o $@ -D${TYPE}
 
 all: $(OBJ)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
