@@ -94,7 +94,7 @@ namespace exafmm_t {
   }
 
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-    for(int i=0; i<trg_value.size(); ++i) {
+    for(int i=0; i<trg_coord.size()/3; ++i) {
       complex_t p = 0;
       real_t * tX = &trg_coord[3*i];
       for(int j=0; j<src_value.size(); ++j) {
@@ -112,7 +112,7 @@ namespace exafmm_t {
   }
 
   void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-    for(int i=0; i<trg_value.size(); ++i) {
+    for(int i=0; i<trg_coord.size()/3; ++i) {
       complex_t p = 0;
       cvec3 F = complex_t(0., 0.);
       real_t * tX = &trg_coord[3*i];
@@ -156,6 +156,197 @@ namespace exafmm_t {
       ComplexVec trg_value(trg_cnt, complex_t(0,0));
       potentialP2P(src_coord, src_value, trg_coord, trg_value);
       std::copy(trg_value.begin(), trg_value.end(), &k_out[i*trg_cnt]);
+    }
+  }
+
+  void P2M(std::vector<Node*>& leafs) {
+    real_t c[3] = {0.0};
+    std::vector<RealVec> upwd_check_surf;
+    upwd_check_surf.resize(MAXLEVEL+1);
+    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
+      upwd_check_surf[depth].resize(NSURF*3);
+      upwd_check_surf[depth] = surface(MULTIPOLE_ORDER,c,2.95,depth);
+    }
+    #pragma omp parallel for
+    for(int i=0; i<leafs.size(); i++) {
+      Node* leaf = leafs[i];
+      int level = leaf->depth;
+      real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
+      RealVec checkCoord(NSURF*3);
+      for(int k=0; k<NSURF; k++) {
+        checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->coord[0];
+        checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
+        checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
+      }
+      potentialP2P(leaf->pt_coord, leaf->pt_src, checkCoord, leaf->upward_equiv);
+      ComplexVec buffer(NSURF);
+      ComplexVec equiv(NSURF);
+      gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &M2M_V[0], &buffer[0]);
+      gemm(1, NSURF, NSURF, &buffer[0], &M2M_U[0], &equiv[0]);
+      for(int k=0; k<NSURF; k++)
+        leaf->upward_equiv[k] = scal * equiv[k];
+    }
+  }
+
+  void M2M(Node* node) {
+    if(node->IsLeaf()) return;
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL)
+        #pragma omp task untied
+        M2M(node->child[octant]);
+    }
+    #pragma omp taskwait
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL) {
+        Node* child = node->child[octant];
+        ComplexVec buffer(NSURF);
+        gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
+        for(int k=0; k<NSURF; k++) {
+          node->upward_equiv[k] += buffer[k];
+        }
+      }
+    }
+  }
+
+  void L2L(Node* node) {
+    if(node->IsLeaf()) return;
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL) {
+        Node* child = node->child[octant];
+        ComplexVec buffer(NSURF);
+        gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[octant][0]), &buffer[0]);
+        for(int k=0; k<NSURF; k++)
+          child->dnward_equiv[k] += buffer[k];
+      }
+    }
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL)
+        #pragma omp task untied
+        L2L(node->child[octant]);
+    }
+    #pragma omp taskwait
+  } 
+
+  void L2P(std::vector<Node*>& leafs) {
+    real_t c[3] = {0.0};
+    std::vector<RealVec> dnwd_equiv_surf;
+    dnwd_equiv_surf.resize(MAXLEVEL+1);
+    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
+      dnwd_equiv_surf[depth].resize(NSURF*3);
+      dnwd_equiv_surf[depth] = surface(MULTIPOLE_ORDER,c,2.95,depth);
+    }
+    #pragma omp parallel for
+    for(int i=0; i<leafs.size(); i++) {
+      Node* leaf = leafs[i];
+      int level = leaf->depth;
+      real_t scal = pow(0.5, level);
+      // check surface potential -> equivalent surface charge
+      ComplexVec buffer(NSURF);
+      ComplexVec equiv(NSURF);
+      gemm(1, NSURF, NSURF, &(leaf->dnward_equiv[0]), &L2L_V[0], &buffer[0]);
+      gemm(1, NSURF, NSURF, &buffer[0], &L2L_U[0], &equiv[0]);
+      for(int k=0; k<NSURF; k++)
+        leaf->dnward_equiv[k] = scal * equiv[k];
+      // equivalent surface charge -> target potential
+      RealVec equivCoord(NSURF*3);
+      for(int k=0; k<NSURF; k++) {
+        equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->coord[0];
+        equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->coord[1];
+        equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
+      }
+      gradientP2P(equivCoord, leaf->dnward_equiv, leaf->pt_coord, leaf->pt_trg);
+    }
+  }
+
+  void P2L(Nodes& nodes) {
+    Nodes& targets = nodes;
+    real_t c[3] = {0.0};
+    std::vector<RealVec> dnwd_check_surf;
+    dnwd_check_surf.resize(MAXLEVEL+1);
+    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
+      dnwd_check_surf[depth].resize(NSURF*3);
+      dnwd_check_surf[depth] = surface(MULTIPOLE_ORDER,c,1.05,depth);
+    }
+    #pragma omp parallel for
+    for(int i=0; i<targets.size(); i++) {
+      Node* target = &targets[i];
+      if (target->IsLeaf() && target->numBodies<=NSURF)
+        continue;
+      std::vector<Node*>& sources = target->interac_list[P2L_Type];
+      for(int j=0; j<sources.size(); j++) {
+        Node* source = sources[j];
+        if (source != NULL) {
+          RealVec targetCheckCoord(NSURF*3);
+          int level = target->depth;
+          // target node's check coord = relative check coord + node's origin
+          for(int k=0; k<NSURF; k++) {
+            targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
+            targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
+            targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
+          }
+          potentialP2P(source->pt_coord, source->pt_src, targetCheckCoord, target->dnward_equiv);
+        }
+      }
+    }
+  }
+
+  void M2P(std::vector<Node*>& leafs) {
+    std::vector<Node*>& targets = leafs;  // leafs
+    real_t c[3] = {0.0};
+    std::vector<RealVec> upwd_equiv_surf;
+    upwd_equiv_surf.resize(MAXLEVEL+1);
+    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
+      upwd_equiv_surf[depth].resize(NSURF*3);
+      upwd_equiv_surf[depth] = surface(MULTIPOLE_ORDER,c,1.05,depth);
+    }
+    #pragma omp parallel for
+    for(int i=0; i<targets.size(); i++) {
+      Node* target = targets[i];
+      std::vector<Node*>& sources = target->interac_list[M2P_Type];
+      for(int j=0; j<sources.size(); j++) {
+        Node* source = sources[j];
+        if (source != NULL) {
+          if (source->IsLeaf() && source->numBodies<=NSURF)
+            continue;
+          RealVec sourceEquivCoord(NSURF*3);
+          int level = source->depth;
+          // source node's equiv coord = relative equiv coord + node's origin
+          for(int k=0; k<NSURF; k++) {
+            sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->coord[0];
+            sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
+            sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
+          }
+          gradientP2P(sourceEquivCoord, source->upward_equiv, target->pt_coord, target->pt_trg);
+        }
+      }
+    }
+  }
+
+  void P2P(std::vector<Node*>& leafs) {
+    std::vector<Node*>& targets = leafs;   // leafs, assume sources == targets
+    std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type, P2L_Type, M2P_Type};
+    #pragma omp parallel for
+    for(int i=0; i<targets.size(); i++) {
+      Node* target = targets[i];
+      for(int k=0; k<types.size(); k++) {
+        Mat_Type type = types[k];
+        std::vector<Node*>& sources = target->interac_list[type];
+        if (type == P2L_Type)
+          if (target->numBodies > NSURF) {
+            continue;
+          }
+        for(int j=0; j<sources.size(); j++) {
+          Node* source = sources[j];
+          if (source != NULL) {
+            if (type == M2P_Type) {
+              if (source->numBodies > NSURF) {
+                continue;
+              }
+            }
+            gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
+          }
+        }
+      }
     }
   }
 }//end namespace

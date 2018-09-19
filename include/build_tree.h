@@ -53,7 +53,11 @@ namespace exafmm_t {
     }
     if (end-begin<=args.ncrit && isLeafKey) {
       node->numChilds = 0;
-      node->pt_trg.resize(node->numBodies*4);   // initialize target result vector
+#if COMPLEX
+      node->pt_trg.resize(node->numBodies*4, complex_t(0.,0.));   // initialize target result vector
+#else
+      node->pt_trg.resize(node->numBodies*4, 0.);   // initialize target result vector
+#endif
       leafs.push_back(node);
       if (direction) {
         for (int i=begin; i<end; i++) {

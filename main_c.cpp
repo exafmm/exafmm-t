@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
   int n = 20;
   RealVec src_coord(3*n), trg_coord(3*n);
   ComplexVec src_value(n), trg_value(n, complex_t(0.,0.));
+  ComplexVec trg_F(4*n, complex_t(0.,0.));
   srand48(10);
 
   for(int i=0; i<n; ++i) {
@@ -60,14 +61,25 @@ int main(int argc, char **argv) {
     src_value[i] = complex_t(drand48(), drand48());
   }
 
-  potentialP2P(src_coord, src_value, trg_coord, trg_value);
+  //potentialP2P(src_coord, src_value, trg_coord, trg_value);
+  gradientP2P(src_coord, src_value, trg_coord, trg_F);
   for(int i=0; i<n; ++i) {
-    std::cout << trg_value[i] << std::endl;
+    //std::cout << trg_value[i] << std::endl;
+    for(int d=0; d<4; ++d) std::cout << trg_F[4*i+d] << " ";
+    std::cout << std::endl;
   }
 #endif
 
   initRelCoord();    // initialize relative coords
   Precompute();
+  setColleagues(nodes);
+  buildList(nodes);
+
+  P2M(leafs);
+  M2M(&nodes[0]);
+  P2L(nodes);
+  M2P(leafs);
+  P2P(leafs);
 
 #if TEST_PRECOMP
   std::cout << mat_M2L.size() << std::endl;
