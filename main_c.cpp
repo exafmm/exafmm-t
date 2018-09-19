@@ -3,7 +3,7 @@
 #include "interaction_list.h"
 #include "laplace_c.h"
 #include "precompute_c.h"
-#include "profile.h"
+#include "traverse.h"
 
 using namespace exafmm_t;
 
@@ -46,6 +46,21 @@ int main(int argc, char **argv) {
     }
   }
 
+  initRelCoord();    // initialize relative coords
+  Precompute();
+  setColleagues(nodes);
+  buildList(nodes);
+  M2LSetup(nonleafs);
+  upwardPass(nodes, leafs);
+  downwardPass(nodes, leafs);
+
+  RealVec error = verify(leafs);
+  std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
+  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< MAXLEVEL << std::endl;
+  std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;
+  std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << error[1] << std::endl;
+
+  return 0;
 #if TEST_P2P
   int n = 20;
   RealVec src_coord(3*n), trg_coord(3*n);
@@ -70,17 +85,6 @@ int main(int argc, char **argv) {
   }
 #endif
 
-  initRelCoord();    // initialize relative coords
-  Precompute();
-  setColleagues(nodes);
-  buildList(nodes);
-
-  P2M(leafs);
-  M2M(&nodes[0]);
-  P2L(nodes);
-  M2P(leafs);
-  P2P(leafs);
-
 #if TEST_PRECOMP
   std::cout << mat_M2L.size() << std::endl;
   for(int i=0; i<mat_M2L.size(); ++i) {
@@ -102,5 +106,4 @@ int main(int argc, char **argv) {
     std::cout << result[i] << std::endl;
   }
 #endif
-  return 0;
 }
