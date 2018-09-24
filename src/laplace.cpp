@@ -267,17 +267,15 @@ namespace exafmm_t {
         std::vector<Node*>& sources = target->P2Llist;
         for(int j=0; j<sources.size(); j++) {
           Node* source = sources[j];
-          if (source != NULL) {
-            RealVec targetCheckCoord(NSURF*3);
-            int level = target->depth;
-            // target node's check coord = relative check coord + node's origin
-            for(int k=0; k<NSURF; k++) {
-              targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
-              targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
-              targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
-            }
-            potentialP2P(source->pt_coord, source->pt_src, targetCheckCoord, target->dnward_equiv);
+          RealVec targetCheckCoord(NSURF*3);
+          int level = target->depth;
+          // target node's check coord = relative check coord + node's origin
+          for(int k=0; k<NSURF; k++) {
+            targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
+            targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
+            targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
           }
+          potentialP2P(source->pt_coord, source->pt_src, targetCheckCoord, target->dnward_equiv);
         }
       }
     }
@@ -298,9 +296,7 @@ namespace exafmm_t {
       std::vector<Node*>& sources = target->M2Plist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
-        if (source != NULL) {
-          if (source->IsLeaf() && source->numBodies<=NSURF)
-            continue;
+        if (source->numBodies > NSURF || !source->IsLeaf()) {
           RealVec sourceEquivCoord(NSURF*3);
           int level = source->depth;
           // source node's equiv coord = relative equiv coord + node's origin
@@ -323,9 +319,7 @@ namespace exafmm_t {
       std::vector<Node*>& sources = target->P2Plist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
-        if (source != NULL) {
-          gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
-        }
+        gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
       }
     }
     // M2Plist
@@ -334,10 +328,8 @@ namespace exafmm_t {
       std::vector<Node*>& sources = target->M2Plist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
-        if (source != NULL) {
-          if (source->numBodies <= NSURF) {
-            gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
-          }
+        if (source->numBodies <= NSURF) {
+          gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
         }
       }
     }
