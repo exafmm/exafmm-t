@@ -362,7 +362,7 @@ namespace exafmm_t {
     std::vector<Node*>& nodes_out = nonleafs;
     std::set<Node*> nodes_in_;
     for(size_t i=0; i<nodes_out.size(); i++) {
-      std::vector<Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
+      std::vector<Node*>& M2Llist = nodes_out[i]->M2Llist;
       for(size_t k=0; k<mat_cnt; k++) {
         if(M2Llist[k]!=NULL)
           nodes_in_.insert(M2Llist[k]);
@@ -401,7 +401,7 @@ namespace exafmm_t {
       size_t blk1_end  =(nodes_out.size()*(blk1+1))/n_blk1;
       for(size_t k=0; k<mat_cnt; k++) {
         for(size_t i=blk1_start; i<blk1_end; i++) {
-          std::vector<Node*>& M2Llist = nodes_out[i]->interac_list[M2L_Type];
+          std::vector<Node*>& M2Llist = nodes_out[i]->M2Llist;
           if(M2Llist[k]!=NULL) {
             interac_vec.push_back(M2Llist[k]->node_id * fftsize);   // node_in dspl
             interac_vec.push_back(        i           * fftsize);   // node_out dspl

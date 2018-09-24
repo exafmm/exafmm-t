@@ -55,7 +55,6 @@ namespace exafmm_t {
     ivec3 rel_coord;
     int p2n = n->octant;       // octant
     Node* p = n->parent; // parent node
-    std::vector<Node*>& interac_list = n->interac_list[t];
     switch (t) {
     case P2P0_Type:
       if(p == NULL || !n->IsLeaf()) return;
@@ -116,7 +115,8 @@ namespace exafmm_t {
           rel_coord[2]=((i/9)%3)-1;
           c_hash = hash(rel_coord);
           idx=hash_lut[t][c_hash];
-          if(idx>=0) interac_list[idx]=col;
+          if(idx>=0) 
+            n->M2Llist[idx] = col;
         }
       }
       break;
@@ -159,17 +159,16 @@ namespace exafmm_t {
 
   // Fill in interac_list of all nodes, assume sources == target for simplicity
   void buildList(Nodes& nodes) {
-    std::vector<Mat_Type> interactionTypes = {P2P0_Type, P2P1_Type, P2P2_Type,
-                                              M2P_Type, P2L_Type, M2L_Type};
-    for(int j=0; j<interactionTypes.size(); j++) {
-      Mat_Type type = interactionTypes[j];
-      int numRelCoord = rel_coord[type].size();
-      #pragma omp parallel for
-      for(size_t i=0; i<nodes.size(); i++) {
-        Node* node = &nodes[i];
-        node->interac_list[type].resize(numRelCoord, 0);
-        buildList(node, type);
-      }
+    //#pragma omp parallel for
+    for(size_t i=0; i<nodes.size(); i++) {
+      Node* node = &nodes[i];
+      node->M2Llist.resize(rel_coord[M2L_Type].size(), 0);
+      buildList(node, P2P0_Type);
+      buildList(node, P2P1_Type);
+      buildList(node, P2P2_Type);
+      buildList(node, M2P_Type);
+      buildList(node, P2L_Type);
+      buildList(node, M2L_Type);
     }
   }
   
