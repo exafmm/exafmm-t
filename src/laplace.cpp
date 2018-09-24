@@ -317,22 +317,14 @@ namespace exafmm_t {
 
   void P2P(std::vector<Node*>& leafs) {
     std::vector<Node*>& targets = leafs;   // leafs, assume sources == targets
-    std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type};
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
-      for(int k=0; k<types.size(); k++) {
-        Mat_Type type = types[k];
-        std::vector<Node*>& sources = target->interac_list[type];
-        if (type == P2L_Type)
-          if (target->numBodies > NSURF) {
-            continue;
-          }
-        for(int j=0; j<sources.size(); j++) {
-          Node* source = sources[j];
-          if (source != NULL) {
-            gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
-          }
+      std::vector<Node*>& sources = target->P2Plist;
+      for(int j=0; j<sources.size(); j++) {
+        Node* source = sources[j];
+        if (source != NULL) {
+          gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
         }
       }
     }
