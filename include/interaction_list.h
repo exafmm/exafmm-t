@@ -131,8 +131,15 @@ namespace exafmm_t {
             rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
             c_hash = hash(rel_coord);
             idx=hash_lut[t][c_hash];
-            if(idx>=0) 
-              n->M2Plist.push_back(col->Child(j));
+            if(idx>=0) {
+              Node* source = col->child[j];
+              // since we currently don't save bodies' information in nonleaf nodes
+              // M2P can only be switched to P2P when source is leaf
+              if (source->IsLeaf() && source->numBodies<=NSURF)
+                n->P2Plist.push_back(source);
+              else
+                n->M2Plist.push_back(source);
+            }
           }
         }
       }
@@ -147,8 +154,12 @@ namespace exafmm_t {
           rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
           c_hash = hash(rel_coord);
           idx=hash_lut[t][c_hash];
-          if(idx>=0)
-            n->P2Llist.push_back(pc);
+          if(idx>=0) {
+            if (n->IsLeaf() && n->numBodies<=NSURF)
+              n->P2Plist.push_back(pc);
+            else
+              n->P2Llist.push_back(pc);
+          }
         }
       }
       break;
