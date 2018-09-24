@@ -263,21 +263,21 @@ namespace exafmm_t {
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = &targets[i];
-      if (target->IsLeaf() && target->numBodies<=NSURF)
-        continue;
-      std::vector<Node*>& sources = target->interac_list[P2L_Type];
-      for(int j=0; j<sources.size(); j++) {
-        Node* source = sources[j];
-        if (source != NULL) {
-          RealVec targetCheckCoord(NSURF*3);
-          int level = target->depth;
-          // target node's check coord = relative check coord + node's origin
-          for(int k=0; k<NSURF; k++) {
-            targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
-            targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
-            targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
+      if (target->numBodies > NSURF || !target->IsLeaf()) {
+        std::vector<Node*>& sources = target->P2Llist;
+        for(int j=0; j<sources.size(); j++) {
+          Node* source = sources[j];
+          if (source != NULL) {
+            RealVec targetCheckCoord(NSURF*3);
+            int level = target->depth;
+            // target node's check coord = relative check coord + node's origin
+            for(int k=0; k<NSURF; k++) {
+              targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
+              targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
+              targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
+            }
+            potentialP2P(source->pt_coord, source->pt_src, targetCheckCoord, target->dnward_equiv);
           }
-          potentialP2P(source->pt_coord, source->pt_src, targetCheckCoord, target->dnward_equiv);
         }
       }
     }
@@ -295,7 +295,7 @@ namespace exafmm_t {
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
-      std::vector<Node*>& sources = target->interac_list[M2P_Type];
+      std::vector<Node*>& sources = target->M2Plist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
         if (source != NULL) {
@@ -317,7 +317,7 @@ namespace exafmm_t {
 
   void P2P(std::vector<Node*>& leafs) {
     std::vector<Node*>& targets = leafs;   // leafs, assume sources == targets
-    std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type, P2L_Type, M2P_Type};
+    std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type};
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
@@ -331,13 +331,32 @@ namespace exafmm_t {
         for(int j=0; j<sources.size(); j++) {
           Node* source = sources[j];
           if (source != NULL) {
-            if (type == M2P_Type) {
-              if (source->numBodies > NSURF) {
-                continue;
-              }
-            }
             gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
           }
+        }
+      }
+    }
+    // M2Plist
+    for(int i=0; i<targets.size(); i++) {
+      Node* target = targets[i];
+      std::vector<Node*>& sources = target->M2Plist;
+      for(int j=0; j<sources.size(); j++) {
+        Node* source = sources[j];
+        if (source != NULL) {
+          if (source->numBodies <= NSURF) {
+            gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
+          }
+        }
+      }
+    }
+    // P2Llist
+    for(int i=0; i<targets.size(); i++) {
+      Node* target = targets[i];
+      if (target->numBodies <= NSURF) {
+        std::vector<Node*>& sources = target->P2Llist;
+        for(int j=0; j<sources.size(); j++) {
+          Node* source = sources[j];
+          gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
         }
       }
     }

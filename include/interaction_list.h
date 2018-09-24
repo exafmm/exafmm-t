@@ -129,7 +129,8 @@ namespace exafmm_t {
             rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
             c_hash = hash(rel_coord);
             idx=hash_lut[t][c_hash];
-            if(idx>=0) interac_list[idx]=(Node*)col->Child(j);
+            if(idx>=0) 
+              n->M2Plist.push_back(col->Child(j));
           }
         }
       }
@@ -144,7 +145,8 @@ namespace exafmm_t {
           rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
           c_hash = hash(rel_coord);
           idx=hash_lut[t][c_hash];
-          if(idx>=0) interac_list[idx]=pc;
+          if(idx>=0)
+            n->P2Llist.push_back(pc);
         }
       }
       break;
