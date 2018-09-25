@@ -95,11 +95,7 @@ namespace exafmm_t {
 
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
-#ifdef FLOAT
-    const real_t COEF = 1.0/2;   // coefficient of simd rsqrt function in vec.h
-#else
-    const real_t COEF = 1.0/(4*4); 
-#endif
+    const real_t COEF = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;

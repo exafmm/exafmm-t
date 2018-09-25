@@ -908,8 +908,10 @@ namespace exafmm_t {
     friend vec rsqrt(const vec & v) {
 #if EXAFMM_RSQRT_APPROX
       vec three = 3.0f;
+      vec twelve = 12.0f;
       vec temp = vec(_mm256_rsqrt_ps(v.data));
       temp *= (three - temp * temp * v);
+      temp *= (twelve - temp * temp * v);
       return temp;
 #else
       vec one = 1;
