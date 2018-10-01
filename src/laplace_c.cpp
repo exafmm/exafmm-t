@@ -95,7 +95,7 @@ namespace exafmm_t {
 
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
-    const real_t COEF = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
@@ -163,10 +163,10 @@ namespace exafmm_t {
           for(int d=0; d<3; ++d) F[d] += dX[d] * invR2 * invR;
         }
       }
-      trg_value[4*i+0] += p;
-      trg_value[4*i+1] += F[0];
-      trg_value[4*i+2] += F[1];
-      trg_value[4*i+3] += F[2];
+      trg_value[4*i+0] += p / (4*M_PI);
+      trg_value[4*i+1] += F[0] / (4*M_PI);
+      trg_value[4*i+2] += F[1] / (4*M_PI);
+      trg_value[4*i+3] += F[2] / (4*M_PI); 
     }
   }
 
