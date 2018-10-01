@@ -12,9 +12,8 @@ LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp
 
 OBJF = main.fo src/geometry.fo src/laplace.fo
 OBJD = main.do src/geometry.do src/laplace.do
-
-OBJC =  main_c.co src/geometry.co src/laplace_c.co
-
+OBJC =  main.co src/geometry.co src/laplace_c.co
+OBJZ =  main.zo src/geometry.zo src/laplace_c.zo
 
 %.fo: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT
@@ -25,17 +24,23 @@ OBJC =  main_c.co src/geometry.co src/laplace_c.co
 %.co: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DCOMPLEX
 
-float: $(OBJF)
+%.zo: %.cpp
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX
+
+real8: $(OBJF)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
-double: $(OBJD)
+real16: $(OBJD)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
-laplace_c: $(OBJC)
+complex8: $(OBJC)
+	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
+
+complex16: $(OBJZ)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
 clean:
-	rm -f $(OBJF) $(OBJD) $(OBJC) *.out
+	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) *.out
 
 p4:
 	./a.out -T 8 -n 1000000 -P 4 -c 64

@@ -1,10 +1,11 @@
 ###TODO
 -------------
 
+- [ ] Non-parent-level M2L (Tingyu)
+- [ ] Add Helmholtz kernel (Tingyu)
 - [ ] Separate sources/target (Tingyu)
 - [ ] Write wrapper for BEM (Tingyu)
-- [ ] Laplace with complex charges (Tingyu & Chenwu)
-- [ ] Add Helmholtz kernel (Chenwu)
+- [ ] gradientP2P complex simd (Chenwu)
 - [ ] Laplace P2P on GPU (Elket)
 
 depth > level
