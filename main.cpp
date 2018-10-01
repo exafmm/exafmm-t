@@ -6,8 +6,6 @@
 #include "traverse.h"
 
 using namespace exafmm_t;
-RealVec plummer(int);
-RealVec nonuniform(int);
 
 int main(int argc, char **argv) {
   Args args(argc, argv);

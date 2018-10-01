@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   Profile::Enable(true); 
 
+  Profile::Tic("Total", true);
   Bodies bodies = initBodies(args.numBodies, args.distribution, 0);
   std::vector<Node*> leafs, nonleafs;
   Nodes nodes = buildTree(bodies, leafs, nonleafs, args);
@@ -47,63 +48,20 @@ int main(int argc, char **argv) {
   }
 
   initRelCoord();    // initialize relative coords
+  Profile::Tic("Precomputation", true);
   Precompute();
+  Profile::Toc();
   setColleagues(nodes);
   buildList(nodes);
   M2LSetup(nonleafs);
   upwardPass(nodes, leafs);
   downwardPass(nodes, leafs);
-
+  Profile::Toc();
   RealVec error = verify(leafs);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
   std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< MAXLEVEL << std::endl;
   std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;
   std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << error[1] << std::endl;
-
+  Profile::print();
   return 0;
-#if TEST_P2P
-  int n = 20;
-  RealVec src_coord(3*n), trg_coord(3*n);
-  ComplexVec src_value(n), trg_value(n, complex_t(0.,0.));
-  ComplexVec trg_F(4*n, complex_t(0.,0.));
-  srand48(10);
-
-  for(int i=0; i<n; ++i) {
-    for(int d=0; d<3; ++d) {
-      src_coord[3*i+d] = drand48();
-      trg_coord[3*i+d] = drand48();
-    } 
-    src_value[i] = complex_t(drand48(), drand48());
-  }
-
-  //potentialP2P(src_coord, src_value, trg_coord, trg_value);
-  gradientP2P(src_coord, src_value, trg_coord, trg_F);
-  for(int i=0; i<n; ++i) {
-    //std::cout << trg_value[i] << std::endl;
-    for(int d=0; d<4; ++d) std::cout << trg_F[4*i+d] << " ";
-    std::cout << std::endl;
-  }
-#endif
-
-#if TEST_PRECOMP
-  std::cout << mat_M2L.size() << std::endl;
-  for(int i=0; i<mat_M2L.size(); ++i) {
-    int len = mat_M2L[i].size();
-    for(int j=0; j<len; j+=3) {
-      std::cout << mat_M2L[i][j] << std::endl;
-    }
-  }
-#endif
-
-#if TEST_SCGEMM
-  std::cout << M2M_U.size() << std::endl;
-  ComplexVec q(NSURF), result(NSURF);
-  for(int i=0; i<NSURF; ++i) {
-    q[i] = complex_t(drand48(), drand48()); 
-  }
-  gemm(1, NSURF, NSURF, &q[0], &M2M_U[0], &result[0]);
-  for(int i=0; i<NSURF; ++i) {
-    std::cout << result[i] << std::endl;
-  }
-#endif
 }
