@@ -87,7 +87,10 @@ namespace exafmm_t {
     Node* parent;
     std::vector<Node*> child;
     Node* colleague[27];
-    std::vector<Node*> interac_list[Type_Count];
+    std::vector<Node*> P2Llist;
+    std::vector<Node*> M2Plist;
+    std::vector<Node*> P2Plist;
+    std::vector<Node*> M2Llist;
     RealVec pt_coord;
     RealVec pt_src;  // src's charge
     RealVec pt_trg;  // trg's potential

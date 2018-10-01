@@ -49,8 +49,37 @@ namespace exafmm_t {
   }
 
   void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
-    potentialP2PGPU(src_coord, src_value, trg_coord, trg_value);
-   //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*20);
+simdvec zero((real_t)0);
+    const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    simdvec coef(COEF);
+    int src_cnt = src_coord.size() / 3;
+    int trg_cnt = trg_coord.size() / 3;
+    for(int t=0; t<trg_cnt; t+=NSIMD) {
+      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
+      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
+      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
+      simdvec tv(zero);
+      for(int s=0; s<src_cnt; s++) {
+        simdvec sx(src_coord[3*s+0]);
+        sx = sx - tx;
+        simdvec sy(src_coord[3*s+1]);
+        sy = sy - ty;
+        simdvec sz(src_coord[3*s+2]);
+        sz = sz - tz;
+        simdvec sv(src_value[s]);
+        simdvec r2(zero);
+        r2 += sx * sx;
+        r2 += sy * sy;
+        r2 += sz * sz;
+        simdvec invR = rsqrt(r2);
+        invR &= r2 > zero;
+        tv += invR * sv;
+      }
+      tv *= coef;
+      for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
+        trg_value[t+k] += tv[k];
+      }
+    }
   }
 
   void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
@@ -286,30 +315,15 @@ namespace exafmm_t {
     }
   }
 
-  void P2P(std::vector<Node*>& leafs) {
-    std::vector<Node*>& targets = leafs;   // leafs, assume sources == targets
-    std::vector<Mat_Type> types = {P2P0_Type, P2P1_Type, P2P2_Type, P2L_Type, M2P_Type};
+ void P2P(std::vector<Node*>& leafs) {
+    std::vector<Node*>& targets = leafs;   // assume sources == targets
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
-      for(int k=0; k<types.size(); k++) {
-        Mat_Type type = types[k];
-        std::vector<Node*>& sources = target->interac_list[type];
-        if (type == P2L_Type)
-          if (target->numBodies > NSURF) {
-            continue;
-          }
-        for(int j=0; j<sources.size(); j++) {
-          Node* source = sources[j];
-          if (source != NULL) {
-            if (type == M2P_Type) {
-              if (source->numBodies > NSURF) {
-                continue;
-              }
-            }
-            gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
-          }
-        }
+      std::vector<Node*>& sources = target->P2Plist;
+      for(int j=0; j<sources.size(); j++) {
+        Node* source = sources[j];
+        gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
       }
     }
   }

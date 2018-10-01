@@ -48,163 +48,142 @@ namespace exafmm_t {
     initRelCoord(5, 5, 2, P2L_Type);
   }
 
-  // Build interaction list for node n
-  void buildList(Node* n, Mat_Type t) {
-    const int n_child=8, n_collg=27;
-    int c_hash, idx;
+  // Build interaction lists of P2P0_Type and P2L_Type
+  void buildListParentLevel(Node* n) {
+    if (n->parent == NULL) return;
     ivec3 rel_coord;
-    int p2n = n->octant;       // octant
-    Node* p = n->parent; // parent node
-    std::vector<Node*>& interac_list = n->interac_list[t];
-    switch (t) {
-    case P2P0_Type:
-      if(p == NULL || !n->IsLeaf()) return;
-      for(int i=0; i<n_collg; i++) {
-        Node* pc = p->colleague[i];
-        if(pc!=NULL && pc->IsLeaf()) {
-          rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
-          rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
-          rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
-          c_hash = hash(rel_coord);
-          idx = hash_lut[t][c_hash];
-          if(idx>=0) interac_list[idx] = pc;
+    int octant = n->octant;
+    bool isleaf = n->IsLeaf();
+    for (int i=0; i<27; i++) {
+      Node* pc = n->parent->colleague[i];
+      if (pc!=NULL && pc->IsLeaf()) {
+        rel_coord[0]=( i %3)*4-4-(octant & 1?2:0)+1;
+        rel_coord[1]=((i/3)%3)*4-4-(octant & 2?2:0)+1;
+        rel_coord[2]=((i/9)%3)*4-4-(octant & 4?2:0)+1;
+        int c_hash = hash(rel_coord);
+        if (isleaf) {
+          int idx1 = hash_lut[P2P0_Type][c_hash];
+          if (idx1>=0)
+            n->P2Plist.push_back(pc);
         }
-      }
-      break;
-    case P2P1_Type:
-      if(!n->IsLeaf()) return;
-      for(int i=0; i<n_collg; i++) {
-        Node* col=(Node*)n->colleague[i];
-        if(col!=NULL && col->IsLeaf()) {
-          rel_coord[0]=( i %3)-1;
-          rel_coord[1]=((i/3)%3)-1;
-          rel_coord[2]=((i/9)%3)-1;
-          c_hash = hash(rel_coord);
-          idx = hash_lut[t][c_hash];
-          if(idx>=0) interac_list[idx] = col;
+        int idx2 = hash_lut[P2L_Type][c_hash];
+        if (idx2>=0) {
+          if (isleaf && n->numBodies<=NSURF)
+            n->P2Plist.push_back(pc);
+          else
+            n->P2Llist.push_back(pc);
         }
-      }
-      break;
-    case P2P2_Type:
-      if(!n->IsLeaf()) return;
-      for(int i=0; i<n_collg; i++) {
-        Node* col=(Node*)n->colleague[i];
-        if(col!=NULL && !col->IsLeaf()) {
-          for(int j=0; j<n_child; j++) {
-            rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
-            rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
-            rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
-            c_hash = hash(rel_coord);
-            idx = hash_lut[t][c_hash];
-            if(idx>=0) {
-              assert(col->Child(j)->IsLeaf()); //2:1 balanced
-              interac_list[idx] = (Node*)col->Child(j);
-            }
-          }
-        }
-      }
-      break;
-    case M2L_Type:
-      if(n->IsLeaf()) return;
-      for(int i=0; i<n_collg; i++) {
-        Node* col=(Node*)n->colleague[i];
-        if(col!=NULL && !col->IsLeaf()) {
-          rel_coord[0]=( i %3)-1;
-          rel_coord[1]=((i/3)%3)-1;
-          rel_coord[2]=((i/9)%3)-1;
-          c_hash = hash(rel_coord);
-          idx=hash_lut[t][c_hash];
-          if(idx>=0) interac_list[idx]=col;
-        }
-      }
-      break;
-    case M2P_Type:
-      if(!n->IsLeaf()) return;
-      for(int i=0; i<n_collg; i++) {
-        Node* col=(Node*)n->colleague[i];
-        if(col!=NULL && !col->IsLeaf()) {
-          for(int j=0; j<n_child; j++) {
-            rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
-            rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
-            rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
-            c_hash = hash(rel_coord);
-            idx=hash_lut[t][c_hash];
-            if(idx>=0) interac_list[idx]=(Node*)col->Child(j);
-          }
-        }
-      }
-      break;
-    case P2L_Type:
-      if(p == NULL) return;
-      for(int i=0; i<n_collg; i++) {
-        Node* pc=(Node*)p->colleague[i];
-        if(pc!=NULL && pc->IsLeaf()) {
-          rel_coord[0]=( i %3)*4-4-(p2n & 1?2:0)+1;
-          rel_coord[1]=((i/3)%3)*4-4-(p2n & 2?2:0)+1;
-          rel_coord[2]=((i/9)%3)*4-4-(p2n & 4?2:0)+1;
-          c_hash = hash(rel_coord);
-          idx=hash_lut[t][c_hash];
-          if(idx>=0) interac_list[idx]=pc;
-        }
-      }
-      break;
-    default:
-      abort();
-    }
-  }
-
-  // Fill in interac_list of all nodes, assume sources == target for simplicity
-  void buildList(Nodes& nodes) {
-    std::vector<Mat_Type> interactionTypes = {P2P0_Type, P2P1_Type, P2P2_Type,
-                                              M2P_Type, P2L_Type, M2L_Type};
-    for(int j=0; j<interactionTypes.size(); j++) {
-      Mat_Type type = interactionTypes[j];
-      int numRelCoord = rel_coord[type].size();
-      #pragma omp parallel for
-      for(size_t i=0; i<nodes.size(); i++) {
-        Node* node = &nodes[i];
-        node->interac_list[type].resize(numRelCoord, 0);
-        buildList(node, type);
       }
     }
   }
 
-  void setColleagues(Node* node) {
-    Node* parent_node;
-    Node* tmp_node1;
-    Node* tmp_node2;
-    for(int i=0; i<27; i++) node->colleague[i] = NULL;
-    parent_node = node->parent;
-    if(parent_node==NULL) return;
-    int l=node->octant;         // l is octant
+  // Build interaction lists of P2P1_Type and M2L_Type
+  void buildListCurrentLevel(Node* n) {
+    ivec3 rel_coord;
+    bool isleaf = n->IsLeaf();
+    for (int i=0; i<27; i++) {
+      Node* col = n->colleague[i];
+      if(col!=NULL) {
+        rel_coord[0]=( i %3)-1;
+        rel_coord[1]=((i/3)%3)-1;
+        rel_coord[2]=((i/9)%3)-1;
+        int c_hash = hash(rel_coord);
+        if (col->IsLeaf() && isleaf) {
+          int idx1 = hash_lut[P2P1_Type][c_hash];
+          if (idx1>=0) n->P2Plist.push_back(col);
+        } else if (!col->IsLeaf() && !isleaf) {
+          int idx2 = hash_lut[M2L_Type][c_hash];
+          if (idx2>=0) n->M2Llist[idx2] = col;
+        }
+      }
+    }
+  }
+  
+  // Build interaction lists of P2P2_Type and M2P_Type
+  void buildListChildLevel(Node* n) {
+    if (!n->IsLeaf()) return;
+    ivec3 rel_coord;
     for(int i=0; i<27; i++) {
-      tmp_node1 = parent_node->colleague[i];  // loop over parent's colleagues
-      if(tmp_node1!=NULL && !tmp_node1->IsLeaf()) {
-        for(int j=0; j<8; j++) {
-          tmp_node2=tmp_node1->Child(j);    // loop over parent's colleages child
-          if(tmp_node2!=NULL) {
-            bool flag=true;
-            int a=1, b=1, new_indx=0;
-            for(int k=0; k<3; k++) {
-              int indx_diff=(((i/b)%3)-1)*2+((j/a)%2)-((l/a)%2);
-              if(-1>indx_diff || indx_diff>1) flag=false;
-              new_indx+=(indx_diff+1)*b;
-              a*=2;
-              b*=3;
-            }
-            if(flag)
-              node->colleague[new_indx] = tmp_node2;
+      Node* col = n->colleague[i];
+      if(col!=NULL && !col->IsLeaf()) {
+        for(int j=0; j<NCHILD; j++) {
+          Node* cc = col->child[j];
+          rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
+          rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
+          rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
+          int c_hash = hash(rel_coord);
+          int idx1 = hash_lut[P2P2_Type][c_hash];
+          int idx2 = hash_lut[M2P_Type][c_hash];
+          if (idx1>=0) {
+            assert(col->child[j]->IsLeaf()); //2:1 balanced
+            n->P2Plist.push_back(cc);
           }
+          // since we currently don't save bodies' information in nonleaf nodes
+          // M2P can only be switched to P2P when source is leaf
+          if (idx2>=0) {
+            if (cc->IsLeaf() && cc->numBodies<=NSURF)
+              n->P2Plist.push_back(cc);
+            else
+              n->M2Plist.push_back(cc);
+          }
+        }
+      }
+    }
+  }
+
+  // Build interaction lists for all nodes 
+  void buildList(Nodes& nodes) {
+    #pragma omp parallel for
+    for(size_t i=0; i<nodes.size(); i++) {
+      Node* node = &nodes[i];
+      node->M2Llist.resize(rel_coord[M2L_Type].size(), 0);
+      buildListParentLevel(node);
+      buildListCurrentLevel(node);
+      buildListChildLevel(node);
+    }
+  }
+  
+  void setColleagues(Node* node) {
+    Node *parent, *colleague, *child;
+    for (int i=0; i<27; ++i) node->colleague[i] = NULL;
+    if (node->depth==0) {     // root node
+      node->colleague[13] = node;
+    } else {                  // non-root node
+      parent = node->parent;
+      int l = node->octant;
+      for(int i=0; i<27; ++i) { // loop over parent's colleagues
+        colleague = parent->colleague[i]; 
+        if(colleague!=NULL && !colleague->IsLeaf()) {
+          for(int j=0; j<8; ++j) {  // loop over parent's colleages child
+            child = colleague->Child(j);
+            if(child!=NULL) {
+              bool flag=true;
+              int a=1, b=1, new_indx=0;
+              for(int k=0; k<3; ++k) {
+                int indx_diff=(((i/b)%3)-1)*2+((j/a)%2)-((l/a)%2);
+                if(-1>indx_diff || indx_diff>1) flag=false;
+                new_indx+=(indx_diff+1)*b;
+                a*=2;
+                b*=3;
+              }
+              if(flag)
+                node->colleague[new_indx] = child;
+            }
+          }
+        }
+      }
+    }
+    if (!node->IsLeaf()) {
+      for (int c=0; c<8; ++c) {
+        if (node->child[c] != NULL) {
+          setColleagues(node->child[c]);
         }
       }
     }
   }
 
   void setColleagues(Nodes& nodes) {
-    nodes[0].colleague[13] = &nodes[0];
-    for(int i=1; i<nodes.size(); i++) {
-      setColleagues(&nodes[i]);
-    }
+    setColleagues(&nodes[0]);
   }
 }
 #endif
