@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
   nodes.clear();
   leafs.clear();
   nonleafs.clear();
-  nodes = buildTree(bodies, leafs, nonleafs, args, leafkeys);  // rebuild 2:1 balanced tree
+  nodes = buildTree(bodies, leafs, nonleafs, args, leafkeys);
   MAXLEVEL = keys.size() - 1;
 
   // fill in pt_coord, pt_src, correct coord for compatibility
