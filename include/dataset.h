@@ -10,7 +10,11 @@ namespace exafmm_t {
       for (int d=0; d<3; d++) {
         bodies[b].X[d] = drand48();
       }
+#if COMPLEX
+      bodies[b].q = complex_t(drand48()-0.5, drand48()-0.5);
+#else
       bodies[b].q = drand48() - 0.5;
+#endif
     }
     return bodies;
   }
@@ -33,7 +37,11 @@ namespace exafmm_t {
         bodies[i].X[0] = X;
         bodies[i].X[1] = Y;
         bodies[i].X[2] = Z;
-        bodies[i].q = drand48();
+#if COMPLEX
+        bodies[i].q = complex_t(drand48()-0.5, drand48()-0.5);
+#else
+        bodies[i].q = drand48() - 0.5;
+#endif
         for (int d=0; d<3; d++) {
           Xmax = Xmax > fabs(bodies[i].X[d]) ? Xmax : fabs(bodies[i].X[d]);
         }
@@ -67,7 +75,11 @@ namespace exafmm_t {
           bodies[i].X[d] = drand48();
         }
       }
-      bodies[i].q = drand48();
+#if COMPLEX
+      bodies[i].q = complex_t(drand48()-0.5, drand48()-0.5);
+#else
+      bodies[i].q = drand48() - 0.5;
+#endif
     }
     return bodies;
   }

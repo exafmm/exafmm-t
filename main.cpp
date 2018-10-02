@@ -1,13 +1,16 @@
 #include "build_tree.h"
 #include "dataset.h"
 #include "interaction_list.h"
+#if COMPLEX
+#include "laplace_c.h"
+#include "precompute_c.h"
+#else
 #include "laplace.h"
 #include "precompute.h"
+#endif
 #include "traverse.h"
 
 using namespace exafmm_t;
-RealVec plummer(int);
-RealVec nonuniform(int);
 
 int main(int argc, char **argv) {
   Args args(argc, argv);
@@ -16,7 +19,6 @@ int main(int argc, char **argv) {
   MULTIPOLE_ORDER = args.P;
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   Profile::Enable(true);
-  RealVec src_coord, src_value;
 
   Profile::Tic("Total", true);
   Bodies bodies = initBodies(args.numBodies, args.distribution, 0);
@@ -31,7 +33,7 @@ int main(int argc, char **argv) {
   nodes.clear();
   leafs.clear();
   nonleafs.clear();
-  nodes = buildTree(bodies, leafs, nonleafs, args, leafkeys);  // rebuild 2:1 balanced tree
+  nodes = buildTree(bodies, leafs, nonleafs, args, leafkeys);
   MAXLEVEL = keys.size() - 1;
 
   // fill in pt_coord, pt_src, correct coord for compatibility

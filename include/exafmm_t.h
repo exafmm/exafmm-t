@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <complex>
 #include <fftw3.h>
 #include <iostream>
 #include <set>
@@ -20,6 +21,9 @@ namespace exafmm_t {
   const real_t EPS = 1e-8f;
   typedef fftwf_complex fft_complex;
   typedef fftwf_plan fft_plan;
+#define fft_plan_dft fftwf_plan_dft
+#define fft_plan_many_dft fftwf_plan_many_dft
+#define fft_execute_dft fftwf_execute_dft
 #define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c
 #define fft_plan_many_dft_c2r fftwf_plan_many_dft_c2r
 #define fft_execute_dft_r2c fftwf_execute_dft_r2c
@@ -30,6 +34,9 @@ namespace exafmm_t {
   const real_t EPS = 1e-16;
   typedef fftw_complex fft_complex;
   typedef fftw_plan fft_plan;
+#define fft_plan_dft fftw_plan_dft
+#define fft_plan_many_dft fftw_plan_many_dft
+#define fft_execute_dft fftw_execute_dft
 #define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c
 #define fft_plan_many_dft_c2r fftw_plan_many_dft_c2r
 #define fft_execute_dft_r2c fftw_execute_dft_r2c
@@ -37,14 +44,17 @@ namespace exafmm_t {
 #define fft_destroy_plan fftw_destroy_plan
 #endif
 
-  typedef vec<3,int> ivec3;                    //!< std::vector of 3 int types
-  typedef vec<3,real_t> vec3;                   //!< Vector of 3 real_t types
+  typedef std::complex<real_t> complex_t;
+  typedef vec<3,int> ivec3;                     //!< std::vector of 3 int types
+  typedef vec<3,real_t> vec3;                   //!< std::vector of 3 real_t types
+  typedef vec<3,complex_t> cvec3;               //!< std::vector of 3 complex_t types
 
   //! SIMD vector types for AVX512, AVX, and SSE
   const int NSIMD = SIMD_BYTES / int(sizeof(real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
   typedef vec<NSIMD, real_t> simdvec;                  //!< SIMD vector type
-  typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;
   typedef std::vector<real_t> RealVec;
+  typedef std::vector<complex_t> ComplexVec;
+  typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;
   typedef std::vector<real_t, AlignAllocator> AlignedVec;
 
   typedef enum {
@@ -63,9 +73,15 @@ namespace exafmm_t {
   //! Structure of bodies
   struct Body {
     vec3 X;                                     //!< Position
+#if COMPLEX
+    complex_t q;                                   //!< Charge
+    complex_t p;                                   //!< Potential
+    cvec3 F;                                     //!< Force
+#else
     real_t q;                                   //!< Charge
     real_t p;                                   //!< Potential
     vec3 F;                                     //!< Force
+#endif
   };
   typedef std::vector<Body> Bodies;             //!< Vector of bodies
 
@@ -92,10 +108,17 @@ namespace exafmm_t {
     std::vector<Node*> P2Plist;
     std::vector<Node*> M2Llist;
     RealVec pt_coord;
+#if COMPLEX
+    ComplexVec pt_src;  // src's charge
+    ComplexVec pt_trg;  // trg's potential
+    ComplexVec upward_equiv; // M
+    ComplexVec dnward_equiv; // L
+#else
     RealVec pt_src;  // src's charge
     RealVec pt_trg;  // trg's potential
     RealVec upward_equiv; // M
     RealVec dnward_equiv; // L
+#endif
 
     bool IsLeaf() {
       return numChilds == 0;

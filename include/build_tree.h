@@ -19,8 +19,13 @@ namespace exafmm_t {
     node->numChilds = 0;
     node->X = X;
     node->R = R;
-    node->upward_equiv.resize(NSURF, 0.0);
-    node->dnward_equiv.resize(NSURF, 0.0);
+#if COMPLEX
+    node->upward_equiv.resize(NSURF, complex_t(0.,0.));
+    node->dnward_equiv.resize(NSURF, complex_t(0.,0.));
+#else
+    node->upward_equiv.resize(NSURF, 0.);
+    node->dnward_equiv.resize(NSURF, 0.);
+#endif
     ivec3 iX = get3DIndex(X, level);
     node->key = getKey(iX, level);
     //! Count number of bodies in each octant
@@ -48,7 +53,11 @@ namespace exafmm_t {
     }
     if (end-begin<=args.ncrit && isLeafKey) {
       node->numChilds = 0;
-      node->pt_trg.resize(node->numBodies*4);   // initialize target result vector
+#if COMPLEX
+      node->pt_trg.resize(node->numBodies*4, complex_t(0.,0.));   // initialize target result vector
+#else
+      node->pt_trg.resize(node->numBodies*4, 0.);   // initialize target result vector
+#endif
       leafs.push_back(node);
       if (direction) {
         for (int i=begin; i<end; i++) {
