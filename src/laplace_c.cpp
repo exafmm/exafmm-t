@@ -129,44 +129,66 @@ namespace exafmm_t {
         trg_value[t+k] += std::complex<real_t>(tv_real[k], tv_imag[k]);
       }
     }
-    // for(int i=0; i<trg_coord.size()/3; ++i) {
-      // complex_t p = 0;
-      // real_t * tX = &trg_coord[3*i];
-      // for(int j=0; j<src_value.size(); ++j) {
-        // vec3 dX;
-        // real_t * sX = &src_coord[3*j];
-        // for(int d=0; d<3; ++d) dX[d] = tX[d] - sX[d];
-        // real_t R2 = norm(dX);
-        // if (R2 != 0) {
-          // complex_t invR = src_value[j] * sqrt(1.0/R2);
-          // p += invR;
-        // }
-      // }
-      // trg_value[i] += p;
-    // }
   }
 
   void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-    for(int i=0; i<trg_coord.size()/3; ++i) {
-      complex_t p = 0;
-      cvec3 F = complex_t(0., 0.);
-      real_t * tX = &trg_coord[3*i];
-      for(int j=0; j<src_value.size(); ++j) {
-        vec3 dX;
-        real_t * sX = &src_coord[3*j];
-        for(int d=0; d<3; ++d) dX[d] = tX[d] - sX[d];
-        real_t R2 = norm(dX);
-        if (R2 != 0) {
-          real_t invR2 = 1.0 / R2;
-          complex_t invR = src_value[j] * sqrt(invR2);
-          p += invR;
-          for(int d=0; d<3; ++d) F[d] += dX[d] * invR2 * invR;
-        }
+    simdvec zero((real_t)0);
+    const real_t COEF = 1.0/(16*4*M_PI); 
+    const real_t COEFG = -1.0/(256*16*4*M_PI); 
+    simdvec coef(COEF);
+    simdvec coefg(COEFG);
+    int src_cnt = src_coord.size() / 3;
+    int trg_cnt = trg_coord.size() / 3;
+    for(int t=0; t<trg_cnt; t+=NSIMD) {
+      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
+      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
+      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
+      simdvec tv_real(zero);
+      simdvec tv_imag(zero);
+      simdvec F0_real(zero);
+      simdvec F0_imag(zero);
+      simdvec F1_real(zero);
+      simdvec F1_imag(zero);
+      simdvec F2_real(zero);
+      simdvec F2_imag(zero);
+      for(int s=0; s<src_cnt; s++) {
+        simdvec sx(src_coord[3*s+0]);
+        sx = sx - tx;
+        simdvec sy(src_coord[3*s+1]);
+        sy = sy - ty;
+        simdvec sz(src_coord[3*s+2]);
+        sz = sz - tz;
+        simdvec sv_real(src_value[s].real());
+        simdvec sv_imag(src_value[s].imag());
+        simdvec r2(zero);
+        r2 += sx * sx;
+        r2 += sy * sy;
+        r2 += sz * sz;
+        simdvec invR = rsqrt(r2);
+        invR &= r2 > zero;
+        tv_real += invR * sv_real;
+        tv_imag += invR * sv_imag;
+        F0_real += sx * invR * invR * invR * sv_real;
+        F0_imag += sx * invR * invR * invR * sv_imag;
+        F1_real += sy * invR * invR * invR * sv_real;
+        F1_imag += sy * invR * invR * invR * sv_imag;
+        F2_real += sz * invR * invR * invR * sv_real;
+        F2_imag += sz * invR * invR * invR * sv_imag;
       }
-      trg_value[4*i+0] += p / (4*M_PI);
-      trg_value[4*i+1] += F[0] / (4*M_PI);
-      trg_value[4*i+2] += F[1] / (4*M_PI);
-      trg_value[4*i+3] += F[2] / (4*M_PI); 
+      tv_real *= coef;
+      tv_imag *= coef;
+      F0_real *= coefg;
+      F0_imag *= coefg;
+      F1_real *= coefg;
+      F1_imag *= coefg;
+      F2_real *= coefg;
+      F2_imag *= coefg;
+      for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
+        trg_value[4*(t+k)+0] += std::complex<real_t>(tv_real[k], tv_imag[k]);
+        trg_value[4*(t+k)+1] += std::complex<real_t>(F0_real[k], F0_imag[k]);
+        trg_value[4*(t+k)+2] += std::complex<real_t>(F1_real[k], F1_imag[k]);
+        trg_value[4*(t+k)+3] += std::complex<real_t>(F2_real[k], F2_imag[k]);
+      }
     }
   }
 
