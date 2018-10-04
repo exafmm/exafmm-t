@@ -107,6 +107,7 @@ namespace exafmm_t {
     std::vector<Node*> M2Plist;
     std::vector<Node*> P2Plist;
     std::vector<Node*> M2Llist;
+    std::vector<int> M2LRelPos;
     RealVec pt_coord;
 #if COMPLEX
     ComplexVec pt_src;  // src's charge

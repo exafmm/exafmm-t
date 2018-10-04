@@ -77,7 +77,7 @@ namespace exafmm_t {
     }
   }
 
-  // Build interaction lists of P2P1_Type and M2L_Type
+  // Build interaction lists of P2P1_Type
   void buildListCurrentLevel(Node* n) {
     ivec3 rel_coord;
     bool isleaf = n->IsLeaf();
@@ -91,9 +91,6 @@ namespace exafmm_t {
         if (col->IsLeaf() && isleaf) {
           int idx1 = hash_lut[P2P1_Type][c_hash];
           if (idx1>=0) n->P2Plist.push_back(col);
-        } else if (!col->IsLeaf() && !isleaf) {
-          int idx2 = hash_lut[M2L_Type][c_hash];
-          if (idx2>=0) n->M2Llist[idx2] = col;
         }
       }
     }
@@ -131,12 +128,36 @@ namespace exafmm_t {
     }
   }
 
+  // Build M2L list
+  void buildListM2L(Node* n) {
+    if (!n->parent) return;
+    Node* p = n->parent;
+    int octant = n->octant;
+    ivec3 rel_coord;
+    for(int i=0; i<27; i++) {
+      Node* pc = p->colleague[i];
+      if (pc!=NULL && !pc->IsLeaf()) {
+        for (int j=0; j<NCHILD; j++) {
+          Node* pcc = pc->child[j];
+          rel_coord[0] =     i%3 - 1 + (j & 1 ? 1 : -1) - (octant & 1 ? 1:-1);
+          rel_coord[1] = (i/3)%3 - 1 + (j & 2 ? 1 : -1) - (octant & 2 ? 1:-1);
+          rel_coord[2] = (i/9)%3 - 1 + (j & 4 ? 1 : -1) - (octant & 4 ? 1:-1);
+          int c_hash = hash(rel_coord);
+          int idx = hash_lut[M2L_Helper_Type][c_hash];
+          if (idx>=0) {
+            n->M2Llist.push_back(pcc);
+            n->M2LRelPos.push_back(idx);
+          }
+        }
+      }
+    }
+  }
+
   // Build interaction lists for all nodes 
   void buildList(Nodes& nodes) {
     #pragma omp parallel for
     for(size_t i=0; i<nodes.size(); i++) {
       Node* node = &nodes[i];
-      node->M2Llist.resize(rel_coord[M2L_Type].size(), 0);
       buildListParentLevel(node);
       buildListCurrentLevel(node);
       buildListChildLevel(node);
