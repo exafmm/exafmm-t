@@ -23,6 +23,8 @@ namespace exafmm_t {
   typedef fftwf_plan fft_plan;
 #define fft_plan_dft fftwf_plan_dft
 #define fft_plan_many_dft fftwf_plan_many_dft
+#define fft_plan_dft_r2c fftwf_plan_dft_r2c
+#define fft_plan_dft_c2r fftwf_plan_dft_c2r
 #define fft_execute_dft fftwf_execute_dft
 #define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c
 #define fft_plan_many_dft_c2r fftwf_plan_many_dft_c2r
@@ -36,6 +38,8 @@ namespace exafmm_t {
   typedef fftw_plan fft_plan;
 #define fft_plan_dft fftw_plan_dft
 #define fft_plan_many_dft fftw_plan_many_dft
+#define fft_plan_dft_r2c fftw_plan_dft_r2c
+#define fft_plan_dft_c2r fftw_plan_dft_c2r
 #define fft_execute_dft fftw_execute_dft
 #define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c
 #define fft_plan_many_dft_c2r fftw_plan_many_dft_c2r
@@ -109,6 +113,7 @@ namespace exafmm_t {
     std::vector<Node*> M2Llist;
     std::vector<int> M2LRelPos;
     RealVec pt_coord;
+    AlignedVec upEquiv;  // upward_equiv in frequency domain
 #if COMPLEX
     ComplexVec pt_src;  // src's charge
     ComplexVec pt_trg;  // trg's potential

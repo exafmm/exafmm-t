@@ -521,7 +521,44 @@ namespace exafmm_t {
     }
     fft_destroy_plan(m2l_list_ifftplan);
   }
-
+#if 1
+  void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources) {
+    // define constants
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
+    size_t fftsize = 2 * 8 * n3_;
+    // calculate mapping: upward equiv surf -> conv grid
+    std::vector<size_t> map(NSURF);
+    real_t c[3]= {0, 0, 0};
+    for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
+    RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
+    for(size_t i=0; i<map.size(); i++) {
+      map[i] = ((size_t)(MULTIPOLE_ORDER-1-surf[i*3]+0.5))
+             + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+1]+0.5)) * n1
+             + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+2]+0.5)) * n1 * n1;
+    }
+    // create dft plan for upward equiv
+    AlignedVec in(n3);
+    AlignedVec out(2*n3_);
+    int dim[3] = {n1, n1, n1};
+    fft_plan plan = fft_plan_dft_r2c(3, dim, &in[0], (fft_complex*)(&out[0]), FFTW_ESTIMATE);
+    // evaluate dft of upward equivalent of sources
+#pragma omp parallel for
+    for(int i=0; i<M2Lsources.size(); ++i) {
+      Node*& source = M2Lsources[i];
+      source->upEquiv.resize(2*n3_);
+      // upward equiv on convolution grid
+      AlignedVec upequiv(n3, 0);
+      for(int j=0; j<NSURF; ++j) {
+        int conv_id = map[j];
+        upequiv[conv_id] = source->upward_equiv[j];
+      }
+      fft_execute_dft_r2c(plan, &upequiv[0], (fft_complex*)(&(source->upEquiv[0])));  
+    }
+    fft_destroy_plan(plan);
+  }
+#else
   void M2L(M2LData& M2Ldata, Nodes& nodes) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3_ = n1 * n1 * (n1/2 + 1);
@@ -551,4 +588,5 @@ namespace exafmm_t {
       }
     }
   }
+#endif
 }//end namespace
