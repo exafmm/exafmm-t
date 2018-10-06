@@ -521,8 +521,8 @@ namespace exafmm_t {
     }
     fft_destroy_plan(m2l_list_ifftplan);
   }
-#if 1
-  void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources) {
+
+  void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -554,39 +554,10 @@ namespace exafmm_t {
         int conv_id = map[j];
         upequiv[conv_id] = source->upward_equiv[j];
       }
+      // dft of upward equiv on convolution grid
       fft_execute_dft_r2c(plan, &upequiv[0], (fft_complex*)(&(source->upEquiv[0])));  
     }
     fft_destroy_plan(plan);
+    // hadamard m2l interaction
   }
-#else
-  void M2L(M2LData& M2Ldata, Nodes& nodes) {
-    int n1 = MULTIPOLE_ORDER * 2;
-    int n3_ = n1 * n1 * (n1/2 + 1);
-    size_t numNodes = nodes.size();
-    RealVec allUpwardEquiv(numNodes*NSURF);
-    RealVec allDnwardEquiv(numNodes*NSURF);
-    #pragma omp parallel for collapse(2)
-    for(int i=0; i<numNodes; i++) {
-      for(int j=0; j<NSURF; j++) {
-        allUpwardEquiv[i*NSURF+j] = nodes[i].upward_equiv[j];
-        allDnwardEquiv[i*NSURF+j] = nodes[i].dnward_equiv[j];
-      }
-    }
-    size_t fftsize = 2 * 8 * n3_;
-    AlignedVec fft_in(M2Ldata.fft_vec.size()*fftsize, 0.);
-    AlignedVec fft_out(M2Ldata.ifft_vec.size()*fftsize, 0.);
-
-    FFT_UpEquiv(M2Ldata.fft_vec, M2Ldata.fft_scl, allUpwardEquiv, fft_in);
-    M2LListHadamard(M2Ldata.interac_dsp, M2Ldata.interac_vec, fft_in, fft_out);
-    FFT_Check2Equiv(M2Ldata.ifft_vec, M2Ldata.ifft_scl, fft_out, allDnwardEquiv);
-
-    #pragma omp parallel for collapse(2)
-    for(int i=0; i<numNodes; i++) {
-      for(int j=0; j<NSURF; j++) {
-        nodes[i].upward_equiv[j] = allUpwardEquiv[i*NSURF+j];
-        nodes[i].dnward_equiv[j] = allDnwardEquiv[i*NSURF+j];
-      }
-    }
-  }
-#endif
 }//end namespace

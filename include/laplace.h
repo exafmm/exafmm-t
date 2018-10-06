@@ -57,7 +57,7 @@ namespace exafmm_t {
 
   void M2L(M2LData& M2Ldata, Nodes& nodes);
 
-  void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources);
+  void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets);
 
 }//end namespace
 #endif

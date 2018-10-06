@@ -129,7 +129,7 @@ namespace exafmm_t {
   }
 
   // Build M2L list
-  void buildListM2L(Node* n, std::set<Node*>& sources) {
+  void buildListM2L(Node* n, std::set<Node*>& sources, std::set<Node*>& targets) {
     if (!n->parent) return;
     Node* p = n->parent;
     int octant = n->octant;
@@ -154,26 +154,34 @@ namespace exafmm_t {
         }
       }
     }
+    if (n->M2Llist.size()>0)
+      targets.insert(n);
   }
 
   // Build interaction lists for all nodes 
-  void buildList(Nodes& nodes, std::vector<Node*>& M2Lsources) {
+  void buildList(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets) {
     std::set<Node*> sources;
+    std::set<Node*> targets;
 #pragma omp parallel
 {
     std::set<Node*> sources_;  // thread private
+    std::set<Node*> targets_;
     #pragma omp for nowait 
     for(size_t i=0; i<nodes.size(); i++) {
       Node* node = &nodes[i];
       buildListParentLevel(node);
       buildListCurrentLevel(node);
       buildListChildLevel(node);
-      buildListM2L(node, sources_);
+      buildListM2L(node, sources_, targets_);
     }
     #pragma omp critical
+  {
     sources.insert(sources_.begin(), sources_.end());
+    targets.insert(targets_.begin(), targets_.end());
+  }
 }
     M2Lsources.assign(sources.begin(), sources.end());
+    M2Ltargets.assign(targets.begin(), targets.end());
   }
   
   void setColleagues(Node* node) {
