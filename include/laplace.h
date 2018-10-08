@@ -44,19 +44,6 @@ namespace exafmm_t {
 
   void P2P(std::vector<Node*>& leafs);
 
-  void M2LSetup(std::vector<Node*>& nonleafs);
-
-  void M2LListHadamard(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
-                       AlignedVec& fft_in, AlignedVec& fft_out);
-
-  void FFT_UpEquiv(std::vector<size_t>& fft_vec, RealVec& fft_scal,
-                   RealVec& input_data, AlignedVec& fft_in);
-
-  void FFT_Check2Equiv(std::vector<size_t>& ifft_vec, RealVec& ifft_scal,
-                       AlignedVec& fft_out, RealVec& output_data);
-
-  void M2L(M2LData& M2Ldata, Nodes& nodes);
-
   void hadamardProduct(RealVec& kernel, AlignedVec& equiv, AlignedVec& check);
 
   void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets);

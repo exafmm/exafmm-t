@@ -145,7 +145,6 @@ namespace exafmm_t {
     std::vector<size_t> interac_vec;
     std::vector<size_t> interac_dsp;
   };
-  extern M2LData M2Ldata;
 
   // Relative coordinates and interaction lists
   extern std::vector<std::vector<ivec3>> rel_coord;
@@ -153,7 +152,7 @@ namespace exafmm_t {
   // Precomputation matrices
   extern RealVec M2M_U, M2M_V;
   extern RealVec L2L_U, L2L_V;
-  extern std::vector<RealVec> mat_M2M, mat_L2L, mat_M2L, mat_M2L_Helper;
+  extern std::vector<RealVec> mat_M2M, mat_L2L, mat_M2L_Helper;
 
   extern int MULTIPOLE_ORDER;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates
