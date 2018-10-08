@@ -353,7 +353,7 @@ namespace exafmm_t {
     // create idft plan for downward check
     AlignedVec in2(2*n3_);
     AlignedVec out2(n3);
-    fft_plan iplan = fft_plan_dft_c2r(3, dim, (fft_complex*)(&in[0]), &out[0], FFTW_ESTIMATE);
+    fft_plan iplan = fft_plan_dft_c2r(3, dim, (fft_complex*)(&in2[0]), &out2[0], FFTW_ESTIMATE);
 
     // evaluate dft of upward equivalent of sources
 #pragma omp parallel for
