@@ -98,6 +98,10 @@ namespace exafmm_t {
       kernelMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
       mat_M2L_Helper[i].resize(2*n3_);
       fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i][0]));
+      // scaling
+      for(int k=0; k<2*n3_; ++k) {
+        mat_M2L_Helper[i][k] /= n3;
+      }
     }
     fft_destroy_plan(plan);
   }
