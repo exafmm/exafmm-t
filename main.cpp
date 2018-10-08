@@ -56,10 +56,10 @@ int main(int argc, char **argv) {
   Precompute();
   Profile::Toc();
   setColleagues(nodes);
-  buildList(nodes);
-  M2LSetup(nonleafs);
+  std::vector<Node*> M2Lsources, M2Ltargets;
+  buildList(nodes, M2Lsources, M2Ltargets);
   upwardPass(nodes, leafs);
-  downwardPass(nodes, leafs);
+  downwardPass(nodes, leafs, M2Lsources, M2Ltargets);
   Profile::Toc();
   RealVec error = verify(leafs);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;

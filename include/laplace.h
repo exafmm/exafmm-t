@@ -57,6 +57,8 @@ namespace exafmm_t {
 
   void M2L(M2LData& M2Ldata, Nodes& nodes);
 
+  void hadamardProduct(RealVec& kernel, AlignedVec& equiv, AlignedVec& check);
+
   void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets);
 
 }//end namespace
