@@ -4,7 +4,7 @@ namespace exafmm_t {
   // alpha is the ratio r_surface/r_node
   // 2.95 for upward check surface / downward equivalent surface
   // 1.05 for upward equivalent surface / downward check surface
-  RealVec surface(int p, real_t* c, real_t alpha, int depth){
+  RealVec surface(int p, real_t* c, real_t alpha, int level){
     size_t n_=(6*(p-1)*(p-1)+2);
     RealVec coord(n_*3);
     coord[0]=coord[1]=coord[2]=-1.0;
@@ -31,7 +31,7 @@ namespace exafmm_t {
         cnt++;
       }
     for(size_t i=0;i<(n_/2)*3;i++) coord[cnt*3+i]=-coord[i];
-    real_t r=0.5*powf(0.5,depth);
+    real_t r=0.5*powf(0.5,level);
     real_t b=alpha*r;
     real_t br=b-r;
     for(size_t i=0;i<n_;i++){
@@ -42,8 +42,8 @@ namespace exafmm_t {
     return coord;
   }
 
-  RealVec conv_grid(real_t* c, int depth){
-    real_t r=powf(0.5,depth);
+  RealVec conv_grid(real_t* c, int level){
+    real_t r=powf(0.5,level);
     real_t a=r*1.05;
     real_t coord[3]={c[0],c[1],c[2]};
     int n1=MULTIPOLE_ORDER*2;

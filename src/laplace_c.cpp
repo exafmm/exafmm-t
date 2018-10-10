@@ -220,14 +220,14 @@ namespace exafmm_t {
     real_t c[3] = {0.0};
     std::vector<RealVec> upwd_check_surf;
     upwd_check_surf.resize(MAXLEVEL+1);
-    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
-      upwd_check_surf[depth].resize(NSURF*3);
-      upwd_check_surf[depth] = surface(MULTIPOLE_ORDER,c,2.95,depth);
+    for(size_t level = 0; level <= MAXLEVEL; level++) {
+      upwd_check_surf[level].resize(NSURF*3);
+      upwd_check_surf[level] = surface(MULTIPOLE_ORDER,c,2.95,level);
     }
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
-      int level = leaf->depth;
+      int level = leaf->level;
       real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
       RealVec checkCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
@@ -288,14 +288,14 @@ namespace exafmm_t {
     real_t c[3] = {0.0};
     std::vector<RealVec> dnwd_equiv_surf;
     dnwd_equiv_surf.resize(MAXLEVEL+1);
-    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
-      dnwd_equiv_surf[depth].resize(NSURF*3);
-      dnwd_equiv_surf[depth] = surface(MULTIPOLE_ORDER,c,2.95,depth);
+    for(size_t level = 0; level <= MAXLEVEL; level++) {
+      dnwd_equiv_surf[level].resize(NSURF*3);
+      dnwd_equiv_surf[level] = surface(MULTIPOLE_ORDER,c,2.95,level);
     }
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
-      int level = leaf->depth;
+      int level = leaf->level;
       real_t scal = pow(0.5, level);
       // check surface potential -> equivalent surface charge
       ComplexVec buffer(NSURF);
@@ -320,9 +320,9 @@ namespace exafmm_t {
     real_t c[3] = {0.0};
     std::vector<RealVec> dnwd_check_surf;
     dnwd_check_surf.resize(MAXLEVEL+1);
-    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
-      dnwd_check_surf[depth].resize(NSURF*3);
-      dnwd_check_surf[depth] = surface(MULTIPOLE_ORDER,c,1.05,depth);
+    for(size_t level = 0; level <= MAXLEVEL; level++) {
+      dnwd_check_surf[level].resize(NSURF*3);
+      dnwd_check_surf[level] = surface(MULTIPOLE_ORDER,c,1.05,level);
     }
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
@@ -331,7 +331,7 @@ namespace exafmm_t {
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
         RealVec targetCheckCoord(NSURF*3);
-        int level = target->depth;
+        int level = target->level;
         // target node's check coord = relative check coord + node's origin
         for(int k=0; k<NSURF; k++) {
           targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
@@ -348,9 +348,9 @@ namespace exafmm_t {
     real_t c[3] = {0.0};
     std::vector<RealVec> upwd_equiv_surf;
     upwd_equiv_surf.resize(MAXLEVEL+1);
-    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
-      upwd_equiv_surf[depth].resize(NSURF*3);
-      upwd_equiv_surf[depth] = surface(MULTIPOLE_ORDER,c,1.05,depth);
+    for(size_t level = 0; level <= MAXLEVEL; level++) {
+      upwd_equiv_surf[level].resize(NSURF*3);
+      upwd_equiv_surf[level] = surface(MULTIPOLE_ORDER,c,1.05,level);
     }
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
@@ -359,7 +359,7 @@ namespace exafmm_t {
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
         RealVec sourceEquivCoord(NSURF*3);
-        int level = source->depth;
+        int level = source->level;
         // source node's equiv coord = relative equiv coord + node's origin
         for(int k=0; k<NSURF; k++) {
           sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->coord[0];
@@ -412,9 +412,9 @@ namespace exafmm_t {
       fft_scl[i] = 1;
     }
     for(size_t i=0; i<nodes_out.size(); i++) {
-      int depth = nodes_out[i]->depth+1;
+      int level = nodes_out[i]->level+1;
       ifft_vec[i] = nodes_out[i]->child[0]->idx * NSURF;
-      ifft_scl[i] = powf(2.0, depth);
+      ifft_scl[i] = powf(2.0, level);
     }
     // calculate interac_vec & interac_dsp
     std::vector<size_t> interac_vec;

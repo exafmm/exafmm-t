@@ -10,7 +10,7 @@ namespace exafmm_t {
   void buildTree(Body * bodies, Body * buffer, int begin, int end, Node * node, Nodes & nodes,
                  const vec3 & X, real_t R, std::vector<Node*> & leafs, std::vector<Node*> & nonleafs,
                  Args & args, const Keys & leafkeys, int level=0, bool direction=false) {
-    node->depth = level;         // depth
+    node->level = level;         // level
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
     //! Create a tree node
     node->body = bodies + begin;
@@ -122,10 +122,10 @@ namespace exafmm_t {
     std::set<uint64_t> keys_;
     while (!buffer.empty()) {
       Node* curr = buffer.front();
-      if (curr->depth != level) {
+      if (curr->level != level) {
         keys.push_back(keys_);
         keys_.clear();
-        level = curr->depth;
+        level = curr->level;
       }
       keys_.insert(curr->key);
       key2id[curr->key] = curr->idx;

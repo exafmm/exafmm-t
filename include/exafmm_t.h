@@ -97,7 +97,7 @@ namespace exafmm_t {
 
     size_t idx;
     size_t node_id;
-    int depth;
+    int level;
     int octant;
     real_t coord[3];
     Node* parent;

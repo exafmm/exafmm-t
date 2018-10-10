@@ -16,5 +16,3 @@
 - [ ] Stokes
 - [ ] CI, unit tests
 - [ ] configure files
-
-depth > level

@@ -146,7 +146,7 @@ namespace exafmm_t {
   void setColleagues(Node* node) {
     Node *parent, *colleague, *child;
     for (int i=0; i<27; ++i) node->colleague[i] = NULL;
-    if (node->depth==0) {     // root node
+    if (node->level==0) {     // root node
       node->colleague[13] = node;
     } else {                  // non-root node
       parent = node->parent;
