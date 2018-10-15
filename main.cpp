@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   for(size_t i=0; i<leafs.size(); i++) {
     MAXLEVEL = std::max(MAXLEVEL, leafs[i]->depth);
   }
-
+   
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
   for(int i=0; i<nodes.size(); i++) {
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
         nodes[i].pt_coord.push_back(B->X[0]);
         nodes[i].pt_coord.push_back(B->X[1]);
         nodes[i].pt_coord.push_back(B->X[2]);
-        nodes[i].pt_src.push_back(B->q);
+	nodes[i].pt_src.push_back(B->q);
       }
     }
   }

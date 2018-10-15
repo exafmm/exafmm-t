@@ -1,4 +1,5 @@
 #include "laplace.h"
+#include "laplace_cuda.h"
 
 namespace exafmm_t {
   int MULTIPOLE_ORDER;
@@ -303,15 +304,48 @@ namespace exafmm_t {
 
   void P2P(std::vector<Node*>& leafs) {
     std::vector<Node*>& targets = leafs;   // assume sources == targets
-    #pragma omp parallel for
+    int ncrit=64;
+    int coord_count = ncrit*3;
+    int src_box_count = 27;
+    real_t *trg_pt_coord=new real_t[targets.size()*coord_count]();
+    real_t *trg_pt_trg=new real_t[targets.size()*ncrit]();
+    real_t *src_pt_coord = new real_t[targets.size()*src_box_count*coord_count]();
+    real_t *src_pt_src = new real_t[targets.size()*src_box_count*ncrit]();
+    int trg_coord_idx = 0;
+    int src_coord_idx = 0;
+    int val_idx = 0;
+
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
       std::vector<Node*>& sources = target->P2Plist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
-        gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
+	RealVec& src_coord = source->pt_coord; 
+        std::copy(src_coord.begin(), src_coord.end(), src_pt_coord+src_coord_idx);
+	src_coord_idx += coord_count;
+	RealVec& pt_src = source->pt_src;
+	std::copy(pt_src.begin(), pt_src.end(), src_pt_src+val_idx);
+	val_idx += ncrit;
+	//gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
       }
+      src_coord_idx += (src_box_count-sources.size())*coord_count;
+      val_idx += (src_box_count-sources.size())*ncrit;
+      RealVec& trg_coord = target->pt_coord;
+      std::copy(trg_coord.begin(), trg_coord.end(), trg_pt_coord+trg_coord_idx);
+      trg_coord_idx += coord_count;
     }
+    P2PGPU(trg_pt_coord, trg_pt_trg, src_pt_coord, src_pt_src, targets.size(), ncrit, src_box_count);
+    
+    for(int i=0; i<targets.size(); i++) {
+      Node* target = targets[i];
+      RealVec& trg_val = target->pt_trg;
+     for(int j=0;j<trg_val.size();j++) {
+        trg_val[j] = trg_pt_trg[i*ncrit+j];
+     }
+    }
+
+    delete[] trg_pt_coord;
+    delete[] src_pt_coord;
   }
 
   void M2LSetup(std::vector<Node*>& nonleafs) {

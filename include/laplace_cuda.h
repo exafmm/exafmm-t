@@ -3,6 +3,6 @@
 #include "exafmm_t.h"
 
 namespace exafmm_t {
-void potentialP2PGPU(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
+   void P2PGPU(real_t* trg_coord, real_t* trg_val, real_t* src_coord, real_t* src_val, int leafs_cnt, int ncrit, int adj_cnt);
 }
 #endif
