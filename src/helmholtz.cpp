@@ -1,6 +1,6 @@
 #include "helmholtz.h"
 
-namespace <{1:exafmm_t}> {
+namespace exafmm_t {
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     int newton_scale = 1;
@@ -43,7 +43,6 @@ namespace <{1:exafmm_t}> {
       tv_real *= coef;
       tv_imag *= coef;
       for(int k=0; k<NSIMD && (t+k)<trg_cnt; k++) {
-      std::cout << "P2P_simd: " << tv_real[k] << " , " << tv_imag[k] << std::endl;
         trg_value[t+k] += complex_t(tv_real[k], tv_imag[k]);
       }
     }
