@@ -15,7 +15,8 @@ namespace exafmm_t {
     //! Create a tree node
     node->body = bodies + begin;
     if(direction) node->body = buffer + begin;
-    node->numBodies = end - begin;
+    node->numSources = end - begin;
+    node->numTargets = end - begin;
     node->numChilds = 0;
     node->X = X;
     node->R = R;
@@ -54,9 +55,9 @@ namespace exafmm_t {
     if (end-begin<=args.ncrit && isLeafKey) {
       node->numChilds = 0;
 #if COMPLEX
-      node->trg_value.resize(node->numBodies*4, complex_t(0.,0.));   // initialize target result vector
+      node->trg_value.resize(node->numTargets*4, complex_t(0.,0.));   // initialize target result vector
 #else
-      node->trg_value.resize(node->numBodies*4, 0.);   // initialize target result vector
+      node->trg_value.resize(node->numTargets*4, 0.);   // initialize target result vector
 #endif
       leafs.push_back(node);
       if (direction) {

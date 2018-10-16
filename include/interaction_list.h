@@ -68,7 +68,7 @@ namespace exafmm_t {
         }
         int idx2 = hash_lut[P2L_Type][c_hash];
         if (idx2>=0) {
-          if (isleaf && n->numBodies<=NSURF)
+          if (isleaf && n->numTargets<=NSURF)
             n->P2Plist.push_back(pc);
           else
             n->P2Llist.push_back(pc);
@@ -121,7 +121,7 @@ namespace exafmm_t {
           // since we currently don't save bodies' information in nonleaf nodes
           // M2P can only be switched to P2P when source is leaf
           if (idx2>=0) {
-            if (cc->IsLeaf() && cc->numBodies<=NSURF)
+            if (cc->IsLeaf() && cc->numSources<=NSURF)
               n->P2Plist.push_back(cc);
             else
               n->M2Plist.push_back(cc);

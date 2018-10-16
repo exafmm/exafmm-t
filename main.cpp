@@ -43,14 +43,16 @@ int main(int argc, char **argv) {
       nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
     }
     if(nodes[i].IsLeaf()) {
-      for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
+      for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numSources; B++) {
         nodes[i].src_coord.push_back(B->X[0]);
         nodes[i].src_coord.push_back(B->X[1]);
         nodes[i].src_coord.push_back(B->X[2]);
+        nodes[i].src_value.push_back(B->q);
+      }
+      for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numTargets; B++) {
         nodes[i].trg_coord.push_back(B->X[0]);
         nodes[i].trg_coord.push_back(B->X[1]);
         nodes[i].trg_coord.push_back(B->X[2]);
-        nodes[i].src_value.push_back(B->q);
       }
     }
   }

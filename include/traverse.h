@@ -60,7 +60,7 @@ namespace exafmm_t {
     }
     real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm = 0;
     for(size_t i=0; i<targets.size(); i++) {
-      if (targets2[i].numBodies != 0) {  // if current leaf is not empty
+      if (targets2[i].numTargets != 0) {  // if current leaf is not empty
 #if COMPLEX
         p_norm += std::norm(targets2[i].trg_value[0]);
         p_diff += std::norm(targets2[i].trg_value[0] - targets[i].trg_value[0]);

@@ -88,7 +88,6 @@ namespace exafmm_t {
   //! Structure of nodes
   struct Node {
     int numChilds;
-    int numBodies;
     int numTargets;
     int numSources;
     Node * fchild;
