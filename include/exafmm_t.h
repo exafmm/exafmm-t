@@ -89,6 +89,8 @@ namespace exafmm_t {
   struct Node {
     int numChilds;
     int numBodies;
+    int numTargets;
+    int numSources;
     Node * fchild;
     Body * body;
     vec3 X;
@@ -107,15 +109,17 @@ namespace exafmm_t {
     std::vector<Node*> M2Plist;
     std::vector<Node*> P2Plist;
     std::vector<Node*> M2Llist;
-    RealVec pt_coord;
+    
+    RealVec src_coord;
+    RealVec trg_coord;
 #if COMPLEX
-    ComplexVec pt_src;  // src's charge
-    ComplexVec pt_trg;  // trg's potential
+    ComplexVec src_value; // source's charge
+    ComplexVec trg_value; // target's potential and gradient
     ComplexVec upward_equiv; // M
     ComplexVec dnward_equiv; // L
 #else
-    RealVec pt_src;  // src's charge
-    RealVec pt_trg;  // trg's potential
+    RealVec src_value; // source's charge
+    RealVec trg_value; // target's potential and gradient
     RealVec upward_equiv; // M
     RealVec dnward_equiv; // L
 #endif

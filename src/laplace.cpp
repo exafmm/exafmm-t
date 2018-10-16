@@ -165,7 +165,7 @@ namespace exafmm_t {
         checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
         checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
       }
-      potentialP2P(leaf->pt_coord, leaf->pt_src, checkCoord, leaf->upward_equiv);
+      potentialP2P(leaf->src_coord, leaf->src_value, checkCoord, leaf->upward_equiv);
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
       gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &M2M_V[0], &buffer[0]);
@@ -241,7 +241,7 @@ namespace exafmm_t {
         equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->coord[1];
         equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
       }
-      gradientP2P(equivCoord, leaf->dnward_equiv, leaf->pt_coord, leaf->pt_trg);
+      gradientP2P(equivCoord, leaf->dnward_equiv, leaf->trg_coord, leaf->trg_value);
     }
   }
 
@@ -268,7 +268,7 @@ namespace exafmm_t {
           targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
           targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
         }
-        potentialP2P(source->pt_coord, source->pt_src, targetCheckCoord, target->dnward_equiv);
+        potentialP2P(source->src_coord, source->src_value, targetCheckCoord, target->dnward_equiv);
       }
     }
   }
@@ -296,7 +296,7 @@ namespace exafmm_t {
           sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
           sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
         }
-        gradientP2P(sourceEquivCoord, source->upward_equiv, target->pt_coord, target->pt_trg);
+        gradientP2P(sourceEquivCoord, source->upward_equiv, target->trg_coord, target->trg_value);
       }
     }
   }
@@ -309,7 +309,7 @@ namespace exafmm_t {
       std::vector<Node*>& sources = target->P2Plist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
-        gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
+        gradientP2P(source->src_coord, source->src_value, target->trg_coord, target->trg_value);
       }
     }
   }

@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
   nodes = buildTree(bodies, leafs, nonleafs, args, leafkeys);
   MAXLEVEL = keys.size() - 1;
 
-  // fill in pt_coord, pt_src, correct coord for compatibility
+  // fill in coords and values for compatibility
   // remove this later
   for(int i=0; i<nodes.size(); i++) {
     for(int d=0; d<3; d++) {
@@ -44,10 +44,13 @@ int main(int argc, char **argv) {
     }
     if(nodes[i].IsLeaf()) {
       for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
-        nodes[i].pt_coord.push_back(B->X[0]);
-        nodes[i].pt_coord.push_back(B->X[1]);
-        nodes[i].pt_coord.push_back(B->X[2]);
-        nodes[i].pt_src.push_back(B->q);
+        nodes[i].src_coord.push_back(B->X[0]);
+        nodes[i].src_coord.push_back(B->X[1]);
+        nodes[i].src_coord.push_back(B->X[2]);
+        nodes[i].trg_coord.push_back(B->X[0]);
+        nodes[i].trg_coord.push_back(B->X[1]);
+        nodes[i].trg_coord.push_back(B->X[2]);
+        nodes[i].src_value.push_back(B->q);
       }
     }
   }
