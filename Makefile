@@ -10,22 +10,22 @@ LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp
 #CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include
 #LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm
 
-OBJF = main.fo src/geometry.fo src/laplace.fo
-OBJD = main.do src/geometry.do src/laplace.do
-OBJC =  main.co src/geometry.co src/laplace_c.co
-OBJZ =  main.zo src/geometry.zo src/laplace_c.zo
+OBJF = main.fo src/geometry.fo src/laplace.fo src/kernel.fo
+OBJD = main.do src/geometry.do src/laplace.do src/kernel.do
+OBJC =  main.co src/geometry.co src/laplace_c.co src/kernel.co
+OBJZ =  main.zo src/geometry.zo src/laplace_c.zo src/kernel.zo
 
 %.fo: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DEXAFMM_LAPLACE
 
 %.do: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DEXAFMM_LAPLACE
 
 %.co: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DCOMPLEX
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DCOMPLEX -DEXAFMM_LAPLACE
 
 %.zo: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX -DEXAFMM_LAPLACE
 
 real8: $(OBJF)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)

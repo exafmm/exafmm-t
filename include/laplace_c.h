@@ -4,6 +4,7 @@
 #include <set>
 #include "exafmm_t.h"
 #include "geometry.h"
+#include "kernel.h"
 #include "intrinsics.h"
 
 extern "C" {
@@ -30,11 +31,11 @@ namespace exafmm_t {
 
   RealVec transpose(RealVec& vec, int m, int n);
 
-  void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
+  // void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
 
-  void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
+  // void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
 
-  void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
+  // void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
 
   void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
 

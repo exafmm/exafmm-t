@@ -153,8 +153,5 @@ namespace exafmm_t {
   extern int NSURF;     // number of surface coordinates
   extern int MAXLEVEL;
   const int NCHILD = 8;
-
-  // parameters for Helmholtz kernel
-  complex_t WAVEK;
 }
 #endif
