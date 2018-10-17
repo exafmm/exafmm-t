@@ -21,9 +21,10 @@ int main(int argc, char **argv) {
   Profile::Enable(true);
 
   Profile::Tic("Total", true);
-  Bodies bodies = initBodies(args.numBodies, args.distribution, 0);
+  Bodies sources = initBodies(args.numBodies, args.distribution, 0);
+  Bodies targets = initBodies(args.numBodies, args.distribution, 0);
   std::vector<Node*> leafs, nonleafs;
-  Nodes nodes = buildTree(bodies, leafs, nonleafs, args);
+  Nodes nodes = buildTree(sources, targets, leafs, nonleafs, args);
 
   // balanced tree
   std::unordered_map<uint64_t, size_t> key2id;
@@ -33,7 +34,7 @@ int main(int argc, char **argv) {
   nodes.clear();
   leafs.clear();
   nonleafs.clear();
-  nodes = buildTree(bodies, leafs, nonleafs, args, leafkeys);
+  nodes = buildTree(sources, targets, leafs, nonleafs, args, leafkeys);
   MAXLEVEL = keys.size() - 1;
 
   // fill in coords and values for compatibility
@@ -43,13 +44,13 @@ int main(int argc, char **argv) {
       nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
     }
     if(nodes[i].IsLeaf()) {
-      for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numSources; B++) {
+      for(Body* B=nodes[i].fsource; B<nodes[i].fsource+nodes[i].numSources; B++) {
         nodes[i].src_coord.push_back(B->X[0]);
         nodes[i].src_coord.push_back(B->X[1]);
         nodes[i].src_coord.push_back(B->X[2]);
         nodes[i].src_value.push_back(B->q);
       }
-      for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numTargets; B++) {
+      for(Body* B=nodes[i].ftarget; B<nodes[i].ftarget+nodes[i].numTargets; B++) {
         nodes[i].trg_coord.push_back(B->X[0]);
         nodes[i].trg_coord.push_back(B->X[1]);
         nodes[i].trg_coord.push_back(B->X[2]);

@@ -91,7 +91,8 @@ namespace exafmm_t {
     int numTargets;
     int numSources;
     Node * fchild;
-    Body * body;
+    Body * fsource;
+    Body * ftarget;
     vec3 X;
     real_t R;
     uint64_t key;
