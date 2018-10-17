@@ -6,13 +6,41 @@
 #include "hilbert.h"
 
 namespace exafmm_t {
+  // Sort bodies in a node according to their octants
+  void sortBodies(Node * node, Body * bodies, Body * buffer, int begin, int end, std::vector<int>& size, std::vector<int>& offsets) {
+    // Count number of bodies in each octant
+    size.resize(8, 0);
+    vec3& X = node->X;
+    for (int i=begin; i<end; i++) {
+      vec3& x = bodies[i].X;
+      int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
+      size[octant]++;
+    }
+    // Exclusive scan to get offsets
+    offsets.resize(8);
+    int offset = begin;
+    for (int i=0; i<8; i++) {
+      offsets[i] = offset;
+      offset += size[i];
+    }
+    // Sort bodies by octant
+    std::vector<int> counter(offsets);
+    for (int i=begin; i<end; i++) {
+      vec3& x = bodies[i].X;
+      int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
+      buffer[counter[octant]].X = bodies[i].X;
+      buffer[counter[octant]].q = bodies[i].q;
+      counter[octant]++;
+    }
+  }
+
   //! Build nodes of tree adaptively using a top-down approach based on recursion
   void buildTree(Body * bodies, Body * buffer, int begin, int end, Node * node, Nodes & nodes,
                  const vec3 & X, real_t R, std::vector<Node*> & leafs, std::vector<Node*> & nonleafs,
                  Args & args, const Keys & leafkeys, int level=0, bool direction=false) {
+    //! Create a tree node
     node->level = level;         // level
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
-    //! Create a tree node
     node->body = bodies + begin;
     if(direction) node->body = buffer + begin;
     node->numSources = end - begin;
@@ -29,21 +57,7 @@ namespace exafmm_t {
 #endif
     ivec3 iX = get3DIndex(X, level);
     node->key = getKey(iX, level);
-    //! Count number of bodies in each octant
-    int size[8] = {0};
-    vec3 x;
-    for (int i=begin; i<end; i++) {
-      x = bodies[i].X;
-      int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
-      size[octant]++;
-    }
-    //! Exclusive scan to get offsets
-    int offset = begin;
-    int offsets[8], counter[8];
-    for (int i=0; i<8; i++) {
-      offsets[i] = offset;
-      offset += size[i];
-    }
+
     //! If node is a leaf
     bool isLeafKey = 1;
     if (!leafkeys.empty()) {  // when leafkeys is given (when balancing tree) 
@@ -68,17 +82,11 @@ namespace exafmm_t {
       }
       return;
     }
-    nonleafs.push_back(node);
-    //! Sort bodies by octant
-    for (int i=0; i<8; i++) counter[i] = offsets[i];
-    for (int i=begin; i<end; i++) {
-      x = bodies[i].X;
-      int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
-      buffer[counter[octant]].X = bodies[i].X;
-      buffer[counter[octant]].q = bodies[i].q;
-      counter[octant]++;
-    }
+    // Sort bodies and save in buffer
+    std::vector<int> size, offsets;
+    sortBodies(node, bodies, buffer, begin, end, size, offsets);
     //! Loop over children and recurse
+    nonleafs.push_back(node);
     node->numChilds = 8;
     vec3 Xchild;
     assert(nodes.capacity() >= nodes.size()+node->numChilds);
