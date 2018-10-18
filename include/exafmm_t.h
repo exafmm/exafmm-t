@@ -129,7 +129,7 @@ namespace exafmm_t {
     }
 
     Node* Child(int id) {
-      return (numChilds == 0) ? NULL : child[id];
+      return (numChilds == 0) ? nullptr : child[id];
     }
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes

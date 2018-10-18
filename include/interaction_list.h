@@ -50,13 +50,13 @@ namespace exafmm_t {
 
   // Build interaction lists of P2P0_Type and P2L_Type
   void buildListParentLevel(Node* n) {
-    if (n->parent == NULL) return;
+    if (!n->parent) return;
     ivec3 rel_coord;
     int octant = n->octant;
     bool isleaf = n->IsLeaf();
     for (int i=0; i<27; i++) {
       Node* pc = n->parent->colleague[i];
-      if (pc!=NULL && pc->IsLeaf()) {
+      if (pc && pc->IsLeaf()) {
         rel_coord[0]=( i %3)*4-4-(octant & 1?2:0)+1;
         rel_coord[1]=((i/3)%3)*4-4-(octant & 2?2:0)+1;
         rel_coord[2]=((i/9)%3)*4-4-(octant & 4?2:0)+1;
@@ -83,7 +83,7 @@ namespace exafmm_t {
     bool isleaf = n->IsLeaf();
     for (int i=0; i<27; i++) {
       Node* col = n->colleague[i];
-      if(col!=NULL) {
+      if(col) {
         rel_coord[0]=( i %3)-1;
         rel_coord[1]=((i/3)%3)-1;
         rel_coord[2]=((i/9)%3)-1;
@@ -105,7 +105,7 @@ namespace exafmm_t {
     ivec3 rel_coord;
     for(int i=0; i<27; i++) {
       Node* col = n->colleague[i];
-      if(col!=NULL && !col->IsLeaf()) {
+      if(col && !col->IsLeaf()) {
         for(int j=0; j<NCHILD; j++) {
           Node* cc = col->child[j];
           rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
@@ -145,7 +145,7 @@ namespace exafmm_t {
   
   void setColleagues(Node* node) {
     Node *parent, *colleague, *child;
-    for (int i=0; i<27; ++i) node->colleague[i] = NULL;
+    for (int i=0; i<27; ++i) node->colleague[i] = nullptr;
     if (node->level==0) {     // root node
       node->colleague[13] = node;
     } else {                  // non-root node
@@ -153,10 +153,10 @@ namespace exafmm_t {
       int l = node->octant;
       for(int i=0; i<27; ++i) { // loop over parent's colleagues
         colleague = parent->colleague[i]; 
-        if(colleague!=NULL && !colleague->IsLeaf()) {
+        if(colleague && !colleague->IsLeaf()) {
           for(int j=0; j<8; ++j) {  // loop over parent's colleages child
             child = colleague->Child(j);
-            if(child!=NULL) {
+            if(child) {
               bool flag=true;
               int a=1, b=1, new_indx=0;
               for(int k=0; k<3; ++k) {
@@ -175,7 +175,7 @@ namespace exafmm_t {
     }
     if (!node->IsLeaf()) {
       for (int c=0; c<8; ++c) {
-        if (node->child[c] != NULL) {
+        if (node->child[c]) {
           setColleagues(node->child[c]);
         }
       }

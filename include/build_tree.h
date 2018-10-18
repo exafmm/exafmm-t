@@ -104,7 +104,7 @@ namespace exafmm_t {
     nodes.resize(nodes.size()+node->numChilds);
     Node * child = &nodes.back() - node->numChilds + 1;
     node->fchild = child;
-    node->child.resize(8, NULL);
+    node->child.resize(8, nullptr);
     for (int i=0, c=0; i<8; i++) {
       Xchild = X;
       real_t Rchild = R / 2;
@@ -127,7 +127,7 @@ namespace exafmm_t {
     Bodies sources_buffer = sources;
     Bodies targets_buffer = targets;
     Nodes nodes(1);
-    nodes[0].parent = NULL;
+    nodes[0].parent = nullptr;
     nodes[0].octant = 0;
     nodes.reserve((sources.size()+targets.size()) * (32/args.ncrit+1));
     buildTree(&sources[0], &sources_buffer[0], 0, sources.size(), 
@@ -138,7 +138,7 @@ namespace exafmm_t {
 
   // Given root, generate a level-order Morton keys
   Keys breadthFirstTraversal(Node* root, std::unordered_map<uint64_t, size_t>& key2id) {
-    assert(root != NULL);
+    assert(root);
     Keys keys;
     std::queue<Node*> buffer;
     buffer.push(root);

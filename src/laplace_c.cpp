@@ -248,13 +248,13 @@ namespace exafmm_t {
   void M2M(Node* node) {
     if(node->IsLeaf()) return;
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL)
+      if(node->child[octant])
         #pragma omp task untied
         M2M(node->child[octant]);
     }
     #pragma omp taskwait
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL) {
+      if(node->child[octant]) {
         Node* child = node->child[octant];
         ComplexVec buffer(NSURF);
         gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
@@ -268,7 +268,7 @@ namespace exafmm_t {
   void L2L(Node* node) {
     if(node->IsLeaf()) return;
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL) {
+      if(node->child[octant]) {
         Node* child = node->child[octant];
         ComplexVec buffer(NSURF);
         gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[octant][0]), &buffer[0]);
@@ -277,7 +277,7 @@ namespace exafmm_t {
       }
     }
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL)
+      if(node->child[octant])
         #pragma omp task untied
         L2L(node->child[octant]);
     }
@@ -394,7 +394,7 @@ namespace exafmm_t {
     for(size_t i=0; i<nodes_out.size(); i++) {
       std::vector<Node*>& M2Llist = nodes_out[i]->M2Llist;
       for(size_t k=0; k<mat_cnt; k++) {
-        if(M2Llist[k]!=NULL)
+        if(M2Llist[k])
           nodes_in_.insert(M2Llist[k]);
       }
     }
@@ -432,7 +432,7 @@ namespace exafmm_t {
       for(size_t k=0; k<mat_cnt; k++) {
         for(size_t i=blk1_start; i<blk1_end; i++) {
           std::vector<Node*>& M2Llist = nodes_out[i]->M2Llist;
-          if(M2Llist[k]!=NULL) {
+          if(M2Llist[k]) {
             interac_vec.push_back(M2Llist[k]->node_id * fftsize);   // node_in dspl
             interac_vec.push_back(        i           * fftsize);   // node_out dspl
             interac_dsp_++;
@@ -521,7 +521,7 @@ namespace exafmm_t {
     int dim[3] = {n1, n1, n1};
 
     fft_plan plan = fft_plan_many_dft(3, dim, NCHILD, reinterpret_cast<fft_complex*>(&fftw_in[0]),
-                                      NULL, 1, n3, (fft_complex*)(&fftw_out[0]), NULL, 1, n3, 
+                                      nullptr, 1, n3, (fft_complex*)(&fftw_out[0]), nullptr, 1, n3, 
                                       FFTW_FORWARD, FFTW_ESTIMATE);
 
     #pragma omp parallel for
@@ -567,8 +567,8 @@ namespace exafmm_t {
     ComplexVec fftw_out(n3*NCHILD);
     int dim[3] = {n1, n1, n1};
 
-    fft_plan plan = fft_plan_many_dft(3, dim, NCHILD, (fft_complex*)(&fftw_in[0]), NULL, 1, n3, 
-                                      reinterpret_cast<fft_complex*>(&fftw_out[0]), NULL, 1, n3, 
+    fft_plan plan = fft_plan_many_dft(3, dim, NCHILD, (fft_complex*)(&fftw_in[0]), nullptr, 1, n3, 
+                                      reinterpret_cast<fft_complex*>(&fftw_out[0]), nullptr, 1, n3, 
                                       FFTW_BACKWARD, FFTW_ESTIMATE);
 
     #pragma omp parallel for
