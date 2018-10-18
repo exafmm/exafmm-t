@@ -104,7 +104,7 @@ namespace exafmm_t {
     real_t coord[3];
     Node* parent;
     std::vector<Node*> child;
-    Node* colleague[27];
+    std::vector<Node*> colleagues;
     std::vector<Node*> P2Llist;
     std::vector<Node*> M2Plist;
     std::vector<Node*> P2Plist;

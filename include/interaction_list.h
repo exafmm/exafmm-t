@@ -55,7 +55,7 @@ namespace exafmm_t {
     int octant = n->octant;
     bool isleaf = n->is_leaf;
     for (int i=0; i<27; i++) {
-      Node* pc = n->parent->colleague[i];
+      Node* pc = n->parent->colleagues[i];
       if (pc && pc->is_leaf) {
         rel_coord[0]=( i %3)*4-4-(octant & 1?2:0)+1;
         rel_coord[1]=((i/3)%3)*4-4-(octant & 2?2:0)+1;
@@ -82,7 +82,7 @@ namespace exafmm_t {
     ivec3 rel_coord;
     bool isleaf = n->is_leaf;
     for (int i=0; i<27; i++) {
-      Node* col = n->colleague[i];
+      Node* col = n->colleagues[i];
       if(col) {
         rel_coord[0]=( i %3)-1;
         rel_coord[1]=((i/3)%3)-1;
@@ -104,7 +104,7 @@ namespace exafmm_t {
     if (!n->is_leaf) return;
     ivec3 rel_coord;
     for(int i=0; i<27; i++) {
-      Node* col = n->colleague[i];
+      Node* col = n->colleagues[i];
       if(col && !col->is_leaf) {
         for(int j=0; j<NCHILD; j++) {
           Node* cc = col->child[j];
@@ -145,14 +145,14 @@ namespace exafmm_t {
   
   void setColleagues(Node* node) {
     Node *parent, *colleague, *child;
-    for (int i=0; i<27; ++i) node->colleague[i] = nullptr;
+    node->colleagues.resize(27, nullptr);
     if (node->level==0) {     // root node
-      node->colleague[13] = node;
+      node->colleagues[13] = node;
     } else {                  // non-root node
       parent = node->parent;
       int l = node->octant;
       for(int i=0; i<27; ++i) { // loop over parent's colleagues
-        colleague = parent->colleague[i]; 
+        colleague = parent->colleagues[i]; 
         if(colleague && !colleague->is_leaf) {
           for(int j=0; j<8; ++j) {  // loop over parent's colleages child
             child = colleague->child[j];
@@ -167,7 +167,7 @@ namespace exafmm_t {
                 b*=3;
               }
               if(flag)
-                node->colleague[new_indx] = child;
+                node->colleagues[new_indx] = child;
             }
           }
         }
