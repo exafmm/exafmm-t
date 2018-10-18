@@ -92,7 +92,7 @@ namespace exafmm_t {
     int numSources;
     Body * fsource;
     Body * ftarget;
-    vec3 X;
+    vec3 Xmin;    // the coordinates of the front-left-bottom corner
     real_t R;
     uint64_t key;
 
@@ -100,7 +100,6 @@ namespace exafmm_t {
     size_t node_id;
     int level;
     int octant;
-    real_t coord[3];
     Node* parent;
     std::vector<Node*> children;
     std::vector<Node*> colleagues;

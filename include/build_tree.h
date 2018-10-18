@@ -10,7 +10,7 @@ namespace exafmm_t {
   void sortBodies(Node * node, Body * bodies, Body * buffer, int begin, int end, std::vector<int>& size, std::vector<int>& offsets) {
     // Count number of bodies in each octant
     size.resize(8, 0);
-    vec3& X = node->X;
+    vec3 X = node->Xmin + node->R;  // the center of the node
     for (int i=begin; i<end; i++) {
       vec3& x = bodies[i].X;
       int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
@@ -37,7 +37,7 @@ namespace exafmm_t {
   //! Build nodes of tree adaptively using a top-down approach based on recursion
   void buildTree(Body * sources, Body * sources_buffer, int source_begin, int source_end, 
                  Body * targets, Body * targets_buffer, int target_begin, int target_end,
-                 Node * node, Nodes & nodes, const vec3 & X, real_t R, 
+                 Node * node, Nodes & nodes, 
                  std::vector<Node*> & leafs, std::vector<Node*> & nonleafs,
                  Args & args, const Keys & leafkeys, int level=0, bool direction=false) {
     //! Create a tree node
@@ -51,8 +51,6 @@ namespace exafmm_t {
     }
     node->numSources = source_end - source_begin;
     node->numTargets = target_end - target_begin;
-    node->X = X;
-    node->R = R;
 #if COMPLEX
     node->upward_equiv.resize(NSURF, complex_t(0.,0.));
     node->dnward_equiv.resize(NSURF, complex_t(0.,0.));
@@ -60,7 +58,7 @@ namespace exafmm_t {
     node->upward_equiv.resize(NSURF, 0.);
     node->dnward_equiv.resize(NSURF, 0.);
 #endif
-    ivec3 iX = get3DIndex(X, level);
+    ivec3 iX = get3DIndex(node->Xmin+node->R, level);
     node->key = getKey(iX, level);
 
     //! If node is a leaf
@@ -98,39 +96,38 @@ namespace exafmm_t {
     //! Loop over children and recurse
     node->is_leaf = false;
     nonleafs.push_back(node);
-    vec3 Xchild;
     assert(nodes.capacity() >= nodes.size()+NCHILD);
     nodes.resize(nodes.size()+NCHILD);
     Node * child = &nodes.back() - NCHILD + 1;
     node->children.resize(8, nullptr);
-    for (int i=0, c=0; i<8; i++) {
-      Xchild = X;
-      real_t Rchild = R / 2;
+    for (int c=0; c<8; c++) {
+      node->children[c] = &child[c];
+      child[c].Xmin = node->Xmin;
       for (int d=0; d<3; d++) {
-        Xchild[d] += Rchild * (((i & 1 << d) >> d) * 2 - 1);
+        child[c].Xmin[d] += node->R * ((c & 1 << d) >> d);
       }
+      child[c].R = node->R / 2;
       child[c].parent = node;
-      child[c].octant = i;
-      node->children[i] = &child[c];
-      buildTree(sources_buffer, sources, source_offsets[i], source_offsets[i] + source_size[i],
-                targets_buffer, targets, target_offsets[i], target_offsets[i] + target_size[i],
-                &child[c++], nodes, Xchild, Rchild, leafs, nonleafs,
+      child[c].octant = c;
+      buildTree(sources_buffer, sources, source_offsets[c], source_offsets[c] + source_size[c],
+                targets_buffer, targets, target_offsets[c], target_offsets[c] + target_size[c],
+                &child[c], nodes,  leafs, nonleafs,
                 args, leafkeys, level+1, !direction);
     }
   }
 
   Nodes buildTree(Bodies & sources, Bodies & targets, std::vector<Node*> & leafs, std::vector<Node*> & nonleafs, Args & args, const Keys & leafkeys=Keys()) {
-    real_t R0 = 0.5;
-    vec3 X0(0.5);
     Bodies sources_buffer = sources;
     Bodies targets_buffer = targets;
     Nodes nodes(1);
     nodes[0].parent = nullptr;
     nodes[0].octant = 0;
+    nodes[0].Xmin = 0.0;
+    nodes[0].R = 0.5;
     nodes.reserve((sources.size()+targets.size()) * (32/args.ncrit+1));
     buildTree(&sources[0], &sources_buffer[0], 0, sources.size(), 
               &targets[0], &targets_buffer[0], 0, targets.size(),
-              &nodes[0], nodes, X0, R0, leafs, nonleafs, args, leafkeys);
+              &nodes[0], nodes, leafs, nonleafs, args, leafkeys);
     return nodes;
   }
 

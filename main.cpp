@@ -40,9 +40,6 @@ int main(int argc, char **argv) {
   // fill in coords and values for compatibility
   // remove this later
   for(int i=0; i<nodes.size(); i++) {
-    for(int d=0; d<3; d++) {
-      nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
-    }
     if(nodes[i].is_leaf) {
       for(Body* B=nodes[i].fsource; B<nodes[i].fsource+nodes[i].numSources; B++) {
         nodes[i].src_coord.push_back(B->X[0]);
