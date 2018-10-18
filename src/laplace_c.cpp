@@ -246,7 +246,7 @@ namespace exafmm_t {
   }
 
   void M2M(Node* node) {
-    if(node->IsLeaf()) return;
+    if(node->is_leaf) return;
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant])
         #pragma omp task untied
@@ -266,7 +266,7 @@ namespace exafmm_t {
   }
 
   void L2L(Node* node) {
-    if(node->IsLeaf()) return;
+    if(node->is_leaf) return;
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant]) {
         Node* child = node->child[octant];

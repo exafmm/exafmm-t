@@ -53,10 +53,10 @@ namespace exafmm_t {
     if (!n->parent) return;
     ivec3 rel_coord;
     int octant = n->octant;
-    bool isleaf = n->IsLeaf();
+    bool isleaf = n->is_leaf;
     for (int i=0; i<27; i++) {
       Node* pc = n->parent->colleague[i];
-      if (pc && pc->IsLeaf()) {
+      if (pc && pc->is_leaf) {
         rel_coord[0]=( i %3)*4-4-(octant & 1?2:0)+1;
         rel_coord[1]=((i/3)%3)*4-4-(octant & 2?2:0)+1;
         rel_coord[2]=((i/9)%3)*4-4-(octant & 4?2:0)+1;
@@ -80,7 +80,7 @@ namespace exafmm_t {
   // Build interaction lists of P2P1_Type and M2L_Type
   void buildListCurrentLevel(Node* n) {
     ivec3 rel_coord;
-    bool isleaf = n->IsLeaf();
+    bool isleaf = n->is_leaf;
     for (int i=0; i<27; i++) {
       Node* col = n->colleague[i];
       if(col) {
@@ -88,10 +88,10 @@ namespace exafmm_t {
         rel_coord[1]=((i/3)%3)-1;
         rel_coord[2]=((i/9)%3)-1;
         int c_hash = hash(rel_coord);
-        if (col->IsLeaf() && isleaf) {
+        if (col->is_leaf && isleaf) {
           int idx1 = hash_lut[P2P1_Type][c_hash];
           if (idx1>=0) n->P2Plist.push_back(col);
-        } else if (!col->IsLeaf() && !isleaf) {
+        } else if (!col->is_leaf && !isleaf) {
           int idx2 = hash_lut[M2L_Type][c_hash];
           if (idx2>=0) n->M2Llist[idx2] = col;
         }
@@ -101,11 +101,11 @@ namespace exafmm_t {
   
   // Build interaction lists of P2P2_Type and M2P_Type
   void buildListChildLevel(Node* n) {
-    if (!n->IsLeaf()) return;
+    if (!n->is_leaf) return;
     ivec3 rel_coord;
     for(int i=0; i<27; i++) {
       Node* col = n->colleague[i];
-      if(col && !col->IsLeaf()) {
+      if(col && !col->is_leaf) {
         for(int j=0; j<NCHILD; j++) {
           Node* cc = col->child[j];
           rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
@@ -115,13 +115,13 @@ namespace exafmm_t {
           int idx1 = hash_lut[P2P2_Type][c_hash];
           int idx2 = hash_lut[M2P_Type][c_hash];
           if (idx1>=0) {
-            assert(col->child[j]->IsLeaf()); //2:1 balanced
+            assert(col->child[j]->is_leaf); //2:1 balanced
             n->P2Plist.push_back(cc);
           }
           // since we currently don't save bodies' information in nonleaf nodes
           // M2P can only be switched to P2P when source is leaf
           if (idx2>=0) {
-            if (cc->IsLeaf() && cc->numSources<=NSURF)
+            if (cc->is_leaf && cc->numSources<=NSURF)
               n->P2Plist.push_back(cc);
             else
               n->M2Plist.push_back(cc);
@@ -153,9 +153,9 @@ namespace exafmm_t {
       int l = node->octant;
       for(int i=0; i<27; ++i) { // loop over parent's colleagues
         colleague = parent->colleague[i]; 
-        if(colleague && !colleague->IsLeaf()) {
+        if(colleague && !colleague->is_leaf) {
           for(int j=0; j<8; ++j) {  // loop over parent's colleages child
-            child = colleague->Child(j);
+            child = colleague->child[j];
             if(child) {
               bool flag=true;
               int a=1, b=1, new_indx=0;
@@ -173,7 +173,7 @@ namespace exafmm_t {
         }
       }
     }
-    if (!node->IsLeaf()) {
+    if (!node->is_leaf) {
       for (int c=0; c<8; ++c) {
         if (node->child[c]) {
           setColleagues(node->child[c]);

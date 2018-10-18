@@ -87,7 +87,7 @@ namespace exafmm_t {
 
   //! Structure of nodes
   struct Node {
-    int numChilds;
+    bool is_leaf;
     int numTargets;
     int numSources;
     Node * fchild;
@@ -123,14 +123,6 @@ namespace exafmm_t {
     RealVec upward_equiv; // M
     RealVec dnward_equiv; // L
 #endif
-
-    bool IsLeaf() {
-      return numChilds == 0;
-    }
-
-    Node* Child(int id) {
-      return (numChilds == 0) ? nullptr : child[id];
-    }
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes
   typedef std::vector<std::set<uint64_t>> Keys; //!< Vector of Morton keys of each level

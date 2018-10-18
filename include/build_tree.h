@@ -51,7 +51,6 @@ namespace exafmm_t {
     }
     node->numSources = source_end - source_begin;
     node->numTargets = target_end - target_begin;
-    node->numChilds = 0;
     node->X = X;
     node->R = R;
 #if COMPLEX
@@ -73,7 +72,7 @@ namespace exafmm_t {
       }
     }
     if (node->numSources<=args.ncrit && node->numTargets<=args.ncrit && isLeafKey) {
-      node->numChilds = 0;
+      node->is_leaf = true;
 #if COMPLEX
       node->trg_value.resize(node->numTargets*4, complex_t(0.,0.));   // initialize target result vector
 #else
@@ -97,12 +96,12 @@ namespace exafmm_t {
     sortBodies(node, sources, sources_buffer, source_begin, source_end, source_size, source_offsets);
     sortBodies(node, targets, targets_buffer, target_begin, target_end, target_size, target_offsets);
     //! Loop over children and recurse
+    node->is_leaf = false;
     nonleafs.push_back(node);
-    node->numChilds = 8;
     vec3 Xchild;
-    assert(nodes.capacity() >= nodes.size()+node->numChilds);
-    nodes.resize(nodes.size()+node->numChilds);
-    Node * child = &nodes.back() - node->numChilds + 1;
+    assert(nodes.capacity() >= nodes.size()+NCHILD);
+    nodes.resize(nodes.size()+NCHILD);
+    Node * child = &nodes.back() - NCHILD + 1;
     node->fchild = child;
     node->child.resize(8, nullptr);
     for (int i=0, c=0; i<8; i++) {
@@ -154,8 +153,10 @@ namespace exafmm_t {
       keys_.insert(curr->key);
       key2id[curr->key] = curr->idx;
       buffer.pop();
-      for (int i=0; i<curr->numChilds; i++) {
-        buffer.push(curr->fchild+i);
+      if (!curr->is_leaf) {
+        for (int i=0; i<NCHILD; i++) {
+          buffer.push(curr->fchild+i);
+        }
       }
     }
     if (keys_.size())
@@ -173,7 +174,7 @@ namespace exafmm_t {
       // N <- S + nonleafs
       N.clear();
       for (it=keys[l].begin(); it!=keys[l].end(); ++it)
-        if (!nodes[key2id[*it]].IsLeaf()) // choose nonleafs
+        if (!nodes[key2id[*it]].is_leaf) // choose nonleafs
           N.insert(*it); 
       N.insert(S.begin(), S.end());       // N = S + nonleafs
       S.clear();
