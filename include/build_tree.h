@@ -37,11 +37,9 @@ namespace exafmm_t {
   //! Build nodes of tree adaptively using a top-down approach based on recursion
   void buildTree(Body * sources, Body * sources_buffer, int source_begin, int source_end, 
                  Body * targets, Body * targets_buffer, int target_begin, int target_end,
-                 Node * node, Nodes & nodes, 
-                 std::vector<Node*> & leafs, std::vector<Node*> & nonleafs,
-                 Args & args, const Keys & leafkeys, int level=0, bool direction=false) {
+                 Node * node, Nodes & nodes, std::vector<Node*> & leafs, std::vector<Node*> & nonleafs,
+                 Args & args, const Keys & leafkeys, bool direction=false) {
     //! Create a tree node
-    node->level = level;         // level
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
     node->fsource = sources + source_begin;
     node->ftarget = targets + target_begin;
@@ -58,14 +56,14 @@ namespace exafmm_t {
     node->upward_equiv.resize(NSURF, 0.);
     node->dnward_equiv.resize(NSURF, 0.);
 #endif
-    ivec3 iX = get3DIndex(node->Xmin+node->R, level);
-    node->key = getKey(iX, level);
+    ivec3 iX = get3DIndex(node->Xmin+node->R, node->level);
+    node->key = getKey(iX, node->level);
 
     //! If node is a leaf
     bool isLeafKey = 1;
     if (!leafkeys.empty()) {  // when leafkeys is given (when balancing tree) 
-      std::set<uint64_t>::iterator it = leafkeys[level].find(node->key);
-      if (it == leafkeys[level].end()) {  // if current key is not a leaf key
+      std::set<uint64_t>::iterator it = leafkeys[node->level].find(node->key);
+      if (it == leafkeys[node->level].end()) {  // if current key is not a leaf key
         isLeafKey = 0;
       }
     }
@@ -109,10 +107,10 @@ namespace exafmm_t {
       child[c].R = node->R / 2;
       child[c].parent = node;
       child[c].octant = c;
+      child[c].level = node->level + 1;
       buildTree(sources_buffer, sources, source_offsets[c], source_offsets[c] + source_size[c],
                 targets_buffer, targets, target_offsets[c], target_offsets[c] + target_size[c],
-                &child[c], nodes,  leafs, nonleafs,
-                args, leafkeys, level+1, !direction);
+                &child[c], nodes,  leafs, nonleafs, args, leafkeys, !direction);
     }
   }
 
@@ -124,6 +122,7 @@ namespace exafmm_t {
     nodes[0].octant = 0;
     nodes[0].Xmin = 0.0;
     nodes[0].R = 0.5;
+    nodes[0].level = 0;
     nodes.reserve((sources.size()+targets.size()) * (32/args.ncrit+1));
     buildTree(&sources[0], &sources_buffer[0], 0, sources.size(), 
               &targets[0], &targets_buffer[0], 0, targets.size(),
