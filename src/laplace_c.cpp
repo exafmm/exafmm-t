@@ -248,14 +248,14 @@ namespace exafmm_t {
   void M2M(Node* node) {
     if(node->is_leaf) return;
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant])
+      if(node->children[octant])
         #pragma omp task untied
-        M2M(node->child[octant]);
+        M2M(node->children[octant]);
     }
     #pragma omp taskwait
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant]) {
-        Node* child = node->child[octant];
+      if(node->children[octant]) {
+        Node* child = node->children[octant];
         ComplexVec buffer(NSURF);
         gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++) {
@@ -268,8 +268,8 @@ namespace exafmm_t {
   void L2L(Node* node) {
     if(node->is_leaf) return;
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant]) {
-        Node* child = node->child[octant];
+      if(node->children[octant]) {
+        Node* child = node->children[octant];
         ComplexVec buffer(NSURF);
         gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++)
@@ -277,9 +277,9 @@ namespace exafmm_t {
       }
     }
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant])
+      if(node->children[octant])
         #pragma omp task untied
-        L2L(node->child[octant]);
+        L2L(node->children[octant]);
     }
     #pragma omp taskwait
   } 
@@ -408,12 +408,12 @@ namespace exafmm_t {
     RealVec fft_scl(nodes_in.size());
     RealVec ifft_scl(nodes_out.size());
     for(size_t i=0; i<nodes_in.size(); i++) {
-      fft_vec[i] = nodes_in[i]->child[0]->idx * NSURF;
+      fft_vec[i] = nodes_in[i]->children[0]->idx * NSURF;
       fft_scl[i] = 1;
     }
     for(size_t i=0; i<nodes_out.size(); i++) {
       int level = nodes_out[i]->level+1;
-      ifft_vec[i] = nodes_out[i]->child[0]->idx * NSURF;
+      ifft_vec[i] = nodes_out[i]->children[0]->idx * NSURF;
       ifft_scl[i] = powf(2.0, level);
     }
     // calculate interac_vec & interac_dsp

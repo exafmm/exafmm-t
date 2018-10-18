@@ -103,7 +103,7 @@ namespace exafmm_t {
     int octant;
     real_t coord[3];
     Node* parent;
-    std::vector<Node*> child;
+    std::vector<Node*> children;
     std::vector<Node*> colleagues;
     std::vector<Node*> P2Llist;
     std::vector<Node*> M2Plist;

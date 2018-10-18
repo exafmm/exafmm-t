@@ -103,7 +103,7 @@ namespace exafmm_t {
     nodes.resize(nodes.size()+NCHILD);
     Node * child = &nodes.back() - NCHILD + 1;
     node->fchild = child;
-    node->child.resize(8, nullptr);
+    node->children.resize(8, nullptr);
     for (int i=0, c=0; i<8; i++) {
       Xchild = X;
       real_t Rchild = R / 2;
@@ -112,7 +112,7 @@ namespace exafmm_t {
       }
       child[c].parent = node;
       child[c].octant = i;
-      node->child[i] = &child[c];
+      node->children[i] = &child[c];
       buildTree(sources_buffer, sources, source_offsets[i], source_offsets[i] + source_size[i],
                 targets_buffer, targets, target_offsets[i], target_offsets[i] + target_size[i],
                 &child[c++], nodes, Xchild, Rchild, leafs, nonleafs,

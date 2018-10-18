@@ -107,7 +107,7 @@ namespace exafmm_t {
       Node* col = n->colleagues[i];
       if(col && !col->is_leaf) {
         for(int j=0; j<NCHILD; j++) {
-          Node* cc = col->child[j];
+          Node* cc = col->children[j];
           rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
           rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
           rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
@@ -115,7 +115,7 @@ namespace exafmm_t {
           int idx1 = hash_lut[P2P2_Type][c_hash];
           int idx2 = hash_lut[M2P_Type][c_hash];
           if (idx1>=0) {
-            assert(col->child[j]->is_leaf); //2:1 balanced
+            assert(col->children[j]->is_leaf); //2:1 balanced
             n->P2Plist.push_back(cc);
           }
           // since we currently don't save bodies' information in nonleaf nodes
@@ -155,7 +155,7 @@ namespace exafmm_t {
         colleague = parent->colleagues[i]; 
         if(colleague && !colleague->is_leaf) {
           for(int j=0; j<8; ++j) {  // loop over parent's colleages child
-            child = colleague->child[j];
+            child = colleague->children[j];
             if(child) {
               bool flag=true;
               int a=1, b=1, new_indx=0;
@@ -175,8 +175,8 @@ namespace exafmm_t {
     }
     if (!node->is_leaf) {
       for (int c=0; c<8; ++c) {
-        if (node->child[c]) {
-          setColleagues(node->child[c]);
+        if (node->children[c]) {
+          setColleagues(node->children[c]);
         }
       }
     }
