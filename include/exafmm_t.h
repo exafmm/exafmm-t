@@ -90,7 +90,6 @@ namespace exafmm_t {
     bool is_leaf;
     int numTargets;
     int numSources;
-    Node * fchild;
     Body * fsource;
     Body * ftarget;
     vec3 X;

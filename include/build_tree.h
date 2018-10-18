@@ -102,7 +102,6 @@ namespace exafmm_t {
     assert(nodes.capacity() >= nodes.size()+NCHILD);
     nodes.resize(nodes.size()+NCHILD);
     Node * child = &nodes.back() - NCHILD + 1;
-    node->fchild = child;
     node->children.resize(8, nullptr);
     for (int i=0, c=0; i<8; i++) {
       Xchild = X;
@@ -155,7 +154,7 @@ namespace exafmm_t {
       buffer.pop();
       if (!curr->is_leaf) {
         for (int i=0; i<NCHILD; i++) {
-          buffer.push(curr->fchild+i);
+          buffer.push(curr->children[i]);
         }
       }
     }
