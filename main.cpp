@@ -39,21 +39,6 @@ int main(int argc, char **argv) {
 
   // fill in coords and values for compatibility
   // remove this later
-  for(int i=0; i<nodes.size(); i++) {
-    if(nodes[i].is_leaf) {
-      for(Body* B=nodes[i].fsource; B<nodes[i].fsource+nodes[i].numSources; B++) {
-        nodes[i].src_coord.push_back(B->X[0]);
-        nodes[i].src_coord.push_back(B->X[1]);
-        nodes[i].src_coord.push_back(B->X[2]);
-        nodes[i].src_value.push_back(B->q);
-      }
-      for(Body* B=nodes[i].ftarget; B<nodes[i].ftarget+nodes[i].numTargets; B++) {
-        nodes[i].trg_coord.push_back(B->X[0]);
-        nodes[i].trg_coord.push_back(B->X[1]);
-        nodes[i].trg_coord.push_back(B->X[2]);
-      }
-    }
-  }
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();

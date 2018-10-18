@@ -41,12 +41,6 @@ namespace exafmm_t {
                  Args & args, const Keys & leafkeys, bool direction=false) {
     //! Create a tree node
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
-    node->fsource = sources + source_begin;
-    node->ftarget = targets + target_begin;
-    if(direction) {
-      node->fsource = sources_buffer + source_begin;
-      node->ftarget = targets_buffer + target_begin;
-    }
     node->numSources = source_end - source_begin;
     node->numTargets = target_end - target_begin;
 #if COMPLEX
@@ -82,6 +76,22 @@ namespace exafmm_t {
         }
         for (int i=target_begin; i<target_end; i++) {
           targets_buffer[i].X = targets[i].X;
+        }
+      }
+      // Copy sources and targets' coords and values to leaf (only during 2:1 tree balancing)
+      if (!leafkeys.empty()) {
+        Body* first_source = (direction ? sources_buffer : sources) + source_begin;
+        Body* first_target = (direction ? targets_buffer : targets) + target_begin;
+        for (Body* B=first_source; B<first_source+node->numSources; ++B) {
+          for (int d=0; d<3; ++d) {
+            node->src_coord.push_back(B->X[d]);
+          }
+          node->src_value.push_back(B->q);
+        }
+        for (Body* B=first_target; B<first_target+node->numTargets; ++B) {
+          for (int d=0; d<3; ++d) {
+            node->trg_coord.push_back(B->X[d]);
+          }
         }
       }
       return;

@@ -90,8 +90,6 @@ namespace exafmm_t {
     bool is_leaf;
     int numTargets;
     int numSources;
-    Body * fsource;
-    Body * ftarget;
     vec3 Xmin;    // the coordinates of the front-left-bottom corner
     real_t R;
     uint64_t key;
