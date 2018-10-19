@@ -4,7 +4,7 @@
 #include "profile.h"
 
 namespace exafmm_t {
-  void upwardPass(Nodes& nodes, std::vector<Node*>& leafs) {
+  void upwardPass(Nodes& nodes, NodePtrs& leafs) {
     Profile::Tic("P2M", false, 5);
     P2M(leafs);
     Profile::Toc();
@@ -15,7 +15,7 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  void downwardPass(Nodes& nodes, std::vector<Node*>& leafs) {
+  void downwardPass(Nodes& nodes, NodePtrs& leafs) {
     Profile::Tic("P2L", false, 5);
     P2L(nodes);
     Profile::Toc();
@@ -38,7 +38,7 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  RealVec verify(std::vector<Node*>& leafs) {
+  RealVec verify(NodePtrs& leafs) {
     int numTargets = 10;
     int stride = leafs.size() / numTargets;
     Nodes targets;

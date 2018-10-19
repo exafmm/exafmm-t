@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
   Profile::Tic("Total", true);
   Bodies sources = initBodies(args.numBodies, args.distribution, 0);
   Bodies targets = initBodies(args.numBodies, args.distribution, 0);
-  std::vector<Node*> leafs, nonleafs;
+  NodePtrs leafs, nonleafs;
   Nodes nodes = buildTree(sources, targets, leafs, nonleafs, args);
 
   // balanced tree

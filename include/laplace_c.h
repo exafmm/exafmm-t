@@ -40,21 +40,21 @@ namespace exafmm_t {
 
   void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, complex_t* k_out);
 
-  void P2M(std::vector<Node*>& leafs);
+  void P2M(NodePtrs& leafs);
 
   void M2M(Node* node);
 
   void L2L(Node* node);
 
-  void L2P(std::vector<Node*>& leafs);
+  void L2P(NodePtrs& leafs);
 
   void P2L(Nodes& nodes);
 
-  void M2P(std::vector<Node*>& leafs);
+  void M2P(NodePtrs& leafs);
 
-  void P2P(std::vector<Node*>& leafs);
+  void P2P(NodePtrs& leafs);
 
-  void M2LSetup(std::vector<Node*>& nonleafs);
+  void M2LSetup(NodePtrs& nonleafs);
 
   void M2LListHadamard(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
                        AlignedVec& fft_in, AlignedVec& fft_out);

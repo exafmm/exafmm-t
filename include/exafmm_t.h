@@ -87,15 +87,14 @@ namespace exafmm_t {
 
   //! Structure of nodes
   struct Node {
+    size_t idx;
+    size_t node_id;
     bool is_leaf;
     int numTargets;
     int numSources;
     vec3 Xmin;    // the coordinates of the front-left-bottom corner
     real_t R;
     uint64_t key;
-
-    size_t idx;
-    size_t node_id;
     int level;
     int octant;
     Node* parent;
@@ -121,6 +120,7 @@ namespace exafmm_t {
 #endif
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes
+  typedef std::vector<Node*> NodePtrs;          //!< Vector of Node pointers
   typedef std::vector<std::set<uint64_t>> Keys; //!< Vector of Morton keys of each level
 
   struct M2LData {

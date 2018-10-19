@@ -37,7 +37,7 @@ namespace exafmm_t {
   //! Build nodes of tree adaptively using a top-down approach based on recursion
   void buildTree(Body * sources, Body * sources_buffer, int source_begin, int source_end, 
                  Body * targets, Body * targets_buffer, int target_begin, int target_end,
-                 Node * node, Nodes & nodes, std::vector<Node*> & leafs, std::vector<Node*> & nonleafs,
+                 Node * node, Nodes & nodes, NodePtrs & leafs, NodePtrs & nonleafs,
                  Args & args, const Keys & leafkeys, bool direction=false) {
     //! Create a tree node
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
@@ -124,7 +124,7 @@ namespace exafmm_t {
     }
   }
 
-  Nodes buildTree(Bodies & sources, Bodies & targets, std::vector<Node*> & leafs, std::vector<Node*> & nonleafs, Args & args, const Keys & leafkeys=Keys()) {
+  Nodes buildTree(Bodies & sources, Bodies & targets, NodePtrs & leafs, NodePtrs & nonleafs, Args & args, const Keys & leafkeys=Keys()) {
     Bodies sources_buffer = sources;
     Bodies targets_buffer = targets;
     Nodes nodes(1);
