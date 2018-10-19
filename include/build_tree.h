@@ -239,5 +239,17 @@ namespace exafmm_t {
     leafkeys[keys.size()-1] = keys.back();
     return leafkeys;
   }
+
+  void balanceTree(Nodes& nodes, Bodies& sources, Bodies& targets, NodePtrs& leafs, NodePtrs& nonleafs, Args& args) {
+    std::unordered_map<uint64_t, size_t> key2id;
+    Keys keys = breadthFirstTraversal(&nodes[0], key2id);
+    Keys balanced_keys = balanceTree(keys, key2id, nodes);
+    Keys leaf_keys = findLeafKeys(balanced_keys);
+    nodes.clear();
+    leafs.clear();
+    nonleafs.clear();
+    nodes = buildTree(sources, targets, leafs, nonleafs, args, leaf_keys);
+    MAXLEVEL = keys.size() - 1;
+  }
 }
 #endif

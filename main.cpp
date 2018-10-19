@@ -20,31 +20,22 @@ int main(int argc, char **argv) {
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   Profile::Enable(true);
 
-  Profile::Tic("Total", true);
+  Profile::Tic("Total");
   Bodies sources = initBodies(args.numBodies, args.distribution, 0);
   Bodies targets = initBodies(args.numBodies, args.distribution, 0);
+  Profile::Tic("Build Tree");
   NodePtrs leafs, nonleafs;
   Nodes nodes = buildTree(sources, targets, leafs, nonleafs, args);
-
-  // balanced tree
-  std::unordered_map<uint64_t, size_t> key2id;
-  Keys keys = breadthFirstTraversal(&nodes[0], key2id);
-  Keys bkeys = balanceTree(keys, key2id, nodes);
-  Keys leafkeys = findLeafKeys(bkeys);
-  nodes.clear();
-  leafs.clear();
-  nonleafs.clear();
-  nodes = buildTree(sources, targets, leafs, nonleafs, args, leafkeys);
-  MAXLEVEL = keys.size() - 1;
-
-  // fill in coords and values for compatibility
-  // remove this later
-  initRelCoord();    // initialize relative coords
-  Profile::Tic("Precomputation", true);
+  balanceTree(nodes, sources, targets, leafs, nonleafs, args);
+  Profile::Toc();
+  initRelCoord();
+  Profile::Tic("Precomputation");
   Precompute();
   Profile::Toc();
+  Profile::Tic("Build Lists");
   setColleagues(nodes);
   buildList(nodes);
+  Profile::Toc();
   M2LSetup(nonleafs);
   upwardPass(nodes, leafs);
   downwardPass(nodes, leafs);
