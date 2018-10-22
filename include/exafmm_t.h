@@ -145,9 +145,16 @@ namespace exafmm_t {
   extern std::vector<std::vector<ivec3>> rel_coord;
 
   // Precomputation matrices
+#if COMPLEX
+  extern ComplexVec M2M_U, M2M_V;
+  extern ComplexVec L2L_U, L2L_V;
+  extern std::vector<ComplexVec> mat_M2M, mat_L2L;
+#else
   extern RealVec M2M_U, M2M_V;
   extern RealVec L2L_U, L2L_V;
-  extern std::vector<RealVec> mat_M2M, mat_L2L, mat_M2L;
+  extern std::vector<RealVec> mat_M2M, mat_L2L;
+#endif
+  extern std::vector<RealVec> mat_M2L;
 
   extern int MULTIPOLE_ORDER;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates

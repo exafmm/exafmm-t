@@ -5,15 +5,16 @@
 #include "laplace_c.h"
 
 namespace exafmm_t {
-  RealVec M2M_U, M2M_V;
-  RealVec L2L_U, L2L_V;
-  std::vector<RealVec> mat_M2L_Helper;
-  std::vector<RealVec> mat_M2M;
+  ComplexVec M2M_U, M2M_V;
+  ComplexVec L2L_U, L2L_V;
   std::vector<RealVec> mat_M2L;
-  std::vector<RealVec> mat_L2L;
+  std::vector<RealVec> mat_M2L_Helper;
+  std::vector<ComplexVec> mat_M2M;
+  std::vector<ComplexVec> mat_L2L;
 
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
+  void svd(int m, int n, complex_t* A, real_t* S, complex_t* U, complex_t* VT);
   RealVec transpose(RealVec& vec, int m, int n);
 
   void PrecompCheck2Equiv() {
@@ -22,9 +23,10 @@ namespace exafmm_t {
     // caculate M2M_U and M2M_V
     RealVec uc_coord = surface(MULTIPOLE_ORDER,c,2.95,level);
     RealVec ue_coord = surface(MULTIPOLE_ORDER,c,1.05,level);
-    RealVec M_e2c(NSURF*NSURF);
+    ComplexVec M_e2c(NSURF*NSURF);
     kernelMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &M_e2c[0]);
-    RealVec U(NSURF*NSURF), S(NSURF*NSURF), V(NSURF*NSURF);
+    RealVec S(NSURF*NSURF);
+    ComplexVec U(NSURF*NSURF), V(NSURF*NSURF);
     svd(NSURF, NSURF, &M_e2c[0], &S[0], &U[0], &V[0]);
     // inverse S
     real_t max_S = 0;
@@ -35,7 +37,7 @@ namespace exafmm_t {
       S[i*NSURF+i] = S[i*NSURF+i]>EPS*max_S*4 ? 1.0/S[i*NSURF+i] : 0.0;
     }
     // save matrix
-    RealVec VT = transpose(V, NSURF, NSURF);
+    ComplexVec VT = transpose(V, NSURF, NSURF);
     M2M_V.resize(NSURF*NSURF);
     M2M_U = transpose(U, NSURF, NSURF);
     gemm(NSURF, NSURF, NSURF, &VT[0], &S[0], &M2M_V[0]);
@@ -59,10 +61,10 @@ namespace exafmm_t {
       ivec3& coord = rel_coord[M2M_Type][i];
       real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
       RealVec c_equiv_surf = surface(MULTIPOLE_ORDER,child_coord,1.05,level+1);
-      RealVec M_e2c(NSURF*NSURF);
+      ComplexVec M_e2c(NSURF*NSURF);
       kernelMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_e2c[0]);
       // M2M: child's upward_equiv to parent's check
-      RealVec buffer(NSURF*NSURF);
+      ComplexVec buffer(NSURF*NSURF);
       mat_M2M[i].resize(NSURF*NSURF);
       gemm(NSURF, NSURF, NSURF, &M_e2c[0], &M2M_V[0], &buffer[0]);
       gemm(NSURF, NSURF, NSURF, &buffer[0], &M2M_U[0], &(mat_M2M[i][0]));
