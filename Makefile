@@ -14,6 +14,7 @@ OBJF = main.fo src/geometry.fo src/laplace.fo src/kernel.fo
 OBJD = main.do src/geometry.do src/laplace.do src/kernel.do
 OBJC =  main.co src/geometry.co src/laplace_c.co src/kernel.co
 OBJZ =  main.zo src/geometry.zo src/laplace_c.zo src/kernel.zo
+OBJH =  main.ho src/geometry.ho src/laplace_c.ho src/kernel.ho
 
 %.fo: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DEXAFMM_LAPLACE
@@ -27,6 +28,9 @@ OBJZ =  main.zo src/geometry.zo src/laplace_c.zo src/kernel.zo
 %.zo: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX -DEXAFMM_LAPLACE
 
+%.ho: %.cpp
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX -DEXAFMM_HELMHOLTZ
+
 real8: $(OBJF)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
@@ -39,8 +43,14 @@ complex8: $(OBJC)
 complex16: $(OBJZ)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
+helmholtz16: $(OBJH)
+	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
+
+test: test_c.cxx
+	mpiicpc -O3 -mavx -std=c++11 -I./include test_c.cxx
+
 clean:
-	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) *.out
+	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) $(OBJH) *.out
 
 p4:
 	./a.out -T 8 -n 1000000 -P 4 -c 64
@@ -53,3 +63,6 @@ t4:
 
 t16:
 	./a.out -T 32 -n 1000000 -P 16 -c 320
+
+t1:
+	./a.out -T 32 -n 16 -P 16 -c 320
