@@ -6,19 +6,43 @@
 #include "hilbert.h"
 
 namespace exafmm_t {
+  // Sort bodies in a node according to their octants
+  void sortBodies(Node * node, Body * bodies, Body * buffer, int begin, int end, std::vector<int>& size, std::vector<int>& offsets) {
+    // Count number of bodies in each octant
+    size.resize(8, 0);
+    vec3 X = node->Xmin + node->R;  // the center of the node
+    for (int i=begin; i<end; i++) {
+      vec3& x = bodies[i].X;
+      int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
+      size[octant]++;
+    }
+    // Exclusive scan to get offsets
+    offsets.resize(8);
+    int offset = begin;
+    for (int i=0; i<8; i++) {
+      offsets[i] = offset;
+      offset += size[i];
+    }
+    // Sort bodies by octant
+    std::vector<int> counter(offsets);
+    for (int i=begin; i<end; i++) {
+      vec3& x = bodies[i].X;
+      int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
+      buffer[counter[octant]].X = bodies[i].X;
+      buffer[counter[octant]].q = bodies[i].q;
+      counter[octant]++;
+    }
+  }
+
   //! Build nodes of tree adaptively using a top-down approach based on recursion
-  void buildTree(Body * bodies, Body * buffer, int begin, int end, Node * node, Nodes & nodes,
-                 const vec3 & X, real_t R, std::vector<Node*> & leafs, std::vector<Node*> & nonleafs,
-                 Args & args, const Keys & leafkeys, int level=0, bool direction=false) {
-    node->level = level;         // level
-    node->idx = int(node-&nodes[0]);  // current node's index in nodes
+  void buildTree(Body * sources, Body * sources_buffer, int source_begin, int source_end, 
+                 Body * targets, Body * targets_buffer, int target_begin, int target_end,
+                 Node * node, Nodes & nodes, NodePtrs & leafs, NodePtrs & nonleafs,
+                 Args & args, const Keys & leafkeys, bool direction=false) {
     //! Create a tree node
-    node->body = bodies + begin;
-    if(direction) node->body = buffer + begin;
-    node->numBodies = end - begin;
-    node->numChilds = 0;
-    node->X = X;
-    node->R = R;
+    node->idx = int(node-&nodes[0]);  // current node's index in nodes
+    node->numSources = source_end - source_begin;
+    node->numTargets = target_end - target_begin;
 #if COMPLEX
     node->upward_equiv.resize(NSURF, complex_t(0.,0.));
     node->dnward_equiv.resize(NSURF, complex_t(0.,0.));
@@ -26,95 +50,99 @@ namespace exafmm_t {
     node->upward_equiv.resize(NSURF, 0.);
     node->dnward_equiv.resize(NSURF, 0.);
 #endif
-    ivec3 iX = get3DIndex(X, level);
-    node->key = getKey(iX, level);
-    //! Count number of bodies in each octant
-    int size[8] = {0};
-    vec3 x;
-    for (int i=begin; i<end; i++) {
-      x = bodies[i].X;
-      int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
-      size[octant]++;
-    }
-    //! Exclusive scan to get offsets
-    int offset = begin;
-    int offsets[8], counter[8];
-    for (int i=0; i<8; i++) {
-      offsets[i] = offset;
-      offset += size[i];
-    }
+    ivec3 iX = get3DIndex(node->Xmin+node->R, node->level);
+    node->key = getKey(iX, node->level);
+
     //! If node is a leaf
     bool isLeafKey = 1;
     if (!leafkeys.empty()) {  // when leafkeys is given (when balancing tree) 
-      std::set<uint64_t>::iterator it = leafkeys[level].find(node->key);
-      if (it == leafkeys[level].end()) {  // if current key is not a leaf key
+      std::set<uint64_t>::iterator it = leafkeys[node->level].find(node->key);
+      if (it == leafkeys[node->level].end()) {  // if current key is not a leaf key
         isLeafKey = 0;
       }
     }
-    if (end-begin<=args.ncrit && isLeafKey) {
-      node->numChilds = 0;
+    if (node->numSources<=args.ncrit && node->numTargets<=args.ncrit && isLeafKey) {
+      node->is_leaf = true;
 #if COMPLEX
-      node->pt_trg.resize(node->numBodies*4, complex_t(0.,0.));   // initialize target result vector
+      node->trg_value.resize(node->numTargets*4, complex_t(0.,0.));   // initialize target result vector
 #else
-      node->pt_trg.resize(node->numBodies*4, 0.);   // initialize target result vector
+      node->trg_value.resize(node->numTargets*4, 0.);   // initialize target result vector
 #endif
       leafs.push_back(node);
       if (direction) {
-        for (int i=begin; i<end; i++) {
-          buffer[i].X = bodies[i].X;
-          buffer[i].q = bodies[i].q;
+        for (int i=source_begin; i<source_end; i++) {
+          sources_buffer[i].X = sources[i].X;
+          sources_buffer[i].q = sources[i].q;
+        }
+        for (int i=target_begin; i<target_end; i++) {
+          targets_buffer[i].X = targets[i].X;
+        }
+      }
+      // Copy sources and targets' coords and values to leaf (only during 2:1 tree balancing)
+      if (!leafkeys.empty()) {
+        Body* first_source = (direction ? sources_buffer : sources) + source_begin;
+        Body* first_target = (direction ? targets_buffer : targets) + target_begin;
+        for (Body* B=first_source; B<first_source+node->numSources; ++B) {
+          for (int d=0; d<3; ++d) {
+            node->src_coord.push_back(B->X[d]);
+          }
+          node->src_value.push_back(B->q);
+        }
+        for (Body* B=first_target; B<first_target+node->numTargets; ++B) {
+          for (int d=0; d<3; ++d) {
+            node->trg_coord.push_back(B->X[d]);
+          }
         }
       }
       return;
     }
-    nonleafs.push_back(node);
-    //! Sort bodies by octant
-    for (int i=0; i<8; i++) counter[i] = offsets[i];
-    for (int i=begin; i<end; i++) {
-      x = bodies[i].X;
-      int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
-      buffer[counter[octant]].X = bodies[i].X;
-      buffer[counter[octant]].q = bodies[i].q;
-      counter[octant]++;
-    }
+    // Sort bodies and save in buffer
+    std::vector<int> source_size, source_offsets;
+    std::vector<int> target_size, target_offsets;
+    sortBodies(node, sources, sources_buffer, source_begin, source_end, source_size, source_offsets);
+    sortBodies(node, targets, targets_buffer, target_begin, target_end, target_size, target_offsets);
     //! Loop over children and recurse
-    node->numChilds = 8;
-    vec3 Xchild;
-    assert(nodes.capacity() >= nodes.size()+node->numChilds);
-    nodes.resize(nodes.size()+node->numChilds);
-    Node * child = &nodes.back() - node->numChilds + 1;
-    node->fchild = child;
-    node->child.resize(8, NULL);
-    for (int i=0, c=0; i<8; i++) {
-      Xchild = X;
-      real_t Rchild = R / 2;
+    node->is_leaf = false;
+    nonleafs.push_back(node);
+    assert(nodes.capacity() >= nodes.size()+NCHILD);
+    nodes.resize(nodes.size()+NCHILD);
+    Node * child = &nodes.back() - NCHILD + 1;
+    node->children.resize(8, nullptr);
+    for (int c=0; c<8; c++) {
+      node->children[c] = &child[c];
+      child[c].Xmin = node->Xmin;
       for (int d=0; d<3; d++) {
-        Xchild[d] += Rchild * (((i & 1 << d) >> d) * 2 - 1);
+        child[c].Xmin[d] += node->R * ((c & 1 << d) >> d);
       }
+      child[c].R = node->R / 2;
       child[c].parent = node;
-      child[c].octant = i;
-      node->child[i] = &child[c];
-      buildTree(buffer, bodies, offsets[i], offsets[i] + size[i],
-                &child[c++], nodes, Xchild, Rchild, leafs, nonleafs,
-                args, leafkeys, level+1, !direction);
+      child[c].octant = c;
+      child[c].level = node->level + 1;
+      buildTree(sources_buffer, sources, source_offsets[c], source_offsets[c] + source_size[c],
+                targets_buffer, targets, target_offsets[c], target_offsets[c] + target_size[c],
+                &child[c], nodes,  leafs, nonleafs, args, leafkeys, !direction);
     }
   }
 
-  Nodes buildTree(Bodies & bodies, std::vector<Node*> & leafs, std::vector<Node*> & nonleafs, Args & args, const Keys & leafkeys=Keys()) {
-    real_t R0 = 0.5;
-    vec3 X0(0.5);
-    Bodies buffer = bodies;
+  Nodes buildTree(Bodies & sources, Bodies & targets, NodePtrs & leafs, NodePtrs & nonleafs, Args & args, const Keys & leafkeys=Keys()) {
+    Bodies sources_buffer = sources;
+    Bodies targets_buffer = targets;
     Nodes nodes(1);
-    nodes[0].parent = NULL;
+    nodes[0].parent = nullptr;
     nodes[0].octant = 0;
-    nodes.reserve(bodies.size()*(32/args.ncrit+1));
-    buildTree(&bodies[0], &buffer[0], 0, bodies.size(), &nodes[0], nodes, X0, R0, leafs, nonleafs, args, leafkeys);
+    nodes[0].Xmin = 0.0;
+    nodes[0].R = 0.5;
+    nodes[0].level = 0;
+    nodes.reserve((sources.size()+targets.size()) * (32/args.ncrit+1));
+    buildTree(&sources[0], &sources_buffer[0], 0, sources.size(), 
+              &targets[0], &targets_buffer[0], 0, targets.size(),
+              &nodes[0], nodes, leafs, nonleafs, args, leafkeys);
     return nodes;
   }
 
   // Given root, generate a level-order Morton keys
   Keys breadthFirstTraversal(Node* root, std::unordered_map<uint64_t, size_t>& key2id) {
-    assert(root != NULL);
+    assert(root);
     Keys keys;
     std::queue<Node*> buffer;
     buffer.push(root);
@@ -130,8 +158,10 @@ namespace exafmm_t {
       keys_.insert(curr->key);
       key2id[curr->key] = curr->idx;
       buffer.pop();
-      for (int i=0; i<curr->numChilds; i++) {
-        buffer.push(curr->fchild+i);
+      if (!curr->is_leaf) {
+        for (int i=0; i<NCHILD; i++) {
+          buffer.push(curr->children[i]);
+        }
       }
     }
     if (keys_.size())
@@ -149,7 +179,7 @@ namespace exafmm_t {
       // N <- S + nonleafs
       N.clear();
       for (it=keys[l].begin(); it!=keys[l].end(); ++it)
-        if (!nodes[key2id[*it]].IsLeaf()) // choose nonleafs
+        if (!nodes[key2id[*it]].is_leaf) // choose nonleafs
           N.insert(*it); 
       N.insert(S.begin(), S.end());       // N = S + nonleafs
       S.clear();
@@ -208,6 +238,18 @@ namespace exafmm_t {
     }
     leafkeys[keys.size()-1] = keys.back();
     return leafkeys;
+  }
+
+  void balanceTree(Nodes& nodes, Bodies& sources, Bodies& targets, NodePtrs& leafs, NodePtrs& nonleafs, Args& args) {
+    std::unordered_map<uint64_t, size_t> key2id;
+    Keys keys = breadthFirstTraversal(&nodes[0], key2id);
+    Keys balanced_keys = balanceTree(keys, key2id, nodes);
+    Keys leaf_keys = findLeafKeys(balanced_keys);
+    nodes.clear();
+    leafs.clear();
+    nonleafs.clear();
+    nodes = buildTree(sources, targets, leafs, nonleafs, args, leaf_keys);
+    MAXLEVEL = keys.size() - 1;
   }
 }
 #endif

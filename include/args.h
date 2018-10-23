@@ -54,7 +54,7 @@ namespace exafmm_t {
     }
 
   public:
-    Args(int argc=0, char ** argv=NULL) :
+    Args(int argc=0, char ** argv=nullptr) :
       ncrit(64),
       numBodies(1000000),
       P(4),

@@ -4,7 +4,7 @@
 #include "profile.h"
 
 namespace exafmm_t {
-  void upwardPass(Nodes& nodes, std::vector<Node*>& leafs) {
+  void upwardPass(Nodes& nodes, NodePtrs& leafs) {
     Profile::Tic("P2M", false, 5);
     P2M(leafs);
     Profile::Toc();
@@ -15,7 +15,7 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  void downwardPass(Nodes& nodes, std::vector<Node*>& leafs) {
+  void downwardPass(Nodes& nodes, NodePtrs& leafs) {
     Profile::Tic("P2L", false, 5);
     P2L(nodes);
     Profile::Toc();
@@ -38,7 +38,7 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  RealVec verify(std::vector<Node*>& leafs) {
+  RealVec verify(NodePtrs& leafs) {
     int numTargets = 10;
     int stride = leafs.size() / numTargets;
     Nodes targets;
@@ -50,31 +50,31 @@ namespace exafmm_t {
     for(size_t i=0; i<targets2.size(); i++) {
       Node *target = &targets2[i];
 #if COMPLEX
-      std::fill(target->pt_trg.begin(), target->pt_trg.end(), complex_t(0.,0.));
+      std::fill(target->trg_value.begin(), target->trg_value.end(), complex_t(0.,0.));
 #else
-      std::fill(target->pt_trg.begin(), target->pt_trg.end(), 0.);
+      std::fill(target->trg_value.begin(), target->trg_value.end(), 0.);
 #endif
       for(size_t j=0; j<leafs.size(); j++) {
-        gradientP2P(leafs[j]->pt_coord, leafs[j]->pt_src, target->pt_coord, target->pt_trg);
+        gradientP2P(leafs[j]->src_coord, leafs[j]->src_value, target->trg_coord, target->trg_value);
       }
     }
     real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm = 0;
     for(size_t i=0; i<targets.size(); i++) {
-      if (targets2[i].numBodies != 0) {  // if current leaf is not empty
+      if (targets2[i].numTargets != 0) {  // if current leaf is not empty
 #if COMPLEX
-        p_norm += std::norm(targets2[i].pt_trg[0]);
-        p_diff += std::norm(targets2[i].pt_trg[0] - targets[i].pt_trg[0]);
+        p_norm += std::norm(targets2[i].trg_value[0]);
+        p_diff += std::norm(targets2[i].trg_value[0] - targets[i].trg_value[0]);
 #else
-        p_norm += targets2[i].pt_trg[0] * targets2[i].pt_trg[0];
-        p_diff += (targets2[i].pt_trg[0] - targets[i].pt_trg[0]) * (targets2[i].pt_trg[0] - targets[i].pt_trg[0]);
+        p_norm += targets2[i].trg_value[0] * targets2[i].trg_value[0];
+        p_diff += (targets2[i].trg_value[0] - targets[i].trg_value[0]) * (targets2[i].trg_value[0] - targets[i].trg_value[0]);
 #endif
         for(int d=1; d<4; d++) {
 #if COMPLEX
-          g_diff += std::norm(targets2[i].pt_trg[d] - targets[i].pt_trg[d]);
-          g_norm += std::norm(targets2[i].pt_trg[d]);
+          g_diff += std::norm(targets2[i].trg_value[d] - targets[i].trg_value[d]);
+          g_norm += std::norm(targets2[i].trg_value[d]);
 #else
-          g_diff += (targets2[i].pt_trg[d] - targets[i].pt_trg[d]) * (targets2[i].pt_trg[d] - targets[i].pt_trg[d]);
-          g_norm += targets2[i].pt_trg[d] * targets2[i].pt_trg[d];
+          g_diff += (targets2[i].trg_value[d] - targets[i].trg_value[d]) * (targets2[i].trg_value[d] - targets[i].trg_value[d]);
+          g_norm += targets2[i].trg_value[d] * targets2[i].trg_value[d];
 #endif
         }
       }

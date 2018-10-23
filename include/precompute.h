@@ -82,8 +82,8 @@ namespace exafmm_t {
     RealVec fftw_in(n3);
     RealVec fftw_out(2*n3_);
     int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
-    fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, &fftw_in[0], NULL, 1, n3,
-                    (fft_complex*)(&fftw_out[0]), NULL, 1, n3_, FFTW_ESTIMATE);
+    fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, &fftw_in[0], nullptr, 1, n3,
+                    (fft_complex*)(&fftw_out[0]), nullptr, 1, n3_, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
     int numRelCoord = rel_coord[M2L_Helper_Type].size();
     mat_M2L_Helper.resize(numRelCoord);

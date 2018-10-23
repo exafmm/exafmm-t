@@ -87,48 +87,40 @@ namespace exafmm_t {
 
   //! Structure of nodes
   struct Node {
-    int numChilds;
-    int numBodies;
-    Node * fchild;
-    Body * body;
-    vec3 X;
-    real_t R;
-    uint64_t key;
-
     size_t idx;
     size_t node_id;
+    bool is_leaf;
+    int numTargets;
+    int numSources;
+    vec3 Xmin;    // the coordinates of the front-left-bottom corner
+    real_t R;
+    uint64_t key;
     int level;
     int octant;
-    real_t coord[3];
     Node* parent;
-    std::vector<Node*> child;
-    Node* colleague[27];
+    std::vector<Node*> children;
+    std::vector<Node*> colleagues;
     std::vector<Node*> P2Llist;
     std::vector<Node*> M2Plist;
     std::vector<Node*> P2Plist;
     std::vector<Node*> M2Llist;
-    RealVec pt_coord;
+    
+    RealVec src_coord;
+    RealVec trg_coord;
 #if COMPLEX
-    ComplexVec pt_src;  // src's charge
-    ComplexVec pt_trg;  // trg's potential
+    ComplexVec src_value; // source's charge
+    ComplexVec trg_value; // target's potential and gradient
     ComplexVec upward_equiv; // M
     ComplexVec dnward_equiv; // L
 #else
-    RealVec pt_src;  // src's charge
-    RealVec pt_trg;  // trg's potential
+    RealVec src_value; // source's charge
+    RealVec trg_value; // target's potential and gradient
     RealVec upward_equiv; // M
     RealVec dnward_equiv; // L
 #endif
-
-    bool IsLeaf() {
-      return numChilds == 0;
-    }
-
-    Node* Child(int id) {
-      return (numChilds == 0) ? NULL : child[id];
-    }
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes
+  typedef std::vector<Node*> NodePtrs;          //!< Vector of Node pointers
   typedef std::vector<std::set<uint64_t>> Keys; //!< Vector of Morton keys of each level
 
   struct M2LData {

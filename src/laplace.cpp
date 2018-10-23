@@ -146,7 +146,7 @@ namespace exafmm_t {
     }
   }
 
-  void P2M(std::vector<Node*>& leafs) {
+  void P2M(NodePtrs& leafs) {
     real_t c[3] = {0.0};
     std::vector<RealVec> upwd_check_surf;
     upwd_check_surf.resize(MAXLEVEL+1);
@@ -161,11 +161,11 @@ namespace exafmm_t {
       real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
       RealVec checkCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
-        checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->coord[0];
-        checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
-        checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
+        checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->Xmin[0];
+        checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->Xmin[1];
+        checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->Xmin[2];
       }
-      potentialP2P(leaf->pt_coord, leaf->pt_src, checkCoord, leaf->upward_equiv);
+      potentialP2P(leaf->src_coord, leaf->src_value, checkCoord, leaf->upward_equiv);
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
       gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &M2M_V[0], &buffer[0]);
@@ -176,16 +176,16 @@ namespace exafmm_t {
   }
 
   void M2M(Node* node) {
-    if(node->IsLeaf()) return;
+    if(node->is_leaf) return;
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL)
+      if(node->children[octant])
         #pragma omp task untied
-        M2M(node->child[octant]);
+        M2M(node->children[octant]);
     }
     #pragma omp taskwait
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL) {
-        Node* child = node->child[octant];
+      if(node->children[octant]) {
+        Node* child = node->children[octant];
         RealVec buffer(NSURF);
         gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++) {
@@ -196,10 +196,10 @@ namespace exafmm_t {
   }
 
   void L2L(Node* node) {
-    if(node->IsLeaf()) return;
+    if(node->is_leaf) return;
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL) {
-        Node* child = node->child[octant];
+      if(node->children[octant]) {
+        Node* child = node->children[octant];
         RealVec buffer(NSURF);
         gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++)
@@ -207,14 +207,14 @@ namespace exafmm_t {
       }
     }
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL)
+      if(node->children[octant])
         #pragma omp task untied
-        L2L(node->child[octant]);
+        L2L(node->children[octant]);
     }
     #pragma omp taskwait
   }
 
-  void L2P(std::vector<Node*>& leafs) {
+  void L2P(NodePtrs& leafs) {
     real_t c[3] = {0.0};
     std::vector<RealVec> dnwd_equiv_surf;
     dnwd_equiv_surf.resize(MAXLEVEL+1);
@@ -237,11 +237,11 @@ namespace exafmm_t {
       // equivalent surface charge -> target potential
       RealVec equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
-        equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->coord[0];
-        equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->coord[1];
-        equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
+        equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->Xmin[0];
+        equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->Xmin[1];
+        equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->Xmin[2];
       }
-      gradientP2P(equivCoord, leaf->dnward_equiv, leaf->pt_coord, leaf->pt_trg);
+      gradientP2P(equivCoord, leaf->dnward_equiv, leaf->trg_coord, leaf->trg_value);
     }
   }
 
@@ -257,24 +257,24 @@ namespace exafmm_t {
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = &targets[i];
-      std::vector<Node*>& sources = target->P2Llist;
+      NodePtrs& sources = target->P2Llist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
         RealVec targetCheckCoord(NSURF*3);
         int level = target->level;
         // target node's check coord = relative check coord + node's origin
         for(int k=0; k<NSURF; k++) {
-          targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
-          targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
-          targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
+          targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->Xmin[0];
+          targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->Xmin[1];
+          targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->Xmin[2];
         }
-        potentialP2P(source->pt_coord, source->pt_src, targetCheckCoord, target->dnward_equiv);
+        potentialP2P(source->src_coord, source->src_value, targetCheckCoord, target->dnward_equiv);
       }
     }
   }
 
-  void M2P(std::vector<Node*>& leafs) {
-    std::vector<Node*>& targets = leafs;
+  void M2P(NodePtrs& leafs) {
+    NodePtrs& targets = leafs;
     real_t c[3] = {0.0};
     std::vector<RealVec> upwd_equiv_surf;
     upwd_equiv_surf.resize(MAXLEVEL+1);
@@ -285,50 +285,50 @@ namespace exafmm_t {
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
-      std::vector<Node*>& sources = target->M2Plist;
+      NodePtrs& sources = target->M2Plist;
       for(int j=0; j<sources.size(); j++) {
       Node* source = sources[j];
         RealVec sourceEquivCoord(NSURF*3);
         int level = source->level;
         // source node's equiv coord = relative equiv coord + node's origin
         for(int k=0; k<NSURF; k++) {
-          sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->coord[0];
-          sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
-          sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
+          sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->Xmin[0];
+          sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->Xmin[1];
+          sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->Xmin[2];
         }
-        gradientP2P(sourceEquivCoord, source->upward_equiv, target->pt_coord, target->pt_trg);
+        gradientP2P(sourceEquivCoord, source->upward_equiv, target->trg_coord, target->trg_value);
       }
     }
   }
 
-  void P2P(std::vector<Node*>& leafs) {
-    std::vector<Node*>& targets = leafs;   // assume sources == targets
+  void P2P(NodePtrs& leafs) {
+    NodePtrs& targets = leafs;   // assume sources == targets
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
-      std::vector<Node*>& sources = target->P2Plist;
+      NodePtrs& sources = target->P2Plist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
-        gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
+        gradientP2P(source->src_coord, source->src_value, target->trg_coord, target->trg_value);
       }
     }
   }
 
-  void M2LSetup(std::vector<Node*>& nonleafs) {
+  void M2LSetup(NodePtrs& nonleafs) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3_ = n1 * n1 * (n1/2 + 1);
     size_t mat_cnt = rel_coord[M2L_Type].size();
     // construct nodes_out & nodes_in
-    std::vector<Node*>& nodes_out = nonleafs;
+    NodePtrs& nodes_out = nonleafs;
     std::set<Node*> nodes_in_;
     for(size_t i=0; i<nodes_out.size(); i++) {
-      std::vector<Node*>& M2Llist = nodes_out[i]->M2Llist;
+      NodePtrs& M2Llist = nodes_out[i]->M2Llist;
       for(size_t k=0; k<mat_cnt; k++) {
-        if(M2Llist[k]!=NULL)
+        if(M2Llist[k])
           nodes_in_.insert(M2Llist[k]);
       }
     }
-    std::vector<Node*> nodes_in;
+    NodePtrs nodes_in;
     for(std::set<Node*>::iterator node=nodes_in_.begin(); node!=nodes_in_.end(); node++) {
       nodes_in.push_back(*node);
     }
@@ -338,12 +338,12 @@ namespace exafmm_t {
     RealVec fft_scl(nodes_in.size());
     RealVec ifft_scl(nodes_out.size());
     for(size_t i=0; i<nodes_in.size(); i++) {
-      fft_vec[i] = nodes_in[i]->child[0]->idx * NSURF;
+      fft_vec[i] = nodes_in[i]->children[0]->idx * NSURF;
       fft_scl[i] = 1;
     }
     for(size_t i=0; i<nodes_out.size(); i++) {
       int level = nodes_out[i]->level+1;
-      ifft_vec[i] = nodes_out[i]->child[0]->idx * NSURF;
+      ifft_vec[i] = nodes_out[i]->children[0]->idx * NSURF;
       ifft_scl[i] = powf(2.0, level);
     }
     // calculate interac_vec & interac_dsp
@@ -361,8 +361,8 @@ namespace exafmm_t {
       size_t blk1_end  =(nodes_out.size()*(blk1+1))/n_blk1;
       for(size_t k=0; k<mat_cnt; k++) {
         for(size_t i=blk1_start; i<blk1_end; i++) {
-          std::vector<Node*>& M2Llist = nodes_out[i]->M2Llist;
-          if(M2Llist[k]!=NULL) {
+          NodePtrs& M2Llist = nodes_out[i]->M2Llist;
+          if(M2Llist[k]) {
             interac_vec.push_back(M2Llist[k]->node_id * fftsize);   // node_in dspl
             interac_vec.push_back(        i           * fftsize);   // node_out dspl
             interac_dsp_++;
@@ -451,8 +451,8 @@ namespace exafmm_t {
     AlignedVec fftw_out(fftsize);
     int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
     fft_plan m2l_list_fftplan = fft_plan_many_dft_r2c(3, dim, NCHILD,
-                                (real_t*)&fftw_in[0], NULL, 1, n3,
-                                (fft_complex*)(&fftw_out[0]), NULL, 1, n3_,
+                                (real_t*)&fftw_in[0], nullptr, 1, n3,
+                                (fft_complex*)(&fftw_out[0]), nullptr, 1, n3_,
                                 FFTW_ESTIMATE);
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<fft_vec.size(); node_idx++) {
@@ -498,8 +498,8 @@ namespace exafmm_t {
     AlignedVec fftw_out(n3 * NCHILD);
     int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
     fft_plan m2l_list_ifftplan = fft_plan_many_dft_c2r(3, dim, NCHILD,
-                                 (fft_complex*)&fftw_in[0], NULL, 1, n3_,
-                                 (real_t*)(&fftw_out[0]), NULL, 1, n3,
+                                 (fft_complex*)&fftw_in[0], nullptr, 1, n3_,
+                                 (real_t*)(&fftw_out[0]), nullptr, 1, n3,
                                  FFTW_ESTIMATE);
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<ifft_vec.size(); node_idx++) {
