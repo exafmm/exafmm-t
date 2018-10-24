@@ -133,10 +133,11 @@ namespace exafmm_t {
       potentialP2P(leaf->pt_coord, leaf->pt_src, checkCoord, leaf->upward_equiv);
       ComplexVec buffer(NSURF);
       ComplexVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &M2M_V[0], &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], &M2M_U[0], &equiv[0]);
+      gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &(M2M_V[level][0]), &buffer[0]);
+      gemm(1, NSURF, NSURF, &buffer[0], &(M2M_U[level][0]), &equiv[0]);
       for(int k=0; k<NSURF; k++)
-        leaf->upward_equiv[k] = scal * equiv[k];
+        // leaf->upward_equiv[k] = scal * equiv[k];
+        leaf->upward_equiv[k] = equiv[k];
     }
   }
 
@@ -195,10 +196,11 @@ namespace exafmm_t {
       // check surface potential -> equivalent surface charge
       ComplexVec buffer(NSURF);
       ComplexVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &(leaf->dnward_equiv[0]), &L2L_V[0], &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], &L2L_U[0], &equiv[0]);
+      gemm(1, NSURF, NSURF, &(leaf->dnward_equiv[0]), &(L2L_V[level][0]), &buffer[0]);
+      gemm(1, NSURF, NSURF, &buffer[0], &(L2L_U[level][0]), &equiv[0]);
       for(int k=0; k<NSURF; k++)
-        leaf->dnward_equiv[k] = scal * equiv[k];
+        // leaf->dnward_equiv[k] = scal * equiv[k];
+        leaf->dnward_equiv[k] = equiv[k];
       // equivalent surface charge -> target potential
       RealVec equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {

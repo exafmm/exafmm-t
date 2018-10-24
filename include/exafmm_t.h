@@ -146,8 +146,10 @@ namespace exafmm_t {
 
   // Precomputation matrices
 #if COMPLEX
-  extern ComplexVec M2M_U, M2M_V;
-  extern ComplexVec L2L_U, L2L_V;
+  // extern ComplexVec M2M_U, M2M_V;
+  // extern ComplexVec L2L_U, L2L_V;
+  extern std::vector<ComplexVec> M2M_U, M2M_V;
+  extern std::vector<ComplexVec> L2L_U, L2L_V;
   extern std::vector<ComplexVec> mat_M2M, mat_L2L;
 #else
   extern RealVec M2M_U, M2M_V;
