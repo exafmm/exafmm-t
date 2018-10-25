@@ -31,7 +31,45 @@ namespace exafmm_t {
         cnt++;
       }
     for(size_t i=0;i<(n_/2)*3;i++) coord[cnt*3+i]=-coord[i];
-    real_t r=0.5*powf(0.5,level);
+    real_t r = R0*powf(0.5,level);
+    real_t b=alpha*r;
+    real_t br=b-r;
+    for(size_t i=0;i<n_;i++){
+      coord[i*3+0]=(coord[i*3+0]+1.0)*b+c[0]-br;
+      coord[i*3+1]=(coord[i*3+1]+1.0)*b+c[1]-br;
+      coord[i*3+2]=(coord[i*3+2]+1.0)*b+c[2]-br;
+    }
+    return coord;
+  }
+
+  RealVec surface_old(int p, real_t* c, real_t alpha, int level){
+    size_t n_=(6*(p-1)*(p-1)+2);
+    RealVec coord(n_*3);
+    coord[0]=coord[1]=coord[2]=-1.0;
+    size_t cnt=1;
+    for(int i=0;i<p-1;i++)
+      for(int j=0;j<p-1;j++){
+        coord[cnt*3  ]=-1.0;
+        coord[cnt*3+1]=(2.0*(i+1)-p+1)/(p-1);
+        coord[cnt*3+2]=(2.0*j-p+1)/(p-1);
+        cnt++;
+      }
+    for(int i=0;i<p-1;i++)
+      for(int j=0;j<p-1;j++){
+        coord[cnt*3  ]=(2.0*i-p+1)/(p-1);
+        coord[cnt*3+1]=-1.0;
+        coord[cnt*3+2]=(2.0*(j+1)-p+1)/(p-1);
+        cnt++;
+      }
+    for(int i=0;i<p-1;i++)
+      for(int j=0;j<p-1;j++){
+        coord[cnt*3  ]=(2.0*(i+1)-p+1)/(p-1);
+        coord[cnt*3+1]=(2.0*j-p+1)/(p-1);
+        coord[cnt*3+2]=-1.0;
+        cnt++;
+      }
+    for(size_t i=0;i<(n_/2)*3;i++) coord[cnt*3+i]=-coord[i];
+    real_t r = 0.5*powf(0.5,level);
     real_t b=alpha*r;
     real_t br=b-r;
     for(size_t i=0;i<n_;i++){
@@ -43,7 +81,7 @@ namespace exafmm_t {
   }
 
   RealVec conv_grid(real_t* c, int level){
-    real_t r=powf(0.5,level);
+    real_t r = R0*powf(0.5,level-1);
     real_t a=r*1.05;
     real_t coord[3]={c[0],c[1],c[2]};
     int n1=MULTIPOLE_ORDER*2;

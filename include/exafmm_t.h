@@ -144,6 +144,8 @@ namespace exafmm_t {
   extern int MULTIPOLE_ORDER;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates
   extern int MAXLEVEL;
+  extern vec3 Xmin0;    // coordinates of root
+  extern real_t R0;     // radius of root
   const int NCHILD = 8;
 }
 #endif

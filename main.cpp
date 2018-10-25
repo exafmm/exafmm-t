@@ -24,9 +24,10 @@ int main(int argc, char **argv) {
   Bodies sources = initBodies(args.numBodies, args.distribution, 0);
   Bodies targets = initBodies(args.numBodies, args.distribution, 0);
   Profile::Tic("Build Tree");
+  getBounds(sources, targets, Xmin0, R0);
   NodePtrs leafs, nonleafs;
-  Nodes nodes = buildTree(sources, targets, leafs, nonleafs, args);
-  balanceTree(nodes, sources, targets, leafs, nonleafs, args);
+  Nodes nodes = buildTree(sources, targets, Xmin0, R0, leafs, nonleafs, args);
+  balanceTree(nodes, sources, targets, Xmin0, R0, leafs, nonleafs, args);
   Profile::Toc();
   initRelCoord();
   Profile::Tic("Precomputation");

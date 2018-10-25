@@ -5,7 +5,29 @@
 #include "exafmm_t.h"
 #include "hilbert.h"
 
+using namespace std;
 namespace exafmm_t {
+  vec3 Xmin0;
+  real_t R0;
+
+  // Get bounding box of sources and targets
+  void getBounds(Bodies& sources, Bodies& targets, vec3& Xmin0, real_t& R0) {
+    vec3 Xmin = sources[0].X;
+    vec3 Xmax = sources[0].X;
+    for (size_t b=0; b<sources.size(); ++b) {
+      Xmin = min(sources[b].X, Xmin);
+      Xmax = max(sources[b].X, Xmax);
+    }
+    for (size_t b=0; b<targets.size(); ++b) {
+      Xmin = min(targets[b].X, Xmin);
+      Xmax = max(targets[b].X, Xmax);
+    }
+    vec3 X0 = (Xmax + Xmin) / 2;
+    R0 = fmax(max(X0-Xmin), max(Xmax-X0));
+    R0 *= 1.00001;
+    Xmin0 = X0 - R0;
+  } 
+
   // Sort bodies in a node according to their octants
   void sortBodies(Node * node, Body * bodies, Body * buffer, int begin, int end, std::vector<int>& size, std::vector<int>& offsets) {
     // Count number of bodies in each octant
@@ -124,14 +146,14 @@ namespace exafmm_t {
     }
   }
 
-  Nodes buildTree(Bodies & sources, Bodies & targets, NodePtrs & leafs, NodePtrs & nonleafs, Args & args, const Keys & leafkeys=Keys()) {
+  Nodes buildTree(Bodies & sources, Bodies & targets, vec3 Xmin0, real_t R0, NodePtrs & leafs, NodePtrs & nonleafs, Args & args, const Keys & leafkeys=Keys()) {
     Bodies sources_buffer = sources;
     Bodies targets_buffer = targets;
     Nodes nodes(1);
     nodes[0].parent = nullptr;
     nodes[0].octant = 0;
-    nodes[0].Xmin = 0.0;
-    nodes[0].R = 0.5;
+    nodes[0].Xmin = Xmin0;
+    nodes[0].R = R0;
     nodes[0].level = 0;
     nodes.reserve((sources.size()+targets.size()) * (32/args.ncrit+1));
     buildTree(&sources[0], &sources_buffer[0], 0, sources.size(), 
@@ -240,7 +262,7 @@ namespace exafmm_t {
     return leafkeys;
   }
 
-  void balanceTree(Nodes& nodes, Bodies& sources, Bodies& targets, NodePtrs& leafs, NodePtrs& nonleafs, Args& args) {
+  void balanceTree(Nodes& nodes, Bodies& sources, Bodies& targets, vec3 Xmin0, real_t R0, NodePtrs& leafs, NodePtrs& nonleafs, Args& args) {
     std::unordered_map<uint64_t, size_t> key2id;
     Keys keys = breadthFirstTraversal(&nodes[0], key2id);
     Keys balanced_keys = balanceTree(keys, key2id, nodes);
@@ -248,7 +270,7 @@ namespace exafmm_t {
     nodes.clear();
     leafs.clear();
     nonleafs.clear();
-    nodes = buildTree(sources, targets, leafs, nonleafs, args, leaf_keys);
+    nodes = buildTree(sources, targets, Xmin0, R0, leafs, nonleafs, args, leaf_keys);
     MAXLEVEL = keys.size() - 1;
   }
 }

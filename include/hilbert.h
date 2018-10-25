@@ -132,26 +132,20 @@ namespace exafmm_t {
 
   //! Get 3-D index from coordinates
   ivec3 get3DIndex(vec3 X, int level) {
-    real_t X0 = 0.5;
-    real_t R0 = 0.5;
-    vec3 Xmin = X0 - R0;
     real_t dx = 2 * R0 / (1 << level);
     ivec3 iX;
     for (int d=0; d<3; d++) {
-      iX[d] = floor((X[d] - Xmin[d]) / dx);
+      iX[d] = floor((X[d] - Xmin0[d]) / dx);
     }
     return iX;
   }
 
   //! Get coordinates from 3-D index
   vec3 getCoordinates(ivec3 iX, int level) {
-    real_t X0 = 0.5;
-    real_t R0 = 0.5;
-    vec3 Xmin = X0 - R0;
     real_t dx = 2 * R0 / (1 << level);
     vec3 X;
     for (int d=0; d<3; d++) {
-      X[d] = (iX[d] + 0.5) * dx + Xmin[d];
+      X[d] = (iX[d] + 0.5) * dx + Xmin0[d];
     }
     return X;
   }
