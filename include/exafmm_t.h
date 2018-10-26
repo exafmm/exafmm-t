@@ -87,48 +87,40 @@ namespace exafmm_t {
 
   //! Structure of nodes
   struct Node {
-    int numChilds;
-    int numBodies;
-    Node * fchild;
-    Body * body;
-    vec3 X;
-    real_t R;
-    uint64_t key;
-
     size_t idx;
     size_t node_id;
-    int depth;
+    bool is_leaf;
+    int numTargets;
+    int numSources;
+    vec3 Xmin;    // the coordinates of the front-left-bottom corner
+    real_t R;
+    uint64_t key;
+    int level;
     int octant;
-    real_t coord[3];
     Node* parent;
-    std::vector<Node*> child;
-    Node* colleague[27];
+    std::vector<Node*> children;
+    std::vector<Node*> colleagues;
     std::vector<Node*> P2Llist;
     std::vector<Node*> M2Plist;
     std::vector<Node*> P2Plist;
     std::vector<Node*> M2Llist;
-    RealVec pt_coord;
+    
+    RealVec src_coord;
+    RealVec trg_coord;
 #if COMPLEX
-    ComplexVec pt_src;  // src's charge
-    ComplexVec pt_trg;  // trg's potential
+    ComplexVec src_value; // source's charge
+    ComplexVec trg_value; // target's potential and gradient
     ComplexVec upward_equiv; // M
     ComplexVec dnward_equiv; // L
 #else
-    RealVec pt_src;  // src's charge
-    RealVec pt_trg;  // trg's potential
+    RealVec src_value; // source's charge
+    RealVec trg_value; // target's potential and gradient
     RealVec upward_equiv; // M
     RealVec dnward_equiv; // L
 #endif
-
-    bool IsLeaf() {
-      return numChilds == 0;
-    }
-
-    Node* Child(int id) {
-      return (numChilds == 0) ? NULL : child[id];
-    }
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes
+  typedef std::vector<Node*> NodePtrs;          //!< Vector of Node pointers
   typedef std::vector<std::set<uint64_t>> Keys; //!< Vector of Morton keys of each level
 
   struct M2LData {
@@ -145,22 +137,15 @@ namespace exafmm_t {
   extern std::vector<std::vector<ivec3>> rel_coord;
 
   // Precomputation matrices
-#if COMPLEX
-  // extern ComplexVec M2M_U, M2M_V;
-  // extern ComplexVec L2L_U, L2L_V;
-  extern std::vector<ComplexVec> M2M_U, M2M_V;
-  extern std::vector<ComplexVec> L2L_U, L2L_V;
-  extern std::vector<ComplexVec> mat_M2M, mat_L2L;
-#else
   extern RealVec M2M_U, M2M_V;
   extern RealVec L2L_U, L2L_V;
-  extern std::vector<RealVec> mat_M2M, mat_L2L;
-#endif
-  extern std::vector<RealVec> mat_M2L;
+  extern std::vector<RealVec> mat_M2M, mat_L2L, mat_M2L;
 
   extern int MULTIPOLE_ORDER;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates
   extern int MAXLEVEL;
+  extern vec3 Xmin0;    // coordinates of root
+  extern real_t R0;     // radius of root
   const int NCHILD = 8;
 }
 #endif

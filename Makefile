@@ -10,30 +10,22 @@ LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp
 #CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include
 #LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm
 
-OBJF = main.fo src/geometry.fo src/laplace.fo src/kernel.fo
-OBJD = main.do src/geometry.do src/laplace.do src/kernel.do
-OBJC =  main.co src/geometry.co src/laplace_c.co src/kernel.co
-OBJZ =  main.zo src/geometry.zo src/laplace_c.zo src/kernel.zo
-OBJH =  main.ho src/geometry.ho src/laplace_c.ho src/kernel.ho
-OBJHD =  main.hdo src/geometry.hdo src/laplace_c.hdo src/kernel.hdo
+OBJF = main.fo src/geometry.fo src/laplace.fo
+OBJD = main.do src/geometry.do src/laplace.do
+OBJC =  main.co src/geometry.co src/laplace_c.co
+OBJZ =  main.zo src/geometry.zo src/laplace_c.zo
 
 %.fo: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DEXAFMM_LAPLACE
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT
 
 %.do: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DEXAFMM_LAPLACE
+	time $(CXX) $(CXXFLAGS) -c $< -o $@
 
 %.co: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DCOMPLEX -DEXAFMM_LAPLACE
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DCOMPLEX
 
 %.zo: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX -DEXAFMM_LAPLACE
-
-%.ho: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DCOMPLEX -DEXAFMM_HELMHOLTZ
-
-%.hdo: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX -DEXAFMM_HELMHOLTZ
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX
 
 real8: $(OBJF)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
@@ -47,20 +39,20 @@ complex8: $(OBJC)
 complex16: $(OBJZ)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
-helmholtz8: $(OBJH)
-	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
-
-helmholtz16: $(OBJHD)
-	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
-
 clean:
-	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) $(OBJH) $(OBJHD) *.out
+	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) *.out
 
 p4:
 	./a.out -T 8 -n 1000000 -P 4 -c 64
 
+p4p:
+	./a.out -T 8 -n 1000000 -P 4 -c 64 -d p
+
 p16:
 	./a.out -T 8 -n 1000000 -P 16 -c 320
+
+p16p:
+	./a.out -T 8 -n 1000000 -P 16 -c 320 -d p
 
 t4:
 	./a.out -T 32 -n 1000000 -P 4 -c 64

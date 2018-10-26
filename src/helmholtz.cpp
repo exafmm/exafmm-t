@@ -1,4 +1,4 @@
-#include "laplace.h"
+#include "laplace_c.h"
 
 namespace exafmm_t {
   int MULTIPOLE_ORDER;
@@ -14,6 +14,28 @@ namespace exafmm_t {
     sgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #else
     dgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#endif
+  }
+
+  // mixed-type gemm: A is complex_t matrix; B is real_t matrix
+  void gemm(int m, int n, int k, complex_t* A, real_t* B, complex_t* C) {
+    char transA = 'N', transB = 'N';
+    complex_t alpha(1., 0.), beta(0.,0.);
+#if FLOAT
+    scgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#else
+    dzgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#endif
+  }
+
+  // complex gemm by blas lib
+  void gemm(int m, int n, int k, complex_t* A, complex_t* B, complex_t* C) {
+    char transA = 'N', transB = 'N';
+    complex_t alpha(1., 0.), beta(0.,0.);
+#if FLOAT
+    cgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#else
+    zgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #endif
   }
 
@@ -37,6 +59,26 @@ namespace exafmm_t {
     }
   }
 
+  void svd(int m, int n, complex_t* A, real_t* S, complex_t* U, complex_t* VT) {
+    char JOBU = 'S', JOBVT = 'S';
+    int INFO;
+    int LWORK = std::max(3*std::min(m,n)+std::max(m,n), 5*std::min(m,n));
+    LWORK = std::max(LWORK, 1);
+    int k = std::min(m, n);
+    RealVec tS(k, 0.);
+    ComplexVec WORK(LWORK);
+    RealVec RWORK(5*k);
+#if FLOAT
+    cgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &RWORK[0], &INFO);
+#else
+    zgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &RWORK[0], &INFO);
+#endif
+    // copy singular values from 1d layout (tS) to 2d layout (S)
+    for(int i=0; i<k; i++) {
+      S[i*n+i] = tS[i];
+    }
+  }
+
   RealVec transpose(RealVec& vec, int m, int n) {
     RealVec temp(vec.size());
     for(int i=0; i<m; i++) {
@@ -47,100 +89,23 @@ namespace exafmm_t {
     return temp;
   }
 
-  void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
-    simdvec zero((real_t)0);
-    const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
-    simdvec coef(COEF);
-    int src_cnt = src_coord.size() / 3;
-    int trg_cnt = trg_coord.size() / 3;
-    for(int t=0; t<trg_cnt; t+=NSIMD) {
-      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
-      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
-      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
-      simdvec tv(zero);
-      for(int s=0; s<src_cnt; s++) {
-        simdvec sx(src_coord[3*s+0]);
-        sx = sx - tx;
-        simdvec sy(src_coord[3*s+1]);
-        sy = sy - ty;
-        simdvec sz(src_coord[3*s+2]);
-        sz = sz - tz;
-        simdvec sv(src_value[s]);
-        simdvec r2(zero);
-        r2 += sx * sx;
-        r2 += sy * sy;
-        r2 += sz * sz;
-        simdvec invR = rsqrt(r2);
-        invR &= r2 > zero;
-        tv += invR * sv;
-      }
-      tv *= coef;
-      for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
-        trg_value[t+k] += tv[k];
+  ComplexVec transpose(ComplexVec& vec, int m, int n) {
+    ComplexVec temp(vec.size());
+    for(int i=0; i<m; i++) {
+      for(int j=0; j<n; j++) {
+        temp[j*m+i] = vec[i*n+j];
       }
     }
-    //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*20);
+    return temp;
   }
 
-  void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
-    simdvec zero((real_t)0);
-    const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
-    const real_t COEFG = -1.0/(4*2*2*6*M_PI);
-    simdvec coefp(COEFP);
-    simdvec coefg(COEFG);
-    int src_cnt = src_coord.size() / 3;
-    int trg_cnt = trg_coord.size() / 3;
-    for(int t=0; t<trg_cnt; t+=NSIMD) {
-      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
-      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
-      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
-      simdvec tv0(zero);
-      simdvec tv1(zero);
-      simdvec tv2(zero);
-      simdvec tv3(zero);
-      for(int s=0; s<src_cnt; s++) {
-        simdvec sx(src_coord[3*s+0]);
-        sx = tx - sx;
-        simdvec sy(src_coord[3*s+1]);
-        sy = ty - sy;
-        simdvec sz(src_coord[3*s+2]);
-        sz = tz - sz;
-        simdvec r2(zero);
-        r2 += sx * sx;
-        r2 += sy * sy;
-        r2 += sz * sz;
-        simdvec invR = rsqrt(r2);
-        invR &= r2 > zero;
-        simdvec invR3 = (invR*invR) * invR;
-        simdvec sv(src_value[s]);
-        tv0 += sv*invR;
-        sv *= invR3;
-        tv1 += sv*sx;
-        tv2 += sv*sy;
-        tv3 += sv*sz;
-      }
-      tv0 *= coefp;
-      tv1 *= coefg;
-      tv2 *= coefg;
-      tv3 *= coefg;
-      for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
-        trg_value[0+4*(t+k)] += tv0[k];
-        trg_value[1+4*(t+k)] += tv1[k];
-        trg_value[2+4*(t+k)] += tv2[k];
-        trg_value[3+4*(t+k)] += tv3[k];
-      }
-    }
-    //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*27);
-  }
-
-  //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)
-  void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) {
-    RealVec src_value(1, 1.);
+  void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, complex_t* k_out) {
+    ComplexVec src_value(1, complex_t(1,0));
     RealVec trg_coord(r_trg, r_trg+3*trg_cnt);
     #pragma omp parallel for
     for(int i=0; i<src_cnt; i++) {
       RealVec src_coord(r_src+3*i, r_src+3*(i+1));
-      RealVec trg_value(trg_cnt, 0.);
+      ComplexVec trg_value(trg_cnt, complex_t(0,0));
       potentialP2P(src_coord, src_value, trg_coord, trg_value);
       std::copy(trg_value.begin(), trg_value.end(), &k_out[i*trg_cnt]);
     }
@@ -166,12 +131,13 @@ namespace exafmm_t {
         checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
       }
       potentialP2P(leaf->pt_coord, leaf->pt_src, checkCoord, leaf->upward_equiv);
-      RealVec buffer(NSURF);
-      RealVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &M2M_V[0], &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], &M2M_U[0], &equiv[0]);
+      ComplexVec buffer(NSURF);
+      ComplexVec equiv(NSURF);
+      gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &(M2M_V[level][0]), &buffer[0]);
+      gemm(1, NSURF, NSURF, &buffer[0], &(M2M_U[level][0]), &equiv[0]);
       for(int k=0; k<NSURF; k++)
-        leaf->upward_equiv[k] = scal * equiv[k];
+        // leaf->upward_equiv[k] = scal * equiv[k];
+        leaf->upward_equiv[k] = equiv[k];
     }
   }
 
@@ -186,7 +152,7 @@ namespace exafmm_t {
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
         Node* child = node->child[octant];
-        RealVec buffer(NSURF);
+        ComplexVec buffer(NSURF);
         gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++) {
           node->upward_equiv[k] += buffer[k];
@@ -200,7 +166,7 @@ namespace exafmm_t {
     for(int octant=0; octant<8; octant++) {
       if(node->child[octant] != NULL) {
         Node* child = node->child[octant];
-        RealVec buffer(NSURF);
+        ComplexVec buffer(NSURF);
         gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++)
           child->dnward_equiv[k] += buffer[k];
@@ -212,7 +178,7 @@ namespace exafmm_t {
         L2L(node->child[octant]);
     }
     #pragma omp taskwait
-  }
+  } 
 
   void L2P(std::vector<Node*>& leafs) {
     real_t c[3] = {0.0};
@@ -228,12 +194,13 @@ namespace exafmm_t {
       int level = leaf->depth;
       real_t scal = pow(0.5, level);
       // check surface potential -> equivalent surface charge
-      RealVec buffer(NSURF);
-      RealVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &(leaf->dnward_equiv[0]), &L2L_V[0], &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], &L2L_U[0], &equiv[0]);
+      ComplexVec buffer(NSURF);
+      ComplexVec equiv(NSURF);
+      gemm(1, NSURF, NSURF, &(leaf->dnward_equiv[0]), &(L2L_V[level][0]), &buffer[0]);
+      gemm(1, NSURF, NSURF, &buffer[0], &(L2L_U[level][0]), &equiv[0]);
       for(int k=0; k<NSURF; k++)
-        leaf->dnward_equiv[k] = scal * equiv[k];
+        // leaf->dnward_equiv[k] = scal * equiv[k];
+        leaf->dnward_equiv[k] = equiv[k];
       // equivalent surface charge -> target potential
       RealVec equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
@@ -287,7 +254,7 @@ namespace exafmm_t {
       Node* target = targets[i];
       std::vector<Node*>& sources = target->M2Plist;
       for(int j=0; j<sources.size(); j++) {
-      Node* source = sources[j];
+        Node* source = sources[j];
         RealVec sourceEquivCoord(NSURF*3);
         int level = source->depth;
         // source node's equiv coord = relative equiv coord + node's origin
@@ -316,7 +283,7 @@ namespace exafmm_t {
 
   void M2LSetup(std::vector<Node*>& nonleafs) {
     int n1 = MULTIPOLE_ORDER * 2;
-    int n3_ = n1 * n1 * (n1/2 + 1);
+    int n3 = n1 * n1 * n1;
     size_t mat_cnt = rel_coord[M2L_Type].size();
     // construct nodes_out & nodes_in
     std::vector<Node*>& nodes_out = nonleafs;
@@ -355,7 +322,7 @@ namespace exafmm_t {
     size_t n_blk1 = nodes_out.size() * sizeof(real_t) / CACHE_SIZE;
     if(n_blk1==0) n_blk1 = 1;
     size_t interac_dsp_ = 0;
-    size_t fftsize = 2 * 8 * n3_;
+    size_t fftsize = 2 * 8 * n3;
     for(size_t blk1=0; blk1<n_blk1; blk1++) {
       size_t blk1_start=(nodes_out.size()* blk1   )/n_blk1;
       size_t blk1_end  =(nodes_out.size()*(blk1+1))/n_blk1;
@@ -382,8 +349,8 @@ namespace exafmm_t {
   void M2LListHadamard(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
                        AlignedVec& fft_in, AlignedVec& fft_out) {
     int n1 = MULTIPOLE_ORDER * 2;
-    int n3_ = n1 * n1 * (n1/2 + 1);
-    size_t fftsize = 2 * 8 * n3_;
+    int n3 = n1 * n1 * n1;
+    size_t fftsize = 2 * NCHILD * n3;
     AlignedVec zero_vec0(fftsize, 0.);
     AlignedVec zero_vec1(fftsize, 0.);
 
@@ -408,7 +375,7 @@ namespace exafmm_t {
 
     for(size_t blk1=0; blk1<blk1_cnt; blk1++) {
     #pragma omp parallel for
-      for(size_t k=0; k<n3_; k++) {
+      for(size_t k=0; k<n3; k++) {
         for(size_t mat_indx=0; mat_indx< mat_cnt; mat_indx++) {
           size_t interac_blk1 = blk1*mat_cnt+mat_indx;
           size_t interac_dsp0 = (interac_blk1==0?0:interac_dsp[interac_blk1-1]);
@@ -428,14 +395,13 @@ namespace exafmm_t {
         }
       }
     }
-    //Profile::Add_FLOP(8*8*8*(interac_vec.size()/2)*n3_);
+    //Profile::Add_FLOP(8*8*8*(interac_vec.size()/2)*n3);
   }
 
   void FFT_UpEquiv(std::vector<size_t>& fft_vec, RealVec& fft_scal,
-                   RealVec& input_data, AlignedVec& fft_in) {
+                   ComplexVec& input_data, AlignedVec& fft_in) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
     for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
@@ -446,43 +412,43 @@ namespace exafmm_t {
              + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+2]+0.5)) * n1 * n1;
     }
 
-    size_t fftsize = 2 * 8 * n3_;
-    AlignedVec fftw_in(n3 * NCHILD);
+    size_t fftsize = 2 * NCHILD * n3;
+    ComplexVec fftw_in(n3*NCHILD);
     AlignedVec fftw_out(fftsize);
-    int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
-    fft_plan m2l_list_fftplan = fft_plan_many_dft_r2c(3, dim, NCHILD,
-                                (real_t*)&fftw_in[0], NULL, 1, n3,
-                                (fft_complex*)(&fftw_out[0]), NULL, 1, n3_,
-                                FFTW_ESTIMATE);
+    int dim[3] = {n1, n1, n1};
+
+    fft_plan plan = fft_plan_many_dft(3, dim, NCHILD, reinterpret_cast<fft_complex*>(&fftw_in[0]),
+                                      NULL, 1, n3, (fft_complex*)(&fftw_out[0]), NULL, 1, n3, 
+                                      FFTW_FORWARD, FFTW_ESTIMATE);
+
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<fft_vec.size(); node_idx++) {
       RealVec buffer(fftsize, 0);
-      real_t* upward_equiv = &input_data[fft_vec[node_idx]];  // offset ptr of node's 8 child's upward_equiv in allUpwardEquiv, size=8*NSURF
-      // upward_equiv_fft (input of r2c) here should have a size of N3*NCHILD
-      // the node_idx's chunk of fft_out has a size of 2*N3_*NCHILD
-      // since it's larger than what we need,  we can use fft_out as fftw_in buffer here
-      real_t* upward_equiv_fft = &fft_in[fftsize*node_idx]; // offset ptr of node_idx in fft_in vector, size=fftsize
+      ComplexVec equiv_t(NCHILD*n3, complex_t(0.,0.));
+
+      complex_t* upward_equiv = &input_data[fft_vec[node_idx]];  // offset ptr of node's 8 child's upward_equiv in allUpwardEquiv, size=8*NSURF
+      real_t* upward_equiv_fft = &fft_in[fftsize*node_idx];   // offset ptr of node_idx in fft_in vector, size=fftsize
+
       for(size_t k=0; k<NSURF; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<(int)NCHILD; j0++)
-          upward_equiv_fft[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
+          equiv_t[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
       }
-      fft_execute_dft_r2c(m2l_list_fftplan, upward_equiv_fft, (fft_complex*)&buffer[0]);
-      for(size_t j=0; j<n3_; j++) {
+      fft_execute_dft(plan, reinterpret_cast<fft_complex*>(&equiv_t[0]), (fft_complex*)&buffer[0]);
+      for(size_t j=0; j<n3; j++) {
         for(size_t k=0; k<NCHILD; k++) {
-          upward_equiv_fft[2*(NCHILD*j+k)+0] = buffer[2*(n3_*k+j)+0];
-          upward_equiv_fft[2*(NCHILD*j+k)+1] = buffer[2*(n3_*k+j)+1];
+          upward_equiv_fft[2*(NCHILD*j+k)+0] = buffer[2*(n3*k+j)+0];
+          upward_equiv_fft[2*(NCHILD*j+k)+1] = buffer[2*(n3*k+j)+1];
         }
       }
     }
-    fft_destroy_plan(m2l_list_fftplan);
+    fft_destroy_plan(plan);
   }
 
   void FFT_Check2Equiv(std::vector<size_t>& ifft_vec, RealVec& ifft_scal,
-                       AlignedVec& fft_out, RealVec& output_data) {
+                       AlignedVec& fft_out, ComplexVec& output_data) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
     for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
@@ -493,41 +459,42 @@ namespace exafmm_t {
              + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+2])) * n1 * n1;
     }
 
-    size_t fftsize = 2 * 8 * n3_;
+    size_t fftsize = 2 * NCHILD * n3;
     AlignedVec fftw_in(fftsize);
-    AlignedVec fftw_out(n3 * NCHILD);
-    int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
-    fft_plan m2l_list_ifftplan = fft_plan_many_dft_c2r(3, dim, NCHILD,
-                                 (fft_complex*)&fftw_in[0], NULL, 1, n3_,
-                                 (real_t*)(&fftw_out[0]), NULL, 1, n3,
-                                 FFTW_ESTIMATE);
+    ComplexVec fftw_out(n3*NCHILD);
+    int dim[3] = {n1, n1, n1};
+
+    fft_plan plan = fft_plan_many_dft(3, dim, NCHILD, (fft_complex*)(&fftw_in[0]), NULL, 1, n3, 
+                                      reinterpret_cast<fft_complex*>(&fftw_out[0]), NULL, 1, n3, 
+                                      FFTW_BACKWARD, FFTW_ESTIMATE);
+
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<ifft_vec.size(); node_idx++) {
       RealVec buffer0(fftsize, 0);
-      RealVec buffer1(fftsize, 0);
+      ComplexVec buffer1(NCHILD*n3, 0);
       real_t* dnward_check_fft = &fft_out[fftsize*node_idx];  // offset ptr for node_idx in fft_out vector, size=fftsize
-      real_t* dnward_equiv = &output_data[ifft_vec[node_idx]];  // offset ptr for node_idx's child's dnward_equiv in allDnwardEquiv, size=numChilds * NSURF
-      for(size_t j=0; j<n3_; j++)
+      complex_t* dnward_equiv = &output_data[ifft_vec[node_idx]];  // offset ptr for node_idx's child's dnward_equiv in allDnwardEquiv, size=numChilds * NSURF
+      for(size_t j=0; j<n3; j++)
         for(size_t k=0; k<NCHILD; k++) {
-          buffer0[2*(n3_*k+j)+0] = dnward_check_fft[2*(NCHILD*j+k)+0];
-          buffer0[2*(n3_*k+j)+1] = dnward_check_fft[2*(NCHILD*j+k)+1];
+          buffer0[2*(n3*k+j)+0] = dnward_check_fft[2*(NCHILD*j+k)+0];
+          buffer0[2*(n3*k+j)+1] = dnward_check_fft[2*(NCHILD*j+k)+1];
         }
-      fft_execute_dft_c2r(m2l_list_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
+      fft_execute_dft(plan, (fft_complex*)&buffer0[0], reinterpret_cast<fft_complex*>(&buffer1[0]));
       for(size_t k=0; k<NSURF; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<NCHILD; j0++)
           dnward_equiv[NSURF*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
       }
     }
-    fft_destroy_plan(m2l_list_ifftplan);
+    fft_destroy_plan(plan);
   }
-
+  
   void M2L(M2LData& M2Ldata, Nodes& nodes) {
     int n1 = MULTIPOLE_ORDER * 2;
-    int n3_ = n1 * n1 * (n1/2 + 1);
+    int n3 = n1 * n1 * n1;
     size_t numNodes = nodes.size();
-    RealVec allUpwardEquiv(numNodes*NSURF);
-    RealVec allDnwardEquiv(numNodes*NSURF);
+    ComplexVec allUpwardEquiv(numNodes*NSURF);
+    ComplexVec allDnwardEquiv(numNodes*NSURF);
     #pragma omp parallel for collapse(2)
     for(int i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
@@ -535,7 +502,7 @@ namespace exafmm_t {
         allDnwardEquiv[i*NSURF+j] = nodes[i].dnward_equiv[j];
       }
     }
-    size_t fftsize = 2 * 8 * n3_;
+    size_t fftsize = 2 * 8 * n3;
     AlignedVec fft_in(M2Ldata.fft_vec.size()*fftsize, 0.);
     AlignedVec fft_out(M2Ldata.ifft_vec.size()*fftsize, 0.);
 
