@@ -1,3 +1,6 @@
 *.out
-*.do
+*.o
 *.fo
+*.do
+*.co
+*.zo

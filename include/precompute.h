@@ -49,7 +49,7 @@ namespace exafmm_t {
     int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
     RealVec p_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
-    real_t s = powf(0.5, level+2);
+    real_t s = R0 * powf(0.5, level+1);
 
     int numRelCoord = rel_coord[M2M_Type].size();
     mat_M2M.resize(numRelCoord);
@@ -82,8 +82,8 @@ namespace exafmm_t {
     RealVec fftw_in(n3);
     RealVec fftw_out(2*n3_);
     int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
-    fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, &fftw_in[0], NULL, 1, n3,
-                    (fft_complex*)(&fftw_out[0]), NULL, 1, n3_, FFTW_ESTIMATE);
+    fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, &fftw_in[0], nullptr, 1, n3,
+                    (fft_complex*)(&fftw_out[0]), nullptr, 1, n3_, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
     int numRelCoord = rel_coord[M2L_Helper_Type].size();
     mat_M2L_Helper.resize(numRelCoord);
@@ -91,7 +91,7 @@ namespace exafmm_t {
     for(int i=0; i<numRelCoord; i++) {
       real_t coord[3];
       for(int d=0; d<3; d++) {
-        coord[d] = rel_coord[M2L_Helper_Type][i][d];
+        coord[d] = rel_coord[M2L_Helper_Type][i][d] * R0 / 0.5;
       }
       RealVec conv_coord = conv_grid(coord, 0);
       RealVec r_trg(3, 0.0);

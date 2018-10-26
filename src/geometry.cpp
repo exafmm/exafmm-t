@@ -4,7 +4,7 @@ namespace exafmm_t {
   // alpha is the ratio r_surface/r_node
   // 2.95 for upward check surface / downward equivalent surface
   // 1.05 for upward equivalent surface / downward check surface
-  RealVec surface(int p, real_t* c, real_t alpha, int depth){
+  RealVec surface(int p, real_t* c, real_t alpha, int level, bool is_mapping){
     size_t n_=(6*(p-1)*(p-1)+2);
     RealVec coord(n_*3);
     coord[0]=coord[1]=coord[2]=-1.0;
@@ -31,9 +31,10 @@ namespace exafmm_t {
         cnt++;
       }
     for(size_t i=0;i<(n_/2)*3;i++) coord[cnt*3+i]=-coord[i];
-    real_t r=0.5*powf(0.5,depth);
-    real_t b=alpha*r;
-    real_t br=b-r;
+    real_t r = is_mapping ? 0.5 : R0;
+    r *= powf(0.5, level);
+    real_t b = alpha*r;
+    real_t br = b-r;
     for(size_t i=0;i<n_;i++){
       coord[i*3+0]=(coord[i*3+0]+1.0)*b+c[0]-br;
       coord[i*3+1]=(coord[i*3+1]+1.0)*b+c[1]-br;
@@ -42,8 +43,8 @@ namespace exafmm_t {
     return coord;
   }
 
-  RealVec conv_grid(real_t* c, int depth){
-    real_t r=powf(0.5,depth);
+  RealVec conv_grid(real_t* c, int level){
+    real_t r = R0*powf(0.5,level-1);
     real_t a=r*1.05;
     real_t coord[3]={c[0],c[1],c[2]};
     int n1=MULTIPOLE_ORDER*2;

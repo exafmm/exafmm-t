@@ -20,43 +20,23 @@ int main(int argc, char **argv) {
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   Profile::Enable(true);
 
-  Profile::Tic("Total", true);
-  Bodies bodies = initBodies(args.numBodies, args.distribution, 0);
-  std::vector<Node*> leafs, nonleafs;
-  Nodes nodes = buildTree(bodies, leafs, nonleafs, args);
-
-  // balanced tree
-  std::unordered_map<uint64_t, size_t> key2id;
-  Keys keys = breadthFirstTraversal(&nodes[0], key2id);
-  Keys bkeys = balanceTree(keys, key2id, nodes);
-  Keys leafkeys = findLeafKeys(bkeys);
-  nodes.clear();
-  leafs.clear();
-  nonleafs.clear();
-  nodes = buildTree(bodies, leafs, nonleafs, args, leafkeys);
-  MAXLEVEL = keys.size() - 1;
-
-  // fill in pt_coord, pt_src, correct coord for compatibility
-  // remove this later
-  for(int i=0; i<nodes.size(); i++) {
-    for(int d=0; d<3; d++) {
-      nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
-    }
-    if(nodes[i].IsLeaf()) {
-      for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
-        nodes[i].pt_coord.push_back(B->X[0]);
-        nodes[i].pt_coord.push_back(B->X[1]);
-        nodes[i].pt_coord.push_back(B->X[2]);
-        nodes[i].pt_src.push_back(B->q);
-      }
-    }
-  }
-  initRelCoord();    // initialize relative coords
-  Profile::Tic("Precomputation", true);
+  Profile::Tic("Total");
+  Bodies sources = initBodies(args.numBodies, args.distribution, 0);
+  Bodies targets = initBodies(args.numBodies, args.distribution, 0);
+  Profile::Tic("Build Tree");
+  getBounds(sources, targets, Xmin0, R0);
+  NodePtrs leafs, nonleafs;
+  Nodes nodes = buildTree(sources, targets, Xmin0, R0, leafs, nonleafs, args);
+  balanceTree(nodes, sources, targets, Xmin0, R0, leafs, nonleafs, args);
+  Profile::Toc();
+  initRelCoord();
+  Profile::Tic("Precomputation");
   Precompute();
   Profile::Toc();
+  Profile::Tic("Build Lists");
   setColleagues(nodes);
   buildList(nodes);
+  Profile::Toc();
   M2LSetup(nonleafs);
   upwardPass(nodes, leafs);
   downwardPass(nodes, leafs);

@@ -11,10 +11,10 @@ struct AlignedAllocator : public std::allocator<T> {
   };
 
   T * allocate(size_t n) {
-    void *ptr = NULL;
+    void *ptr = nullptr;
     int rc = posix_memalign(&ptr, NALIGN, n * sizeof(T));
-    if (rc != 0) return NULL;
-    if (ptr == NULL) throw std::bad_alloc();
+    if (rc != 0) return nullptr;
+    if (ptr == nullptr) throw std::bad_alloc();
     return reinterpret_cast<T*>(ptr);
   }
 
