@@ -54,7 +54,7 @@ helmholtz16: $(OBJHD)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
 clean:
-	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) *.out
+	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) $(OBJHF) $(OBJHD) *.out
 
 p4:
 	./a.out -T 8 -n 1000000 -P 4 -c 64

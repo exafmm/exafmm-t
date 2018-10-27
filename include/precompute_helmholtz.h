@@ -5,25 +5,11 @@
 #include "helmholtz.h"
 
 namespace exafmm_t {
-
-// #if 0
-  // ComplexVec M2M_U, M2M_V;
-  // ComplexVec L2L_U, L2L_V;
   std::vector<ComplexVec> M2M_U, M2M_V;
   std::vector<ComplexVec> L2L_U, L2L_V;
-  std::vector<RealVec> mat_M2L;
+  std::vector<ComplexVec> mat_M2M, mat_L2L;
   std::vector<RealVec> mat_M2L_Helper;
-  std::vector<ComplexVec> mat_M2M;
-  std::vector<ComplexVec> mat_L2L;
-// #endif
-  // std::vector<RealVec> M2M_U, M2M_V;
-  // std::vector<RealVec> L2L_U, L2L_V;
-  // std::vector<std::vector<RealVec>> mat_M2M, mat_L2L, mat_M2L;
-
-  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
-  void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
-  void svd(int m, int n, complex_t* A, real_t* S, complex_t* U, complex_t* VT);
-  RealVec transpose(RealVec& vec, int m, int n);
+  std::vector<RealVec> mat_M2L;
 
   void PrecompCheck2Equiv() {
     // int level = 0;
@@ -32,8 +18,8 @@ namespace exafmm_t {
     M2M_U.resize(MAXLEVEL+1);
     L2L_V.resize(MAXLEVEL+1);
     L2L_U.resize(MAXLEVEL+1);
-    // caculate M2M_U and M2M_V
     for(int level = 0; level <= MAXLEVEL; level++) {
+      // caculate M2M_U and M2M_V
       RealVec uc_coord = surface(MULTIPOLE_ORDER,c,2.95,level);
       RealVec ue_coord = surface(MULTIPOLE_ORDER,c,1.05,level);
       ComplexVec M_e2c(NSURF*NSURF);
@@ -64,9 +50,9 @@ namespace exafmm_t {
   void PrecompM2M() {
     // int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
-    for(int level=0; level <= MAXLEVEL; level++) {
+    for(int level = 0; level <= MAXLEVEL; level++) {
       RealVec p_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
-      real_t s = powf(0.5, level+2);
+      real_t s = R0 * powf(0.5, level+1);
 
       int numRelCoord = rel_coord[M2M_Type].size();
       mat_M2M.resize(numRelCoord);
@@ -93,7 +79,6 @@ namespace exafmm_t {
   }
 
   void PrecompM2LHelper() {
-    int level = 0;
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     // create fftw plan
@@ -109,9 +94,9 @@ namespace exafmm_t {
     for(int i=0; i<numRelCoord; i++) {
       real_t coord[3];
       for(int d=0; d<3; d++) {
-        coord[d] = rel_coord[M2L_Helper_Type][i][d];
+        coord[d] = rel_coord[M2L_Helper_Type][i][d] * R0 / 0.5;
       }
-      RealVec conv_coord = conv_grid(coord, level);
+      RealVec conv_coord = conv_grid(coord, 0);
       RealVec r_trg(3, 0.0);
       ComplexVec conv_poten(n3);
       kernelMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
