@@ -6,7 +6,7 @@
 
 namespace exafmm_t {
 
-#if 0
+// #if 0
   // ComplexVec M2M_U, M2M_V;
   // ComplexVec L2L_U, L2L_V;
   std::vector<ComplexVec> M2M_U, M2M_V;
@@ -15,10 +15,10 @@ namespace exafmm_t {
   std::vector<RealVec> mat_M2L_Helper;
   std::vector<ComplexVec> mat_M2M;
   std::vector<ComplexVec> mat_L2L;
-#endif
-  std::vector<RealVec> M2M_U, M2M_V;
-  std::vector<RealVec> L2L_U, L2L_V;
-  std::vector<std::vector<RealVec>> mat_M2M, mat_L2L, mat_M2L;
+// #endif
+  // std::vector<RealVec> M2M_U, M2M_V;
+  // std::vector<RealVec> L2L_U, L2L_V;
+  // std::vector<std::vector<RealVec>> mat_M2M, mat_L2L, mat_M2L;
 
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);

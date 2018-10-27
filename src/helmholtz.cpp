@@ -122,15 +122,15 @@ namespace exafmm_t {
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
-      int level = leaf->depth;
+      int level = leaf->level;
       real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
       RealVec checkCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
-        checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->coord[0];
-        checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->coord[1];
-        checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->coord[2];
+        checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->Xmin[0];
+        checkCoord[3*k+1] = upwd_check_surf[level][3*k+1] + leaf->Xmin[1];
+        checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->Xmin[2];
       }
-      potentialP2P(leaf->pt_coord, leaf->pt_src, checkCoord, leaf->upward_equiv);
+      potentialP2P(leaf->src_coord, leaf->src_value, checkCoord, leaf->upward_equiv);
       ComplexVec buffer(NSURF);
       ComplexVec equiv(NSURF);
       gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &(M2M_V[level][0]), &buffer[0]);
@@ -142,16 +142,16 @@ namespace exafmm_t {
   }
 
   void M2M(Node* node) {
-    if(node->IsLeaf()) return;
+    if(node->is_leaf) return;
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL)
+      if(node->children[octant] != NULL)
         #pragma omp task untied
-        M2M(node->child[octant]);
+        M2M(node->children[octant]);
     }
     #pragma omp taskwait
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL) {
-        Node* child = node->child[octant];
+      if(node->children[octant] != NULL) {
+        Node* child = node->children[octant];
         ComplexVec buffer(NSURF);
         gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++) {
@@ -162,10 +162,10 @@ namespace exafmm_t {
   }
 
   void L2L(Node* node) {
-    if(node->IsLeaf()) return;
+    if(node->is_leaf) return;
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL) {
-        Node* child = node->child[octant];
+      if(node->children[octant] != NULL) {
+        Node* child = node->children[octant];
         ComplexVec buffer(NSURF);
         gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++)
@@ -173,9 +173,9 @@ namespace exafmm_t {
       }
     }
     for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL)
+      if(node->children[octant] != NULL)
         #pragma omp task untied
-        L2L(node->child[octant]);
+        L2L(node->children[octant]);
     }
     #pragma omp taskwait
   } 
@@ -191,7 +191,7 @@ namespace exafmm_t {
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
-      int level = leaf->depth;
+      int level = leaf->level;
       real_t scal = pow(0.5, level);
       // check surface potential -> equivalent surface charge
       ComplexVec buffer(NSURF);
@@ -204,11 +204,11 @@ namespace exafmm_t {
       // equivalent surface charge -> target potential
       RealVec equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
-        equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->coord[0];
-        equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->coord[1];
-        equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->coord[2];
+        equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->Xmin[0];
+        equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->Xmin[1];
+        equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->Xmin[2];
       }
-      gradientP2P(equivCoord, leaf->dnward_equiv, leaf->pt_coord, leaf->pt_trg);
+      gradientP2P(equivCoord, leaf->dnward_equiv, leaf->trg_coord, leaf->trg_value);
     }
   }
 
@@ -228,14 +228,14 @@ namespace exafmm_t {
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
         RealVec targetCheckCoord(NSURF*3);
-        int level = target->depth;
+        int level = target->level;
         // target node's check coord = relative check coord + node's origin
         for(int k=0; k<NSURF; k++) {
-          targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
-          targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
-          targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
+          targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->Xmin[0];
+          targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->Xmin[1];
+          targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->Xmin[2];
         }
-        potentialP2P(source->pt_coord, source->pt_src, targetCheckCoord, target->dnward_equiv);
+        potentialP2P(source->src_coord, source->src_value, targetCheckCoord, target->dnward_equiv);
       }
     }
   }
@@ -256,14 +256,14 @@ namespace exafmm_t {
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
         RealVec sourceEquivCoord(NSURF*3);
-        int level = source->depth;
+        int level = source->level;
         // source node's equiv coord = relative equiv coord + node's origin
         for(int k=0; k<NSURF; k++) {
-          sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->coord[0];
-          sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
-          sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
+          sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->Xmin[0];
+          sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->Xmin[1];
+          sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->Xmin[2];
         }
-        gradientP2P(sourceEquivCoord, source->upward_equiv, target->pt_coord, target->pt_trg);
+        gradientP2P(sourceEquivCoord, source->upward_equiv, target->trg_coord, target->trg_value);
       }
     }
   }
@@ -276,7 +276,120 @@ namespace exafmm_t {
       std::vector<Node*>& sources = target->P2Plist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
-        gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
+        gradientP2P(source->src_coord, source->src_value, target->trg_coord, target->trg_value);
+      }
+    }
+  }
+
+  void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
+    simdvec zero((real_t)0);
+    int newton_scale = 1;
+    for(int i=0; i<2; i++) {
+      newton_scale = 2*newton_scale*newton_scale*newton_scale;
+    }
+    const real_t COEF = 1.0/(newton_scale*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    simdvec coef(COEF);
+    simdvec mu(20*M_PI/newton_scale);
+    int src_cnt = src_coord.size() / 3;
+    int trg_cnt = trg_coord.size() / 3;
+    for(int t=0; t<trg_cnt; t+=NSIMD) {
+      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
+      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
+      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
+      simdvec tv_real(zero);
+      simdvec tv_imag(zero);
+      for(int s=0; s<src_cnt; s++) {
+        simdvec sx(src_coord[3*s+0]);
+        sx = sx - tx;
+        simdvec sy(src_coord[3*s+1]);
+        sy = sy - ty;
+        simdvec sz(src_coord[3*s+2]);
+        sz = sz - tz;
+        simdvec sv_real(src_value[s].real());
+        simdvec sv_imag(src_value[s].imag());
+        simdvec r2(zero);
+        r2 += sx * sx;
+        r2 += sy * sy;
+        r2 += sz * sz;
+        simdvec invR = rsqrt(r2);
+        invR &= r2 > zero;
+
+        simdvec mu_r = mu * r2 * invR;
+        simdvec G0 = cos(mu_r)*invR;
+        simdvec G1 = sin(mu_r)*invR;
+        tv_real += sv_real*G0 - sv_imag*G1;
+        tv_imag += sv_real*G1 + sv_imag*G0;
+      }
+      tv_real *= coef;
+      tv_imag *= coef;
+      for(int k=0; k<NSIMD && (t+k)<trg_cnt; k++) {
+        trg_value[t+k] += complex_t(tv_real[k], tv_imag[k]);
+      }
+    }
+  }
+
+  void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
+    simdvec zero((real_t)0);
+    int newton_scale = 1;
+    for(int i=0; i<2; i++) {
+      newton_scale = 2*newton_scale*newton_scale*newton_scale;
+    }
+    const real_t COEF = 1.0/(newton_scale*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    simdvec coef(COEF);
+    simdvec mu(20*M_PI/newton_scale);
+    int src_cnt = src_coord.size() / 3;
+    int trg_cnt = trg_coord.size() / 3;
+    for(int t=0; t<trg_cnt; t+=NSIMD) {
+      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
+      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
+      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
+      simdvec tv_real(zero);
+      simdvec tv_imag(zero);
+      simdvec F0_real(zero);
+      simdvec F0_imag(zero);
+      simdvec F1_real(zero);
+      simdvec F1_imag(zero);
+      simdvec F2_real(zero);
+      simdvec F2_imag(zero);
+      for(int s=0; s<src_cnt; s++) {
+        simdvec sx(src_coord[3*s+0]);
+        sx = sx - tx;
+        simdvec sy(src_coord[3*s+1]);
+        sy = sy - ty;
+        simdvec sz(src_coord[3*s+2]);
+        sz = sz - tz;
+        simdvec sv_real(src_value[s].real());
+        simdvec sv_imag(src_value[s].imag());
+        simdvec r2(zero);
+        r2 += sx * sx;
+        r2 += sy * sy;
+        r2 += sz * sz;
+        simdvec invR = rsqrt(r2);
+        invR &= r2 > zero;
+
+        simdvec mu_r = mu*r2*invR;
+        simdvec G0 = cos(mu_r)*invR;
+        simdvec G1 = sin(mu_r)*invR;
+        simdvec p_real = sv_real*G0 - sv_imag*G1;
+        simdvec p_imag = sv_real*G1 + sv_imag*G0;
+        tv_real += p_real;
+        tv_imag += p_imag;
+        simdvec coef_real = invR*invR*p_real + mu*p_imag*invR;
+        simdvec coef_imag = invR*invR*p_imag - mu*p_real*invR;
+        F0_real += sx*coef_real;
+        F0_imag += sx*coef_imag;
+        F1_real += sy*coef_real;
+        F1_imag += sy*coef_imag;
+        F2_real += sz*coef_real;
+        F2_imag += sz*coef_imag;
+      }
+      tv_real *= coef;
+      tv_imag *= coef;
+      for(int k=0; k<NSIMD && (t+k)<trg_cnt; k++) {
+        trg_value[4*(t+k)+0] += complex_t(tv_real[k], tv_imag[k]);
+        trg_value[4*(t+k)+1] += complex_t(F0_real[k], F0_imag[k]);
+        trg_value[4*(t+k)+2] += complex_t(F1_real[k], F1_imag[k]);
+        trg_value[4*(t+k)+3] += complex_t(F2_real[k], F2_imag[k]);
       }
     }
   }
@@ -305,13 +418,13 @@ namespace exafmm_t {
     RealVec fft_scl(nodes_in.size());
     RealVec ifft_scl(nodes_out.size());
     for(size_t i=0; i<nodes_in.size(); i++) {
-      fft_vec[i] = nodes_in[i]->child[0]->idx * NSURF;
+      fft_vec[i] = nodes_in[i]->children[0]->idx * NSURF;
       fft_scl[i] = 1;
     }
     for(size_t i=0; i<nodes_out.size(); i++) {
-      int depth = nodes_out[i]->depth+1;
-      ifft_vec[i] = nodes_out[i]->child[0]->idx * NSURF;
-      ifft_scl[i] = powf(2.0, depth);
+      int level = nodes_out[i]->level+1;
+      ifft_vec[i] = nodes_out[i]->children[0]->idx * NSURF;
+      ifft_scl[i] = powf(2.0, level);
     }
     // calculate interac_vec & interac_dsp
     std::vector<size_t> interac_vec;

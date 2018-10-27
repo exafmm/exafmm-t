@@ -30,10 +30,10 @@ OBJHD = main.hdo src/geometry.hdo src/helmholtz.hdo
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX
 
 %.hfo: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DHELMHOLTZ
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DCOMPLEX -DHELMHOLTZ
 
 %.hdo: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DHELMHOLTZ
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX -DHELMHOLTZ
 
 real8: $(OBJF)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
