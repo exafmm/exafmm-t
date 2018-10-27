@@ -7,7 +7,7 @@
 namespace exafmm_t {
   std::vector<ComplexVec> M2M_U, M2M_V;
   std::vector<ComplexVec> L2L_U, L2L_V;
-  std::vector<ComplexVec> mat_M2M, mat_L2L;
+  std::vector<std::vector<ComplexVec>> mat_M2M, mat_L2L;
   std::vector<RealVec> mat_M2L_Helper;
   std::vector<RealVec> mat_M2L;
 
@@ -50,13 +50,15 @@ namespace exafmm_t {
   void PrecompM2M() {
     // int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
+    mat_M2M.resize(MAXLEVEL+1);
+    mat_L2L.resize(MAXLEVEL+1);
     for(int level = 0; level <= MAXLEVEL; level++) {
       RealVec p_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
       real_t s = R0 * powf(0.5, level+1);
 
       int numRelCoord = rel_coord[M2M_Type].size();
-      mat_M2M.resize(numRelCoord);
-      mat_L2L.resize(numRelCoord);
+      mat_M2M[level].resize(numRelCoord);
+      mat_L2L[level].resize(numRelCoord);
 #pragma omp parallel for
       for(int i=0; i<numRelCoord; i++) {
         ivec3& coord = rel_coord[M2M_Type][i];
@@ -66,14 +68,14 @@ namespace exafmm_t {
         kernelMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_e2c[0]);
         // M2M: child's upward_equiv to parent's check
         ComplexVec buffer(NSURF*NSURF);
-        mat_M2M[i].resize(NSURF*NSURF);
+        mat_M2M[level][i].resize(NSURF*NSURF);
         gemm(NSURF, NSURF, NSURF, &M_e2c[0], &(M2M_V[level][0]), &buffer[0]);
-        gemm(NSURF, NSURF, NSURF, &buffer[0], &(M2M_U[level][0]), &(mat_M2M[i][0]));
+        gemm(NSURF, NSURF, NSURF, &buffer[0], &(M2M_U[level][0]), &(mat_M2M[level][i][0]));
         // L2L: parent's dnward_equiv to child's check, reuse surface coordinates
         M_e2c = transpose(M_e2c, NSURF, NSURF);
-        mat_L2L[i].resize(NSURF*NSURF);
+        mat_L2L[level][i].resize(NSURF*NSURF);
         gemm(NSURF, NSURF, NSURF, &(L2L_U[level][0]), &M_e2c[0], &buffer[0]);
-        gemm(NSURF, NSURF, NSURF, &(L2L_V[level][0]), &buffer[0], &(mat_L2L[i][0]));
+        gemm(NSURF, NSURF, NSURF, &(L2L_V[level][0]), &buffer[0], &(mat_L2L[level][i][0]));
       }
     }
   }

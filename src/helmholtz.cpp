@@ -366,7 +366,8 @@ namespace exafmm_t {
       if(node->children[octant]) {
         Node* child = node->children[octant];
         ComplexVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
+        int level = child->level;
+        gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[level][octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++) {
           node->upward_equiv[k] += buffer[k];
         }
@@ -380,7 +381,8 @@ namespace exafmm_t {
       if(node->children[octant]) {
         Node* child = node->children[octant];
         ComplexVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[octant][0]), &buffer[0]);
+        int level = child->level;
+        gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[level][octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++)
           child->dnward_equiv[k] += buffer[k];
       }
