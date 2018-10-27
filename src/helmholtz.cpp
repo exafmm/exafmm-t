@@ -1,4 +1,4 @@
-#include "laplace_c.h"
+#include "helmholtz.h"
 
 namespace exafmm_t {
   int MULTIPOLE_ORDER;

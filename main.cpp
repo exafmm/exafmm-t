@@ -1,7 +1,10 @@
 #include "build_tree.h"
 #include "dataset.h"
 #include "interaction_list.h"
-#if COMPLEX
+#if HELMHOLTZ
+#include "helmholtz.h"
+#include "precompute_helmholtz.h"
+#elif COMPLEX
 #include "laplace_c.h"
 #include "precompute_c.h"
 #else

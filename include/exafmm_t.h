@@ -107,7 +107,7 @@ namespace exafmm_t {
     
     RealVec src_coord;
     RealVec trg_coord;
-#if COMPLEX
+#if COMPLEX || HELMHOLTZ
     ComplexVec src_value; // source's charge
     ComplexVec trg_value; // target's potential and gradient
     ComplexVec upward_equiv; // M
@@ -137,9 +137,15 @@ namespace exafmm_t {
   extern std::vector<std::vector<ivec3>> rel_coord;
 
   // Precomputation matrices
+#if HELMHOLTZ
+  extern std::vector<RealVec> M2M_U, M2M_V;
+  extern std::vector<RealVec> L2L_U, L2L_V;
+  extern std::vector<std::vector<RealVec>> mat_M2M, mat_L2L, mat_M2L;
+#else
   extern RealVec M2M_U, M2M_V;
   extern RealVec L2L_U, L2L_V;
   extern std::vector<RealVec> mat_M2M, mat_L2L, mat_M2L;
+#endif
 
   extern int MULTIPOLE_ORDER;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates

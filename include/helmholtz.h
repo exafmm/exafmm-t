@@ -1,5 +1,5 @@
-#ifndef laplace_c_h
-#define laplace_c_h
+#ifndef helmholtz_h
+#define helmholtz_h
 #include <map>
 #include <set>
 #include "exafmm_t.h"
