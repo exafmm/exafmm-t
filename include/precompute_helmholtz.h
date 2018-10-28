@@ -12,7 +12,6 @@ namespace exafmm_t {
   std::vector<RealVec> mat_M2L;
 
   void PrecompCheck2Equiv() {
-    // int level = 0;
     real_t c[3] = {0, 0, 0};
     M2M_V.resize(MAXLEVEL+1);
     M2M_U.resize(MAXLEVEL+1);
@@ -48,7 +47,6 @@ namespace exafmm_t {
   }
 
   void PrecompM2M() {
-    // int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
     mat_M2M.resize(MAXLEVEL+1);
     mat_L2L.resize(MAXLEVEL+1);

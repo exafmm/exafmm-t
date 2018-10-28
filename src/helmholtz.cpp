@@ -336,7 +336,6 @@ namespace exafmm_t {
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
       int level = leaf->level;
-      real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
       RealVec checkCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
         checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->Xmin[0];
@@ -350,7 +349,6 @@ namespace exafmm_t {
       gemm(1, NSURF, NSURF, &buffer[0], &(M2M_U[level][0]), &equiv[0]);
       for(int k=0; k<NSURF; k++)
         leaf->upward_equiv[k] = equiv[k];
-        // leaf->upward_equiv[k] = scal * equiv[k];
     }
   }
 
@@ -366,7 +364,7 @@ namespace exafmm_t {
       if(node->children[octant]) {
         Node* child = node->children[octant];
         ComplexVec buffer(NSURF);
-        int level = child->level;
+        int level = node->level;
         gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[level][octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++) {
           node->upward_equiv[k] += buffer[k];
@@ -381,7 +379,7 @@ namespace exafmm_t {
       if(node->children[octant]) {
         Node* child = node->children[octant];
         ComplexVec buffer(NSURF);
-        int level = child->level;
+        int level = node->level;
         gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[level][octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++)
           child->dnward_equiv[k] += buffer[k];
@@ -407,7 +405,6 @@ namespace exafmm_t {
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
       int level = leaf->level;
-      real_t scal = pow(0.5, level);
       // check surface potential -> equivalent surface charge
       ComplexVec buffer(NSURF);
       ComplexVec equiv(NSURF);
@@ -415,7 +412,6 @@ namespace exafmm_t {
       gemm(1, NSURF, NSURF, &buffer[0], &(L2L_U[level][0]), &equiv[0]);
       for(int k=0; k<NSURF; k++)
         leaf->dnward_equiv[k] = equiv[k];
-        // leaf->dnward_equiv[k] = scal * equiv[k];
       // equivalent surface charge -> target potential
       RealVec equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {

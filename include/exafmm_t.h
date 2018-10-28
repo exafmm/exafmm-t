@@ -107,7 +107,7 @@ namespace exafmm_t {
     
     RealVec src_coord;
     RealVec trg_coord;
-#if COMPLEX || HELMHOLTZ
+#if COMPLEX
     ComplexVec src_value; // source's charge
     ComplexVec trg_value; // target's potential and gradient
     ComplexVec upward_equiv; // M
