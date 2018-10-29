@@ -7,18 +7,24 @@
 #include "intrinsics.h"
 
 extern "C" {
-  void sgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, float* ALPHA, float* A,
-              int* LDA, float* B, int* LDB, float* BETA, float* C, int* LDC);
-  void dgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, double* ALPHA, double* A,
-              int* LDA, double* B, int* LDB, double* BETA, double* C, int* LDC);
-  void sgesvd_(char *JOBU, char *JOBVT, int *M, int *N, float *A, int *LDA,
-               float *S, float *U, int *LDU, float *VT, int *LDVT, float *WORK, int *LWORK, int *INFO);
-  void dgesvd_(char *JOBU, char *JOBVT, int *M, int *N, double *A, int *LDA,
-               double *S, double *U, int *LDU, double *VT, int *LDVT, double *WORK, int *LWORK, int *INFO);
+  void sgemm_(char* transa, char* transb, int* m, int* n, int* k, float* alpha, float* a,
+              int* lda, float* b, int* ldb, float* beta, float* c, int* ldc);
+  void dgemm_(char* transa, char* transb, int* m, int* n, int* k, double* alpha, double* a,
+              int* lda, double* b, int* ldb, double* beta, double* c, int* ldc);
+  void sgemv_(char* trans, int* m, int* n, float* alpha, float* a, int* lda, float* x,
+              int* incx, float* beta, float* y, int* incy);
+  void dgemv_(char* trans, int* m, int* n, double* alpha, double* a, int* lda, double* x,
+              int* incx, double* beta, double* y, int* incy);
+  void sgesvd_(char *jobu, char *jobvt, int *m, int *n, float *a, int *lda,
+               float *s, float *u, int *ldu, float *vt, int *ldvt, float *work, int *lwork, int *info);
+  void dgesvd_(char *jobu, char *jobvt, int *m, int *n, double *a, int *lda,
+               double *s, double *u, int *ldu, double *vt, int *ldvt, double *work, int *lwork, int *info);
 }
 
 namespace exafmm_t {
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
+
+  void gemv(int m, int n, real_t* A, real_t* x, real_t* y);
 
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
 

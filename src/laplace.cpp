@@ -6,7 +6,7 @@ namespace exafmm_t {
   int MAXLEVEL;
   M2LData M2Ldata;
 
-  //! using blas gemm with row major data
+  //! blas gemm with row major data
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C) {
     char transA = 'N', transB = 'N';
     real_t alpha = 1.0, beta = 0.0;
@@ -14,6 +14,18 @@ namespace exafmm_t {
     sgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #else
     dgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#endif
+  }
+
+  //! blas gemv with row major data
+  void gemv(int m, int n, real_t* A, real_t* x, real_t* y) {
+    char trans = 'T';
+    real_t alpha = 1.0, beta = 0.0;
+    int incx = 1, incy = 1;
+#if FLOAT
+    sgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
+#else
+    dgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #endif
   }
 
@@ -170,8 +182,8 @@ namespace exafmm_t {
       // convert upward check potential to upward equivalent charge
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
-      gemm(NSURF, 1, NSURF, &M2M_U[0], &(leaf->upward_equiv[0]), &buffer[0]);
-      gemm(NSURF, 1, NSURF, &M2M_V[0], &buffer[0], &equiv[0]);
+      gemv(NSURF, NSURF, &M2M_U[0], &(leaf->upward_equiv[0]), &buffer[0]);
+      gemv(NSURF, NSURF, &M2M_V[0], &buffer[0], &equiv[0]);
       // scale the check-to-equivalent conversion (precomputation)
       for(int k=0; k<NSURF; k++)
         leaf->upward_equiv[k] = scal * equiv[k];
@@ -191,7 +203,7 @@ namespace exafmm_t {
       if(node->children[octant]) {
         Node* child = node->children[octant];
         RealVec buffer(NSURF);
-        gemm(NSURF, 1, NSURF, &(mat_M2M[octant][0]), &child->upward_equiv[0], &buffer[0]);
+        gemv(NSURF, NSURF, &(mat_M2M[octant][0]), &child->upward_equiv[0], &buffer[0]);
         for(int k=0; k<NSURF; k++) {
           node->upward_equiv[k] += buffer[k];
         }
@@ -206,7 +218,7 @@ namespace exafmm_t {
       if(node->children[octant]) {
         Node* child = node->children[octant];
         RealVec buffer(NSURF);
-        gemm(NSURF, 1, NSURF, &(mat_L2L[octant][0]), &node->dnward_equiv[0], &buffer[0]);
+        gemv(NSURF, NSURF, &(mat_L2L[octant][0]), &node->dnward_equiv[0], &buffer[0]);
         for(int k=0; k<NSURF; k++)
           child->dnward_equiv[k] += buffer[k];
       }
@@ -235,8 +247,8 @@ namespace exafmm_t {
       // convert downward check potential to downward equivalent charge
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
-      gemm(NSURF, 1, NSURF, &L2L_U[0], &(leaf->dnward_equiv[0]), &buffer[0]);
-      gemm(NSURF, 1, NSURF, &L2L_V[0], &buffer[0], &equiv[0]);
+      gemv(NSURF, NSURF, &L2L_U[0], &(leaf->dnward_equiv[0]), &buffer[0]);
+      gemv(NSURF, NSURF, &L2L_V[0], &buffer[0], &equiv[0]);
       // scale the check-to-equivalent conversion (precomputation)
       for(int k=0; k<NSURF; k++)
         leaf->dnward_equiv[k] = scal * equiv[k];
