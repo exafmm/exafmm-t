@@ -6,17 +6,6 @@ namespace exafmm_t {
   int MAXLEVEL;
   M2LData M2Ldata;
 
-  //! using blas gemm with row major data
-  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C) {
-    char transA = 'N', transB = 'N';
-    real_t alpha = 1.0, beta = 0.0;
-#if FLOAT
-    sgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
-#else
-    dgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
-#endif
-  }
-
   // mixed-type gemm: A is complex_t matrix; B is real_t matrix
   void gemm(int m, int n, int k, complex_t* A, real_t* B, complex_t* C) {
     char transA = 'N', transB = 'N';
@@ -36,6 +25,18 @@ namespace exafmm_t {
     cgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #else
     zgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#endif
+  }
+
+  // complex gemv by blas lib
+  void gemv(int m, int n, complex_t* A, complex_t* x, complex_t* y) {
+    char trans = 'T';
+    complex_t alpha(1., 0.), beta(0.,0.);
+    int incx = 1, incy = 1;
+#if FLOAT
+    cgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
+#else
+    zgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #endif
   }
 
@@ -345,8 +346,8 @@ namespace exafmm_t {
       potentialP2P(leaf->src_coord, leaf->src_value, checkCoord, leaf->upward_equiv);
       ComplexVec buffer(NSURF);
       ComplexVec equiv(NSURF);
-      gemm(NSURF, 1, NSURF, &(M2M_U[level][0]), &(leaf->upward_equiv[0]), &buffer[0]);
-      gemm(NSURF, 1, NSURF, &(M2M_V[level][0]), &buffer[0], &equiv[0]);
+      gemv(NSURF, NSURF, &(M2M_U[level][0]), &(leaf->upward_equiv[0]), &buffer[0]);
+      gemv(NSURF, NSURF, &(M2M_V[level][0]), &buffer[0], &equiv[0]);
       for(int k=0; k<NSURF; k++)
         leaf->upward_equiv[k] = equiv[k];
     }
@@ -365,7 +366,7 @@ namespace exafmm_t {
         Node* child = node->children[octant];
         ComplexVec buffer(NSURF);
         int level = node->level;
-        gemm(NSURF, 1, NSURF, &(mat_M2M[level][octant][0]), &child->upward_equiv[0], &buffer[0]);
+        gemv(NSURF, NSURF, &(mat_M2M[level][octant][0]), &child->upward_equiv[0], &buffer[0]);
         for(int k=0; k<NSURF; k++) {
           node->upward_equiv[k] += buffer[k];
         }
@@ -380,7 +381,7 @@ namespace exafmm_t {
         Node* child = node->children[octant];
         ComplexVec buffer(NSURF);
         int level = node->level;
-        gemm(NSURF, 1, NSURF, &(mat_L2L[level][octant][0]), &node->dnward_equiv[0], &buffer[0]);
+        gemv(NSURF, NSURF, &(mat_L2L[level][octant][0]), &node->dnward_equiv[0], &buffer[0]);
         for(int k=0; k<NSURF; k++)
           child->dnward_equiv[k] += buffer[k];
       }
@@ -408,8 +409,8 @@ namespace exafmm_t {
       // down check surface potential -> equivalent surface charge
       ComplexVec buffer(NSURF);
       ComplexVec equiv(NSURF);
-      gemm(NSURF, 1, NSURF, &(L2L_U[level][0]), &(leaf->dnward_equiv[0]), &buffer[0]);
-      gemm(NSURF, 1, NSURF, &(L2L_V[level][0]), &buffer[0], &equiv[0]);
+      gemv(NSURF, NSURF, &(L2L_U[level][0]), &(leaf->dnward_equiv[0]), &buffer[0]);
+      gemv(NSURF, NSURF, &(L2L_V[level][0]), &buffer[0], &equiv[0]);
       for(int k=0; k<NSURF; k++)
         leaf->dnward_equiv[k] = equiv[k];
       // equivalent surface charge -> target potential

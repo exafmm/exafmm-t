@@ -7,10 +7,6 @@
 #include "intrinsics.h"
 
 extern "C" {
-  void sgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, float* ALPHA, float* A,
-              int* LDA, float* B, int* LDB, float* BETA, float* C, int* LDC);
-  void dgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, double* ALPHA, double* A,
-              int* LDA, double* B, int* LDB, double* BETA, double* C, int* LDC);
   void scgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, std::complex<float>* ALPHA, float* A,
               int* LDA, std::complex<float>* B, int* LDB, std::complex<float>* BETA, std::complex<float>* C, int* LDC);
   void dzgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, std::complex<double>* ALPHA, double* A,
@@ -19,6 +15,10 @@ extern "C" {
               int* LDA, std::complex<float>* B, int* LDB, std::complex<float>* BETA, std::complex<float>* C, int* LDC);
   void zgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, std::complex<double>* ALPHA, std::complex<double>* A,
               int* LDA, std::complex<double>* B, int* LDB, std::complex<double>* BETA, std::complex<double>* C, int* LDC);
+  void cgemv_(char* trans, int* m, int* n, std::complex<float>* alpha, std::complex<float>* a, int* lda, std::complex<float>* x,
+              int* incx, std::complex<float>* beta, std::complex<float>* y, int* incy);
+  void zgemv_(char* trans, int* m, int* n, std::complex<double>* alpha, std::complex<double>* a, int* lda, std::complex<double>* x,
+              int* incx, std::complex<double>* beta, std::complex<double>* y, int* incy);
   void sgesvd_(char *JOBU, char *JOBVT, int *M, int *N, float *A, int *LDA,
                float *S, float *U, int *LDU, float *VT, int *LDVT, float *WORK, int *LWORK, int *INFO);
   void dgesvd_(char *JOBU, char *JOBVT, int *M, int *N, double *A, int *LDA,
@@ -30,11 +30,11 @@ extern "C" {
 }
 
 namespace exafmm_t {
-  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
-
   void gemm(int m, int n, int k, complex_t* A, real_t* B, complex_t* C);
 
   void gemm(int m, int n, int k, complex_t* A, complex_t* B, complex_t* C);
+
+  void gemv(int m, int n, complex_t* A, complex_t* x, complex_t* y);
 
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
 
