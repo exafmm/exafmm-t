@@ -158,7 +158,8 @@ namespace exafmm_t {
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
       int level = leaf->level;
-      real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
+      real_t scal = pow(0.5, level);  // scaling factor of UC2UE precomputation matrix
+      // calculate upward check potential induced by sources' charges
       RealVec checkCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
         checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->Xmin[0];
@@ -166,10 +167,12 @@ namespace exafmm_t {
         checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->Xmin[2];
       }
       potentialP2P(leaf->src_coord, leaf->src_value, checkCoord, leaf->upward_equiv);
+      // convert upward check potential to upward equivalent charge
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &M2M_V[0], &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], &M2M_U[0], &equiv[0]);
+      gemm(NSURF, 1, NSURF, &M2M_U[0], &(leaf->upward_equiv[0]), &buffer[0]);
+      gemm(NSURF, 1, NSURF, &M2M_V[0], &buffer[0], &equiv[0]);
+      // scale the check-to-equivalent conversion (precomputation)
       for(int k=0; k<NSURF; k++)
         leaf->upward_equiv[k] = scal * equiv[k];
     }
@@ -183,11 +186,12 @@ namespace exafmm_t {
         M2M(node->children[octant]);
     }
     #pragma omp taskwait
+    // evaluate parent's upward equivalent charge from child's upward equivalent charge
     for(int octant=0; octant<8; octant++) {
       if(node->children[octant]) {
         Node* child = node->children[octant];
         RealVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
+        gemm(NSURF, 1, NSURF, &(mat_M2M[octant][0]), &child->upward_equiv[0], &buffer[0]);
         for(int k=0; k<NSURF; k++) {
           node->upward_equiv[k] += buffer[k];
         }
@@ -197,11 +201,12 @@ namespace exafmm_t {
 
   void L2L(Node* node) {
     if(node->is_leaf) return;
+    // evaluate child's downward check potential from parent's downward check potential
     for(int octant=0; octant<8; octant++) {
       if(node->children[octant]) {
         Node* child = node->children[octant];
         RealVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[octant][0]), &buffer[0]);
+        gemm(NSURF, 1, NSURF, &(mat_L2L[octant][0]), &node->dnward_equiv[0], &buffer[0]);
         for(int k=0; k<NSURF; k++)
           child->dnward_equiv[k] += buffer[k];
       }
@@ -227,14 +232,15 @@ namespace exafmm_t {
       Node* leaf = leafs[i];
       int level = leaf->level;
       real_t scal = pow(0.5, level);
-      // check surface potential -> equivalent surface charge
+      // convert downward check potential to downward equivalent charge
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &(leaf->dnward_equiv[0]), &L2L_V[0], &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], &L2L_U[0], &equiv[0]);
+      gemm(NSURF, 1, NSURF, &L2L_U[0], &(leaf->dnward_equiv[0]), &buffer[0]);
+      gemm(NSURF, 1, NSURF, &L2L_V[0], &buffer[0], &equiv[0]);
+      // scale the check-to-equivalent conversion (precomputation)
       for(int k=0; k<NSURF; k++)
         leaf->dnward_equiv[k] = scal * equiv[k];
-      // equivalent surface charge -> target potential
+      // calculate targets' potential & gradient induced by downward equivalent charge
       RealVec equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
         equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->Xmin[0];
