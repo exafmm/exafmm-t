@@ -350,6 +350,8 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
     real_t *src_pt_coord = new real_t[targets.size()*src_box_count*coord_count]();
     real_t *src_pt_src = new real_t[targets.size()*src_box_count*ncrit]();
     Profile::Tic("memcpy vector to array", true);
+
+#pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
       std::vector<Node*>& sources = target->P2Plist;
@@ -377,7 +379,9 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
     P2PGPU(trg_pt_coord, trg_pt_trg, src_pt_coord, src_pt_src, targets.size(), ncrit, src_box_count);
 //	P2PKernel_test(trg_pt_coord, trg_pt_trg, src_pt_coord, src_pt_src, targets.size(), ncrit, src_box_count);
 
+
     Profile::Tic("memcpy array to vec", true);
+#pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
       RealVec& trg_val = target->pt_trg;
