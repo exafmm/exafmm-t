@@ -19,13 +19,13 @@ namespace exafmm_t {
     L2L_U.resize(MAXLEVEL+1);
     for(int level = 0; level <= MAXLEVEL; level++) {
       // caculate M2M_U and M2M_V
-      RealVec uc_coord = surface(MULTIPOLE_ORDER,c,2.95,level);
-      RealVec ue_coord = surface(MULTIPOLE_ORDER,c,1.05,level);
-      ComplexVec M_e2c(NSURF*NSURF);
-      kernelMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &M_e2c[0]);
+      RealVec up_check_surf = surface(MULTIPOLE_ORDER,c,2.95,level);
+      RealVec up_equiv_surf = surface(MULTIPOLE_ORDER,c,1.05,level);
+      ComplexVec M_c2e(NSURF*NSURF);
+      kernelMatrix(&up_check_surf[0], NSURF, &up_equiv_surf[0], NSURF, &M_c2e[0]);
       RealVec S(NSURF*NSURF);
       ComplexVec U(NSURF*NSURF), VT(NSURF*NSURF);
-      svd(NSURF, NSURF, &M_e2c[0], &S[0], &U[0], &VT[0]);
+      svd(NSURF, NSURF, &M_c2e[0], &S[0], &U[0], &VT[0]);
       // inverse S
       real_t max_S = 0;
       for(size_t i=0; i<NSURF; i++) {
@@ -47,11 +47,11 @@ namespace exafmm_t {
   }
 
   void PrecompM2M() {
-    real_t parent_coord[3] = {0, 0, 0};
     mat_M2M.resize(MAXLEVEL+1);
     mat_L2L.resize(MAXLEVEL+1);
+    real_t parent_coord[3] = {0, 0, 0};
     for(int level = 0; level <= MAXLEVEL; level++) {
-      RealVec p_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
+      RealVec parent_up_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
       real_t s = R0 * powf(0.5, level+1);
 
       int numRelCoord = rel_coord[M2M_Type].size();
@@ -61,19 +61,19 @@ namespace exafmm_t {
       for(int i=0; i<numRelCoord; i++) {
         ivec3& coord = rel_coord[M2M_Type][i];
         real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-        RealVec c_equiv_surf = surface(MULTIPOLE_ORDER,child_coord,1.05,level+1);
-        ComplexVec M_e2c(NSURF*NSURF);
-        kernelMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_e2c[0]);
+        RealVec child_up_equiv_surf = surface(MULTIPOLE_ORDER,child_coord,1.05,level+1);
+        ComplexVec M_pc2ce(NSURF*NSURF);
+        kernelMatrix(&parent_up_check_surf[0], NSURF, &child_up_equiv_surf[0], NSURF, &M_pc2ce[0]);
         // M2M: child's upward_equiv to parent's check
         ComplexVec buffer(NSURF*NSURF);
         mat_M2M[level][i].resize(NSURF*NSURF);
-        gemm(NSURF, NSURF, NSURF, &M_e2c[0], &(M2M_V[level][0]), &buffer[0]);
-        gemm(NSURF, NSURF, NSURF, &buffer[0], &(M2M_U[level][0]), &(mat_M2M[level][i][0]));
+        gemm(NSURF, NSURF, NSURF, &(M2M_U[level][0]), &M_pc2ce[0], &buffer[0]);
+        gemm(NSURF, NSURF, NSURF, &(M2M_V[level][0]), &buffer[0], &(mat_M2M[level][i][0]));
         // L2L: parent's dnward_equiv to child's check, reuse surface coordinates
-        M_e2c = transpose(M_e2c, NSURF, NSURF);
+        M_pc2ce = transpose(M_pc2ce, NSURF, NSURF);
         mat_L2L[level][i].resize(NSURF*NSURF);
-        gemm(NSURF, NSURF, NSURF, &(L2L_U[level][0]), &M_e2c[0], &buffer[0]);
-        gemm(NSURF, NSURF, NSURF, &(L2L_V[level][0]), &buffer[0], &(mat_L2L[level][i][0]));
+        gemm(NSURF, NSURF, NSURF, &M_pc2ce[0], &(L2L_V[level][0]), &buffer[0]);
+        gemm(NSURF, NSURF, NSURF, &buffer[0], &(L2L_U[level][0]), &(mat_L2L[level][i][0]));
       }
     }
   }
