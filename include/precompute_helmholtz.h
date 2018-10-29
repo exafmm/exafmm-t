@@ -8,7 +8,7 @@ namespace exafmm_t {
   std::vector<ComplexVec> M2M_U, M2M_V;
   std::vector<ComplexVec> L2L_U, L2L_V;
   std::vector<std::vector<ComplexVec>> mat_M2M, mat_L2L;
-  std::vector<RealVec> mat_M2L_Helper;
+  std::vector<std::vector<RealVec>> mat_M2L_Helper;
   std::vector<RealVec> mat_M2L;
 
   void PrecompCheck2Equiv() {
@@ -79,6 +79,7 @@ namespace exafmm_t {
   }
 
   void PrecompM2LHelper() {
+    mat_M2L_Helper.resize(MAXLEVEL+1);
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     // create fftw plan
@@ -89,30 +90,34 @@ namespace exafmm_t {
                                 (fft_complex*)(&fftw_out[0]), FFTW_FORWARD, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
     int numRelCoord = rel_coord[M2L_Helper_Type].size();
-    mat_M2L_Helper.resize(numRelCoord);
-    #pragma omp parallel for
-    for(int i=0; i<numRelCoord; i++) {
-      real_t coord[3];
-      for(int d=0; d<3; d++) {
-        coord[d] = rel_coord[M2L_Helper_Type][i][d] * R0 / 0.5;
+    RealVec r_trg(3, 0.0);
+    for(int l=0; l<=MAXLEVEL; l++) {
+      mat_M2L_Helper[l].resize(numRelCoord);
+      #pragma omp parallel for
+      for(int i=0; i<numRelCoord; i++) {
+        real_t coord[3];
+        for(int d=0; d<3; d++) {
+          coord[d] = rel_coord[M2L_Helper_Type][i][d] * R0 * powf(0.5, l-1);
+        }
+        RealVec conv_coord = conv_grid(coord, 0);
+        ComplexVec conv_poten(n3);
+        kernelMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
+        mat_M2L_Helper[l][i].resize(2*n3);
+        fft_execute_dft(plan, reinterpret_cast<fft_complex*>(&conv_poten[0]), (fft_complex*)(&mat_M2L_Helper[l][i][0]));
       }
-      RealVec conv_coord = conv_grid(coord, 0);
-      RealVec r_trg(3, 0.0);
-      ComplexVec conv_poten(n3);
-      kernelMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
-      mat_M2L_Helper[i].resize(2*n3);
-      fft_execute_dft(plan, reinterpret_cast<fft_complex*>(&conv_poten[0]), (fft_complex*)(&mat_M2L_Helper[i][0]));
     }
     fft_destroy_plan(plan);
   }
 
   void PrecompM2L() {
+    //mat_M2L.resize(MAXLEVEL+1);
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int numParentRelCoord = rel_coord[M2L_Type].size();
     int numChildRelCoord = rel_coord[M2L_Helper_Type].size();
     mat_M2L.resize(numParentRelCoord);
     RealVec zero_vec(n3*2, 0);
+    int l = 0;
     #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<numParentRelCoord; i++) {
       ivec3& parentRelCoord = rel_coord[M2L_Type][i];
@@ -127,7 +132,7 @@ namespace exafmm_t {
             if (childRelCoord[0] == childRefCoord[0] &&
                 childRelCoord[1] == childRefCoord[1] &&
                 childRelCoord[2] == childRefCoord[2]) {
-              M_ptr[j2*NCHILD+j1] = &mat_M2L_Helper[k][0];
+              M_ptr[j2*NCHILD+j1] = &mat_M2L_Helper[l][k][0];
               break;
             }
           }
