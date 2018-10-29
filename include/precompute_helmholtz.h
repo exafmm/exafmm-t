@@ -24,8 +24,8 @@ namespace exafmm_t {
       ComplexVec M_e2c(NSURF*NSURF);
       kernelMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &M_e2c[0]);
       RealVec S(NSURF*NSURF);
-      ComplexVec U(NSURF*NSURF), V(NSURF*NSURF);
-      svd(NSURF, NSURF, &M_e2c[0], &S[0], &U[0], &V[0]);
+      ComplexVec U(NSURF*NSURF), VT(NSURF*NSURF);
+      svd(NSURF, NSURF, &M_e2c[0], &S[0], &U[0], &VT[0]);
       // inverse S
       real_t max_S = 0;
       for(size_t i=0; i<NSURF; i++) {
@@ -35,13 +35,13 @@ namespace exafmm_t {
         S[i*NSURF+i] = S[i*NSURF+i]>EPS*max_S*4 ? 1.0/S[i*NSURF+i] : 0.0;
       }
       // save matrix
-      ComplexVec VT = transpose(V, NSURF, NSURF);
+      ComplexVec V = transpose(VT, NSURF, NSURF);
       M2M_V[level].resize(NSURF*NSURF);
       M2M_U[level] = transpose(U, NSURF, NSURF);
-      gemm(NSURF, NSURF, NSURF, &VT[0], &S[0], &(M2M_V[level][0]));
+      gemm(NSURF, NSURF, NSURF, &V[0], &S[0], &(M2M_V[level][0]));
 
       L2L_V[level].resize(NSURF*NSURF);
-      L2L_U[level] = V;
+      L2L_U[level] = VT;
       gemm(NSURF, NSURF, NSURF, &U[0], &S[0], &(L2L_V[level][0]));
     }
   }
