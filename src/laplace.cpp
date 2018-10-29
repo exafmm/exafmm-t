@@ -1,5 +1,6 @@
 #include "laplace.h"
 #include "laplace_cuda.h"
+#include "profile.h"
 
 namespace exafmm_t {
   int MULTIPOLE_ORDER;
@@ -348,6 +349,7 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
     real_t *trg_pt_trg=new real_t[targets.size()*ncrit*4]();
     real_t *src_pt_coord = new real_t[targets.size()*src_box_count*coord_count]();
     real_t *src_pt_src = new real_t[targets.size()*src_box_count*ncrit]();
+    Profile::Tic("memcpy vector to array", true);
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
       std::vector<Node*>& sources = target->P2Plist;
@@ -371,9 +373,11 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
           src_pt_src[i*src_box_count*ncrit+(j*ncrit)+k] = src_val[k];
       }
    }
+      Profile::Toc();
     P2PGPU(trg_pt_coord, trg_pt_trg, src_pt_coord, src_pt_src, targets.size(), ncrit, src_box_count);
 //	P2PKernel_test(trg_pt_coord, trg_pt_trg, src_pt_coord, src_pt_src, targets.size(), ncrit, src_box_count);
 
+    Profile::Tic("memcpy array to vec", true);
     for(int i=0; i<targets.size(); i++) {
       Node* target = targets[i];
       RealVec& trg_val = target->pt_trg;
@@ -381,9 +385,11 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
         trg_val[j] = trg_pt_trg[i*ncrit*4+j];
      }
     }
-
+  Profile::Toc();
     delete[] trg_pt_coord;
     delete[] src_pt_coord;
+    delete[] trg_pt_trg;
+    delete[] src_pt_src;
   }
 
   void M2LSetup(std::vector<Node*>& nonleafs) {

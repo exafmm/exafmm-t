@@ -1,4 +1,5 @@
 #include "exafmm_t.h"
+#include "profile.h"
 #include "laplace_cuda.h"
 #include <iostream>
 
@@ -52,7 +53,6 @@ void potentialP2PKernel(real_t *src_coord, real_t *src_value, real_t *trg_coord,
     trg_value[4*i+2] += tv2;
     trg_value[4*i+3] += tv3;
 }
-
 void P2PGPU(real_t* trg_coord, real_t* trg_value, real_t* src_coord, real_t* src_value, int leafs_cnt, int ncrit, int adj_cnt) {
 int THREADS = ncrit;
     int BLOCKS = leafs_cnt;
@@ -62,13 +62,23 @@ int THREADS = ncrit;
     cudaMalloc(&src_value_device, sizeof(real_t)*leafs_cnt*ncrit*adj_cnt);
     cudaMalloc(&trg_coord_device,sizeof(real_t)*leafs_cnt*ncrit*3);
     cudaMalloc(&trg_value_device, sizeof(real_t)*leafs_cnt*ncrit*4);
-    
+   
+    Profile::Tic("memcpy host to device", true);
     cudaMemcpy(src_coord_device, src_coord, sizeof(real_t)*leafs_cnt*ncrit*3*adj_cnt, cudaMemcpyHostToDevice);
     cudaMemcpy(src_value_device, src_value, sizeof(real_t)*leafs_cnt*ncrit*adj_cnt, cudaMemcpyHostToDevice);
     cudaMemcpy(trg_coord_device, trg_coord, sizeof(real_t)*leafs_cnt*ncrit*3, cudaMemcpyHostToDevice);
     cudaMemcpy(trg_value_device, trg_value, sizeof(real_t)*leafs_cnt*4*ncrit, cudaMemcpyHostToDevice);
+      Profile::Toc();
+    Profile::Tic("gpu kernel", true);
     potentialP2PKernel<<<BLOCKS,THREADS>>>(src_coord_device, src_value_device, trg_coord_device, trg_value_device,adj_cnt);
+	cudaDeviceSynchronize();  
+    Profile::Toc();
+    Profile::Tic("memcpy device to host", true);
     cudaMemcpy(trg_value, trg_value_device, sizeof(real_t)*leafs_cnt*4*ncrit, cudaMemcpyDeviceToHost);
- 
-  }
+   Profile::Toc();
+  cudaFree(src_coord_device);
+  cudaFree(src_value_device);
+  cudaFree(trg_coord_device);
+  cudaFree(trg_value_device);
+}
 }

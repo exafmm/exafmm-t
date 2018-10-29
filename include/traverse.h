@@ -1,3 +1,16 @@
+/*#ifndef traverse_h
+#define traverse_h
+#include "exafmm_t.h"
+#include "profile.h"
+
+namespace exafmm_t {
+  void upwardPass(Nodes& nodes, std::vector<Node*>& leafs);
+  void downwardPass(Nodes& nodes, std::vector<Node*>& leafs);
+  RealVec verify(std::vector<Node*>& leafs);
+  
+}//end namespace
+#endif*/
+
 #ifndef traverse_h
 #define traverse_h
 #include "exafmm_t.h"
@@ -70,3 +83,4 @@ namespace exafmm_t {
   }
 }//end namespace
 #endif
+

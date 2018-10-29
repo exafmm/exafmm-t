@@ -4,6 +4,7 @@
 #include "laplace.h"
 #include "precompute.h"
 #include "traverse.h"
+#include "profile.h"
 
 using namespace exafmm_t;
 RealVec plummer(int);
