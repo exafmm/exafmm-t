@@ -51,7 +51,7 @@ namespace exafmm_t {
 
 void P2PKernel_test(real_t* trg_coord, real_t* trg_value, real_t* src_coord, real_t* src_value, int leafs_cnt, int ncrit, int adj_cnt) {
   int src_cnt = ncrit*adj_cnt;
-  const real_t COEFP = 1.0/(2*4*M_PI);  
+  const real_t COEFP = 1.0/(2*4*M_PI);
   const real_t COEFG = -1.0/(4*2*2*6*M_PI);
   for (int i=0;i<leafs_cnt;i++) {
     for (int j = 0; j < ncrit; j++)
@@ -64,7 +64,7 @@ void P2PKernel_test(real_t* trg_coord, real_t* trg_value, real_t* src_coord, rea
       real_t tv1=0;
       real_t tv2=0;
       real_t tv3=0;
-      
+
       for(int k=i*src_cnt; k<i*src_cnt+src_cnt; k++) {
         real_t sx = src_coord[3*k+0] - tx;
         real_t sy = src_coord[3*k+1] - ty;
@@ -86,12 +86,12 @@ void P2PKernel_test(real_t* trg_coord, real_t* trg_value, real_t* src_coord, rea
     tv1 *= COEFG;
     tv2 *= COEFG;
     tv3 *= COEFG;
-    trg_value[4*idx+0] += tv0;  
+    trg_value[4*idx+0] += tv0;
     trg_value[4*idx+1] += tv1;
     trg_value[4*idx+2] += tv2;
     trg_value[4*idx+3] += tv3;
     }
-  } 
+  }
 }
 
   void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
@@ -129,7 +129,7 @@ void P2PKernel_test(real_t* trg_coord, real_t* trg_value, real_t* src_coord, rea
     //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*20);
   }
 
-void gradientP2P(RealVec& src_coord, RealVec& src_value, 
+void gradientP2P(RealVec& src_coord, RealVec& src_value,
     RealVec& trg_coord, RealVec& trg_value) {
 	//std::cout<<"src_coord  src_val  "<<src_coord.size()<<"  "<<src_value.size()<<std::endl;
 	const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
@@ -148,7 +148,7 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
     		real_t sx = src_coord[3*j+0] - tx;
 	        real_t sy = src_coord[3*j+1] - ty;
 	        real_t sz = src_coord[3*j+2] - tz;
-	        real_t r2 = sx*sx + sy*sy + sz*sz;	
+	        real_t r2 = sx*sx + sy*sy + sz*sz;
 	        real_t sv = src_value[j];
 	        if (r2 != 0)
 	        {
@@ -345,10 +345,14 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
     int ncrit=64;
     int coord_count = ncrit*3;
     int src_box_count = 27;
-    real_t *trg_pt_coord=new real_t[targets.size()*coord_count]();
-    real_t *trg_pt_trg=new real_t[targets.size()*ncrit*4]();
+    for(int i=0; i<targets.size(); i++) {
+      src_box_count = std::max(target->P2Plist.size(),src_box_count);
+    }
+    real_t *trg_pt_coord = new real_t[targets.size()*coord_count]();
+    real_t *trg_pt_trg = new real_t[targets.size()*ncrit*4]();
     real_t *src_pt_coord = new real_t[targets.size()*src_box_count*coord_count]();
     real_t *src_pt_src = new real_t[targets.size()*src_box_count*ncrit]();
+    int gpu_p2plist = new int [targets.size()*src_box_count];
     Profile::Tic("memcpy vector to array", true);
 
 #pragma omp parallel for
@@ -364,18 +368,19 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
         trg_pt_trg[i*ncrit*4+k] = trg_val[k];
 
       for(int j=0; j<sources.size(); j++) {
+        gpu_p2plist[j+src_box_count*i] = sources[j]->idx;
         Node* source = sources[j];
 	//gradientP2P(source->pt_coord, source->pt_src, target->pt_coord, target->pt_trg);
-	RealVec& src_coord = source->pt_coord; 
+	RealVec& src_coord = source->pt_coord;
 	RealVec& src_val = source->pt_src;
 
 	for (int k = 0; k < src_coord.size(); k++)
-           src_pt_coord[i*src_box_count*ncrit*3+(j*ncrit*3)+k] = src_coord[k];
-      for (int k = 0; k < src_val.size(); k++) 
+          src_pt_coord[i*src_box_count*ncrit*3+(j*ncrit*3)+k] = src_coord[k];
+        for (int k = 0; k < src_val.size(); k++)
           src_pt_src[i*src_box_count*ncrit+(j*ncrit)+k] = src_val[k];
       }
-   }
-      Profile::Toc();
+    }
+    Profile::Toc();
     P2PGPU(trg_pt_coord, trg_pt_trg, src_pt_coord, src_pt_src, targets.size(), ncrit, src_box_count);
 //	P2PKernel_test(trg_pt_coord, trg_pt_trg, src_pt_coord, src_pt_src, targets.size(), ncrit, src_box_count);
 

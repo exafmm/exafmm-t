@@ -27,14 +27,16 @@ int main(int argc, char **argv) {
   for(size_t i=0; i<leafs.size(); i++) {
     MAXLEVEL = std::max(MAXLEVEL, leafs[i]->depth);
   }
-   
+
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
+  std::vector<int> leaf_idx;
   for(int i=0; i<nodes.size(); i++) {
     for(int d=0; d<3; d++) {
       nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
     }
     if(nodes[i].IsLeaf()) {
+      leaf_idx.push_back(i);
       for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
         nodes[i].pt_coord.push_back(B->X[0]);
         nodes[i].pt_coord.push_back(B->X[1]);
@@ -43,6 +45,7 @@ int main(int argc, char **argv) {
       }
     }
   }
+
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();
