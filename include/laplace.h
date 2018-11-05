@@ -40,11 +40,11 @@ namespace exafmm_t {
 
   void P2L(Nodes& nodes);
 
-  void M2P(std::vector<Node*>& leafs);
+  void M2P(Nodes &nodes, std::vector<int> leafs_idx);
 
-  void P2P(std::vector<Node*>& leafs);
+  void P2P(Nodes &nodes, std::vector<int> leafs_idx);
 
-  void M2LSetup(std::vector<Node*>& nonleafs);
+  void M2LSetup(Nodes &nodes, std::vector<Node*>& nonleafs);
 
   void M2LListHadamard(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
                        AlignedVec& fft_in, AlignedVec& fft_out);

@@ -63,15 +63,15 @@ namespace exafmm_t {
         int c_hash = hash(rel_coord);
         if (isleaf) {
           int idx1 = hash_lut[P2P0_Type][c_hash];
-          if (idx1>=0)
-            n->P2Plist.push_back(pc);
+          if (idx1>=0) 
+            n->P2Plist_idx[n->P2Plist_size++] = pc->idx;
         }
         int idx2 = hash_lut[P2L_Type][c_hash];
         if (idx2>=0) {
-          if (isleaf && n->numBodies<=NSURF)
-            n->P2Plist.push_back(pc);
+          if (isleaf && n->numBodies<=NSURF) 
+            n->P2Plist_idx[n->P2Plist_size++] = pc->idx;
           else
-            n->P2Llist.push_back(pc);
+            n->P2Llist_idx[n->P2Llist_size++] = pc->idx;
         }
       }
     }
@@ -90,10 +90,13 @@ namespace exafmm_t {
         int c_hash = hash(rel_coord);
         if (col->IsLeaf() && isleaf) {
           int idx1 = hash_lut[P2P1_Type][c_hash];
-          if (idx1>=0) n->P2Plist.push_back(col);
+          if (idx1>=0) 
+            n->P2Plist_idx[n->P2Plist_size++] = col->idx;
         } else if (!col->IsLeaf() && !isleaf) {
           int idx2 = hash_lut[M2L_Type][c_hash];
-          if (idx2>=0) n->M2Llist[idx2] = col;
+          if (idx2>=0){
+            n->M2Llist_idx[idx2] = col->idx;
+          }
         }
       }
     }
@@ -116,15 +119,15 @@ namespace exafmm_t {
           int idx2 = hash_lut[M2P_Type][c_hash];
           if (idx1>=0) {
             assert(col->child[j]->IsLeaf()); //2:1 balanced
-            n->P2Plist.push_back(cc);
+            n->P2Plist_idx[n->P2Plist_size++] = cc->idx;
           }
           // since we currently don't save bodies' information in nonleaf nodes
           // M2P can only be switched to P2P when source is leaf
           if (idx2>=0) {
-            if (cc->IsLeaf() && cc->numBodies<=NSURF)
-              n->P2Plist.push_back(cc);
+            if (cc->IsLeaf() && cc->numBodies<=NSURF) 
+              n->P2Plist_idx[n->P2Plist_size++] = cc->idx;
             else
-              n->M2Plist.push_back(cc);
+              n->M2Plist_idx[n->M2Plist_size++] = cc->idx;
           }
         }
       }
@@ -136,7 +139,6 @@ namespace exafmm_t {
     #pragma omp parallel for
     for(size_t i=0; i<nodes.size(); i++) {
       Node* node = &nodes[i];
-      node->M2Llist.resize(rel_coord[M2L_Type].size(), 0);
       buildListParentLevel(node);
       buildListCurrentLevel(node);
       buildListChildLevel(node);

@@ -1,16 +1,3 @@
-/*#ifndef traverse_h
-#define traverse_h
-#include "exafmm_t.h"
-#include "profile.h"
-
-namespace exafmm_t {
-  void upwardPass(Nodes& nodes, std::vector<Node*>& leafs);
-  void downwardPass(Nodes& nodes, std::vector<Node*>& leafs);
-  RealVec verify(std::vector<Node*>& leafs);
-  
-}//end namespace
-#endif*/
-
 #ifndef traverse_h
 #define traverse_h
 #include "exafmm_t.h"
@@ -28,15 +15,15 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  void downwardPass(Nodes& nodes, std::vector<Node*>& leafs) {
+  void downwardPass(Nodes& nodes, std::vector<Node*>& leafs, std::vector<int> leafs_idx) {
     Profile::Tic("P2L", false, 5);
     P2L(nodes);
     Profile::Toc();
     Profile::Tic("M2P", false, 5);
-    M2P(leafs);
+    M2P(nodes, leafs_idx);
     Profile::Toc();
     Profile::Tic("P2P", false, 5);
-    P2P(leafs);
+    P2P(nodes, leafs_idx);
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
     M2L(M2Ldata, nodes);

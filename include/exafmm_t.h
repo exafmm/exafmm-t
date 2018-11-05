@@ -87,10 +87,16 @@ namespace exafmm_t {
     Node* parent;
     std::vector<Node*> child;
     Node* colleague[27];
-    std::vector<Node*> P2Llist;
-    std::vector<Node*> M2Plist;
-    std::vector<Node*> P2Plist;
-    std::vector<Node*> M2Llist;
+    
+    int P2Plist_idx[27*8];
+    int P2Plist_size;
+    int P2Llist_idx[27*8];
+    int P2Llist_size;
+    int M2Plist_idx[27*8];
+    int M2Plist_size;
+    int M2Llist_idx[27*8];
+    int M2Llist_size;
+
     RealVec pt_coord;
     RealVec pt_src;  // src's charge
     RealVec pt_trg;  // trg's potential
@@ -104,6 +110,8 @@ namespace exafmm_t {
     Node* Child(int id) {
       return (numChilds == 0) ? NULL : child[id];
     }
+    
+    Node() {std::fill(M2Llist_idx, M2Llist_idx+(27*8), -1);}
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes
   typedef std::vector<std::set<uint64_t>> Keys; //!< Vector of Morton keys of each level
