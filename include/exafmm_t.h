@@ -141,7 +141,7 @@ namespace exafmm_t {
   extern std::vector<ComplexVec> M2M_U, M2M_V;
   extern std::vector<ComplexVec> L2L_U, L2L_V;
   extern std::vector<std::vector<ComplexVec>> mat_M2M, mat_L2L;
-  extern std::vector<RealVec> mat_M2L;
+  extern std::vector<std::vector<RealVec>> mat_M2L;
 #else
   extern RealVec M2M_U, M2M_V;
   extern RealVec L2L_U, L2L_V;

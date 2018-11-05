@@ -566,7 +566,8 @@ namespace exafmm_t {
     AlignedVec zero_vec0(fftsize, 0.);
     AlignedVec zero_vec1(fftsize, 0.);
 
-    size_t mat_cnt = mat_M2L.size();
+    int level = 0;
+    size_t mat_cnt = mat_M2L[level].size();
     size_t blk1_cnt = interac_dsp.size()/mat_cnt;
     int BLOCK_SIZE = CACHE_SIZE * 2 / sizeof(real_t);
     std::vector<real_t*> IN_(BLOCK_SIZE*blk1_cnt*mat_cnt);
@@ -595,7 +596,7 @@ namespace exafmm_t {
           size_t interac_cnt  = interac_dsp1-interac_dsp0;
           real_t** IN = &IN_[BLOCK_SIZE*interac_blk1];
           real_t** OUT= &OUT_[BLOCK_SIZE*interac_blk1];
-          real_t* M = &mat_M2L[mat_indx][k*2*NCHILD*NCHILD]; // k-th freq's (row) offset in mat_M2L[mat_indx]
+          real_t* M = &mat_M2L[level][mat_indx][k*2*NCHILD*NCHILD]; // k-th freq's (row) offset in mat_M2L[mat_indx]
           for(size_t j=0; j<interac_cnt; j+=2) {
             real_t* M_   = M;
             real_t* IN0  = IN [j+0] + k*NCHILD*2;   // go to k-th freq chunk

@@ -9,7 +9,7 @@ namespace exafmm_t {
   std::vector<ComplexVec> L2L_U, L2L_V;
   std::vector<std::vector<ComplexVec>> mat_M2M, mat_L2L;
   std::vector<std::vector<RealVec>> mat_M2L_Helper;
-  std::vector<RealVec> mat_M2L;
+  std::vector<std::vector<RealVec>> mat_M2L;
 
   void PrecompCheck2Equiv() {
     real_t c[3] = {0, 0, 0};
@@ -110,40 +110,41 @@ namespace exafmm_t {
   }
 
   void PrecompM2L() {
-    //mat_M2L.resize(MAXLEVEL+1);
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int numParentRelCoord = rel_coord[M2L_Type].size();
-    int numChildRelCoord = rel_coord[M2L_Helper_Type].size();
-    mat_M2L.resize(numParentRelCoord);
-    RealVec zero_vec(n3*2, 0);
-    int l = 0;
-    #pragma omp parallel for schedule(dynamic)
-    for(int i=0; i<numParentRelCoord; i++) {
-      ivec3& parentRelCoord = rel_coord[M2L_Type][i];
-      std::vector<real_t*> M_ptr(NCHILD*NCHILD, &zero_vec[0]);
-      for(int j1=0; j1<NCHILD; j1++) {
-        for(int j2=0; j2<NCHILD; j2++) {
-          int childRelCoord[3]= { parentRelCoord[0]*2 - (j1/1)%2 + (j2/1)%2,
-                                  parentRelCoord[1]*2 - (j1/2)%2 + (j2/2)%2,
-                                  parentRelCoord[2]*2 - (j1/4)%2 + (j2/4)%2 };
-          for(int k=0; k<numChildRelCoord; k++) {
-            ivec3& childRefCoord = rel_coord[M2L_Helper_Type][k];
-            if (childRelCoord[0] == childRefCoord[0] &&
-                childRelCoord[1] == childRefCoord[1] &&
-                childRelCoord[2] == childRefCoord[2]) {
-              M_ptr[j2*NCHILD+j1] = &mat_M2L_Helper[l][k][0];
-              break;
-            }
-          }
+    mat_M2L.resize(MAXLEVEL+1);
+    // parent rel, child rel -> m2l_helper_idx
+    std::vector<std::vector<int>> index_mapping(numParentRelCoord, std::vector<int>(NCHILD*NCHILD));
+    for(int i=0; i<numParentRelCoord; ++i) {
+      for(int j1=0; j1<NCHILD; ++j1) {
+        for(int j2=0; j2<NCHILD; ++j2) {
+          ivec3& parent_rel_coord = rel_coord[M2L_Type][i];
+          ivec3  child_rel_coord;
+          child_rel_coord[0] = parent_rel_coord[0]*2 - (j1/1)%2 + (j2/1)%2;
+          child_rel_coord[1] = parent_rel_coord[1]*2 - (j1/2)%2 + (j2/2)%2;
+          child_rel_coord[2] = parent_rel_coord[2]*2 - (j1/4)%2 + (j2/4)%2;
+          int coord_hash = hash(child_rel_coord);
+          int child_rel_idx = hash_lut[M2L_Helper_Type][coord_hash];
+          int j = j2*NCHILD + j1;
+          index_mapping[i][j] = child_rel_idx;
         }
       }
-      mat_M2L[i].resize(n3*2*NCHILD*NCHILD);  // N3 by (2*NCHILD*NCHILD) matrix
-      for(int k=0; k<n3; k++) {                      // loop over frequencies
-        for(size_t j=0; j<NCHILD*NCHILD; j++) {       // loop over child's relative positions
-          int index = k*(2*NCHILD*NCHILD) + 2*j;
-          mat_M2L[i][index+0] = M_ptr[j][k*2+0]/n3;   // real
-          mat_M2L[i][index+1] = M_ptr[j][k*2+1]/n3;   // imag
+    }
+    // copy from mat_M2L_Helper to mat_M2L
+    for(int l=0; l<=MAXLEVEL; ++l) {
+      mat_M2L[l].resize(numParentRelCoord);
+      for(int i=0; i<numParentRelCoord; ++i) {
+        mat_M2L[l][i].resize(n3 * 2*NCHILD*NCHILD, 0.);  // N3 by (2*NCHILD*NCHILD) matrix
+        for(int j=0; j<NCHILD*NCHILD; j++) {       // loop over child's relative positions
+          int child_rel_idx = index_mapping[i][j];
+          if (child_rel_idx != -1) {
+            for(int k=0; k<n3; k++) {                      // loop over frequencies
+              int new_idx = k*(2*NCHILD*NCHILD) + 2*j;
+              mat_M2L[l][i][new_idx+0] = mat_M2L_Helper[l][child_rel_idx][k*2+0] / n3;   // real
+              mat_M2L[l][i][new_idx+1] = mat_M2L_Helper[l][child_rel_idx][k*2+1] / n3;   // imag
+            }
+          }
         }
       }
     }
