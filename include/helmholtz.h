@@ -67,7 +67,7 @@ namespace exafmm_t {
   void M2LSetup(std::vector<Node*>& nonleafs);
 
   void M2LListHadamard(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
-                       AlignedVec& fft_in, AlignedVec& fft_out);
+                       AlignedVec& fft_in, AlignedVec& fft_out, int level);
 
   void FFT_UpEquiv(std::vector<size_t>& fft_vec, RealVec& fft_scal,
                    ComplexVec& input_data, AlignedVec& fft_in);
@@ -75,6 +75,6 @@ namespace exafmm_t {
   void FFT_Check2Equiv(std::vector<size_t>& ifft_vec, RealVec& ifft_scal,
                        AlignedVec& fft_out, ComplexVec& output_data);
 
-  void M2L(M2LData& M2Ldata, Nodes& nodes);
+  void M2L(Nodes& nodes);
 }//end namespace
 #endif

@@ -26,7 +26,7 @@ namespace exafmm_t {
     P2P(leafs);
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
-    M2L(M2Ldata, nodes);
+    M2L(nodes);
     Profile::Toc();
     Profile::Tic("L2L", false, 5);
     #pragma omp parallel

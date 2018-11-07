@@ -131,7 +131,11 @@ namespace exafmm_t {
     std::vector<size_t> interac_vec;
     std::vector<size_t> interac_dsp;
   };
+#if HELMHOLTZ
+  extern std::vector<M2LData> M2Ldata;
+#else
   extern M2LData M2Ldata;
+#endif
 
   // Relative coordinates and interaction lists
   extern std::vector<std::vector<ivec3>> rel_coord;
