@@ -104,8 +104,6 @@ namespace exafmm_t {
     Node* Child(int id) {
       return (numChilds == 0) ? NULL : child[id];
     }
-    
-    Node() {std::fill(M2Llist_idx, M2Llist_idx+(27*8), -1);}
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes
   typedef std::vector<std::set<uint64_t>> Keys; //!< Vector of Morton keys of each level
