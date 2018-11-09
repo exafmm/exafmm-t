@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   for(size_t i=0; i<leafs.size(); i++) {
     MAXLEVEL = std::max(MAXLEVEL, leafs[i]->depth);
   }
-   
+
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
   std::vector<int> leafs_idx;
@@ -45,6 +45,7 @@ int main(int argc, char **argv) {
       }
     }
   }
+
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();

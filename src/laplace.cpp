@@ -49,7 +49,7 @@ namespace exafmm_t {
     return temp;
   }
 
-  void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+ void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
     simdvec zero((real_t)0);
     const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
@@ -84,7 +84,7 @@ namespace exafmm_t {
     //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*20);
   }
 
-void gradientP2P(RealVec& src_coord, RealVec& src_value, 
+void gradientP2P(RealVec& src_coord, RealVec& src_value,
     RealVec& trg_coord, RealVec& trg_value) {
 	//std::cout<<"src_coord  src_val  "<<src_coord.size()<<"  "<<src_value.size()<<std::endl;
 	const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
@@ -103,7 +103,7 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
     		real_t sx = src_coord[3*j+0] - tx;
 	        real_t sy = src_coord[3*j+1] - ty;
 	        real_t sz = src_coord[3*j+2] - tz;
-	        real_t r2 = sx*sx + sy*sy + sz*sz;	
+	        real_t r2 = sx*sx + sy*sy + sz*sz;
 	        real_t sv = src_value[j];
 	        if (r2 != 0)
 	        {

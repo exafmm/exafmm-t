@@ -40,7 +40,7 @@ namespace exafmm_t {
 
   void P2L(Nodes& nodes);
 
-  void M2P(Nodes &nodes, std::vector<Node*>& leafs);
+   void M2P(Nodes &nodes, std::vector<int> leafs_idx);
 
   void P2P(Nodes &nodes, std::vector<int> leafs_idx);
 
