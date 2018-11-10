@@ -113,7 +113,7 @@ namespace exafmm_t {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int numParentRelCoord = rel_coord[M2L_Type].size();
-    mat_M2L.resize(MAXLEVEL+1);
+    mat_M2L.resize(MAXLEVEL);  // skip the last level
     // parent rel, child rel -> m2l_helper_idx
     std::vector<std::vector<int>> index_mapping(numParentRelCoord, std::vector<int>(NCHILD*NCHILD));
     for(int i=0; i<numParentRelCoord; ++i) {
@@ -132,7 +132,7 @@ namespace exafmm_t {
       }
     }
     // copy from mat_M2L_Helper to mat_M2L
-    for(int l=0; l<=MAXLEVEL; ++l) {
+    for(int l=0; l<MAXLEVEL; ++l) {
       mat_M2L[l].resize(numParentRelCoord);
       for(int i=0; i<numParentRelCoord; ++i) {
         mat_M2L[l][i].resize(n3 * 2*NCHILD*NCHILD, 0.);  // N3 by (2*NCHILD*NCHILD) matrix
@@ -141,8 +141,8 @@ namespace exafmm_t {
           if (child_rel_idx != -1) {
             for(int k=0; k<n3; k++) {                      // loop over frequencies
               int new_idx = k*(2*NCHILD*NCHILD) + 2*j;
-              mat_M2L[l][i][new_idx+0] = mat_M2L_Helper[l][child_rel_idx][k*2+0] / n3;   // real
-              mat_M2L[l][i][new_idx+1] = mat_M2L_Helper[l][child_rel_idx][k*2+1] / n3;   // imag
+              mat_M2L[l][i][new_idx+0] = mat_M2L_Helper[l+1][child_rel_idx][k*2+0] / n3;   // real
+              mat_M2L[l][i][new_idx+1] = mat_M2L_Helper[l+1][child_rel_idx][k*2+1] / n3;   // imag
             }
           }
         }

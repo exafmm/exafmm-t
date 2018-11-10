@@ -498,15 +498,15 @@ namespace exafmm_t {
     int n3 = n1 * n1 * n1;
     size_t mat_cnt = rel_coord[M2L_Type].size();
     // initialize M2Ldata
-    M2Ldata.resize(MAXLEVEL+1);
+    M2Ldata.resize(MAXLEVEL);
 
-    std::vector<NodePtrs> nodes_out(MAXLEVEL+1);
+    std::vector<NodePtrs> nodes_out(MAXLEVEL);
     for(int i = 0; i < nonleafs.size(); i++) {
       nodes_out[nonleafs[i]->level].push_back(nonleafs[i]);
     }
     // construct nodes_out & nodes_in
     // NodePtrs& nodes_out = nonleafs;
-    for(int l = 0; l <= MAXLEVEL; l++) {
+    for(int l = 0; l < MAXLEVEL; l++) {
       std::set<Node*> nodes_in_;
       for(size_t i=0; i<nodes_out[l].size(); i++) {
         NodePtrs& M2Llist = nodes_out[l][i]->M2Llist;
@@ -726,7 +726,7 @@ namespace exafmm_t {
       }
     }
     size_t fftsize = 2 * 8 * n3;
-    for(int l = 0; l <= MAXLEVEL; l++) {
+    for(int l = 0; l < MAXLEVEL; l++) {
       AlignedVec fft_in(M2Ldata[l].fft_vec.size()*fftsize, 0.);
       AlignedVec fft_out(M2Ldata[l].ifft_vec.size()*fftsize, 0.);
 
