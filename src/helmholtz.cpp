@@ -499,14 +499,14 @@ namespace exafmm_t {
     size_t mat_cnt = rel_coord[M2L_Type].size();
     // initialize M2Ldata
     M2Ldata.resize(MAXLEVEL);
-
+    // construct M2L target nodes for each level
     std::vector<NodePtrs> nodes_out(MAXLEVEL);
     for(int i = 0; i < nonleafs.size(); i++) {
       nodes_out[nonleafs[i]->level].push_back(nonleafs[i]);
     }
-    // construct nodes_out & nodes_in
-    // NodePtrs& nodes_out = nonleafs;
+    // prepare for M2Ldata for each level
     for(int l = 0; l < MAXLEVEL; l++) {
+      // construct M2L source nodes for current level
       std::set<Node*> nodes_in_;
       for(size_t i=0; i<nodes_out[l].size(); i++) {
         NodePtrs& M2Llist = nodes_out[l][i]->M2Llist;
@@ -519,26 +519,20 @@ namespace exafmm_t {
       for(std::set<Node*>::iterator node=nodes_in_.begin(); node!=nodes_in_.end(); node++) {
         nodes_in.push_back(*node);
       }
-      // prepare fft displ & fft scal
-      std::vector<size_t> fft_vec(nodes_in.size());
-      std::vector<size_t> ifft_vec(nodes_out[l].size());
-      RealVec fft_scl(nodes_in.size());
-      RealVec ifft_scl(nodes_out[l].size());
+      // prepare fft displ
+      std::vector<size_t> fft_vec(nodes_in.size());       // displacement in allUpwardEquiv
+      std::vector<size_t> ifft_vec(nodes_out[l].size());  // displacement in allDnwardEquiv
       for(size_t i=0; i<nodes_in.size(); i++) {
         fft_vec[i] = nodes_in[i]->children[0]->idx * NSURF;
-        fft_scl[i] = 1;
       }
       for(size_t i=0; i<nodes_out[l].size(); i++) {
-        int level = nodes_out[l][i]->level+1;
         ifft_vec[i] = nodes_out[l][i]->children[0]->idx * NSURF;
-        // ifft_scl[i] = powf(2.0, level);
-        ifft_scl[i] = 1;
       }
       // calculate interac_vec & interac_dsp
       std::vector<size_t> interac_vec;
       std::vector<size_t> interac_dsp;
       for(size_t i=0; i<nodes_in.size(); i++) {
-       nodes_in[i]->node_id=i;
+        nodes_in[i]->node_id = i;  // node_id: node's index in nodes_in list
       }
       size_t n_blk1 = nodes_out[l].size() * sizeof(real_t) / CACHE_SIZE;
       if(n_blk1==0) n_blk1 = 1;
@@ -551,8 +545,8 @@ namespace exafmm_t {
           for(size_t i=blk1_start; i<blk1_end; i++) {
             NodePtrs& M2Llist = nodes_out[l][i]->M2Llist;
             if(M2Llist[k]) {
-              interac_vec.push_back(M2Llist[k]->node_id * fftsize);   // node_in dspl
-              interac_vec.push_back(        i           * fftsize);   // node_out dspl
+              interac_vec.push_back(M2Llist[k]->node_id * fftsize);   // node_in's displacement in fft_in
+              interac_vec.push_back(        i           * fftsize);   // node_out's displacement in fft_out
               interac_dsp_++;
             }
           }
@@ -561,8 +555,6 @@ namespace exafmm_t {
       }
       M2Ldata[l].fft_vec     = fft_vec;
       M2Ldata[l].ifft_vec    = ifft_vec;
-      M2Ldata[l].fft_scl     = fft_scl;
-      M2Ldata[l].ifft_scl    = ifft_scl;
       M2Ldata[l].interac_vec = interac_vec;
       M2Ldata[l].interac_dsp = interac_dsp;
     }
@@ -621,8 +613,7 @@ namespace exafmm_t {
     //Profile::Add_FLOP(8*8*8*(interac_vec.size()/2)*n3);
   }
 
-  void FFT_UpEquiv(std::vector<size_t>& fft_vec, RealVec& fft_scal,
-                   ComplexVec& input_data, AlignedVec& fft_in) {
+  void FFT_UpEquiv(std::vector<size_t>& fft_vec, ComplexVec& input_data, AlignedVec& fft_in) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     std::vector<size_t> map(NSURF);
@@ -655,7 +646,7 @@ namespace exafmm_t {
       for(size_t k=0; k<NSURF; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<(int)NCHILD; j0++)
-          equiv_t[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
+          equiv_t[idx+j0*n3] = upward_equiv[j0*NSURF+k];
       }
       fft_execute_dft(plan, reinterpret_cast<fft_complex*>(&equiv_t[0]), (fft_complex*)&buffer[0]);
       for(size_t j=0; j<n3; j++) {
@@ -668,8 +659,7 @@ namespace exafmm_t {
     fft_destroy_plan(plan);
   }
 
-  void FFT_Check2Equiv(std::vector<size_t>& ifft_vec, RealVec& ifft_scal,
-                       AlignedVec& fft_out, ComplexVec& output_data) {
+  void FFT_Check2Equiv(std::vector<size_t>& ifft_vec, AlignedVec& fft_out, ComplexVec& output_data) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     std::vector<size_t> map(NSURF);
@@ -706,7 +696,7 @@ namespace exafmm_t {
       for(size_t k=0; k<NSURF; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<NCHILD; j0++)
-          dnward_equiv[NSURF*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
+          dnward_equiv[NSURF*j0+k]+=buffer1[idx+j0*n3];
       }
     }
     fft_destroy_plan(plan);
@@ -730,9 +720,9 @@ namespace exafmm_t {
       AlignedVec fft_in(M2Ldata[l].fft_vec.size()*fftsize, 0.);
       AlignedVec fft_out(M2Ldata[l].ifft_vec.size()*fftsize, 0.);
 
-      FFT_UpEquiv(M2Ldata[l].fft_vec, M2Ldata[l].fft_scl, allUpwardEquiv, fft_in);
+      FFT_UpEquiv(M2Ldata[l].fft_vec, allUpwardEquiv, fft_in);
       M2LListHadamard(M2Ldata[l].interac_dsp, M2Ldata[l].interac_vec, fft_in, fft_out, l);
-      FFT_Check2Equiv(M2Ldata[l].ifft_vec, M2Ldata[l].ifft_scl, fft_out, allDnwardEquiv);
+      FFT_Check2Equiv(M2Ldata[l].ifft_vec, fft_out, allDnwardEquiv);
 
       #pragma omp parallel for collapse(2)
       for(int i=0; i<numNodes; i++) {
