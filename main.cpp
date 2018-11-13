@@ -1,6 +1,7 @@
 #include "build_tree.h"
 #include "dataset.h"
 #include "interaction_list.h"
+#include "laplace_cuda.h"
 #include "laplace.h"
 #include "precompute.h"
 #include "traverse.h"
@@ -17,6 +18,7 @@ int main(int argc, char **argv) {
   MULTIPOLE_ORDER = args.P;
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
   Profile::Enable(true);
+  cuda_init_drivers();
   RealVec src_coord, src_value;
 
   Profile::Tic("Total", true);

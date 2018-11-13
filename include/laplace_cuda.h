@@ -3,6 +3,8 @@
 #include "exafmm_t.h"
 
 namespace exafmm_t {
-   void P2PGPU(real_t* trg_coord, real_t* trg_val, real_t* src_coord, real_t* src_val, int leafs_cnt, int ncrit, int adj_cnt);
+  void cuda_init_drivers();
+
+  void P2PGPU(std::vector<int> leafs_idx, std::vector<real_t> nodes_coord, std::vector<int> nodes_coord_idx, std::vector<real_t> nodes_pt_src, std::vector<int> nodes_pt_src_idx, std::vector<int> P2Plists, std::vector<int> P2Plists_idx, std::vector<real_t> &trg_val);
 }
 #endif

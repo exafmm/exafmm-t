@@ -40,8 +40,10 @@ namespace exafmm_t {
 
   void P2L(Nodes& nodes);
 
-   void M2P(Nodes &nodes, std::vector<Node*> &leafs);
-
+  void M2P(Nodes &nodes, std::vector<Node*> &leafs);
+  
+  void p2p_test(std::vector<int> leafs_idx, std::vector<real_t> nodes_coord, std::vector<int> nodes_coord_idx, std::vector<real_t> nodes_pt_src, std::vector<int> nodes_pt_src_idx, std::vector<int> P2Plists, std::vector<int> P2Plists_idx, std::vector<real_t> &trg_val);
+  
   void P2P(Nodes &nodes, std::vector<int> leafs_idx);
 
   void M2LSetup(Nodes &nodes, std::vector<Node*>& nonleafs);

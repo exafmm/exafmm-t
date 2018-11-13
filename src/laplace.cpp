@@ -84,48 +84,45 @@ namespace exafmm_t {
     //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*20);
   }
 
-void gradientP2P(RealVec& src_coord, RealVec& src_value,
-    RealVec& trg_coord, RealVec& trg_value) {
-	//std::cout<<"src_coord  src_val  "<<src_coord.size()<<"  "<<src_value.size()<<std::endl;
-	const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
+  void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+    const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
     const real_t COEFG = -1.0/(4*2*2*6*M_PI);
-	int src_cnt = src_coord.size() / 3;
+    int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for(int i=0; i<trg_cnt; i++) {
-    	real_t tx = trg_coord[3*i+0];
-    	real_t ty = trg_coord[3*i+1];
-    	real_t tz = trg_coord[3*i+2];
-    	real_t tv0=0;
-    	real_t tv1=0;
-    	real_t tv2=0;
-    	real_t tv3=0;
-    	for(int j=0; j<src_cnt; j++) {
-    		real_t sx = src_coord[3*j+0] - tx;
-	        real_t sy = src_coord[3*j+1] - ty;
-	        real_t sz = src_coord[3*j+2] - tz;
-	        real_t r2 = sx*sx + sy*sy + sz*sz;
-	        real_t sv = src_value[j];
-	        if (r2 != 0)
-	        {
-	          	real_t invR = 1.0/sqrt(r2);
-	          	real_t invR3 = invR*invR*invR;
-	          	tv0 += invR*sv;
-	          	sv *= invR3;
-	          	tv1 += sv*sx;
-        	   	tv2 += sv*sy;
-        		tv3 += sv*sz;
-	        }
-		}
-		tv0 *= COEFP;
-		tv1 *= COEFG;
-      	tv2 *= COEFG;
-      	tv3 *= COEFG;
-    	trg_value[4*i+0] += tv0;
-    	trg_value[4*i+1] += tv1;
-    	trg_value[4*i+2] += tv2;
-    	trg_value[4*i+3] += tv3;
+      real_t tx = trg_coord[3*i+0];
+      real_t ty = trg_coord[3*i+1];
+      real_t tz = trg_coord[3*i+2];
+      real_t tv0=0;
+      real_t tv1=0;
+      real_t tv2=0;
+      real_t tv3=0;
+      for(int j=0; j<src_cnt; j++) {
+        real_t sx = src_coord[3*j+0] - tx;
+        real_t sy = src_coord[3*j+1] - ty;
+        real_t sz = src_coord[3*j+2] - tz;
+	real_t r2 = sx*sx + sy*sy + sz*sz;
+        real_t sv = src_value[j];
+	if (r2 != 0) {
+	  real_t invR = 1.0/sqrt(r2);
+	  real_t invR3 = invR*invR*invR;
+	  tv0 += invR*sv;
+	  sv *= invR3;
+	  tv1 += sv*sx;
+          tv2 += sv*sy;
+          tv3 += sv*sz;
+        }
+      }
+      tv0 *= COEFP;
+      tv1 *= COEFG;
+      tv2 *= COEFG;
+      tv3 *= COEFG;
+      trg_value[4*i+0] += tv0;
+      trg_value[4*i+1] += tv1;
+      trg_value[4*i+2] += tv2;
+      trg_value[4*i+3] += tv3;
     }
-}
+  }
 
 //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)
   void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) {
@@ -295,7 +292,8 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
     }
   }
 
-  void P2P(Nodes &nodes, std::vector<int> leafs_idx) {
+
+ void P2P(Nodes &nodes, std::vector<int> leafs_idx) {
     std::vector<real_t> nodes_coord; 
     std::vector<int>nodes_coord_idx;
     int nodes_coord_idx_cnt = 0;
@@ -324,7 +322,7 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
     }
     nodes_coord_idx.push_back(nodes_coord_idx_cnt);
     nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
-
+    int trg_val_size = 0;
     std::vector<int> targets_idx = leafs_idx;
     for(int i=0; i<targets_idx.size(); i++) {
       Node* target = &nodes[targets_idx[i]];
@@ -332,46 +330,23 @@ void gradientP2P(RealVec& src_coord, RealVec& src_value,
       P2Plists.insert(P2Plists.end(), sources_idx.begin(), sources_idx.end());
       P2Plists_idx.push_back(P2Plists_idx_cnt);
       P2Plists_idx_cnt += sources_idx.size();
+    
+      trg_val_size += target->pt_trg.size();
     }
+    std::vector<real_t> trg_val(4*nodes_coord_idx_cnt/3);
     P2Plists_idx.push_back(P2Plists_idx_cnt);
     Profile::Toc();
-
-    #pragma omp parallel for
-    for(int i=0; i<targets_idx.size(); i++) {
-      Node *target = &nodes[targets_idx[i]];
-      int target_idx = targets_idx[i];
-      int first_target_coord_idx = nodes_coord_idx[target_idx];
-      std::vector<real_t>::const_iterator first_trg_coord = nodes_coord.begin() + first_target_coord_idx;
-      int last_target_coord_idx = nodes_coord_idx[target_idx+1];
-      std::vector<real_t>::const_iterator last_trg_coord = nodes_coord.begin()+ last_target_coord_idx;
-      std::vector<real_t> trg_coord(first_trg_coord, last_trg_coord);
     
-      std::vector<real_t> trg_val(4*trg_coord.size()/3);
-      std::vector<int> sources_idx = target->P2Plist_idx;
-      
-      int first_p2plist_idx = P2Plists_idx[i];
-      int last_p2plist_idx = P2Plists_idx[i+1];
-      std::vector<int>::const_iterator start_p2plist = P2Plists.begin() + first_p2plist_idx;
-      std::vector<int>::const_iterator end_p2plist = P2Plists.begin() + last_p2plist_idx;
-      std::vector<int> p2plist(start_p2plist, end_p2plist);     
-      for(int j=0; j<p2plist.size(); j++) {
-        int first_src_coord_idx = nodes_coord_idx[p2plist[j]];
-        std::vector<real_t>::const_iterator first_src_coord = nodes_coord.begin() + first_src_coord_idx;
-        int last_src_coord_idx = nodes_coord_idx[p2plist[j]+1];
-        std::vector<real_t>::const_iterator last_src_coord = nodes_coord.begin()+ last_src_coord_idx;
-        std::vector<real_t> src_coord(first_src_coord, last_src_coord);
-
-        int first_src_val_idx = nodes_pt_src_idx[p2plist[j]];
-        std::vector<real_t>::const_iterator first_src_val = nodes_pt_src.begin() + first_src_val_idx;
-        int last_src_val_idx = nodes_pt_src_idx[p2plist[j]+1];
-        std::vector<real_t>::const_iterator last_src_val = nodes_pt_src.begin()+ last_src_val_idx;
-        std::vector<real_t> src_val(first_src_val, last_src_val);
-
-        Node* source = &nodes[p2plist[j]];
-        gradientP2P(src_coord, src_val, trg_coord, trg_val);
-        for(int k=0; k<trg_val.size(); k ++) target->pt_trg[k] = trg_val[k];
+    P2PGPU(leafs_idx, nodes_coord, nodes_coord_idx, nodes_pt_src, nodes_pt_src_idx, P2Plists, P2Plists_idx, trg_val);
+    int pt_trg_count = 0;
+    Profile::Tic("memcpy array to vec", true);
+    for(int i=0; i<targets_idx.size(); i++) {
+      Node* target = &nodes[targets_idx[i]];
+      for(int j=0;j<target->pt_trg.size();j++) {
+        target->pt_trg[j] = trg_val[pt_trg_count++];
       }
     }
+    Profile::Toc();
   }
 
   void M2LSetup(Nodes &nodes, std::vector<Node*>& nonleafs) {
