@@ -719,17 +719,15 @@ namespace exafmm_t {
     for(int l = 0; l < MAXLEVEL; l++) {
       AlignedVec fft_in(M2Ldata[l].fft_vec.size()*fftsize, 0.);
       AlignedVec fft_out(M2Ldata[l].ifft_vec.size()*fftsize, 0.);
-
       FFT_UpEquiv(M2Ldata[l].fft_vec, allUpwardEquiv, fft_in);
       M2LListHadamard(M2Ldata[l].interac_dsp, M2Ldata[l].interac_vec, fft_in, fft_out, l);
       FFT_Check2Equiv(M2Ldata[l].ifft_vec, fft_out, allDnwardEquiv);
-
-      #pragma omp parallel for collapse(2)
-      for(int i=0; i<numNodes; i++) {
-        for(int j=0; j<NSURF; j++) {
-          nodes[i].upward_equiv[j] = allUpwardEquiv[i*NSURF+j];
-          nodes[i].dnward_equiv[j] = allDnwardEquiv[i*NSURF+j];
-        }
+    }
+    #pragma omp parallel for collapse(2)
+    for(int i=0; i<numNodes; i++) {
+      for(int j=0; j<NSURF; j++) {
+        nodes[i].upward_equiv[j] = allUpwardEquiv[i*NSURF+j];
+        nodes[i].dnward_equiv[j] = allDnwardEquiv[i*NSURF+j];
       }
     }
   }
