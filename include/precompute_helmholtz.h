@@ -99,7 +99,7 @@ namespace exafmm_t {
         for(int d=0; d<3; d++) {
           coord[d] = rel_coord[M2L_Helper_Type][i][d] * R0 * powf(0.5, l-1);
         }
-        RealVec conv_coord = conv_grid(coord, 0);
+        RealVec conv_coord = conv_grid(coord, l);
         ComplexVec conv_poten(n3);
         kernelMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
         mat_M2L_Helper[l][i].resize(2*n3);
