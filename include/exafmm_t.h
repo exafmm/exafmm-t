@@ -126,7 +126,6 @@ namespace exafmm_t {
   struct M2LData {
     std::vector<size_t> fft_vec;   // source's first child's upward_equiv's displacement
     std::vector<size_t> ifft_vec;  // target's first child's dnward_equiv's displacement
-    RealVec fft_scl;
     RealVec ifft_scl;
     std::vector<size_t> interac_vec;
     std::vector<size_t> interac_dsp;

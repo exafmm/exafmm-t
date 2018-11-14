@@ -412,11 +412,9 @@ namespace exafmm_t {
     // prepare fft displ & fft scal
     std::vector<size_t> fft_vec(nodes_in.size());
     std::vector<size_t> ifft_vec(nodes_out.size());
-    RealVec fft_scl(nodes_in.size());
     RealVec ifft_scl(nodes_out.size());
     for(size_t i=0; i<nodes_in.size(); i++) {
       fft_vec[i] = nodes_in[i]->children[0]->idx * NSURF;
-      fft_scl[i] = 1;
     }
     for(size_t i=0; i<nodes_out.size(); i++) {
       int level = nodes_out[i]->level+1;
@@ -450,7 +448,6 @@ namespace exafmm_t {
     }
     M2Ldata.fft_vec     = fft_vec;
     M2Ldata.ifft_vec    = ifft_vec;
-    M2Ldata.fft_scl     = fft_scl;
     M2Ldata.ifft_scl    = ifft_scl;
     M2Ldata.interac_vec = interac_vec;
     M2Ldata.interac_dsp = interac_dsp;
@@ -508,7 +505,7 @@ namespace exafmm_t {
     //Profile::Add_FLOP(8*8*8*(interac_vec.size()/2)*n3);
   }
 
-  void FFT_UpEquiv(std::vector<size_t>& fft_vec, RealVec& fft_scal,
+  void FFT_UpEquiv(std::vector<size_t>& fft_vec,
                    ComplexVec& input_data, AlignedVec& fft_in) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -542,7 +539,7 @@ namespace exafmm_t {
       for(size_t k=0; k<NSURF; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<(int)NCHILD; j0++)
-          equiv_t[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
+          equiv_t[idx+j0*n3] = upward_equiv[j0*NSURF+k];
       }
       fft_execute_dft(plan, reinterpret_cast<fft_complex*>(&equiv_t[0]), (fft_complex*)&buffer[0]);
       for(size_t j=0; j<n3; j++) {
@@ -599,7 +596,7 @@ namespace exafmm_t {
     fft_destroy_plan(plan);
   }
   
-  void M2L(M2LData& M2Ldata, Nodes& nodes) {
+  void M2L(Nodes& nodes) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     size_t numNodes = nodes.size();
@@ -616,7 +613,7 @@ namespace exafmm_t {
     AlignedVec fft_in(M2Ldata.fft_vec.size()*fftsize, 0.);
     AlignedVec fft_out(M2Ldata.ifft_vec.size()*fftsize, 0.);
 
-    FFT_UpEquiv(M2Ldata.fft_vec, M2Ldata.fft_scl, allUpwardEquiv, fft_in);
+    FFT_UpEquiv(M2Ldata.fft_vec, allUpwardEquiv, fft_in);
     M2LListHadamard(M2Ldata.interac_dsp, M2Ldata.interac_vec, fft_in, fft_out);
     FFT_Check2Equiv(M2Ldata.ifft_vec, M2Ldata.ifft_scl, fft_out, allDnwardEquiv);
 
