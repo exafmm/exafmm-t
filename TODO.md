@@ -16,3 +16,5 @@
 - [ ] Stokes
 - [ ] CI, unit tests
 - [ ] configure files
+
+- remove fft_scal and ifft_scal from M2Ldata for Laplace as well (calculate on-the-fly)
