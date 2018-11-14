@@ -158,5 +158,6 @@ namespace exafmm_t {
   extern vec3 Xmin0;    // coordinates of root
   extern real_t R0;     // radius of root
   const int NCHILD = 8;
+  extern real_t MU;
 }
 #endif

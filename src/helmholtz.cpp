@@ -4,6 +4,7 @@ namespace exafmm_t {
   int MULTIPOLE_ORDER;
   int NSURF;
   int MAXLEVEL;
+  real_t MU;
   std::vector<M2LData> M2Ldata;
 
   // mixed-type gemm: A is complex_t matrix; B is real_t matrix
@@ -100,6 +101,7 @@ namespace exafmm_t {
     return temp;
   }
 
+#if 0
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
@@ -198,7 +200,7 @@ namespace exafmm_t {
       }
     }
   }
-#if 0
+#else
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     int newton_scale = 1;
@@ -207,7 +209,7 @@ namespace exafmm_t {
     }
     const real_t COEF = 1.0/(newton_scale*4*M_PI);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
-    simdvec mu(20*M_PI/newton_scale);
+    simdvec mu(MU*M_PI/newton_scale);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for(int t=0; t<trg_cnt; t+=NSIMD) {
@@ -254,7 +256,7 @@ namespace exafmm_t {
     }
     const real_t COEF = 1.0/(newton_scale*4*M_PI);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
-    simdvec mu(20*M_PI/newton_scale);
+    simdvec mu(MU*M_PI/newton_scale);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for(int t=0; t<trg_cnt; t+=NSIMD) {
