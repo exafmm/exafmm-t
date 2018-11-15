@@ -25,7 +25,7 @@ namespace exafmm_t {
 #if FLOAT
     scgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #else
-    dcgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
+    dzgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #endif
   }
 

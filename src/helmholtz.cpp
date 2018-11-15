@@ -200,7 +200,6 @@ namespace exafmm_t {
       }
     }
   }
-#else
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     int newton_scale = 1;
@@ -310,6 +309,64 @@ namespace exafmm_t {
         trg_value[4*(t+k)+1] += complex_t(F0_real[k], F0_imag[k]);
         trg_value[4*(t+k)+2] += complex_t(F1_real[k], F1_imag[k]);
         trg_value[4*(t+k)+3] += complex_t(F2_real[k], F2_imag[k]);
+      }
+    }
+  }
+#else
+
+  void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
+    complex_t I(0, 1);
+    complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
+    int src_cnt = src_coord.size() / 3;
+    int trg_cnt = trg_coord.size() / 3;
+    for (int i=0; i<trg_cnt; i++) {
+      complex_t p = 0;
+      cvec3 F = complex_t(0.,0.);
+      for (int j=0; j<src_cnt; j++) {
+        vec3 dX;
+        for (int d=0; d<3; d++) dX[d] = trg_coord[3*i+d] - src_coord[3*j+d];
+        real_t R2 = norm(dX);
+        if (R2 != 0) {
+          real_t R = std::sqrt(R2);
+          complex_t pij = std::exp(I * R * WAVEK) * src_value[j] / R;
+          complex_t coef = (1/R2 - I*WAVEK/R) * pij;
+          p += pij;
+          // for (int d=0; d<3; d++) {
+            // F[d] += coef * dX[d];
+          // }
+        }
+      }
+      trg_value[i] += p;
+    }
+  }
+
+  void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
+    complex_t I(0, 1);
+    complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
+    int src_cnt = src_coord.size() / 3;
+    int trg_cnt = trg_coord.size() / 3;
+    for (int i=0; i<trg_cnt; i++) {
+      complex_t p = 0;
+      cvec3 F = complex_t(0.,0.);
+      for (int j=0; j<src_cnt; j++) {
+        vec3 dX;
+        for (int d=0; d<3; d++) dX[d] = trg_coord[3*i+d] - src_coord[3*j+d];
+        real_t R2 = norm(dX);
+        if (R2 != 0) {
+          real_t R = std::sqrt(R2);
+          complex_t pij = std::exp(I * R * WAVEK) * src_value[j] / R;
+          complex_t coef = (1/R2 - I*WAVEK/R) * pij;
+          p += pij;
+          for (int d=0; d<3; d++) {
+            F[d] += coef * dX[d];
+          }
+        }
+      }
+      trg_value[i] += p;
+      // Bi[i].F += F;
+      for (int d=0; d<3; d++) {
+        // F[d] += coef * dX[d];
+        trg_value[4*i+d] += F[d];
       }
     }
   }
