@@ -104,7 +104,7 @@ namespace exafmm_t {
 #if 0
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
-    const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    const real_t COEF = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
@@ -143,7 +143,7 @@ namespace exafmm_t {
   void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     const real_t COEF = 1.0/(16*4*M_PI); 
-    const real_t COEFG = -1.0/(256*16*4*M_PI); 
+    const real_t COEFG = -1.0/(16*16*16*4*M_PI);
     simdvec coef(COEF);
     simdvec coefg(COEFG);
     int src_cnt = src_coord.size() / 3;
@@ -200,6 +200,7 @@ namespace exafmm_t {
       }
     }
   }
+
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     int newton_scale = 1;
@@ -313,15 +314,15 @@ namespace exafmm_t {
     }
   }
 #else
-
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
-    complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
+    //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
+    real_t WAVEK = 0.01 / (2*M_PI);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
-      complex_t p = 0;
-      cvec3 F = complex_t(0.,0.);
+      complex_t p = complex_t(0., 0.);
+      cvec3 F = complex_t(0., 0.);
       for (int j=0; j<src_cnt; j++) {
         vec3 dX;
         for (int d=0; d<3; d++) dX[d] = trg_coord[3*i+d] - src_coord[3*j+d];
@@ -331,9 +332,6 @@ namespace exafmm_t {
           complex_t pij = std::exp(I * R * WAVEK) * src_value[j] / R;
           complex_t coef = (1/R2 - I*WAVEK/R) * pij;
           p += pij;
-          // for (int d=0; d<3; d++) {
-            // F[d] += coef * dX[d];
-          // }
         }
       }
       trg_value[i] += p;
@@ -342,12 +340,13 @@ namespace exafmm_t {
 
   void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
-    complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
+    // complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
+    real_t WAVEK = 0.01 / (2*M_PI);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
-      complex_t p = 0;
-      cvec3 F = complex_t(0.,0.);
+      complex_t p = complex_t(0., 0.);
+      cvec3 F = complex_t(0., 0.);
       for (int j=0; j<src_cnt; j++) {
         vec3 dX;
         for (int d=0; d<3; d++) dX[d] = trg_coord[3*i+d] - src_coord[3*j+d];
@@ -362,16 +361,14 @@ namespace exafmm_t {
           }
         }
       }
-      trg_value[i] += p;
-      // Bi[i].F += F;
-      for (int d=0; d<3; d++) {
-        // F[d] += coef * dX[d];
-        trg_value[4*i+d] += F[d];
-      }
+      trg_value[4*i+0] += p;
+      trg_value[4*i+1] += F[0];
+      trg_value[4*i+2] += F[1];
+      trg_value[4*i+3] += F[2];
     }
   }
-#endif
- 
+#endif 
+
   void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, complex_t* k_out) {
     ComplexVec src_value(1, complex_t(1,0));
     RealVec trg_coord(r_trg, r_trg+3*trg_cnt);
