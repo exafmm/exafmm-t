@@ -95,7 +95,7 @@ namespace exafmm_t {
     ComplexVec temp(vec.size());
     for(int i=0; i<m; i++) {
       for(int j=0; j<n; j++) {
-        temp[j*m+i] = vec[i*n+j];
+        temp[j*m+i] = std::conj(vec[i*n+j]);
       }
     }
     return temp;
@@ -200,7 +200,7 @@ namespace exafmm_t {
       }
     }
   }
-
+/*
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     int newton_scale = 1;
@@ -313,11 +313,12 @@ namespace exafmm_t {
       }
     }
   }
+*/
 #else
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
     //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
-    real_t WAVEK = 0.01 / (2*M_PI);
+    real_t WAVEK = 20*M_PI;
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
@@ -340,8 +341,8 @@ namespace exafmm_t {
 
   void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
-    // complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
-    real_t WAVEK = 0.01 / (2*M_PI);
+    //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
+    real_t WAVEK = 20*M_PI;
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
