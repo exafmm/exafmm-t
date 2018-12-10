@@ -102,6 +102,7 @@ namespace exafmm_t {
   }
 
 #if 0
+#if LAPLACE_COMPLEX
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     const real_t COEF = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
@@ -200,13 +201,10 @@ namespace exafmm_t {
       }
     }
   }
-/*
+#endif
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
-    int newton_scale = 1;
-    for(int i=0; i<2; i++) {
-      newton_scale = 2*newton_scale*newton_scale*newton_scale;
-    }
+    int newton_scale = 16;      // from 2-step Newton method
     const real_t COEF = 1.0/(newton_scale*4*M_PI);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
     simdvec mu(MU*M_PI/newton_scale);
@@ -313,12 +311,12 @@ namespace exafmm_t {
       }
     }
   }
-*/
+
 #else
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
     //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
-    real_t WAVEK = 20*M_PI;
+    real_t WAVEK = 0.1;
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
@@ -329,7 +327,13 @@ namespace exafmm_t {
         for (int d=0; d<3; d++) dX[d] = trg_coord[3*i+d] - src_coord[3*j+d];
         real_t R2 = norm(dX);
         if (R2 != 0) {
-          real_t R = std::sqrt(R2);
+          // real_t R = std::sqrt(R2);
+          // newton iteration
+          real_t invR = 1 / std::sqrt(R2);  // initial guess
+          invR *= 3 - R2*invR*invR;
+          invR *= 12 - R2*invR*invR;        // two iterations
+          invR /= 16;                       // add back the coefficient in Newton iterations
+          real_t R = 1 / invR;
           complex_t pij = std::exp(I * R * WAVEK) * src_value[j] / R;
           complex_t coef = (1/R2 - I*WAVEK/R) * pij;
           p += pij;
@@ -342,7 +346,7 @@ namespace exafmm_t {
   void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
     //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
-    real_t WAVEK = 20*M_PI;
+    real_t WAVEK = 0.1;
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
@@ -353,7 +357,13 @@ namespace exafmm_t {
         for (int d=0; d<3; d++) dX[d] = trg_coord[3*i+d] - src_coord[3*j+d];
         real_t R2 = norm(dX);
         if (R2 != 0) {
-          real_t R = std::sqrt(R2);
+          // real_t R = std::sqrt(R2);
+          // newton iteration
+          real_t invR = 1 / std::sqrt(R2);  // initial guess
+          invR *= 3 - R2*invR*invR;
+          invR *= 12 - R2*invR*invR;        // two iterations
+          invR /= 16;                       // add back the coefficient in Newton iterations
+          real_t R = 1 / invR;
           complex_t pij = std::exp(I * R * WAVEK) * src_value[j] / R;
           complex_t coef = (1/R2 - I*WAVEK/R) * pij;
           p += pij;
