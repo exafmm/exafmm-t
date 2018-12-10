@@ -14,7 +14,7 @@
 #include "traverse.h"
 
 using namespace exafmm_t;
-
+using namespace std;
 int main(int argc, char **argv) {
   // MU = 0;
   Args args(argc, argv);
@@ -26,7 +26,16 @@ int main(int argc, char **argv) {
 
   Profile::Tic("Total");
   Bodies sources = initBodies(args.numBodies, args.distribution, 0);
-  Bodies targets = initBodies(args.numBodies, args.distribution, 0);
+  // Bodies targets = initBodies(args.numBodies, args.distribution, 0);
+  Bodies targets = sources;
+
+  // check distribution
+#if 0
+  for(int i=0; i<args.numBodies; i++) {
+    cout << sources[i].X[0] << " " << sources[i].X[1] << " " << sources[i].X[2] << std::endl;
+  }
+#endif
+
   Profile::Tic("Build Tree");
   getBounds(sources, targets, Xmin0, R0);
   NodePtrs leafs, nonleafs;
