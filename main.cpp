@@ -34,6 +34,9 @@ int main(int argc, char **argv) {
   for(int i=0; i<args.numBodies; i++) {
     cout << sources[i].X[0] << " " << sources[i].X[1] << " " << sources[i].X[2] << std::endl;
   }
+  for(int i=0; i<args.numBodies; i++) {
+    cout << sources[i].q << endl;
+  }
 #endif
 
   Profile::Tic("Build Tree");

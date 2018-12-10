@@ -5,7 +5,7 @@ N = 10000, ncrit = 300, max_level=2, Random uniform distribution
 
 checklist:
 - [ ] check precomputation matrix
-- [ ] check particle coordinates and charges
+- [x] check particle coordinates and charges
 - [ ] check P2P result
 - [ ] compare 2:1 tree and nodes
 - [ ] check leafs' upward_equiv after P2M
