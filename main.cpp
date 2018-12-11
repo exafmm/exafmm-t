@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     cout << sources[i].q << endl;
   }
 #endif
-#if 1
+#if 0
   // check P2P result
   int sample_size = 10;
   RealVec scoord, tcoord;
