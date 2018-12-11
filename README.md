@@ -7,7 +7,7 @@ checklist:
 - [ ] check precomputation matrix
 - [x] check particle coordinates and charges
 - [x] check P2P result
-- [ ] compare 2:1 tree and nodes
+- [x] compare 2:1 tree and nodes
 - [ ] check leafs' upward_equiv after P2M
 - [ ] check nonleafs's upward_equiv after M2M 
 - [ ] check interaction list

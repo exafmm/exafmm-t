@@ -66,11 +66,21 @@ int main(int argc, char **argv) {
 #endif 
 
   Profile::Tic("Build Tree");
-  getBounds(sources, targets, Xmin0, R0);
+  // getBounds(sources, targets, Xmin0, R0);
+  Xmin0 = 0.;
+  R0 = 0.5;
   NodePtrs leafs, nonleafs;
   Nodes nodes = buildTree(sources, targets, Xmin0, R0, leafs, nonleafs, args);
   balanceTree(nodes, sources, targets, Xmin0, R0, leafs, nonleafs, args);
   Profile::Toc();
+
+#if 0
+  // check nodes and tree
+  for(int i=0; i<nodes.size(); i++) {
+    cout << i << " " << nodes[i].level << " " << nodes[i].octant << " " << nodes[i].numTargets << endl;
+  }
+#endif
+
   initRelCoord();
   Profile::Tic("Precomputation");
   Precompute();
