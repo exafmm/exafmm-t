@@ -43,7 +43,7 @@ namespace exafmm_t {
       L2L_V[level].resize(NSURF*NSURF);
       L2L_U[level] = VT;
       gemm(NSURF, NSURF, NSURF, &U[0], &S[0], &(L2L_V[level][0]));
-#if 1
+#if 0
       // check M2M_U, M2M_V, L2L_U, L2L_V
       std::cout << "level: " << level << std::endl;
       for(int i = 0; i < NSURF*NSURF; i++) {
@@ -59,7 +59,7 @@ namespace exafmm_t {
     real_t parent_coord[3] = {0, 0, 0};
     for(int level = 0; level <= MAXLEVEL; level++) {
       RealVec parent_up_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
-      real_t s = R0 * powf(0.5, level+2);
+      real_t s = R0 * powf(0.5, level+1);
 
       int numRelCoord = rel_coord[M2M_Type].size();
       mat_M2M[level].resize(numRelCoord);
