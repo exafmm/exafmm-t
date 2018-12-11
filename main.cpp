@@ -29,8 +29,8 @@ int main(int argc, char **argv) {
   // Bodies targets = initBodies(args.numBodies, args.distribution, 0);
   Bodies targets = sources;
 
-  // check distribution
 #if 0
+  // check distribution
   for(int i=0; i<args.numBodies; i++) {
     cout << sources[i].X[0] << " " << sources[i].X[1] << " " << sources[i].X[2] << std::endl;
   }
@@ -38,6 +38,32 @@ int main(int argc, char **argv) {
     cout << sources[i].q << endl;
   }
 #endif
+#if 1
+  // check P2P result
+  int sample_size = 10;
+  RealVec scoord, tcoord;
+  ComplexVec svalue, tvalue;
+
+  for(int i=0; i<sample_size; i++) {
+    for(int d=0; d<3; d++) {
+      tcoord.push_back(targets[i].X[d]);
+    }
+  }
+
+  for(int i=0; i<args.numBodies; i++) {
+    for(int d=0; d<3; d++) {
+      scoord.push_back(sources[i].X[d]);
+    }
+    svalue.push_back(sources[i].q);
+  }
+
+  tvalue.resize(sample_size, 0.);
+  potentialP2P(scoord, svalue, tcoord, tvalue);
+
+  for(int i=0; i<sample_size; i++) {
+    cout << tvalue[i] << endl;
+  }
+#endif 
 
   Profile::Tic("Build Tree");
   getBounds(sources, targets, Xmin0, R0);

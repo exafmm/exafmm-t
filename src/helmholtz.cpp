@@ -316,7 +316,7 @@ namespace exafmm_t {
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
     //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
-    real_t WAVEK = 0.1;
+    real_t WAVEK = 20*M_PI;
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
@@ -339,14 +339,14 @@ namespace exafmm_t {
           p += pij;
         }
       }
-      trg_value[i] += p;
+      trg_value[i] += p / (4*M_PI);
     }
   }
 
   void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
     //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
-    real_t WAVEK = 0.1;
+    real_t WAVEK = 20*M_PI;
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
@@ -372,10 +372,10 @@ namespace exafmm_t {
           }
         }
       }
-      trg_value[4*i+0] += p;
-      trg_value[4*i+1] += F[0];
-      trg_value[4*i+2] += F[1];
-      trg_value[4*i+3] += F[2];
+      trg_value[4*i+0] += p / (4*M_PI);
+      trg_value[4*i+1] += F[0] / (4*M_PI);
+      trg_value[4*i+2] += F[1] / (4*M_PI);
+      trg_value[4*i+3] += F[2] / (4*M_PI);
     }
   }
 #endif 
