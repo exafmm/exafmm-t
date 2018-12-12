@@ -91,6 +91,20 @@ int main(int argc, char **argv) {
   Profile::Toc();
   M2LSetup(nonleafs);
   upwardPass(nodes, leafs);
+#if 0
+  // check root's upward equiv after upward pass
+  Node& root = nodes[0];
+  for(int i=0; i<root.upward_equiv.size(); i++) {
+    cout << i << " " << root.upward_equiv[i] << endl;
+  }
+#endif
+#if 0
+  // check level 1 node upward_equiv after upward pass
+  Node& node = nodes[8];   // lvl 1, octant=7
+  for(int i=0; i<node.upward_equiv.size(); i++) {
+    cout << i << " " << node.upward_equiv[i] << endl;
+  }
+#endif
   downwardPass(nodes, leafs);
   Profile::Toc();
   RealVec error = verify(leafs);
