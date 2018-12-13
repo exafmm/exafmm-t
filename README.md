@@ -11,6 +11,6 @@ checklist:
 - [x] check leafs' upward_equiv after P2M
 - [x] check nonleafs's upward_equiv after M2M 
 - [ ] check interaction list
-- [ ] check downward check after M2L
+- [x] check downward check after M2L
 - [ ] check downward check after L2L
 - [ ] check potential after L2P & P2P

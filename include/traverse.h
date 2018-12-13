@@ -28,6 +28,13 @@ namespace exafmm_t {
     Profile::Tic("M2L", false, 5);
     M2L(nodes);
     Profile::Toc();
+#if 0
+  // check level 2 node dnward check after M2L
+  Node& node = nodes[9];   // lvl 2, octant=0, parent's octant = 0
+  for(int i=0; i<node.dnward_equiv.size(); i++) {
+    cout << i << " " << node.dnward_equiv[i] << endl;
+  }
+#endif
     Profile::Tic("L2L", false, 5);
     #pragma omp parallel
     #pragma omp single nowait
