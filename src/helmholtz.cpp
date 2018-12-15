@@ -487,7 +487,8 @@ namespace exafmm_t {
         equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->Xmin[1];
         equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->Xmin[2];
       }
-      gradientP2P(equivCoord, leaf->dnward_equiv, leaf->trg_coord, leaf->trg_value);
+      // gradientP2P(equivCoord, leaf->dnward_equiv, leaf->trg_coord, leaf->trg_value);
+      potentialP2P(equivCoord, leaf->dnward_equiv, leaf->trg_coord, leaf->trg_value);
     }
   }
 
@@ -555,7 +556,8 @@ namespace exafmm_t {
       NodePtrs& sources = target->P2Plist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
-        gradientP2P(source->src_coord, source->src_value, target->trg_coord, target->trg_value);
+        // gradientP2P(source->src_coord, source->src_value, target->trg_coord, target->trg_value);
+        potentialP2P(source->src_coord, source->src_value, target->trg_coord, target->trg_value);
       }
     }
   }

@@ -105,6 +105,15 @@ int main(int argc, char **argv) {
     cout << i << " " << node.upward_equiv[i] << endl;
   }
 #endif
+#if 0
+  // check target's potential
+  Node& node = nodes[9];   // lvl 2, octant=0, parent's octant = 0
+  cout << node.is_leaf << " " << node.numTargets << endl;
+  cout << node.numTargets << " " << node.trg_value.size() << endl;
+  for(int i=0; i<node.numTargets; i++) {
+    cout << i << " " << node.trg_value[i] << endl;
+  }
+#endif
   downwardPass(nodes, leafs);
   Profile::Toc();
   RealVec error = verify(leafs);

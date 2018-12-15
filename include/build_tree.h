@@ -86,7 +86,8 @@ namespace exafmm_t {
     if (node->numSources<=args.ncrit && node->numTargets<=args.ncrit && isLeafKey) {
       node->is_leaf = true;
 #if COMPLEX
-      node->trg_value.resize(node->numTargets*4, complex_t(0.,0.));   // initialize target result vector
+      // node->trg_value.resize(node->numTargets*4, complex_t(0.,0.));   // initialize target result vector
+      node->trg_value.resize(node->numTargets, complex_t(0.,0.));   // initialize target result vector
 #else
       node->trg_value.resize(node->numTargets*4, 0.);   // initialize target result vector
 #endif
