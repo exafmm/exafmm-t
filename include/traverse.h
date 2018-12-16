@@ -28,46 +28,14 @@ namespace exafmm_t {
     Profile::Tic("M2L", false, 5);
     M2L(nodes);
     Profile::Toc();
-#if 0
-  // check level 2 node dnward check after M2L
-  Node& node = nodes[9];   // lvl 2, octant=0, parent's octant = 0
-  for(int i=0; i<node.dnward_equiv.size(); i++) {
-    cout << i << " " << node.dnward_equiv[i] << endl;
-  }
-#endif
     Profile::Tic("L2L", false, 5);
     #pragma omp parallel
     #pragma omp single nowait
     L2L(&nodes[0]);
     Profile::Toc();
-#if 0
-  // check level 2 node dnward check after L2L
-  Node& node = nodes[9];   // lvl 2, octant=0, parent's octant = 0
-  for(int i=0; i<node.dnward_equiv.size(); i++) {
-    cout << i << " " << node.dnward_equiv[i] << endl;
-  }
-#endif
-#if 0
-  // check target's potential before L2P (after P2P)
-  Node& node = nodes[9];   // lvl 2, octant=0, parent's octant = 0
-  cout << node.is_leaf << " " << node.numTargets << endl;
-  cout << node.numTargets << " " << node.trg_value.size() << endl;
-  for(int i=0; i<node.numTargets; i++) {
-    cout << i << " " << node.trg_coord[3*i] << " " << node.trg_value[i] << endl;
-  }
-#endif
     Profile::Tic("L2P", false, 5);
     L2P(leafs);
     Profile::Toc();
-#if 0
-  // check target's potential after L2P
-  Node& node = nodes[9];   // lvl 2, octant=0, parent's octant = 0
-  cout << node.is_leaf << " " << node.numTargets << endl;
-  cout << node.numTargets << " " << node.trg_value.size() << endl;
-  for(int i=0; i<node.numTargets; i++) {
-    cout << i << " " << node.trg_value[i] << endl;
-  }
-#endif
   }
 
   RealVec verify(NodePtrs& leafs) {

@@ -45,13 +45,6 @@ namespace exafmm_t {
       L2L_U[level] = transpose(V, NSURF, NSURF);
       ComplexVec UTH = transpose(UH, NSURF, NSURF);
       gemm(NSURF, NSURF, NSURF, &UTH[0], &S[0], &(L2L_V[level][0]));
-#if 0
-      // check M2M_U, M2M_V, L2L_U, L2L_V
-      std::cout << "level: " << level << std::endl;
-      for(int i = 0; i < NSURF*NSURF; i++) {
-        std::cout << M2M_U[level][i] << " , " << M2M_V[level][i] << " , " << L2L_U[level][i] << " , " << L2L_V[level][i] << std::endl;
-      }
-#endif
     }
   }
 
