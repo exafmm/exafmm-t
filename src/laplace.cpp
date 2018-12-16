@@ -349,15 +349,15 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  void M2LSetup(Nodes &nodes, std::vector<Node*>& nonleafs) {
+  void M2LSetup(Nodes &nodes, std::vector<int> nonleafs_idx) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3_ = n1 * n1 * (n1/2 + 1);
     size_t mat_cnt = rel_coord[M2L_Type].size();
     // construct nodes_out & nodes_in
-    std::vector<Node*>& nodes_out = nonleafs;
+    std::vector<int> nodes_out_idx = nonleafs_idx;
     std::set<Node*> nodes_in_;
-    for(size_t i=0; i<nodes_out.size(); i++) {
-      std::vector<int> M2Llist_idx = nodes_out[i]->M2Llist_idx;
+    for(size_t i=0; i<nodes_out_idx.size(); i++) {
+      std::vector<int> M2Llist_idx = nodes[nodes_out_idx[i]].M2Llist_idx;
       for(size_t k=0; k<mat_cnt; k++) {
         if(M2Llist_idx[k]!=-1)
           nodes_in_.insert(&nodes[M2Llist_idx[k]]);
@@ -369,16 +369,16 @@ namespace exafmm_t {
     }
     // prepare fft displ & fft scal
     std::vector<size_t> fft_vec(nodes_in.size());
-    std::vector<size_t> ifft_vec(nodes_out.size());
+    std::vector<size_t> ifft_vec(nodes_out_idx.size());
     RealVec fft_scl(nodes_in.size());
-    RealVec ifft_scl(nodes_out.size());
+    RealVec ifft_scl(nodes_out_idx.size());
     for(size_t i=0; i<nodes_in.size(); i++) {
       fft_vec[i] = nodes_in[i]->child[0]->idx * NSURF;
       fft_scl[i] = 1;
     }
-    for(size_t i=0; i<nodes_out.size(); i++) {
-      int depth = nodes_out[i]->depth+1;
-      ifft_vec[i] = nodes_out[i]->child[0]->idx * NSURF;
+    for(size_t i=0; i<nodes_out_idx.size(); i++) {
+      int depth = nodes[nodes_out_idx[i]].depth+1;
+      ifft_vec[i] = nodes[nodes_out_idx[i]].child[0]->idx * NSURF;
       ifft_scl[i] = powf(2.0, depth);
     }
     // calculate interac_vec & interac_dsp
@@ -387,16 +387,16 @@ namespace exafmm_t {
     for(size_t i=0; i<nodes_in.size(); i++) {
      nodes_in[i]->node_id=i;
     }
-    size_t n_blk1 = nodes_out.size() * sizeof(real_t) / CACHE_SIZE;
+    size_t n_blk1 = nodes_out_idx.size() * sizeof(real_t) / CACHE_SIZE;
     if(n_blk1==0) n_blk1 = 1;
     size_t interac_dsp_ = 0;
     size_t fftsize = 2 * 8 * n3_;
     for(size_t blk1=0; blk1<n_blk1; blk1++) {
-      size_t blk1_start=(nodes_out.size()* blk1   )/n_blk1;
-      size_t blk1_end  =(nodes_out.size()*(blk1+1))/n_blk1;
+      size_t blk1_start=(nodes_out_idx.size()* blk1   )/n_blk1;
+      size_t blk1_end  =(nodes_out_idx.size()*(blk1+1))/n_blk1;
       for(size_t k=0; k<mat_cnt; k++) {
         for(size_t i=blk1_start; i<blk1_end; i++) {
-          std::vector<int>& M2Llist_idx = nodes_out[i]->M2Llist_idx;
+          std::vector<int>& M2Llist_idx = nodes[nodes_out_idx[i]].M2Llist_idx;
           if(M2Llist_idx[k]!=-1) {
             interac_vec.push_back(nodes[M2Llist_idx[k]].node_id * fftsize);   // node_in dspl
             interac_vec.push_back(        i           * fftsize);   // node_out dspl

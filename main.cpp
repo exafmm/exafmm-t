@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
-  std::vector<int> leafs_idx;
+  std::vector<int> leafs_idx, nonleafs_idx;
   for(int i=0; i<nodes.size(); i++) {
     for(int d=0; d<3; d++) {
       nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
         nodes[i].pt_coord.push_back(B->X[2]);
 	nodes[i].pt_src.push_back(B->q);
       }
-    }
+    } else nonleafs_idx.push_back(nodes[i].idx);
   }
 
   initRelCoord();    // initialize relative coords
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
   Profile::Toc();
   setColleagues(nodes);
   buildList(nodes);
-  M2LSetup(nodes, nonleafs);
+  M2LSetup(nodes, nonleafs_idx);
   upwardPass(nodes, leafs);
   downwardPass(nodes, leafs, leafs_idx);
   Profile::Toc();
