@@ -15,7 +15,7 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx) {
+  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets) {
     Profile::Tic("P2L", false, 5);
     P2L(nodes);
     Profile::Toc();
@@ -26,7 +26,7 @@ namespace exafmm_t {
     P2P(nodes, leafs_idx);
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
-    M2L(M2Ldata, nodes);
+    M2L(nodes, M2Lsources, M2Ltargets);
     Profile::Toc();
     Profile::Tic("L2L", false, 5);
     #pragma omp parallel

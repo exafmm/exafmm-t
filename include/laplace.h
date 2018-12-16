@@ -42,22 +42,12 @@ namespace exafmm_t {
 
   void M2P(Nodes &nodes, std::vector<Node*> &leafs);
   
-  void p2p_test(std::vector<int> leafs_idx, std::vector<real_t> nodes_coord, std::vector<int> nodes_coord_idx, std::vector<real_t> nodes_pt_src, std::vector<int> nodes_pt_src_idx, std::vector<int> P2Plists, std::vector<int> P2Plists_idx, std::vector<real_t> &trg_val);
-  
   void P2P(Nodes &nodes, std::vector<int> leafs_idx);
-
-  void M2LSetup(Nodes &nodes, std::vector<int> nonleafs_idx);
-
-  void M2LListHadamard(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
-                       AlignedVec& fft_in, AlignedVec& fft_out);
-
-  void FFT_UpEquiv(std::vector<size_t>& fft_vec, RealVec& fft_scal,
-                   RealVec& input_data, AlignedVec& fft_in);
-
-  void FFT_Check2Equiv(std::vector<size_t>& ifft_vec, RealVec& ifft_scal,
-                       AlignedVec& fft_out, RealVec& output_data);
 
   void M2L(M2LData& M2Ldata, Nodes& nodes);
 
+  void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets);
+
+  void hadamardProduct(RealVec& kernel, AlignedVec& equiv, AlignedVec& check);
 }//end namespace
 #endif

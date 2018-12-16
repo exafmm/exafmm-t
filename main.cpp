@@ -47,16 +47,15 @@ int main(int argc, char **argv) {
       }
     } else nonleafs_idx.push_back(nodes[i].idx);
   }
-
+  std::vector<Node*> M2Lsources, M2Ltargets;
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();
   Profile::Toc();
   setColleagues(nodes);
-  buildList(nodes);
-  M2LSetup(nodes, nonleafs_idx);
+  buildList(nodes, M2Lsources, M2Ltargets);
   upwardPass(nodes, leafs);
-  downwardPass(nodes, leafs, leafs_idx);
+  downwardPass(nodes, leafs, leafs_idx, M2Lsources, M2Ltargets);
   Profile::Toc();
   RealVec error = verify(leafs);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;

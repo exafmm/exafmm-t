@@ -9,7 +9,6 @@ namespace exafmm_t {
   RealVec L2L_U, L2L_V;
   std::vector<RealVec> mat_M2L_Helper;
   std::vector<RealVec> mat_M2M;
-  std::vector<RealVec> mat_M2L;
   std::vector<RealVec> mat_L2L;
 
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
@@ -73,7 +72,7 @@ namespace exafmm_t {
       gemm(NSURF, NSURF, NSURF, &L2L_V[0], &buffer[0], &(mat_L2L[i][0]));
     }
   }
-
+  
   void PrecompM2LHelper() {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -99,54 +98,19 @@ namespace exafmm_t {
       kernelMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
       mat_M2L_Helper[i].resize(2*n3_);
       fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i][0]));
+      // scaling
+      for(int k=0; k<2*n3_; ++k) {
+        mat_M2L_Helper[i][k] /= n3;
+      }
     }
     fft_destroy_plan(plan);
   }
 
-  void PrecompM2L() {
-    int n1 = MULTIPOLE_ORDER * 2;
-    int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
-    int numParentRelCoord = rel_coord[M2L_Type].size();
-    int numChildRelCoord = rel_coord[M2L_Helper_Type].size();
-    mat_M2L.resize(numParentRelCoord);
-    RealVec zero_vec(n3_*2, 0);
-    #pragma omp parallel for schedule(dynamic)
-    for(int i=0; i<numParentRelCoord; i++) {
-      ivec3& parentRelCoord = rel_coord[M2L_Type][i];
-      std::vector<real_t*> M_ptr(NCHILD*NCHILD, &zero_vec[0]);
-      for(int j1=0; j1<NCHILD; j1++) {
-        for(int j2=0; j2<NCHILD; j2++) {
-          int childRelCoord[3]= { parentRelCoord[0]*2 - (j1/1)%2 + (j2/1)%2,
-                                  parentRelCoord[1]*2 - (j1/2)%2 + (j2/2)%2,
-                                  parentRelCoord[2]*2 - (j1/4)%2 + (j2/4)%2 };
-          for(int k=0; k<numChildRelCoord; k++) {
-            ivec3& childRefCoord = rel_coord[M2L_Helper_Type][k];
-            if (childRelCoord[0] == childRefCoord[0] &&
-                childRelCoord[1] == childRefCoord[1] &&
-                childRelCoord[2] == childRefCoord[2]) {
-              M_ptr[j2*NCHILD+j1] = &mat_M2L_Helper[k][0];
-              break;
-            }
-          }
-        }
-      }
-      mat_M2L[i].resize(n3_*2*NCHILD*NCHILD);  // N3 by (2*NCHILD*NCHILD) matrix
-      for(int k=0; k<n3_; k++) {                      // loop over frequencies
-        for(size_t j=0; j<NCHILD*NCHILD; j++) {       // loop over child's relative positions
-          int index = k*(2*NCHILD*NCHILD) + 2*j;
-          mat_M2L[i][index+0] = M_ptr[j][k*2+0]/n3;   // real
-          mat_M2L[i][index+1] = M_ptr[j][k*2+1]/n3;   // imag
-        }
-      }
-    }
-  }
 
   void Precompute() {
     PrecompCheck2Equiv();
     PrecompM2M();
     PrecompM2LHelper();
-    PrecompM2L();
   }
 }//end namespace
 #endif

@@ -91,9 +91,6 @@ namespace exafmm_t {
         if (col->IsLeaf() && isleaf) {
           int idx1 = hash_lut[P2P1_Type][c_hash];
           if (idx1>=0) n->P2Plist_idx.push_back(col->idx);
-        } else if (!col->IsLeaf() && !isleaf) {
-          int idx2 = hash_lut[M2L_Type][c_hash];
-          if (idx2>=0) n->M2Llist_idx[idx2] = col->idx;
         }
       }
     }
@@ -130,17 +127,62 @@ namespace exafmm_t {
       }
     }
   }
+  
+  // Build M2L list
+  void buildListM2L(Node* n, std::set<Node*>& sources, std::set<Node*>& targets)
+  {
+    if (!n->parent) return;
+    Node* p = n->parent;
+    int octant = n->octant;
+    ivec3 rel_coord;
+    for(int i=0; i<27; i++) {
+      Node* pc = p->colleague[i];
+      if (pc!=NULL && !pc->IsLeaf() && pc!=p) {
+        for (int j=0; j<NCHILD; j++) {
+          Node* pcc = pc->child[j];
+          if (pcc != NULL) {
+            rel_coord[0] = (    i%3 - 1)*2 + (j & 1 ? 0.5 : -0.5) - (octant & 1 ? 0.5 : -0.5);
+            rel_coord[1] = ((i/3)%3 - 1)*2 + (j & 2 ? 0.5 : -0.5) - (octant & 2 ? 0.5 : -0.5);
+            rel_coord[2] = ((i/9)%3 - 1)*2 + (j & 4 ? 0.5 : -0.5) - (octant & 4 ? 0.5 : -0.5);
+            int c_hash = hash(rel_coord);
+            int idx = hash_lut[M2L_Helper_Type][c_hash];
+            if (idx>=0) {
+              n->M2Llist_idx.push_back(pcc->idx);
+              n->M2LRelPos.push_back(idx);
+              sources.insert(pcc);
+            }
+          }
+        }
+      }
+    }
+    if (n->M2Llist_idx.size()>0)
+      targets.insert(n);
+  }
 
   // Build interaction lists for all nodes 
-  void buildList(Nodes& nodes) {
-    #pragma omp parallel for
-    for(size_t i=0; i<nodes.size(); i++) {
-      Node* node = &nodes[i];
-      node->M2Llist_idx.resize(rel_coord[M2L_Type].size(), -1);
-      buildListParentLevel(node);
-      buildListCurrentLevel(node);
-      buildListChildLevel(node);
+  void buildList(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets) {
+    std::set<Node*> sources;
+    std::set<Node*> targets;
+    #pragma omp parallel
+    {
+      std::set<Node*> sources_;  // thread private
+      std::set<Node*> targets_;
+      #pragma omp for nowait 
+      for(size_t i=0; i<nodes.size(); i++) {
+        Node* node = &nodes[i];
+        buildListParentLevel(node);
+        buildListCurrentLevel(node);
+        buildListChildLevel(node);
+        buildListM2L(node, sources_, targets_);
+      }
+      #pragma omp critical
+      {
+        sources.insert(sources_.begin(), sources_.end());
+        targets.insert(targets_.begin(), targets_.end());
+      }
     }
+    M2Lsources.assign(sources.begin(), sources.end());
+    M2Ltargets.assign(targets.begin(), targets.end());
   }
   
   void setColleagues(Node* node) {
