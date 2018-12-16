@@ -95,6 +95,16 @@ namespace exafmm_t {
     ComplexVec temp(vec.size());
     for(int i=0; i<m; i++) {
       for(int j=0; j<n; j++) {
+        temp[j*m+i] = vec[i*n+j];
+      }
+    }
+    return temp;
+  }
+
+  ComplexVec conjugate_transpose(ComplexVec& vec, int m, int n) {
+    ComplexVec temp(vec.size());
+    for(int i=0; i<m; i++) {
+      for(int j=0; j<n; j++) {
         temp[j*m+i] = std::conj(vec[i*n+j]);
       }
     }

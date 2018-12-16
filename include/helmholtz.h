@@ -44,6 +44,8 @@ namespace exafmm_t {
 
   ComplexVec transpose(ComplexVec& vec, int m, int n);
 
+  ComplexVec conjugate_transpose(ComplexVec& vec, int m, int n);
+
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
 
   void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
