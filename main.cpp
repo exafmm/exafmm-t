@@ -16,7 +16,7 @@
 using namespace exafmm_t;
 using namespace std;
 int main(int argc, char **argv) {
-  // MU = 0;
+  MU = 20;
   Args args(argc, argv);
   omp_set_num_threads(args.threads);
   size_t N = args.numBodies;

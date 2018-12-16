@@ -111,107 +111,6 @@ namespace exafmm_t {
     return temp;
   }
 
-#if 0
-#if LAPLACE_COMPLEX
-  void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-    simdvec zero((real_t)0);
-    const real_t COEF = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
-    simdvec coef(COEF);
-    int src_cnt = src_coord.size() / 3;
-    int trg_cnt = trg_coord.size() / 3;
-    for(int t=0; t<trg_cnt; t+=NSIMD) {
-      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
-      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
-      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
-      simdvec tv_real(zero);
-      simdvec tv_imag(zero);
-      for(int s=0; s<src_cnt; s++) {
-        simdvec sx(src_coord[3*s+0]);
-        sx = sx - tx;
-        simdvec sy(src_coord[3*s+1]);
-        sy = sy - ty;
-        simdvec sz(src_coord[3*s+2]);
-        sz = sz - tz;
-        simdvec sv_real(src_value[s].real());
-        simdvec sv_imag(src_value[s].imag());
-        simdvec r2(zero);
-        r2 += sx * sx;
-        r2 += sy * sy;
-        r2 += sz * sz;
-        simdvec invR = rsqrt(r2);
-        invR &= r2 > zero;
-        tv_real += invR * sv_real;
-        tv_imag += invR * sv_imag;
-      }
-      tv_real *= coef;
-      tv_imag *= coef;
-      for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
-        trg_value[t+k] += std::complex<real_t>(tv_real[k], tv_imag[k]);
-      }
-    }
-  }
-
-  void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-    simdvec zero((real_t)0);
-    const real_t COEF = 1.0/(16*4*M_PI); 
-    const real_t COEFG = -1.0/(16*16*16*4*M_PI);
-    simdvec coef(COEF);
-    simdvec coefg(COEFG);
-    int src_cnt = src_coord.size() / 3;
-    int trg_cnt = trg_coord.size() / 3;
-    for(int t=0; t<trg_cnt; t+=NSIMD) {
-      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
-      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
-      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
-      simdvec tv_real(zero);
-      simdvec tv_imag(zero);
-      simdvec F0_real(zero);
-      simdvec F0_imag(zero);
-      simdvec F1_real(zero);
-      simdvec F1_imag(zero);
-      simdvec F2_real(zero);
-      simdvec F2_imag(zero);
-      for(int s=0; s<src_cnt; s++) {
-        simdvec sx(src_coord[3*s+0]);
-        sx = sx - tx;
-        simdvec sy(src_coord[3*s+1]);
-        sy = sy - ty;
-        simdvec sz(src_coord[3*s+2]);
-        sz = sz - tz;
-        simdvec sv_real(src_value[s].real());
-        simdvec sv_imag(src_value[s].imag());
-        simdvec r2(zero);
-        r2 += sx * sx;
-        r2 += sy * sy;
-        r2 += sz * sz;
-        simdvec invR = rsqrt(r2);
-        invR &= r2 > zero;
-        tv_real += invR * sv_real;
-        tv_imag += invR * sv_imag;
-        F0_real += sx * invR * invR * invR * sv_real;
-        F0_imag += sx * invR * invR * invR * sv_imag;
-        F1_real += sy * invR * invR * invR * sv_real;
-        F1_imag += sy * invR * invR * invR * sv_imag;
-        F2_real += sz * invR * invR * invR * sv_real;
-        F2_imag += sz * invR * invR * invR * sv_imag;
-      }
-      tv_real *= coef;
-      tv_imag *= coef;
-      F0_real *= coefg;
-      F0_imag *= coefg;
-      F1_real *= coefg;
-      F1_imag *= coefg;
-      F2_real *= coefg;
-      F2_imag *= coefg;
-      for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
-        trg_value[4*(t+k)+0] += std::complex<real_t>(tv_real[k], tv_imag[k]);
-        trg_value[4*(t+k)+1] += std::complex<real_t>(F0_real[k], F0_imag[k]);
-        trg_value[4*(t+k)+2] += std::complex<real_t>(F1_real[k], F1_imag[k]);
-        trg_value[4*(t+k)+3] += std::complex<real_t>(F2_real[k], F2_imag[k]);
-      }
-    }
-  }
-#endif
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     int newton_scale = 16;      // from 2-step Newton method
@@ -265,6 +164,7 @@ namespace exafmm_t {
     const real_t COEF = 1.0/(newton_scale*4*M_PI);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
     simdvec mu(MU*M_PI/newton_scale);
+    simdvec NEWTON(newton_scale);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for(int t=0; t<trg_cnt; t+=NSIMD) {
@@ -302,8 +202,8 @@ namespace exafmm_t {
         simdvec p_imag = sv_real*G1 + sv_imag*G0;
         tv_real += p_real;
         tv_imag += p_imag;
-        simdvec coef_real = invR*invR*p_real + mu*p_imag*invR;
-        simdvec coef_imag = invR*invR*p_imag - mu*p_real*invR;
+        simdvec coef_real = invR*invR*p_real/(NEWTON*NEWTON) + mu*p_imag*invR;
+        simdvec coef_imag = invR*invR*p_imag/(NEWTON*NEWTON) - mu*p_real*invR;
         F0_real += sx*coef_real;
         F0_imag += sx*coef_imag;
         F1_real += sy*coef_real;
@@ -322,7 +222,7 @@ namespace exafmm_t {
     }
   }
 
-#else
+#if 0
   void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
     //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
@@ -497,8 +397,7 @@ namespace exafmm_t {
         equivCoord[3*k+1] = dnwd_equiv_surf[level][3*k+1] + leaf->Xmin[1];
         equivCoord[3*k+2] = dnwd_equiv_surf[level][3*k+2] + leaf->Xmin[2];
       }
-      // gradientP2P(equivCoord, leaf->dnward_equiv, leaf->trg_coord, leaf->trg_value);
-      potentialP2P(equivCoord, leaf->dnward_equiv, leaf->trg_coord, leaf->trg_value);
+      gradientP2P(equivCoord, leaf->dnward_equiv, leaf->trg_coord, leaf->trg_value);
     }
   }
 
@@ -566,8 +465,7 @@ namespace exafmm_t {
       NodePtrs& sources = target->P2Plist;
       for(int j=0; j<sources.size(); j++) {
         Node* source = sources[j];
-        // gradientP2P(source->src_coord, source->src_value, target->trg_coord, target->trg_value);
-        potentialP2P(source->src_coord, source->src_value, target->trg_coord, target->trg_value);
+        gradientP2P(source->src_coord, source->src_value, target->trg_coord, target->trg_value);
       }
     }
   }
