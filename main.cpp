@@ -1,7 +1,10 @@
 #include "build_tree.h"
 #include "dataset.h"
 #include "interaction_list.h"
-#if COMPLEX
+#if HELMHOLTZ
+#include "helmholtz.h"
+#include "precompute_helmholtz.h"
+#elif COMPLEX
 #include "laplace_c.h"
 #include "precompute_c.h"
 #else
@@ -11,8 +14,11 @@
 #include "traverse.h"
 
 using namespace exafmm_t;
-
+using namespace std;
 int main(int argc, char **argv) {
+#if HELMHOLTZ
+  MU = 20;
+#endif
   Args args(argc, argv);
   omp_set_num_threads(args.threads);
   size_t N = args.numBodies;
@@ -23,12 +29,14 @@ int main(int argc, char **argv) {
   Profile::Tic("Total");
   Bodies sources = initBodies(args.numBodies, args.distribution, 0);
   Bodies targets = initBodies(args.numBodies, args.distribution, 0);
+
   Profile::Tic("Build Tree");
   getBounds(sources, targets, Xmin0, R0);
   NodePtrs leafs, nonleafs;
   Nodes nodes = buildTree(sources, targets, Xmin0, R0, leafs, nonleafs, args);
   balanceTree(nodes, sources, targets, Xmin0, R0, leafs, nonleafs, args);
   Profile::Toc();
+
   initRelCoord();
   Profile::Tic("Precomputation");
   Precompute();
@@ -41,6 +49,7 @@ int main(int argc, char **argv) {
   upwardPass(nodes, leafs);
   downwardPass(nodes, leafs);
   Profile::Toc();
+
   RealVec error = verify(leafs);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
   std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< MAXLEVEL << std::endl;

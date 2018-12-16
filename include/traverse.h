@@ -26,7 +26,7 @@ namespace exafmm_t {
     P2P(leafs);
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
-    M2L(M2Ldata, nodes);
+    M2L(nodes);
     Profile::Toc();
     Profile::Tic("L2L", false, 5);
     #pragma omp parallel
@@ -56,6 +56,7 @@ namespace exafmm_t {
 #endif
       for(size_t j=0; j<leafs.size(); j++) {
         gradientP2P(leafs[j]->src_coord, leafs[j]->src_value, target->trg_coord, target->trg_value);
+        // potentialP2P(leafs[j]->src_coord, leafs[j]->src_value, target->trg_coord, target->trg_value);
       }
     }
     real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm = 0;

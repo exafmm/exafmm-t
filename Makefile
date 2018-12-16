@@ -14,6 +14,8 @@ OBJF = main.fo src/geometry.fo src/laplace.fo
 OBJD = main.do src/geometry.do src/laplace.do
 OBJC =  main.co src/geometry.co src/laplace_c.co
 OBJZ =  main.zo src/geometry.zo src/laplace_c.zo
+OBJHF = main.hfo src/geometry.hfo src/helmholtz.hfo
+OBJHD = main.hdo src/geometry.hdo src/helmholtz.hdo
 
 %.fo: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT
@@ -27,6 +29,12 @@ OBJZ =  main.zo src/geometry.zo src/laplace_c.zo
 %.zo: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX
 
+%.hfo: %.cpp
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DCOMPLEX -DHELMHOLTZ
+
+%.hdo: %.cpp
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX -DHELMHOLTZ
+
 real8: $(OBJF)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
@@ -39,8 +47,14 @@ complex8: $(OBJC)
 complex16: $(OBJZ)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
+helmholtz8: $(OBJHF)
+	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
+
+helmholtz16: $(OBJHD)
+	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
+
 clean:
-	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) *.out
+	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) $(OBJHF) $(OBJHD) *.out
 
 p4:
 	./a.out -T 8 -n 1000000 -P 4 -c 64
@@ -59,3 +73,6 @@ t4:
 
 t16:
 	./a.out -T 32 -n 1000000 -P 16 -c 320
+
+run_debug:
+	./a.out -T 8 -n 10000 -P 10 -c 300

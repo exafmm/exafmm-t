@@ -667,6 +667,12 @@ namespace exafmm_t {
       return vec(_mm512_div_ps(one.data,_mm512_sqrt_ps(v.data)));
 #endif
     }
+    friend vec sin(const vec & v) {
+      return vec(_mm512_sin_ps(v.data));
+    }
+    friend vec cos(const vec & v) {
+      return vec(_mm512_cos_ps(v.data));
+    }
   };
 
   template<>
@@ -780,6 +786,12 @@ namespace exafmm_t {
       vec one = 1;
       return vec(_mm512_div_pd(one.data,_mm512_sqrt_pd(v.data)));
 #endif
+    }
+    friend vec sin(const vec & v) {
+      return vec(_mm512_sin_pd(v.data));
+    }
+    friend vec cos(const vec & v) {
+      return vec(_mm512_cos_pd(v.data));
     }
   };
 #endif
@@ -918,6 +930,12 @@ namespace exafmm_t {
       return vec(_mm256_div_ps(one.data,_mm256_sqrt_ps(v.data)));
 #endif
     }
+    friend vec sin(const vec & v) {
+      return vec(_mm256_sin_ps(v.data));
+    }
+    friend vec cos(const vec & v) {
+      return vec(_mm256_cos_ps(v.data));
+    }
   };
 
   template<>
@@ -1047,6 +1065,12 @@ namespace exafmm_t {
       vec one = 1;
       return vec(_mm256_div_pd(one.data,_mm256_sqrt_pd(v.data)));
 #endif
+    }
+    friend vec sin(const vec & v) {
+      return vec(_mm256_sin_pd(v.data));
+    }
+    friend vec cos(const vec & v) {
+      return vec(_mm256_cos_pd(v.data));
     }
   };
 #endif

@@ -126,20 +126,30 @@ namespace exafmm_t {
   struct M2LData {
     std::vector<size_t> fft_vec;   // source's first child's upward_equiv's displacement
     std::vector<size_t> ifft_vec;  // target's first child's dnward_equiv's displacement
-    RealVec fft_scl;
     RealVec ifft_scl;
     std::vector<size_t> interac_vec;
     std::vector<size_t> interac_dsp;
   };
+#if HELMHOLTZ
+  extern std::vector<M2LData> M2Ldata;
+#else
   extern M2LData M2Ldata;
+#endif
 
   // Relative coordinates and interaction lists
   extern std::vector<std::vector<ivec3>> rel_coord;
 
   // Precomputation matrices
+#if HELMHOLTZ
+  extern std::vector<ComplexVec> M2M_U, M2M_V;
+  extern std::vector<ComplexVec> L2L_U, L2L_V;
+  extern std::vector<std::vector<ComplexVec>> mat_M2M, mat_L2L;
+  extern std::vector<std::vector<RealVec>> mat_M2L;
+#else
   extern RealVec M2M_U, M2M_V;
   extern RealVec L2L_U, L2L_V;
   extern std::vector<RealVec> mat_M2M, mat_L2L, mat_M2L;
+#endif
 
   extern int MULTIPOLE_ORDER;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates
@@ -147,5 +157,8 @@ namespace exafmm_t {
   extern vec3 Xmin0;    // coordinates of root
   extern real_t R0;     // radius of root
   const int NCHILD = 8;
+#if HELMHOLTZ
+  extern real_t MU;
+#endif
 }
 #endif

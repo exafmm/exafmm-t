@@ -6,7 +6,7 @@ namespace exafmm_t {
   int MAXLEVEL;
   M2LData M2Ldata;
 
-  //! using blas gemm with row major data
+  //! blas gemm with row major data
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C) {
     char transA = 'N', transB = 'N';
     real_t alpha = 1.0, beta = 0.0;
@@ -14,6 +14,18 @@ namespace exafmm_t {
     sgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #else
     dgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#endif
+  }
+
+  //! blas gemv with row major data
+  void gemv(int m, int n, real_t* A, real_t* x, real_t* y) {
+    char trans = 'T';
+    real_t alpha = 1.0, beta = 0.0;
+    int incx = 1, incy = 1;
+#if FLOAT
+    sgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
+#else
+    dgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #endif
   }
 
@@ -49,7 +61,7 @@ namespace exafmm_t {
 
   void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
     simdvec zero((real_t)0);
-    const real_t COEF = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    const real_t COEF = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
@@ -84,8 +96,8 @@ namespace exafmm_t {
 
   void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
     simdvec zero((real_t)0);
-    const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
-    const real_t COEFG = -1.0/(4*2*2*6*M_PI);
+    const real_t COEFP = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    const real_t COEFG = -1.0/(16*16*16*4*M_PI);
     simdvec coefp(COEFP);
     simdvec coefg(COEFG);
     int src_cnt = src_coord.size() / 3;
@@ -158,7 +170,8 @@ namespace exafmm_t {
     for(int i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
       int level = leaf->level;
-      real_t scal = pow(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
+      real_t scal = pow(0.5, level);  // scaling factor of UC2UE precomputation matrix
+      // calculate upward check potential induced by sources' charges
       RealVec checkCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
         checkCoord[3*k+0] = upwd_check_surf[level][3*k+0] + leaf->Xmin[0];
@@ -166,10 +179,12 @@ namespace exafmm_t {
         checkCoord[3*k+2] = upwd_check_surf[level][3*k+2] + leaf->Xmin[2];
       }
       potentialP2P(leaf->src_coord, leaf->src_value, checkCoord, leaf->upward_equiv);
+      // convert upward check potential to upward equivalent charge
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &(leaf->upward_equiv[0]), &M2M_V[0], &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], &M2M_U[0], &equiv[0]);
+      gemv(NSURF, NSURF, &M2M_U[0], &(leaf->upward_equiv[0]), &buffer[0]);
+      gemv(NSURF, NSURF, &M2M_V[0], &buffer[0], &equiv[0]);
+      // scale the check-to-equivalent conversion (precomputation)
       for(int k=0; k<NSURF; k++)
         leaf->upward_equiv[k] = scal * equiv[k];
     }
@@ -183,11 +198,12 @@ namespace exafmm_t {
         M2M(node->children[octant]);
     }
     #pragma omp taskwait
+    // evaluate parent's upward equivalent charge from child's upward equivalent charge
     for(int octant=0; octant<8; octant++) {
       if(node->children[octant]) {
         Node* child = node->children[octant];
         RealVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
+        gemv(NSURF, NSURF, &(mat_M2M[octant][0]), &child->upward_equiv[0], &buffer[0]);
         for(int k=0; k<NSURF; k++) {
           node->upward_equiv[k] += buffer[k];
         }
@@ -197,11 +213,12 @@ namespace exafmm_t {
 
   void L2L(Node* node) {
     if(node->is_leaf) return;
+    // evaluate child's downward check potential from parent's downward check potential
     for(int octant=0; octant<8; octant++) {
       if(node->children[octant]) {
         Node* child = node->children[octant];
         RealVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &node->dnward_equiv[0], &(mat_L2L[octant][0]), &buffer[0]);
+        gemv(NSURF, NSURF, &(mat_L2L[octant][0]), &node->dnward_equiv[0], &buffer[0]);
         for(int k=0; k<NSURF; k++)
           child->dnward_equiv[k] += buffer[k];
       }
@@ -227,14 +244,15 @@ namespace exafmm_t {
       Node* leaf = leafs[i];
       int level = leaf->level;
       real_t scal = pow(0.5, level);
-      // check surface potential -> equivalent surface charge
+      // convert downward check potential to downward equivalent charge
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &(leaf->dnward_equiv[0]), &L2L_V[0], &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], &L2L_U[0], &equiv[0]);
+      gemv(NSURF, NSURF, &L2L_U[0], &(leaf->dnward_equiv[0]), &buffer[0]);
+      gemv(NSURF, NSURF, &L2L_V[0], &buffer[0], &equiv[0]);
+      // scale the check-to-equivalent conversion (precomputation)
       for(int k=0; k<NSURF; k++)
         leaf->dnward_equiv[k] = scal * equiv[k];
-      // equivalent surface charge -> target potential
+      // calculate targets' potential & gradient induced by downward equivalent charge
       RealVec equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
         equivCoord[3*k+0] = dnwd_equiv_surf[level][3*k+0] + leaf->Xmin[0];
@@ -335,11 +353,9 @@ namespace exafmm_t {
     // prepare fft displ & fft scal
     std::vector<size_t> fft_vec(nodes_in.size());
     std::vector<size_t> ifft_vec(nodes_out.size());
-    RealVec fft_scl(nodes_in.size());
     RealVec ifft_scl(nodes_out.size());
     for(size_t i=0; i<nodes_in.size(); i++) {
       fft_vec[i] = nodes_in[i]->children[0]->idx * NSURF;
-      fft_scl[i] = 1;
     }
     for(size_t i=0; i<nodes_out.size(); i++) {
       int level = nodes_out[i]->level+1;
@@ -373,7 +389,6 @@ namespace exafmm_t {
     }
     M2Ldata.fft_vec     = fft_vec;
     M2Ldata.ifft_vec    = ifft_vec;
-    M2Ldata.fft_scl     = fft_scl;
     M2Ldata.ifft_scl    = ifft_scl;
     M2Ldata.interac_vec = interac_vec;
     M2Ldata.interac_dsp = interac_dsp;
@@ -431,7 +446,7 @@ namespace exafmm_t {
     //Profile::Add_FLOP(8*8*8*(interac_vec.size()/2)*n3_);
   }
 
-  void FFT_UpEquiv(std::vector<size_t>& fft_vec, RealVec& fft_scal,
+  void FFT_UpEquiv(std::vector<size_t>& fft_vec,
                    RealVec& input_data, AlignedVec& fft_in) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -465,7 +480,8 @@ namespace exafmm_t {
       for(size_t k=0; k<NSURF; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<(int)NCHILD; j0++)
-          upward_equiv_fft[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
+          // upward_equiv_fft[idx+j0*n3] = upward_equiv[j0*NSURF+k] * fft_scal[node_idx];
+          upward_equiv_fft[idx+j0*n3] = upward_equiv[j0*NSURF+k];
       }
       fft_execute_dft_r2c(m2l_list_fftplan, upward_equiv_fft, (fft_complex*)&buffer[0]);
       for(size_t j=0; j<n3_; j++) {
@@ -522,7 +538,7 @@ namespace exafmm_t {
     fft_destroy_plan(m2l_list_ifftplan);
   }
 
-  void M2L(M2LData& M2Ldata, Nodes& nodes) {
+  void M2L(Nodes& nodes) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3_ = n1 * n1 * (n1/2 + 1);
     size_t numNodes = nodes.size();
@@ -539,7 +555,7 @@ namespace exafmm_t {
     AlignedVec fft_in(M2Ldata.fft_vec.size()*fftsize, 0.);
     AlignedVec fft_out(M2Ldata.ifft_vec.size()*fftsize, 0.);
 
-    FFT_UpEquiv(M2Ldata.fft_vec, M2Ldata.fft_scl, allUpwardEquiv, fft_in);
+    FFT_UpEquiv(M2Ldata.fft_vec, allUpwardEquiv, fft_in);
     M2LListHadamard(M2Ldata.interac_dsp, M2Ldata.interac_vec, fft_in, fft_out);
     FFT_Check2Equiv(M2Ldata.ifft_vec, M2Ldata.ifft_scl, fft_out, allDnwardEquiv);
 

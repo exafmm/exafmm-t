@@ -10,6 +10,8 @@ namespace exafmm_t {
       for (int d=0; d<3; d++) {
         bodies[b].X[d] = drand48();
       }
+    }
+    for (int b=0; b<numBodies; b++) {
 #if COMPLEX
       bodies[b].q = complex_t(drand48()-0.5, drand48()-0.5);
 #else

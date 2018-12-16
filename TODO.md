@@ -1,9 +1,6 @@
 ###TODO
 -------------
 
-- [ ] Non-parent-level M2L (Tingyu)
-- [ ] Add Helmholtz kernel (Tingyu, Chenwu)
-- [ ] Separate sources/target (Tingyu)
 - [ ] Write wrapper for BEM (Tingyu)
 - [ ] Store precomputation matrix (Tingyu)
 - [ ] Laplace P2P on GPU (Elket)
@@ -16,3 +13,5 @@
 - [ ] Stokes
 - [ ] CI, unit tests
 - [ ] configure files
+
+- remove fft_scal and ifft_scal from M2Ldata for Laplace as well (calculate on-the-fly)
