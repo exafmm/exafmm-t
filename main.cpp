@@ -16,7 +16,9 @@
 using namespace exafmm_t;
 using namespace std;
 int main(int argc, char **argv) {
+#if HELMHOLTZ
   MU = 20;
+#endif
   Args args(argc, argv);
   omp_set_num_threads(args.threads);
   size_t N = args.numBodies;
@@ -29,9 +31,7 @@ int main(int argc, char **argv) {
   Bodies targets = initBodies(args.numBodies, args.distribution, 0);
 
   Profile::Tic("Build Tree");
-  // getBounds(sources, targets, Xmin0, R0);
-  Xmin0 = 0.;
-  R0 = 0.5;
+  getBounds(sources, targets, Xmin0, R0);
   NodePtrs leafs, nonleafs;
   Nodes nodes = buildTree(sources, targets, Xmin0, R0, leafs, nonleafs, args);
   balanceTree(nodes, sources, targets, Xmin0, R0, leafs, nonleafs, args);
@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
   upwardPass(nodes, leafs);
   downwardPass(nodes, leafs);
   Profile::Toc();
+
   RealVec error = verify(leafs);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
   std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< MAXLEVEL << std::endl;
