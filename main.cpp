@@ -26,44 +26,7 @@ int main(int argc, char **argv) {
 
   Profile::Tic("Total");
   Bodies sources = initBodies(args.numBodies, args.distribution, 0);
-  // Bodies targets = initBodies(args.numBodies, args.distribution, 0);
-  Bodies targets = sources;
-
-#if 0
-  // check distribution
-  for(int i=0; i<args.numBodies; i++) {
-    cout << sources[i].X[0] << " " << sources[i].X[1] << " " << sources[i].X[2] << std::endl;
-  }
-  for(int i=0; i<args.numBodies; i++) {
-    cout << sources[i].q << endl;
-  }
-#endif
-#if 0
-  // check P2P result
-  int sample_size = 10;
-  RealVec scoord, tcoord;
-  ComplexVec svalue, tvalue;
-
-  for(int i=0; i<sample_size; i++) {
-    for(int d=0; d<3; d++) {
-      tcoord.push_back(targets[i].X[d]);
-    }
-  }
-
-  for(int i=0; i<args.numBodies; i++) {
-    for(int d=0; d<3; d++) {
-      scoord.push_back(sources[i].X[d]);
-    }
-    svalue.push_back(sources[i].q);
-  }
-
-  tvalue.resize(sample_size, 0.);
-  potentialP2P(scoord, svalue, tcoord, tvalue);
-
-  for(int i=0; i<sample_size; i++) {
-    cout << tvalue[i] << endl;
-  }
-#endif 
+  Bodies targets = initBodies(args.numBodies, args.distribution, 0);
 
   Profile::Tic("Build Tree");
   // getBounds(sources, targets, Xmin0, R0);
@@ -73,13 +36,6 @@ int main(int argc, char **argv) {
   Nodes nodes = buildTree(sources, targets, Xmin0, R0, leafs, nonleafs, args);
   balanceTree(nodes, sources, targets, Xmin0, R0, leafs, nonleafs, args);
   Profile::Toc();
-
-#if 0
-  // check nodes and tree
-  for(int i=0; i<nodes.size(); i++) {
-    cout << i << " " << nodes[i].level << " " << nodes[i].octant << " " << nodes[i].numTargets << endl;
-  }
-#endif
 
   initRelCoord();
   Profile::Tic("Precomputation");
@@ -91,29 +47,6 @@ int main(int argc, char **argv) {
   Profile::Toc();
   M2LSetup(nonleafs);
   upwardPass(nodes, leafs);
-#if 0
-  // check root's upward equiv after upward pass
-  Node& root = nodes[0];
-  for(int i=0; i<root.upward_equiv.size(); i++) {
-    cout << i << " " << root.upward_equiv[i] << endl;
-  }
-#endif
-#if 0
-  // check level 1 node upward_equiv after upward pass
-  Node& node = nodes[8];   // lvl 1, octant=7
-  for(int i=0; i<node.upward_equiv.size(); i++) {
-    cout << i << " " << node.upward_equiv[i] << endl;
-  }
-#endif
-#if 0
-  // check target's potential
-  Node& node = nodes[9];   // lvl 2, octant=0, parent's octant = 0
-  cout << node.is_leaf << " " << node.numTargets << endl;
-  cout << node.numTargets << " " << node.trg_value.size() << endl;
-  for(int i=0; i<node.numTargets; i++) {
-    cout << i << " " << node.trg_value[i] << endl;
-  }
-#endif
   downwardPass(nodes, leafs);
   Profile::Toc();
   RealVec error = verify(leafs);
