@@ -361,7 +361,7 @@ namespace exafmm_t {
     }
   }
 
-  void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets) {
+  void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -393,8 +393,8 @@ namespace exafmm_t {
 
     // evaluate dft of upward equivalent of sources
 #pragma omp parallel for
-    for(int i=0; i<M2Lsources.size(); ++i) {
-      Node*& source = M2Lsources[i];
+    for(int i=0; i<M2Lsources_idx.size(); ++i) {
+      Node* source = &nodes[M2Lsources_idx[i]];
       source->upEquiv.resize(2*n3_);
       // upward equiv on convolution grid
       AlignedVec upequiv(n3, 0);
@@ -408,8 +408,8 @@ namespace exafmm_t {
     fft_destroy_plan(plan);
     // hadamard m2l interaction
 #pragma omp parallel for
-    for(int i=0; i<M2Ltargets.size(); ++i) {
-      Node*& target = M2Ltargets[i];
+    for(int i=0; i<M2Ltargets_idx.size(); ++i) {
+      Node* target = &nodes[M2Ltargets_idx[i]];
       AlignedVec check(2*n3_, 0.);
       for(int j=0; j<target->M2Llist_idx.size(); ++j) {
         Node* source = &nodes[target->M2Llist_idx[j]];

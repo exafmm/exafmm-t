@@ -44,9 +44,7 @@ namespace exafmm_t {
   
   void P2P(Nodes &nodes, std::vector<int> leafs_idx);
 
-  void M2L(M2LData& M2Ldata, Nodes& nodes);
-
-  void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets);
+  void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx);
 
   void hadamardProduct(RealVec& kernel, AlignedVec& equiv, AlignedVec& check);
 }//end namespace

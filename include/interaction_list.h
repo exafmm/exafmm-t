@@ -129,7 +129,7 @@ namespace exafmm_t {
   }
   
   // Build M2L list
-  void buildListM2L(Node* n, std::set<Node*>& sources, std::set<Node*>& targets)
+  void buildListM2L(Node* n, std::set<int> &sources_idx, std::set<int> &targets_idx)
   {
     if (!n->parent) return;
     Node* p = n->parent;
@@ -149,40 +149,40 @@ namespace exafmm_t {
             if (idx>=0) {
               n->M2Llist_idx.push_back(pcc->idx);
               n->M2LRelPos.push_back(idx);
-              sources.insert(pcc);
+              sources_idx.insert(pcc->idx);
             }
           }
         }
       }
     }
     if (n->M2Llist_idx.size()>0)
-      targets.insert(n);
+      targets_idx.insert(n->idx);
   }
 
   // Build interaction lists for all nodes 
-  void buildList(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets) {
-    std::set<Node*> sources;
-    std::set<Node*> targets;
+  void buildList(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx) {
+    std::set<int> sources_idx;
+    std::set<int> targets_idx;
     #pragma omp parallel
     {
-      std::set<Node*> sources_;  // thread private
-      std::set<Node*> targets_;
+      std::set<int> sources_idx_;  // thread private
+      std::set<int> targets_idx_;
       #pragma omp for nowait 
       for(size_t i=0; i<nodes.size(); i++) {
         Node* node = &nodes[i];
         buildListParentLevel(node);
         buildListCurrentLevel(node);
         buildListChildLevel(node);
-        buildListM2L(node, sources_, targets_);
+        buildListM2L(node, sources_idx_, targets_idx_);
       }
       #pragma omp critical
       {
-        sources.insert(sources_.begin(), sources_.end());
-        targets.insert(targets_.begin(), targets_.end());
+        sources_idx.insert(sources_idx_.begin(), sources_idx_.end());
+        targets_idx.insert(targets_idx_.begin(), targets_idx_.end());
       }
     }
-    M2Lsources.assign(sources.begin(), sources.end());
-    M2Ltargets.assign(targets.begin(), targets.end());
+    M2Lsources_idx.assign(sources_idx.begin(), sources_idx.end());
+    M2Ltargets_idx.assign(targets_idx.begin(), targets_idx.end());
   }
   
   void setColleagues(Node* node) {
