@@ -12,8 +12,6 @@ LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp
 
 OBJF = main.fo src/geometry.fo src/laplace.fo
 OBJD = main.do src/geometry.do src/laplace.do
-OBJC =  main.co src/geometry.co src/laplace_c.co
-OBJZ =  main.zo src/geometry.zo src/laplace_c.zo
 OBJHF = main.hfo src/geometry.hfo src/helmholtz.hfo
 OBJHD = main.hdo src/geometry.hdo src/helmholtz.hdo
 
@@ -22,12 +20,6 @@ OBJHD = main.hdo src/geometry.hdo src/helmholtz.hdo
 
 %.do: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@
-
-%.co: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DCOMPLEX
-
-%.zo: %.cpp
-	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX
 
 %.hfo: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT -DCOMPLEX -DHELMHOLTZ
@@ -39,12 +31,6 @@ real8: $(OBJF)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
 real16: $(OBJD)
-	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
-
-complex8: $(OBJC)
-	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
-
-complex16: $(OBJZ)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
 helmholtz8: $(OBJHF)
