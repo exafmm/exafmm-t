@@ -43,7 +43,7 @@ namespace exafmm_t {
     return coord;
   }
 
-  RealVec conv_grid(real_t* c, int level){
+  RealVec convolution_grid(real_t* c, int level){
     real_t r = R0*powf(0.5,level-1);
     real_t a=r*1.05;
     real_t coord[3]={c[0],c[1],c[2]};

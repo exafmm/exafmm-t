@@ -27,27 +27,27 @@ int main(int argc, char **argv) {
   Profile::Enable(true);
 
   Profile::Tic("Total");
-  Bodies sources = initBodies(args.numBodies, args.distribution, 0);
-  Bodies targets = initBodies(args.numBodies, args.distribution, 0);
+  Bodies sources = init_bodies(args.numBodies, args.distribution, 0);
+  Bodies targets = init_bodies(args.numBodies, args.distribution, 0);
 
   Profile::Tic("Build Tree");
-  getBounds(sources, targets, Xmin0, R0);
+  get_bounds(sources, targets, XMIN0, R0);
   NodePtrs leafs, nonleafs;
-  Nodes nodes = buildTree(sources, targets, Xmin0, R0, leafs, nonleafs, args);
-  balanceTree(nodes, sources, targets, Xmin0, R0, leafs, nonleafs, args);
+  Nodes nodes = build_tree(sources, targets, XMIN0, R0, leafs, nonleafs, args);
+  balance_tree(nodes, sources, targets, XMIN0, R0, leafs, nonleafs, args);
   Profile::Toc();
 
-  initRelCoord();
+  init_rel_coord();
   Profile::Tic("Precomputation");
-  Precompute();
+  precompute();
   Profile::Toc();
   Profile::Tic("Build Lists");
-  setColleagues(nodes);
-  buildList(nodes);
+  set_colleagues(nodes);
+  build_list(nodes);
   Profile::Toc();
-  M2LSetup(nonleafs);
-  upwardPass(nodes, leafs);
-  downwardPass(nodes, leafs);
+  M2L_setup(nonleafs);
+  upward_pass(nodes, leafs);
+  downward_pass(nodes, leafs);
   Profile::Toc();
 
   RealVec error = verify(leafs);
