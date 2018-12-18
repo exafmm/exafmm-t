@@ -116,7 +116,7 @@ std::vector<long long> Profile::max_m_log;
           if(n_log[i] == "P2M" || n_log[i] == "M2M" || n_log[i] == "P2L"
              || n_log[i] == "M2P" || n_log[i] == "P2P" || n_log[i] == "M2L"
              || n_log[i] == "L2L" || n_log[i] == "L2P" || n_log[i] == "Precomputation"
-             || n_log[i] == "Total" || n_log[i] == "memcpy vector to array" || n_log[i] == "memcpy host to device" || n_log[i] == "gpu kernel" || n_log[i] == "memcpy device to host" || n_log[i] == "memcpy array to vec")
+             || n_log[i] == "Total" || n_log[i] == "memcpy vector to array" || n_log[i] == "memcpy host to device" || n_log[i] == "gpu kernel" || n_log[i] == "memcpy device to host" || n_log[i] == "memcpy array to vec" || n_log[i] == "FFT_UpEquiv" || n_log[i] == "hadamard" || n_log[i] == "FFT_Check2Equiv")
 
 //|| n_log[i] == "SVD" || n_log[i] == "FFT_UpEquiv" || n_log[i] == "M2LHadamard" || n_log[i] == "FFT_Check2Equiv")
 #endif

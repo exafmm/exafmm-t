@@ -436,7 +436,10 @@ namespace exafmm_t {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
+    Profile::Tic("FFT_UpEquiv", true);
     FFT_UpEquiv(nodes, M2Lsources_idx);
+    Profile::Toc();
+    Profile::Tic("hadamard", true);
     AlignedVec check(2*n3_*M2Ltargets_idx.size(), 0.);
 #pragma omp parallel for
     for(int i=0; i<M2Ltargets_idx.size(); ++i) {
@@ -448,6 +451,9 @@ namespace exafmm_t {
         hadamardProduct(kernel, source->up_equiv_fft, check, i);
       }
     }
+    Profile::Toc();
+    Profile::Tic("FFT_Check2Equiv", true);
     FFT_Check2Equiv(nodes, M2Ltargets_idx, check);
+    Profile::Toc();
   }
 }//end namespace
