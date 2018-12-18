@@ -107,7 +107,7 @@ namespace exafmm_t {
     RealVec upward_equiv; // M
     RealVec dnward_equiv; // L
     std::vector<int> M2LRelPos;
-    AlignedVec upEquiv;  // upward_equiv in frequency domain
+    AlignedVec up_equiv_fft;  // upward_equiv in frequency domain
     bool IsLeaf() {
       return numChilds == 0;
     }

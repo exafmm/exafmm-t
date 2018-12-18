@@ -292,7 +292,6 @@ namespace exafmm_t {
     }
   }
 
-
  void P2P(Nodes &nodes, std::vector<int> leafs_idx) {
     std::vector<real_t> nodes_coord; 
     std::vector<int>nodes_coord_idx;
@@ -349,25 +348,23 @@ namespace exafmm_t {
     Profile::Toc();
   }
   
-  void hadamardProduct(RealVec& kernel, AlignedVec& equiv, AlignedVec& check) {
+  void hadamardProduct(RealVec& kernel, AlignedVec& equiv, AlignedVec& check, int M2Ltargets_offset) {
     assert(kernel.size() == equiv.size());
-    assert(kernel.size() == check.size());
     int n3_ = (int)(kernel.size()/2);
     for(int k=0; k<n3_; ++k) {
       int real = 2*k+0;
       int imag = 2*k+1;
-      check[real] += kernel[real]*equiv[real] - kernel[imag]*equiv[imag];
-      check[imag] += kernel[real]*equiv[imag] + kernel[imag]*equiv[real];
+      check[M2Ltargets_offset*kernel.size()+real] += kernel[real]*equiv[real] - kernel[imag]*equiv[imag];
+      check[M2Ltargets_offset*kernel.size()+imag] += kernel[real]*equiv[imag] + kernel[imag]*equiv[real];
     }
   }
 
-  void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx) {
+  void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
-    // calculate mapping
-    std::vector<size_t> map(NSURF), map2(NSURF);
+    std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
     for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
     RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
@@ -376,26 +373,17 @@ namespace exafmm_t {
       map[i] = ((size_t)(MULTIPOLE_ORDER-1-surf[i*3]+0.5))
              + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+1]+0.5)) * n1
              + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+2]+0.5)) * n1 * n1;
-      // mapping: conv grid -> downward check surf
-      map2[i] = ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3]))
-              + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+1])) * n1
-              + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+2])) * n1 * n1;
     }
     // create dft plan for upward equiv
     AlignedVec in(n3);
     AlignedVec out(2*n3_);
     int dim[3] = {n1, n1, n1};
     fft_plan plan = fft_plan_dft_r2c(3, dim, &in[0], (fft_complex*)(&out[0]), FFTW_ESTIMATE);
-    // create idft plan for downward check
-    AlignedVec in2(2*n3_);
-    AlignedVec out2(n3);
-    fft_plan iplan = fft_plan_dft_c2r(3, dim, (fft_complex*)(&in2[0]), &out2[0], FFTW_ESTIMATE);
-
     // evaluate dft of upward equivalent of sources
-#pragma omp parallel for
+    #pragma omp parallel for
     for(int i=0; i<M2Lsources_idx.size(); ++i) {
       Node* source = &nodes[M2Lsources_idx[i]];
-      source->upEquiv.resize(2*n3_);
+      source->up_equiv_fft.resize(2*n3_);
       // upward equiv on convolution grid
       AlignedVec upequiv(n3, 0);
       for(int j=0; j<NSURF; ++j) {
@@ -403,22 +391,38 @@ namespace exafmm_t {
         upequiv[conv_id] = source->upward_equiv[j];
       }
       // dft of upward equiv on convolution grid
-      fft_execute_dft_r2c(plan, &upequiv[0], (fft_complex*)(&(source->upEquiv[0])));
+      fft_execute_dft_r2c(plan, &upequiv[0], (fft_complex*)(&(source->up_equiv_fft[0])));
     }
     fft_destroy_plan(plan);
-    // hadamard m2l interaction
-#pragma omp parallel for
+  }
+  
+  void FFT_Check2Equiv(Nodes& nodes, std::vector<int> &M2Ltargets_idx, AlignedVec &check) {
+    // define constants
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
+    // calculate mapping
+    std::vector<size_t> map2(NSURF);
+    real_t c[3]= {0, 0, 0};
+    for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
+    RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
+    for(size_t i=0; i<map2.size(); i++) {
+      // mapping: conv grid -> downward check surf
+      map2[i] = ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3]))
+              + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+1])) * n1
+              + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+2])) * n1 * n1;
+    }
+
+    // create idft plan for downward check
+    AlignedVec in2(2*n3_);
+    AlignedVec out2(n3);
+    int dim[3] = {n1, n1, n1};
+    fft_plan iplan = fft_plan_dft_c2r(3, dim, (fft_complex*)(&in2[0]), &out2[0], FFTW_ESTIMATE);
+    #pragma omp parallel for
     for(int i=0; i<M2Ltargets_idx.size(); ++i) {
       Node* target = &nodes[M2Ltargets_idx[i]];
-      AlignedVec check(2*n3_, 0.);
-      for(int j=0; j<target->M2Llist_idx.size(); ++j) {
-        Node* source = &nodes[target->M2Llist_idx[j]];
-        int relPosidx = target->M2LRelPos[j];
-        RealVec& kernel = mat_M2L_Helper[relPosidx];
-        hadamardProduct(kernel, source->upEquiv, check);
-      }
       AlignedVec dnCheck(n3);
-      fft_execute_dft_c2r(iplan, (fft_complex*)(&check[0]), &dnCheck[0]);
+      fft_execute_dft_c2r(iplan, (fft_complex*)(&check[i*2*n3_]), &dnCheck[0]);
       real_t scale = powf(2, target->depth);
       for(int j=0; j<NSURF; ++j) {
         int conv_id = map2[j];
@@ -427,4 +431,23 @@ namespace exafmm_t {
     }
   }
 
+  void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx) {
+    // define constants
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
+    FFT_UpEquiv(nodes, M2Lsources_idx);
+    AlignedVec check(2*n3_*M2Ltargets_idx.size(), 0.);
+#pragma omp parallel for
+    for(int i=0; i<M2Ltargets_idx.size(); ++i) {
+      Node* target = &nodes[M2Ltargets_idx[i]];
+      for(int j=0; j<target->M2Llist_idx.size(); ++j) {
+        Node* source = &nodes[target->M2Llist_idx[j]];
+        int relPosidx = target->M2LRelPos[j];
+        RealVec& kernel = mat_M2L_Helper[relPosidx];
+        hadamardProduct(kernel, source->up_equiv_fft, check, i);
+      }
+    }
+    FFT_Check2Equiv(nodes, M2Ltargets_idx, check);
+  }
 }//end namespace
