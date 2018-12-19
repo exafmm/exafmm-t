@@ -348,14 +348,13 @@ namespace exafmm_t {
     Profile::Toc();
   }
   
-  void hadamardProduct(RealVec& kernel, AlignedVec& equiv, AlignedVec& check, int M2Ltargets_offset) {
-    assert(kernel.size() == equiv.size());
-    int n3_ = (int)(kernel.size()/2);
+  void hadamardProduct(real_t *kernel, AlignedVec& equiv, real_t *check) {
+    int n3_ = (int)(equiv.size()/2);
     for(int k=0; k<n3_; ++k) {
       int real = 2*k+0;
       int imag = 2*k+1;
-      check[M2Ltargets_offset*kernel.size()+real] += kernel[real]*equiv[real] - kernel[imag]*equiv[imag];
-      check[M2Ltargets_offset*kernel.size()+imag] += kernel[real]*equiv[imag] + kernel[imag]*equiv[real];
+      check[real] += kernel[real]*equiv[real] - kernel[imag]*equiv[imag];
+      check[imag] += kernel[real]*equiv[imag] + kernel[imag]*equiv[real];
     }
   }
 
@@ -396,7 +395,7 @@ namespace exafmm_t {
     fft_destroy_plan(plan);
   }
   
-  void FFT_Check2Equiv(Nodes& nodes, std::vector<int> &M2Ltargets_idx, AlignedVec &check) {
+  void FFT_Check2Equiv(Nodes& nodes, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &check) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -440,17 +439,34 @@ namespace exafmm_t {
     FFT_UpEquiv(nodes, M2Lsources_idx);
     Profile::Toc();
     Profile::Tic("hadamard", true);
-    AlignedVec check(2*n3_*M2Ltargets_idx.size(), 0.);
-#pragma omp parallel for
+    std::vector<real_t> nodes_up_equiv_fft(nodes.size()*2*n3_);
+    std::vector<int> M2Llist_start_idx;
+    std::vector<int> M2Llists;
+    int M2Llist_start_idx_cnt = 0;
+    
+    std::vector<int> M2LRelPos_start_idx;
+    std::vector<int> M2LRelPoss;
+    int M2LRelPos_start_idx_cnt = 0;
+    for (int i = 0; i < nodes.size(); ++i)
+    {
+      Node node = nodes[i];
+      nodes_up_equiv_fft.insert(nodes_up_equiv_fft.end(), node.up_equiv_fft.begin(), node.up_equiv_fft.end());
+    }
     for(int i=0; i<M2Ltargets_idx.size(); ++i) {
       Node* target = &nodes[M2Ltargets_idx[i]];
-      for(int j=0; j<target->M2Llist_idx.size(); ++j) {
-        Node* source = &nodes[target->M2Llist_idx[j]];
-        int relPosidx = target->M2LRelPos[j];
-        RealVec& kernel = mat_M2L_Helper[relPosidx];
-        hadamardProduct(kernel, source->up_equiv_fft, check, i);
-      }
+      
+      M2Llist_start_idx.push_back(M2Llist_start_idx_cnt);
+      M2Llists.insert(M2Llists.end(), target->M2Llist_idx.begin(), target->M2Llist_idx.end());
+      M2Llist_start_idx_cnt += target->M2Llist_idx.size();
+
+      M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
+      M2LRelPoss.insert(M2LRelPoss.end(), target->M2LRelPos.begin(),target->M2LRelPos.end());
+       M2LRelPos_start_idx_cnt += target->M2LRelPos.size();
     }
+    M2Llist_start_idx.push_back(M2Llist_start_idx_cnt);
+    M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
+    std::vector<real_t> check(2*n3_*M2Ltargets_idx.size(), 0.);
+    HadmardGPU(M2Ltargets_idx, nodes_up_equiv_fft, M2Llist_start_idx, M2Llists, M2LRelPos_start_idx, M2LRelPoss, mat_M2L_Helper, check);
     Profile::Toc();
     Profile::Tic("FFT_Check2Equiv", true);
     FFT_Check2Equiv(nodes, M2Ltargets_idx, check);

@@ -7,7 +7,7 @@
 namespace exafmm_t {
   RealVec M2M_U, M2M_V;
   RealVec L2L_U, L2L_V;
-  std::vector<RealVec> mat_M2L_Helper;
+  RealVec mat_M2L_Helper;
   std::vector<RealVec> mat_M2M;
   std::vector<RealVec> mat_L2L;
 
@@ -85,7 +85,7 @@ namespace exafmm_t {
                     (fft_complex*)(&fftw_out[0]), NULL, 1, n3_, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
     int numRelCoord = rel_coord[M2L_Helper_Type].size();
-    mat_M2L_Helper.resize(numRelCoord);
+    mat_M2L_Helper.resize(numRelCoord*2*n3_);
     #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
       real_t coord[3];
@@ -96,11 +96,10 @@ namespace exafmm_t {
       RealVec r_trg(3, 0.0);
       RealVec conv_poten(n3);
       kernelMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
-      mat_M2L_Helper[i].resize(2*n3_);
-      fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i][0]));
+      fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i*2*n3_]));
       // scaling
       for(int k=0; k<2*n3_; ++k) {
-        mat_M2L_Helper[i][k] /= n3;
+        mat_M2L_Helper[i*2*n3_ + k] /= n3;
       }
     }
     fft_destroy_plan(plan);
