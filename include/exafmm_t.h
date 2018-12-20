@@ -137,13 +137,13 @@ namespace exafmm_t {
 
   // Precomputation matrices
 #if HELMHOLTZ
-  extern std::vector<ComplexVec> UC2E_U, UC2E_V;
-  extern std::vector<ComplexVec> DC2E_U, DC2E_V;
+  extern std::vector<ComplexVec> matrix_UC2E_U, matrix_UC2E_V;
+  extern std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
   extern std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
   extern std::vector<std::vector<RealVec>> matrix_M2L;
 #else
-  extern RealVec UC2E_U, UC2E_V;
-  extern RealVec DC2E_U, DC2E_V;
+  extern RealVec matrix_UC2E_U, matrix_UC2E_V;
+  extern RealVec matrix_DC2E_U, matrix_DC2E_V;
   extern std::vector<RealVec> matrix_M2M, matrix_L2L, matrix_M2L;
 #endif
 

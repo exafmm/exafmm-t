@@ -5,8 +5,8 @@
 #include "laplace.h"
 
 namespace exafmm_t {
-  RealVec UC2E_U, UC2E_V;
-  RealVec DC2E_U, DC2E_V;
+  RealVec matrix_UC2E_U, matrix_UC2E_V;
+  RealVec matrix_DC2E_U, matrix_DC2E_V;
   std::vector<RealVec> matrix_M2L_Helper;
   std::vector<RealVec> matrix_M2M;
   std::vector<RealVec> matrix_M2L;
@@ -36,13 +36,13 @@ namespace exafmm_t {
     }
     // save matrix
     RealVec V = transpose(VT, NSURF, NSURF);
-    UC2E_V.resize(NSURF*NSURF);
-    UC2E_U = transpose(U, NSURF, NSURF);
-    gemm(NSURF, NSURF, NSURF, &V[0], &S[0], &UC2E_V[0]);
+    matrix_UC2E_V.resize(NSURF*NSURF);
+    matrix_UC2E_U = transpose(U, NSURF, NSURF);
+    gemm(NSURF, NSURF, NSURF, &V[0], &S[0], &matrix_UC2E_V[0]);
 
-    DC2E_V.resize(NSURF*NSURF);
-    DC2E_U = VT;
-    gemm(NSURF, NSURF, NSURF, &U[0], &S[0], &DC2E_V[0]);
+    matrix_DC2E_V.resize(NSURF*NSURF);
+    matrix_DC2E_U = VT;
+    gemm(NSURF, NSURF, NSURF, &U[0], &S[0], &matrix_DC2E_V[0]);
   }
 
   void precompute_M2M() {
@@ -63,13 +63,13 @@ namespace exafmm_t {
       // M2M
       RealVec buffer(NSURF*NSURF);
       matrix_M2M[i].resize(NSURF*NSURF);
-      gemm(NSURF, NSURF, NSURF, &UC2E_U[0], &matrix_pc2ce[0], &buffer[0]);
-      gemm(NSURF, NSURF, NSURF, &UC2E_V[0], &buffer[0], &(matrix_M2M[i][0]));
+      gemm(NSURF, NSURF, NSURF, &matrix_UC2E_U[0], &matrix_pc2ce[0], &buffer[0]);
+      gemm(NSURF, NSURF, NSURF, &matrix_UC2E_V[0], &buffer[0], &(matrix_M2M[i][0]));
       // L2L
       matrix_pc2ce = transpose(matrix_pc2ce, NSURF, NSURF);
       matrix_L2L[i].resize(NSURF*NSURF);
-      gemm(NSURF, NSURF, NSURF, &matrix_pc2ce[0], &DC2E_V[0], &buffer[0]);
-      gemm(NSURF, NSURF, NSURF, &buffer[0], &DC2E_U[0], &(matrix_L2L[i][0]));
+      gemm(NSURF, NSURF, NSURF, &matrix_pc2ce[0], &matrix_DC2E_V[0], &buffer[0]);
+      gemm(NSURF, NSURF, NSURF, &buffer[0], &matrix_DC2E_U[0], &(matrix_L2L[i][0]));
     }
   }
 

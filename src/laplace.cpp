@@ -182,8 +182,8 @@ namespace exafmm_t {
       // convert upward check potential to upward equivalent charge
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
-      gemv(NSURF, NSURF, &UC2E_U[0], &(leaf->up_equiv[0]), &buffer[0]);
-      gemv(NSURF, NSURF, &UC2E_V[0], &buffer[0], &equiv[0]);
+      gemv(NSURF, NSURF, &matrix_UC2E_U[0], &(leaf->up_equiv[0]), &buffer[0]);
+      gemv(NSURF, NSURF, &matrix_UC2E_V[0], &buffer[0], &equiv[0]);
       // scale the check-to-equivalent conversion (precomputation)
       for(int k=0; k<NSURF; k++)
         leaf->up_equiv[k] = scal * equiv[k];
@@ -247,8 +247,8 @@ namespace exafmm_t {
       // convert downward check potential to downward equivalent charge
       RealVec buffer(NSURF);
       RealVec equiv(NSURF);
-      gemv(NSURF, NSURF, &DC2E_U[0], &(leaf->dn_equiv[0]), &buffer[0]);
-      gemv(NSURF, NSURF, &DC2E_V[0], &buffer[0], &equiv[0]);
+      gemv(NSURF, NSURF, &matrix_DC2E_U[0], &(leaf->dn_equiv[0]), &buffer[0]);
+      gemv(NSURF, NSURF, &matrix_DC2E_V[0], &buffer[0], &equiv[0]);
       // scale the check-to-equivalent conversion (precomputation)
       for(int k=0; k<NSURF; k++)
         leaf->dn_equiv[k] = scal * equiv[k];

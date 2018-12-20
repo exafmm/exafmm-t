@@ -5,20 +5,20 @@
 #include "helmholtz.h"
 
 namespace exafmm_t {
-  std::vector<ComplexVec> UC2E_U, UC2E_V;
-  std::vector<ComplexVec> DC2E_U, DC2E_V;
+  std::vector<ComplexVec> matrix_UC2E_U, matrix_UC2E_V;
+  std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
   std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
   std::vector<std::vector<RealVec>> matrix_M2L_Helper;
   std::vector<std::vector<RealVec>> matrix_M2L;
 
   void precompute_check2equiv() {
     real_t c[3] = {0, 0, 0};
-    UC2E_V.resize(MAXLEVEL+1);
-    UC2E_U.resize(MAXLEVEL+1);
-    DC2E_V.resize(MAXLEVEL+1);
-    DC2E_U.resize(MAXLEVEL+1);
+    matrix_UC2E_V.resize(MAXLEVEL+1);
+    matrix_UC2E_U.resize(MAXLEVEL+1);
+    matrix_DC2E_V.resize(MAXLEVEL+1);
+    matrix_DC2E_U.resize(MAXLEVEL+1);
     for(int level = 0; level <= MAXLEVEL; level++) {
-      // caculate UC2E_U and UC2E_V
+      // caculate matrix_UC2E_U and matrix_UC2E_V
       RealVec up_check_surf = surface(MULTIPOLE_ORDER,c,2.95,level);
       RealVec up_equiv_surf = surface(MULTIPOLE_ORDER,c,1.05,level);
       ComplexVec matrix_c2e(NSURF*NSURF);
@@ -37,14 +37,14 @@ namespace exafmm_t {
       // save matrix
       ComplexVec V = conjugate_transpose(VH, NSURF, NSURF);
       ComplexVec UH = conjugate_transpose(U, NSURF, NSURF);
-      UC2E_V[level].resize(NSURF*NSURF);
-      UC2E_U[level] = UH;
-      gemm(NSURF, NSURF, NSURF, &V[0], &S[0], &(UC2E_V[level][0]));
+      matrix_UC2E_V[level].resize(NSURF*NSURF);
+      matrix_UC2E_U[level] = UH;
+      gemm(NSURF, NSURF, NSURF, &V[0], &S[0], &(matrix_UC2E_V[level][0]));
 
-      DC2E_V[level].resize(NSURF*NSURF);
-      DC2E_U[level] = transpose(V, NSURF, NSURF);
+      matrix_DC2E_V[level].resize(NSURF*NSURF);
+      matrix_DC2E_U[level] = transpose(V, NSURF, NSURF);
       ComplexVec UTH = transpose(UH, NSURF, NSURF);
-      gemm(NSURF, NSURF, NSURF, &UTH[0], &S[0], &(DC2E_V[level][0]));
+      gemm(NSURF, NSURF, NSURF, &UTH[0], &S[0], &(matrix_DC2E_V[level][0]));
     }
   }
 
@@ -69,13 +69,13 @@ namespace exafmm_t {
         // M2M: child's upward_equiv to parent's check
         ComplexVec buffer(NSURF*NSURF);
         matrix_M2M[level][i].resize(NSURF*NSURF);
-        gemm(NSURF, NSURF, NSURF, &(UC2E_U[level][0]), &matrix_pc2ce[0], &buffer[0]);
-        gemm(NSURF, NSURF, NSURF, &(UC2E_V[level][0]), &buffer[0], &(matrix_M2M[level][i][0]));
+        gemm(NSURF, NSURF, NSURF, &(matrix_UC2E_U[level][0]), &matrix_pc2ce[0], &buffer[0]);
+        gemm(NSURF, NSURF, NSURF, &(matrix_UC2E_V[level][0]), &buffer[0], &(matrix_M2M[level][i][0]));
         // L2L: parent's dnward_equiv to child's check, reuse surface coordinates
         matrix_pc2ce = transpose(matrix_pc2ce, NSURF, NSURF);
         matrix_L2L[level][i].resize(NSURF*NSURF);
-        gemm(NSURF, NSURF, NSURF, &matrix_pc2ce[0], &(DC2E_V[level][0]), &buffer[0]);
-        gemm(NSURF, NSURF, NSURF, &buffer[0], &(DC2E_U[level][0]), &(matrix_L2L[level][i][0]));
+        gemm(NSURF, NSURF, NSURF, &matrix_pc2ce[0], &(matrix_DC2E_V[level][0]), &buffer[0]);
+        gemm(NSURF, NSURF, NSURF, &buffer[0], &(matrix_DC2E_U[level][0]), &(matrix_L2L[level][i][0]));
       }
     }
   }
