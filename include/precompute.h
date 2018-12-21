@@ -13,7 +13,7 @@ namespace exafmm_t {
   std::vector<RealVec> matrix_M2M;
   std::vector<RealVec> matrix_M2L;
   std::vector<RealVec> matrix_L2L;
-  std::string KERNEL_NAME;
+  std::string FILE_NAME;
 
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
@@ -151,7 +151,7 @@ namespace exafmm_t {
   }
 
   bool load_matrix() {
-    std::ifstream file(KERNEL_NAME, std::ifstream::binary);
+    std::ifstream file(FILE_NAME, std::ifstream::binary);
     int n1 = MULTIPOLE_ORDER * 2;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     size_t fft_size = n3_ * 2 * NCHILD * NCHILD;
@@ -193,7 +193,7 @@ namespace exafmm_t {
   }
 
   void save_matrix() {
-    std::ofstream file(KERNEL_NAME, std::ofstream::binary);
+    std::ofstream file(FILE_NAME, std::ofstream::binary);
     size_t size = NSURF*NSURF;
     // UC2E, DC2E
     file.write(reinterpret_cast<char*>(&matrix_UC2E_U[0]), size*sizeof(real_t));
@@ -219,7 +219,9 @@ namespace exafmm_t {
 
   void precompute() {
     // if matrix binary file exists
-    KERNEL_NAME = "laplace.dat";
+    FILE_NAME = "laplace";
+    FILE_NAME += "_" + std::string(sizeof(real_t)==4 ? "f":"d") + "_" + "p" + std::to_string(MULTIPOLE_ORDER);
+    FILE_NAME += ".dat";
     initialize_matrix();
     if (load_matrix()) {
       return;

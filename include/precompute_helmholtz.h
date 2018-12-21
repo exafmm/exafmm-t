@@ -12,7 +12,7 @@ namespace exafmm_t {
   std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
   std::vector<std::vector<RealVec>> matrix_M2L_Helper;
   std::vector<std::vector<RealVec>> matrix_M2L;
-  std::string KERNEL_NAME;
+  std::string FILE_NAME;
 
   void initialize_matrix() {
     int n1 = MULTIPOLE_ORDER * 2;
@@ -165,7 +165,7 @@ namespace exafmm_t {
   }
 
   bool load_matrix() {
-    std::ifstream file(KERNEL_NAME, std::ifstream::binary);
+    std::ifstream file(FILE_NAME, std::ifstream::binary);
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     size_t fft_size = n3 * 2 * NCHILD * NCHILD;
@@ -207,7 +207,7 @@ namespace exafmm_t {
   }
 
   void save_matrix() {
-    std::ofstream file(KERNEL_NAME, std::ofstream::binary);
+    std::ofstream file(FILE_NAME, std::ofstream::binary);
     size_t size = NSURF*NSURF;
     for(int level = 0; level <= MAXLEVEL; level++) {
       // save UC2E, DC2E precompute data
@@ -236,7 +236,9 @@ namespace exafmm_t {
 
   void precompute() {
     // if matrix binary file exists
-    KERNEL_NAME = "helmholtz.dat";
+    FILE_NAME = "helmholtz";
+    FILE_NAME += "_" + std::string(sizeof(real_t)==4 ? "f":"d") + "_" + "p" + std::to_string(MULTIPOLE_ORDER) + "_" + "l" + std::to_string(MAXLEVEL);
+    FILE_NAME += ".dat";
     initialize_matrix();
     if (load_matrix()) {
       return;
