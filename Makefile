@@ -27,10 +27,10 @@ OBJHD = main.hdo src/geometry.hdo src/helmholtz.hdo
 %.hdo: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DCOMPLEX -DHELMHOLTZ
 
-real8: $(OBJF)
+laplace8: $(OBJF)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
-real16: $(OBJD)
+laplace16: $(OBJD)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
 helmholtz8: $(OBJHF)
