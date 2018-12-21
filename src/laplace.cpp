@@ -347,18 +347,17 @@ namespace exafmm_t {
     }
     Profile::Toc();
   }
-  
-  void hadamardProduct(real_t *kernel, AlignedVec& equiv, real_t *check) {
-    int n3_ = (int)(equiv.size()/2);
+
+  void hadamardProduct(real_t *kernel, real_t *equiv, real_t *check, int n3_) {
     for(int k=0; k<n3_; ++k) {
       int real = 2*k+0;
       int imag = 2*k+1;
       check[real] += kernel[real]*equiv[real] - kernel[imag]*equiv[imag];
       check[imag] += kernel[real]*equiv[imag] + kernel[imag]*equiv[real];
     }
-  }
+}
 
-  void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx) {
+void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_equiv_fft) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -379,23 +378,39 @@ namespace exafmm_t {
     int dim[3] = {n1, n1, n1};
     fft_plan plan = fft_plan_dft_r2c(3, dim, &in[0], (fft_complex*)(&out[0]), FFTW_ESTIMATE);
     // evaluate dft of upward equivalent of sources
-    #pragma omp parallel for
+     #pragma omp parallel for
     for(int i=0; i<M2Lsources_idx.size(); ++i) {
-      Node* source = &nodes[M2Lsources_idx[i]];
-      source->up_equiv_fft.resize(2*n3_);
       // upward equiv on convolution grid
       AlignedVec upequiv(n3, 0);
+      Node *source = &nodes[M2Lsources_idx[i]];
+      RealVec upward_equiv = source->upward_equiv;
       for(int j=0; j<NSURF; ++j) {
         int conv_id = map[j];
-        upequiv[conv_id] = source->upward_equiv[j];
+        upequiv[conv_id] = upward_equiv[j];
       }
       // dft of upward equiv on convolution grid
-      fft_execute_dft_r2c(plan, &upequiv[0], (fft_complex*)(&(source->up_equiv_fft[0])));
+      fft_execute_dft_r2c(plan, &upequiv[0], (fft_complex*)(&(up_equiv_fft[i*2*n3_])));
     }
     fft_destroy_plan(plan);
   }
-  
-  void FFT_Check2Equiv(Nodes& nodes, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &check) {
+
+  void FFT_Hadmard(std::vector<int> &M2Ltargets_idx, AlignedVec& up_equiv_fft, AlignedVec& dw_equiv_fft, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss) {
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
+    int cnt = 0;
+    for(int i=0; i<M2Ltargets_idx.size(); i++) {
+      int M2LRelPos_size = M2LRelPos_start_idx[i+1]-M2LRelPos_start_idx[i];
+      for(int j=0; j<M2LRelPos_size; j++) {
+        int relPosidx = M2LRelPoss[M2LRelPos_start_idx[i]+j];
+        real_t *kernel = &mat_M2L_Helper[relPosidx*2*n3_];
+        hadamardProduct(kernel, &up_equiv_fft[index_in_up_equiv_fft[cnt]*2*n3_], &dw_equiv_fft[i*2*n3_], n3_);
+        cnt ++;
+      }
+    }
+  }
+
+  void FFT_Check2Equiv(Nodes& nodes, std::vector<int> &M2Ltargets_idx, AlignedVec& dw_equiv_fft) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -421,7 +436,7 @@ namespace exafmm_t {
     for(int i=0; i<M2Ltargets_idx.size(); ++i) {
       Node* target = &nodes[M2Ltargets_idx[i]];
       AlignedVec dnCheck(n3);
-      fft_execute_dft_c2r(iplan, (fft_complex*)(&check[i*2*n3_]), &dnCheck[0]);
+      fft_execute_dft_c2r(iplan, (fft_complex*)(&dw_equiv_fft[i*2*n3_]), &dnCheck[0]);
       real_t scale = powf(2, target->depth);
       for(int j=0; j<NSURF; ++j) {
         int conv_id = map2[j];
@@ -435,41 +450,43 @@ namespace exafmm_t {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
-    Profile::Tic("FFT_UpEquiv", true);
-    FFT_UpEquiv(nodes, M2Lsources_idx);
-    Profile::Toc();
-    Profile::Tic("hadamard", true);
-    std::vector<real_t> nodes_up_equiv_fft(nodes.size()*2*n3_);
+	AlignedVec up_equiv_fft(M2Lsources_idx.size()*2*n3_);
+    AlignedVec dw_equiv_fft(M2Ltargets_idx.size()*2*n3_);
+    std::vector<int> index_in_up_equiv_fft;
     std::vector<int> M2Llist_start_idx;
     std::vector<int> M2Llists;
     int M2Llist_start_idx_cnt = 0;
-    
     std::vector<int> M2LRelPos_start_idx;
     std::vector<int> M2LRelPoss;
     int M2LRelPos_start_idx_cnt = 0;
-    for (int i = 0; i < nodes.size(); ++i)
-    {
-      Node node = nodes[i];
-      nodes_up_equiv_fft.insert(nodes_up_equiv_fft.end(), node.up_equiv_fft.begin(), node.up_equiv_fft.end());
+    for(int i=0; i<M2Lsources_idx.size(); ++i) {
+      Node *node = &nodes[M2Lsources_idx[i]];
+      node->index_in_up_equiv_fft = i;
     }
-    for(int i=0; i<M2Ltargets_idx.size(); ++i) {
-      Node* target = &nodes[M2Ltargets_idx[i]];
-      
-      M2Llist_start_idx.push_back(M2Llist_start_idx_cnt);
-      M2Llists.insert(M2Llists.end(), target->M2Llist_idx.begin(), target->M2Llist_idx.end());
-      M2Llist_start_idx_cnt += target->M2Llist_idx.size();
 
+    for (int i=0;i<M2Ltargets_idx.size(); i++) {
+      Node* target = &nodes[M2Ltargets_idx[i]];
+      M2Llist_start_idx.push_back(M2Llist_start_idx_cnt);
       M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
-      M2LRelPoss.insert(M2LRelPoss.end(), target->M2LRelPos.begin(),target->M2LRelPos.end());
-       M2LRelPos_start_idx_cnt += target->M2LRelPos.size();
+      for(int j=0; j<target->M2Llist_idx.size(); j++) {
+        Node* source = &nodes[target->M2Llist_idx[j]];
+        index_in_up_equiv_fft.push_back(source->index_in_up_equiv_fft);
+        M2Llists.push_back(target->M2Llist_idx[j]);
+        M2LRelPoss.push_back(target->M2LRelPos[j]);
+        M2Llist_start_idx_cnt ++;
+        M2LRelPos_start_idx_cnt ++;
+      }
     }
     M2Llist_start_idx.push_back(M2Llist_start_idx_cnt);
     M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
-    std::vector<real_t> check(2*n3_*M2Ltargets_idx.size(), 0.);
-    HadmardGPU(M2Ltargets_idx, nodes_up_equiv_fft, M2Llist_start_idx, M2Llists, M2LRelPos_start_idx, M2LRelPoss, mat_M2L_Helper, check);
+    Profile::Tic("FFT_UpEquiv", true);
+    FFT_UpEquiv(nodes, M2Lsources_idx, up_equiv_fft);
+    Profile::Toc();
+    Profile::Tic("hadamard", true);
+    FFT_Hadmard(M2Ltargets_idx, up_equiv_fft, dw_equiv_fft, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss);
     Profile::Toc();
     Profile::Tic("FFT_Check2Equiv", true);
-    FFT_Check2Equiv(nodes, M2Ltargets_idx, check);
+    FFT_Check2Equiv(nodes, M2Ltargets_idx, dw_equiv_fft);
     Profile::Toc();
   }
 }//end namespace
