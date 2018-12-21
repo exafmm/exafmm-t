@@ -20,7 +20,7 @@ namespace exafmm_t {
   RealVec transpose(RealVec& vec, int m, int n);
 
   void initialize_matrix() {
-    int n1 = MULTIPOLE_ORDER * 2;
+    int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     size_t fft_size = n3_ * 2 * NCHILD * NCHILD;
@@ -37,8 +37,8 @@ namespace exafmm_t {
     int level = 0;
     real_t c[3] = {0, 0, 0};
     // caculate upwardcheck to equiv U and V
-    RealVec up_check_surf = surface(MULTIPOLE_ORDER,c,2.95,level);
-    RealVec up_equiv_surf = surface(MULTIPOLE_ORDER,c,1.05,level);
+    RealVec up_check_surf = surface(P,c,2.95,level);
+    RealVec up_equiv_surf = surface(P,c,1.05,level);
     RealVec matrix_c2e(NSURF*NSURF);
     kernel_matrix(&up_check_surf[0], NSURF, &up_equiv_surf[0], NSURF, &matrix_c2e[0]);
     RealVec U(NSURF*NSURF), S(NSURF*NSURF), VT(NSURF*NSURF);
@@ -64,13 +64,13 @@ namespace exafmm_t {
     int numRelCoord = rel_coord[M2M_Type].size();
     int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
-    RealVec parent_up_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
+    RealVec parent_up_check_surf = surface(P,parent_coord,2.95,level);
     real_t s = R0 * powf(0.5, level+1);
 #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
       ivec3& coord = rel_coord[M2M_Type][i];
       real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-      RealVec child_up_equiv_surf = surface(MULTIPOLE_ORDER,child_coord,1.05,level+1);
+      RealVec child_up_equiv_surf = surface(P,child_coord,1.05,level+1);
       RealVec matrix_pc2ce(NSURF*NSURF);
       kernel_matrix(&parent_up_check_surf[0], NSURF, &child_up_equiv_surf[0], NSURF, &matrix_pc2ce[0]);
       // M2M
@@ -85,13 +85,13 @@ namespace exafmm_t {
   }
 
   void precompute_M2Lhelper() {
-    int n1 = MULTIPOLE_ORDER * 2;
+    int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     // create fftw plan
     RealVec fftw_in(n3);
     RealVec fftw_out(2*n3_);
-    int dim[3] = {2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER, 2*MULTIPOLE_ORDER};
+    int dim[3] = {2*P, 2*P, 2*P};
     fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, &fftw_in[0], nullptr, 1, n3,
                     (fft_complex*)(&fftw_out[0]), nullptr, 1, n3_, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
@@ -114,7 +114,7 @@ namespace exafmm_t {
   }
 
   void precompute_M2L() {
-    int n1 = MULTIPOLE_ORDER * 2;
+    int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     int numParentRelCoord = rel_coord[M2L_Type].size();
@@ -152,7 +152,7 @@ namespace exafmm_t {
 
   bool load_matrix() {
     std::ifstream file(FILE_NAME, std::ifstream::binary);
-    int n1 = MULTIPOLE_ORDER * 2;
+    int n1 = P * 2;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     size_t fft_size = n3_ * 2 * NCHILD * NCHILD;
     size_t file_size = (2*rel_coord[M2M_Type].size()+4) * NSURF * NSURF
@@ -176,7 +176,7 @@ namespace exafmm_t {
           file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
         }
         // M2L
-        int n1 = MULTIPOLE_ORDER * 2;
+        int n1 = P * 2;
         int n3_ = n1 * n1 * (n1 / 2 + 1);
         size = n3_ * 2 * NCHILD * NCHILD;
         for(auto & vec : matrix_M2L) {
@@ -208,7 +208,7 @@ namespace exafmm_t {
       file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
     }
     // M2L
-    int n1 = MULTIPOLE_ORDER * 2;
+    int n1 = P * 2;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     size = n3_ * 2 * NCHILD * NCHILD;
     for(auto & vec : matrix_M2L) {
@@ -220,7 +220,7 @@ namespace exafmm_t {
   void precompute() {
     // if matrix binary file exists
     FILE_NAME = "laplace";
-    FILE_NAME += "_" + std::string(sizeof(real_t)==4 ? "f":"d") + "_" + "p" + std::to_string(MULTIPOLE_ORDER);
+    FILE_NAME += "_" + std::string(sizeof(real_t)==4 ? "f":"d") + "_" + "p" + std::to_string(P);
     FILE_NAME += ".dat";
     initialize_matrix();
     if (load_matrix()) {

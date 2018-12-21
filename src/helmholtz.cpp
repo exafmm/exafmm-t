@@ -1,7 +1,7 @@
 #include "helmholtz.h"
 
 namespace exafmm_t {
-  int MULTIPOLE_ORDER;
+  int P;
   int NSURF;
   int MAXLEVEL;
   real_t MU;
@@ -309,7 +309,7 @@ namespace exafmm_t {
     up_check_surf.resize(MAXLEVEL+1);
     for(size_t level = 0; level <= MAXLEVEL; level++) {
       up_check_surf[level].resize(NSURF*3);
-      up_check_surf[level] = surface(MULTIPOLE_ORDER,c,2.95,level);
+      up_check_surf[level] = surface(P,c,2.95,level);
     }
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
@@ -378,7 +378,7 @@ namespace exafmm_t {
     dn_equiv_surf.resize(MAXLEVEL+1);
     for(size_t level = 0; level <= MAXLEVEL; level++) {
       dn_equiv_surf[level].resize(NSURF*3);
-      dn_equiv_surf[level] = surface(MULTIPOLE_ORDER,c,2.95,level);
+      dn_equiv_surf[level] = surface(P,c,2.95,level);
     }
     #pragma omp parallel for
     for(int i=0; i<leafs.size(); i++) {
@@ -409,7 +409,7 @@ namespace exafmm_t {
     dn_check_surf.resize(MAXLEVEL+1);
     for(size_t level = 0; level <= MAXLEVEL; level++) {
       dn_check_surf[level].resize(NSURF*3);
-      dn_check_surf[level] = surface(MULTIPOLE_ORDER,c,1.05,level);
+      dn_check_surf[level] = surface(P,c,1.05,level);
     }
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
@@ -437,7 +437,7 @@ namespace exafmm_t {
     up_equiv_surf.resize(MAXLEVEL+1);
     for(size_t level = 0; level <= MAXLEVEL; level++) {
       up_equiv_surf[level].resize(NSURF*3);
-      up_equiv_surf[level] = surface(MULTIPOLE_ORDER,c,1.05,level);
+      up_equiv_surf[level] = surface(P,c,1.05,level);
     }
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
@@ -472,7 +472,7 @@ namespace exafmm_t {
   }
 
   void M2L_setup(NodePtrs& nonleafs) {
-    int n1 = MULTIPOLE_ORDER * 2;
+    int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     size_t mat_cnt = rel_coord[M2L_Type].size();
     // initialize M2Ldata
@@ -540,7 +540,7 @@ namespace exafmm_t {
 
   void hadamard_product(std::vector<size_t>& interaction_count_offset, std::vector<size_t>& interaction_offset_f,
                        AlignedVec& fft_in, AlignedVec& fft_out, int level) {
-    int n1 = MULTIPOLE_ORDER * 2;
+    int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     size_t fftsize = 2 * NCHILD * n3;
     AlignedVec zero_vec0(fftsize, 0.);
@@ -592,16 +592,16 @@ namespace exafmm_t {
   }
 
   void fft_up_equiv(std::vector<size_t>& fft_offset, ComplexVec& all_up_equiv, AlignedVec& fft_in) {
-    int n1 = MULTIPOLE_ORDER * 2;
+    int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
-    for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
-    RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0, true);
+    for(int d=0; d<3; d++) c[d] += 0.5*(P-2);
+    RealVec surf = surface(P, c, (real_t)(P-1), 0, true);
     for(size_t i=0; i<map.size(); i++) {
-      map[i] = ((size_t)(MULTIPOLE_ORDER-1-surf[i*3]+0.5))
-             + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+1]+0.5)) * n1
-             + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+2]+0.5)) * n1 * n1;
+      map[i] = ((size_t)(P-1-surf[i*3]+0.5))
+             + ((size_t)(P-1-surf[i*3+1]+0.5)) * n1
+             + ((size_t)(P-1-surf[i*3+2]+0.5)) * n1 * n1;
     }
 
     size_t fftsize = 2 * NCHILD * n3;
@@ -638,16 +638,16 @@ namespace exafmm_t {
   }
 
   void ifft_dn_check(std::vector<size_t>& ifft_offset, AlignedVec& fft_out, ComplexVec& all_dn_equiv) {
-    int n1 = MULTIPOLE_ORDER * 2;
+    int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
-    for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
-    RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0, true);
+    for(int d=0; d<3; d++) c[d] += 0.5*(P-2);
+    RealVec surf = surface(P, c, (real_t)(P-1), 0, true);
     for(size_t i=0; i<map.size(); i++) {
-      map[i] = ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3]))
-             + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+1])) * n1
-             + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+2])) * n1 * n1;
+      map[i] = ((size_t)(P*2-0.5-surf[i*3]))
+             + ((size_t)(P*2-0.5-surf[i*3+1])) * n1
+             + ((size_t)(P*2-0.5-surf[i*3+2])) * n1 * n1;
     }
 
     size_t fftsize = 2 * NCHILD * n3;
@@ -681,7 +681,7 @@ namespace exafmm_t {
   }
   
   void M2L(Nodes& nodes) {
-    int n1 = MULTIPOLE_ORDER * 2;
+    int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     size_t numNodes = nodes.size();
     ComplexVec all_up_equiv(numNodes*NSURF);

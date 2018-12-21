@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
   Args args(argc, argv);
   omp_set_num_threads(args.threads);
   size_t N = args.numBodies;
-  MULTIPOLE_ORDER = args.P;
-  NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
+  P = args.P;
+  NSURF = 6*(P-1)*(P-1) + 2;
   Profile::Enable(true);
 
   Profile::Tic("Total");

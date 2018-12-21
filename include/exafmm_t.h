@@ -147,7 +147,7 @@ namespace exafmm_t {
   extern std::vector<RealVec> matrix_M2M, matrix_L2L, matrix_M2L;
 #endif
 
-  extern int MULTIPOLE_ORDER;   // order of multipole expansion
+  extern int P;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates
   extern int MAXLEVEL;
   extern vec3 XMIN0;    // coordinates of root
