@@ -1,5 +1,7 @@
 #ifndef precompute_helmholtz_h
 #define precompute_helmholtz_h
+#include <fstream>
+#include <string>
 #include "exafmm_t.h"
 #include "geometry.h"
 #include "helmholtz.h"
@@ -10,13 +12,34 @@ namespace exafmm_t {
   std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
   std::vector<std::vector<RealVec>> matrix_M2L_Helper;
   std::vector<std::vector<RealVec>> matrix_M2L;
+  std::string KERNEL_NAME;
 
-  void precompute_check2equiv() {
-    real_t c[3] = {0, 0, 0};
+  void initialize_matrix() {
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    size_t fft_size = n3 * 2 * NCHILD * NCHILD;
     matrix_UC2E_V.resize(MAXLEVEL+1);
     matrix_UC2E_U.resize(MAXLEVEL+1);
     matrix_DC2E_V.resize(MAXLEVEL+1);
     matrix_DC2E_U.resize(MAXLEVEL+1);
+    matrix_M2M.resize(MAXLEVEL+1);
+    matrix_L2L.resize(MAXLEVEL+1);
+    matrix_M2L.resize(MAXLEVEL);  // skip the last level
+    for(int level = 0; level <= MAXLEVEL; level++) {
+      matrix_UC2E_V[level].resize(NSURF*NSURF);
+      matrix_UC2E_U[level].resize(NSURF*NSURF);
+      matrix_DC2E_V[level].resize(NSURF*NSURF);
+      matrix_DC2E_U[level].resize(NSURF*NSURF);
+      matrix_M2M[level].resize(rel_coord[M2M_Type].size(), ComplexVec(NSURF*NSURF));
+      matrix_L2L[level].resize(rel_coord[L2L_Type].size(), ComplexVec(NSURF*NSURF));
+    }
+    for(int level = 0; level < MAXLEVEL; level++) {
+      matrix_M2L[level].resize(rel_coord[M2L_Type].size(), RealVec(fft_size));  // N3 by (2*NCHILD*NCHILD) matrix
+    }
+  }
+
+  void precompute_check2equiv() {
+    real_t c[3] = {0, 0, 0};
     for(int level = 0; level <= MAXLEVEL; level++) {
       // caculate matrix_UC2E_U and matrix_UC2E_V
       RealVec up_check_surf = surface(MULTIPOLE_ORDER,c,2.95,level);
@@ -37,11 +60,9 @@ namespace exafmm_t {
       // save matrix
       ComplexVec V = conjugate_transpose(VH, NSURF, NSURF);
       ComplexVec UH = conjugate_transpose(U, NSURF, NSURF);
-      matrix_UC2E_V[level].resize(NSURF*NSURF);
       matrix_UC2E_U[level] = UH;
       gemm(NSURF, NSURF, NSURF, &V[0], &S[0], &(matrix_UC2E_V[level][0]));
 
-      matrix_DC2E_V[level].resize(NSURF*NSURF);
       matrix_DC2E_U[level] = transpose(V, NSURF, NSURF);
       ComplexVec UTH = transpose(UH, NSURF, NSURF);
       gemm(NSURF, NSURF, NSURF, &UTH[0], &S[0], &(matrix_DC2E_V[level][0]));
@@ -49,16 +70,12 @@ namespace exafmm_t {
   }
 
   void precompute_M2M() {
-    matrix_M2M.resize(MAXLEVEL+1);
-    matrix_L2L.resize(MAXLEVEL+1);
     real_t parent_coord[3] = {0, 0, 0};
     for(int level = 0; level <= MAXLEVEL; level++) {
       RealVec parent_up_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
       real_t s = R0 * powf(0.5, level+1);
 
       int numRelCoord = rel_coord[M2M_Type].size();
-      matrix_M2M[level].resize(numRelCoord);
-      matrix_L2L[level].resize(numRelCoord);
 #pragma omp parallel for
       for(int i=0; i<numRelCoord; i++) {
         ivec3& coord = rel_coord[M2M_Type][i];
@@ -68,12 +85,10 @@ namespace exafmm_t {
         kernel_matrix(&parent_up_check_surf[0], NSURF, &child_up_equiv_surf[0], NSURF, &matrix_pc2ce[0]);
         // M2M: child's upward_equiv to parent's check
         ComplexVec buffer(NSURF*NSURF);
-        matrix_M2M[level][i].resize(NSURF*NSURF);
         gemm(NSURF, NSURF, NSURF, &(matrix_UC2E_U[level][0]), &matrix_pc2ce[0], &buffer[0]);
         gemm(NSURF, NSURF, NSURF, &(matrix_UC2E_V[level][0]), &buffer[0], &(matrix_M2M[level][i][0]));
         // L2L: parent's dnward_equiv to child's check, reuse surface coordinates
         matrix_pc2ce = transpose(matrix_pc2ce, NSURF, NSURF);
-        matrix_L2L[level][i].resize(NSURF*NSURF);
         gemm(NSURF, NSURF, NSURF, &matrix_pc2ce[0], &(matrix_DC2E_V[level][0]), &buffer[0]);
         gemm(NSURF, NSURF, NSURF, &buffer[0], &(matrix_DC2E_U[level][0]), &(matrix_L2L[level][i][0]));
       }
@@ -115,7 +130,6 @@ namespace exafmm_t {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int numParentRelCoord = rel_coord[M2L_Type].size();
-    matrix_M2L.resize(MAXLEVEL);  // skip the last level
     // parent rel, child rel -> m2l_helper_idx
     std::vector<std::vector<int>> index_mapping(numParentRelCoord, std::vector<int>(NCHILD*NCHILD));
     for(int i=0; i<numParentRelCoord; ++i) {
@@ -135,9 +149,7 @@ namespace exafmm_t {
     }
     // copy from matrix_M2L_Helper to matrix_M2L
     for(int l=0; l<MAXLEVEL; ++l) {
-      matrix_M2L[l].resize(numParentRelCoord);
       for(int i=0; i<numParentRelCoord; ++i) {
-        matrix_M2L[l][i].resize(n3 * 2*NCHILD*NCHILD, 0.);  // N3 by (2*NCHILD*NCHILD) matrix
         for(int j=0; j<NCHILD*NCHILD; j++) {       // loop over child's relative positions
           int child_rel_idx = index_mapping[i][j];
           if (child_rel_idx != -1) {
@@ -152,11 +164,89 @@ namespace exafmm_t {
     }
   }
 
+  bool load_matrix() {
+    std::ifstream file(KERNEL_NAME, std::ifstream::binary);
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    size_t fft_size = n3 * 2 * NCHILD * NCHILD;
+    size_t file_size = (2*rel_coord[M2M_Type].size()+4) * NSURF * NSURF * (MAXLEVEL+1) * sizeof(complex_t)
+                     +  rel_coord[M2L_Type].size() * fft_size * MAXLEVEL * sizeof(real_t);
+    if (file.good()) {     // if file exists
+      file.seekg(0, file.end);
+      if (file.tellg() == file_size) {   // if file size is correct
+        file.seekg(0, file.beg);         // move the position back to the beginning
+        size_t size = NSURF * NSURF;
+        for(int level = 0; level <= MAXLEVEL; level++) {
+          // UC2E, DC2E
+          file.read(reinterpret_cast<char*>(&matrix_UC2E_U[level][0]), size*sizeof(complex_t));
+          file.read(reinterpret_cast<char*>(&matrix_UC2E_V[level][0]), size*sizeof(complex_t));
+          file.read(reinterpret_cast<char*>(&matrix_DC2E_U[level][0]), size*sizeof(complex_t));
+          file.read(reinterpret_cast<char*>(&matrix_DC2E_V[level][0]), size*sizeof(complex_t));
+          // M2M, L2L
+          for(auto & vec : matrix_M2M[level]) {
+            file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(complex_t));
+          }
+          for(auto & vec : matrix_L2L[level]) {
+            file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(complex_t));
+          }
+        }
+        // M2L
+        for(int level = 0; level < MAXLEVEL; level++) {
+          for(auto & vec : matrix_M2L[level]) {
+            file.read(reinterpret_cast<char*>(&vec[0]), fft_size*sizeof(real_t));
+          }
+        }
+        file.close();
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  void save_matrix() {
+    std::ofstream file(KERNEL_NAME, std::ofstream::binary);
+    size_t size = NSURF*NSURF;
+    for(int level = 0; level <= MAXLEVEL; level++) {
+      // save UC2E, DC2E precompute data
+      file.write(reinterpret_cast<char*>(&matrix_UC2E_U[level][0]), size*sizeof(complex_t));
+      file.write(reinterpret_cast<char*>(&matrix_UC2E_V[level][0]), size*sizeof(complex_t));
+      file.write(reinterpret_cast<char*>(&matrix_DC2E_U[level][0]), size*sizeof(complex_t));
+      file.write(reinterpret_cast<char*>(&matrix_DC2E_V[level][0]), size*sizeof(complex_t));
+      // M2M, M2L precompute data
+      for(auto & vec : matrix_M2M[level]) {
+        file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(complex_t));
+      }
+      for(auto & vec : matrix_L2L[level]) {
+        file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(complex_t));
+      }
+    }
+    // M2L precompute data
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    size = n3 * 2 * NCHILD * NCHILD;
+    for(int level = 0; level < MAXLEVEL; level++) {
+      for(auto & vec : matrix_M2L[level]) {
+        file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
+      }
+    }
+  }
+
   void precompute() {
-    precompute_check2equiv();
-    precompute_M2M();
-    precompute_M2Lhelper();
-    precompute_M2L();
+    // if matrix binary file exists
+    KERNEL_NAME = "helmholtz.dat";
+    initialize_matrix();
+    if (load_matrix()) {
+      return;
+    } else {
+      precompute_check2equiv();
+      precompute_M2M();
+      precompute_M2Lhelper();
+      precompute_M2L();
+      save_matrix();
+    }
   }
 }//end namespace
 #endif
