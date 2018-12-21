@@ -1,5 +1,7 @@
 #ifndef precompute_h
 #define precompute_h
+#include <fstream>
+#include <string>
 #include "exafmm_t.h"
 #include "geometry.h"
 #include "laplace.h"
@@ -11,6 +13,7 @@ namespace exafmm_t {
   std::vector<RealVec> matrix_M2M;
   std::vector<RealVec> matrix_M2L;
   std::vector<RealVec> matrix_L2L;
+  std::string KERNEL_NAME;
 
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
@@ -141,11 +144,39 @@ namespace exafmm_t {
     }
   }
 
+  void save_matrix() {
+    std::ofstream file(KERNEL_NAME, std::ofstream::binary);
+    size_t size = NSURF*NSURF;
+    // UC2E, DC2E
+    file.write(reinterpret_cast<char*>(&matrix_UC2E_U[0]), size*sizeof(real_t));
+    file.write(reinterpret_cast<char*>(&matrix_UC2E_V[0]), size*sizeof(real_t));
+    file.write(reinterpret_cast<char*>(&matrix_DC2E_U[0]), size*sizeof(real_t));
+    file.write(reinterpret_cast<char*>(&matrix_DC2E_V[0]), size*sizeof(real_t));
+    // M2M, L2L
+    for(auto & vec : matrix_M2M) {
+      file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
+    }
+    for(auto & vec : matrix_L2L) {
+      file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
+    }
+    // M2L
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
+    size = n3_ * 2 * NCHILD * NCHILD;
+    for(auto & vec : matrix_M2L) {
+      file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
+    }
+    file.close();
+  }
+
   void precompute() {
+    // if matrix binary file exists
+    KERNEL_NAME = "laplace.dat";
     precompute_check2equiv();
     precompute_M2M();
     precompute_M2Lhelper();
     precompute_M2L();
+    save_matrix();
   }
 }//end namespace
 #endif
