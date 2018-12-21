@@ -19,6 +19,20 @@ namespace exafmm_t {
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
   RealVec transpose(RealVec& vec, int m, int n);
 
+  void initialize_matrix() {
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
+    size_t fft_size = n3_ * 2 * NCHILD * NCHILD;
+    matrix_UC2E_U.resize(NSURF*NSURF);
+    matrix_UC2E_V.resize(NSURF*NSURF);
+    matrix_DC2E_U.resize(NSURF*NSURF);
+    matrix_DC2E_V.resize(NSURF*NSURF);
+    matrix_M2M.resize(rel_coord[M2M_Type].size(), RealVec(NSURF*NSURF));
+    matrix_L2L.resize(rel_coord[L2L_Type].size(), RealVec(NSURF*NSURF));
+    matrix_M2L.resize(rel_coord[M2L_Type].size(), RealVec(fft_size));
+  }
+
   void precompute_check2equiv() {
     int level = 0;
     real_t c[3] = {0, 0, 0};
@@ -39,19 +53,15 @@ namespace exafmm_t {
     }
     // save matrix
     RealVec V = transpose(VT, NSURF, NSURF);
-    matrix_UC2E_V.resize(NSURF*NSURF);
     matrix_UC2E_U = transpose(U, NSURF, NSURF);
     gemm(NSURF, NSURF, NSURF, &V[0], &S[0], &matrix_UC2E_V[0]);
 
-    matrix_DC2E_V.resize(NSURF*NSURF);
     matrix_DC2E_U = VT;
     gemm(NSURF, NSURF, NSURF, &U[0], &S[0], &matrix_DC2E_V[0]);
   }
 
   void precompute_M2M() {
     int numRelCoord = rel_coord[M2M_Type].size();
-    matrix_M2M.resize(numRelCoord);
-    matrix_L2L.resize(numRelCoord);
     int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
     RealVec parent_up_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
@@ -65,12 +75,10 @@ namespace exafmm_t {
       kernel_matrix(&parent_up_check_surf[0], NSURF, &child_up_equiv_surf[0], NSURF, &matrix_pc2ce[0]);
       // M2M
       RealVec buffer(NSURF*NSURF);
-      matrix_M2M[i].resize(NSURF*NSURF);
       gemm(NSURF, NSURF, NSURF, &matrix_UC2E_U[0], &matrix_pc2ce[0], &buffer[0]);
       gemm(NSURF, NSURF, NSURF, &matrix_UC2E_V[0], &buffer[0], &(matrix_M2M[i][0]));
       // L2L
       matrix_pc2ce = transpose(matrix_pc2ce, NSURF, NSURF);
-      matrix_L2L[i].resize(NSURF*NSURF);
       gemm(NSURF, NSURF, NSURF, &matrix_pc2ce[0], &matrix_DC2E_V[0], &buffer[0]);
       gemm(NSURF, NSURF, NSURF, &buffer[0], &matrix_DC2E_U[0], &(matrix_L2L[i][0]));
     }
@@ -111,7 +119,6 @@ namespace exafmm_t {
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     int numParentRelCoord = rel_coord[M2L_Type].size();
     int numChildRelCoord = rel_coord[M2L_Helper_Type].size();
-    matrix_M2L.resize(numParentRelCoord);
     RealVec zero_vec(n3_*2, 0);
     #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<numParentRelCoord; i++) {
@@ -133,7 +140,6 @@ namespace exafmm_t {
           }
         }
       }
-      matrix_M2L[i].resize(n3_*2*NCHILD*NCHILD);  // N3 by (2*NCHILD*NCHILD) matrix
       for(int k=0; k<n3_; k++) {                      // loop over frequencies
         for(size_t j=0; j<NCHILD*NCHILD; j++) {       // loop over child's relative positions
           int index = k*(2*NCHILD*NCHILD) + 2*j;
@@ -141,6 +147,48 @@ namespace exafmm_t {
           matrix_M2L[i][index+1] = matrix_ptr[j][k*2+1]/n3;   // imag
         }
       }
+    }
+  }
+
+  bool load_matrix() {
+    std::ifstream file(KERNEL_NAME, std::ifstream::binary);
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
+    size_t fft_size = n3_ * 2 * NCHILD * NCHILD;
+    size_t file_size = (2*rel_coord[M2M_Type].size()+4) * NSURF * NSURF
+                     +  rel_coord[M2L_Type].size() * fft_size;
+    file_size *= sizeof(real_t);
+    if (file.good()) {     // if file exists
+      file.seekg(0, file.end);
+      if (file.tellg() == file_size) {   // if file size is correct
+        file.seekg(0, file.beg);         // move the position back to the beginning
+        size_t size = NSURF * NSURF;
+        // UC2E, DC2E
+        file.read(reinterpret_cast<char*>(&matrix_UC2E_U[0]), size*sizeof(real_t));
+        file.read(reinterpret_cast<char*>(&matrix_UC2E_V[0]), size*sizeof(real_t));
+        file.read(reinterpret_cast<char*>(&matrix_DC2E_U[0]), size*sizeof(real_t));
+        file.read(reinterpret_cast<char*>(&matrix_DC2E_V[0]), size*sizeof(real_t));
+        // M2M, L2L
+        for(auto & vec : matrix_M2M) {
+          file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
+        }
+        for(auto & vec : matrix_L2L) {
+          file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
+        }
+        // M2L
+        int n1 = MULTIPOLE_ORDER * 2;
+        int n3_ = n1 * n1 * (n1 / 2 + 1);
+        size = n3_ * 2 * NCHILD * NCHILD;
+        for(auto & vec : matrix_M2L) {
+          file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
+        }
+        file.close();
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
     }
   }
 
@@ -172,11 +220,16 @@ namespace exafmm_t {
   void precompute() {
     // if matrix binary file exists
     KERNEL_NAME = "laplace.dat";
-    precompute_check2equiv();
-    precompute_M2M();
-    precompute_M2Lhelper();
-    precompute_M2L();
-    save_matrix();
+    initialize_matrix();
+    if (load_matrix()) {
+      return;
+    } else {
+      precompute_check2equiv();
+      precompute_M2M();
+      precompute_M2Lhelper();
+      precompute_M2L();
+      save_matrix();
+    }
   }
 }//end namespace
 #endif
