@@ -12,7 +12,7 @@ namespace exafmm_t {
     return ((coord[2]+n) * (2*n) + (coord[1]+n)) *(2*n) + (coord[0]+n);
   }
 
-  void initRelCoord(int max_r, int min_r, int step, Mat_Type t) {
+  void init_rel_coord(int max_r, int min_r, int step, Mat_Type t) {
     const int max_hash = 2000;
     int n1 = (max_r*2)/step+1;
     int n2 = (min_r*2)/step-1;
@@ -34,22 +34,22 @@ namespace exafmm_t {
     }
   }
 
-  void initRelCoord() {
+  void init_rel_coord() {
     rel_coord.resize(Type_Count);
     hash_lut.resize(Type_Count);
-    initRelCoord(1, 1, 2, M2M_Type);
-    initRelCoord(1, 1, 2, L2L_Type);
-    initRelCoord(3, 3, 2, P2P0_Type);
-    initRelCoord(1, 0, 1, P2P1_Type);
-    initRelCoord(3, 3, 2, P2P2_Type);
-    initRelCoord(3, 2, 1, M2L_Helper_Type);
-    initRelCoord(1, 1, 1, M2L_Type);
-    initRelCoord(5, 5, 2, M2P_Type);
-    initRelCoord(5, 5, 2, P2L_Type);
+    init_rel_coord(1, 1, 2, M2M_Type);
+    init_rel_coord(1, 1, 2, L2L_Type);
+    init_rel_coord(3, 3, 2, P2P0_Type);
+    init_rel_coord(1, 0, 1, P2P1_Type);
+    init_rel_coord(3, 3, 2, P2P2_Type);
+    init_rel_coord(3, 2, 1, M2L_Helper_Type);
+    init_rel_coord(1, 1, 1, M2L_Type);
+    init_rel_coord(5, 5, 2, M2P_Type);
+    init_rel_coord(5, 5, 2, P2L_Type);
   }
 
   // Build interaction lists of P2P0_Type and P2L_Type
-  void buildListParentLevel(Node* n) {
+  void build_list_parent_level(Node* n) {
     if (!n->parent) return;
     ivec3 rel_coord;
     int octant = n->octant;
@@ -64,21 +64,21 @@ namespace exafmm_t {
         if (isleaf) {
           int idx1 = hash_lut[P2P0_Type][c_hash];
           if (idx1>=0)
-            n->P2Plist.push_back(pc);
+            n->P2P_list.push_back(pc);
         }
         int idx2 = hash_lut[P2L_Type][c_hash];
         if (idx2>=0) {
-          if (isleaf && n->numTargets<=NSURF)
-            n->P2Plist.push_back(pc);
+          if (isleaf && n->ntrgs<=NSURF)
+            n->P2P_list.push_back(pc);
           else
-            n->P2Llist.push_back(pc);
+            n->P2L_list.push_back(pc);
         }
       }
     }
   }
 
   // Build interaction lists of P2P1_Type and M2L_Type
-  void buildListCurrentLevel(Node* n) {
+  void build_list_current_level(Node* n) {
     ivec3 rel_coord;
     bool isleaf = n->is_leaf;
     for (int i=0; i<27; i++) {
@@ -90,17 +90,17 @@ namespace exafmm_t {
         int c_hash = hash(rel_coord);
         if (col->is_leaf && isleaf) {
           int idx1 = hash_lut[P2P1_Type][c_hash];
-          if (idx1>=0) n->P2Plist.push_back(col);
+          if (idx1>=0) n->P2P_list.push_back(col);
         } else if (!col->is_leaf && !isleaf) {
           int idx2 = hash_lut[M2L_Type][c_hash];
-          if (idx2>=0) n->M2Llist[idx2] = col;
+          if (idx2>=0) n->M2L_list[idx2] = col;
         }
       }
     }
   }
   
   // Build interaction lists of P2P2_Type and M2P_Type
-  void buildListChildLevel(Node* n) {
+  void build_list_child_level(Node* n) {
     if (!n->is_leaf) return;
     ivec3 rel_coord;
     for(int i=0; i<27; i++) {
@@ -116,15 +116,15 @@ namespace exafmm_t {
           int idx2 = hash_lut[M2P_Type][c_hash];
           if (idx1>=0) {
             assert(col->children[j]->is_leaf); //2:1 balanced
-            n->P2Plist.push_back(cc);
+            n->P2P_list.push_back(cc);
           }
           // since we currently don't save bodies' information in nonleaf nodes
           // M2P can only be switched to P2P when source is leaf
           if (idx2>=0) {
-            if (cc->is_leaf && cc->numSources<=NSURF)
-              n->P2Plist.push_back(cc);
+            if (cc->is_leaf && cc->nsrcs<=NSURF)
+              n->P2P_list.push_back(cc);
             else
-              n->M2Plist.push_back(cc);
+              n->M2P_list.push_back(cc);
           }
         }
       }
@@ -132,18 +132,18 @@ namespace exafmm_t {
   }
 
   // Build interaction lists for all nodes 
-  void buildList(Nodes& nodes) {
+  void build_list(Nodes& nodes) {
     #pragma omp parallel for
     for(size_t i=0; i<nodes.size(); i++) {
       Node* node = &nodes[i];
-      node->M2Llist.resize(rel_coord[M2L_Type].size(), 0);
-      buildListParentLevel(node);
-      buildListCurrentLevel(node);
-      buildListChildLevel(node);
+      node->M2L_list.resize(rel_coord[M2L_Type].size(), 0);
+      build_list_parent_level(node);
+      build_list_current_level(node);
+      build_list_child_level(node);
     }
   }
   
-  void setColleagues(Node* node) {
+  void set_colleagues(Node* node) {
     Node *parent, *colleague, *child;
     node->colleagues.resize(27, nullptr);
     if (node->level==0) {     // root node
@@ -176,14 +176,14 @@ namespace exafmm_t {
     if (!node->is_leaf) {
       for (int c=0; c<8; ++c) {
         if (node->children[c]) {
-          setColleagues(node->children[c]);
+          set_colleagues(node->children[c]);
         }
       }
     }
   }
 
-  void setColleagues(Nodes& nodes) {
-    setColleagues(&nodes[0]);
+  void set_colleagues(Nodes& nodes) {
+    set_colleagues(&nodes[0]);
   }
 }
 #endif

@@ -86,7 +86,7 @@ namespace exafmm_t {
     return bodies;
   }
 
-  Bodies initBodies(int numBodies, const char * distribution, int seed) {
+  Bodies init_bodies(int numBodies, const char * distribution, int seed) {
     Bodies bodies;
     switch (distribution[0]) {
       case 'c':

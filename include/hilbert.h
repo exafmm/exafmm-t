@@ -135,7 +135,7 @@ namespace exafmm_t {
     real_t dx = 2 * R0 / (1 << level);
     ivec3 iX;
     for (int d=0; d<3; d++) {
-      iX[d] = floor((X[d] - Xmin0[d]) / dx);
+      iX[d] = floor((X[d] - XMIN0[d]) / dx);
     }
     return iX;
   }
@@ -145,7 +145,7 @@ namespace exafmm_t {
     real_t dx = 2 * R0 / (1 << level);
     vec3 X;
     for (int d=0; d<3; d++) {
-      X[d] = (iX[d] + 0.5) * dx + Xmin0[d];
+      X[d] = (iX[d] + 0.5) * dx + XMIN0[d];
     }
     return X;
   }

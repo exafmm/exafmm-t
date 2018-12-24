@@ -30,11 +30,11 @@ namespace exafmm_t {
 
   RealVec transpose(RealVec& vec, int m, int n);
 
-  void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
+  void potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
 
-  void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
+  void gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
 
-  void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
+  void kernel_matrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
 
   void P2M(NodePtrs& leafs);
 
@@ -50,16 +50,16 @@ namespace exafmm_t {
 
   void P2P(NodePtrs& leafs);
 
-  void M2LSetup(NodePtrs& nonleafs);
+  void M2L_setup(NodePtrs& nonleafs);
 
-  void M2LListHadamard(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
+  void hadamard_product(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
                        AlignedVec& fft_in, AlignedVec& fft_out);
 
-  void FFT_UpEquiv(std::vector<size_t>& fft_vec,
-                   RealVec& input_data, AlignedVec& fft_in);
+  void fft_up_equiv(std::vector<size_t>& fft_vec,
+                   RealVec& all_up_equiv, AlignedVec& fft_in);
 
-  void FFT_Check2Equiv(std::vector<size_t>& ifft_vec,
-                       AlignedVec& fft_out, RealVec& output_data);
+  void ifft_dn_check(std::vector<size_t>& ifft_vec,
+                       AlignedVec& fft_out, RealVec& all_dn_equiv);
 
   void M2L(Nodes& nodes);
 

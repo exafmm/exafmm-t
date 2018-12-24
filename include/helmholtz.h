@@ -46,11 +46,11 @@ namespace exafmm_t {
 
   ComplexVec conjugate_transpose(ComplexVec& vec, int m, int n);
 
-  void potentialP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
+  void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
 
-  void gradientP2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
+  void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
 
-  void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, complex_t* k_out);
+  void kernel_matrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, complex_t* k_out);
 
   void P2M(std::vector<Node*>& leafs);
 
@@ -66,14 +66,14 @@ namespace exafmm_t {
 
   void P2P(std::vector<Node*>& leafs);
 
-  void M2LSetup(std::vector<Node*>& nonleafs);
+  void M2L_setup(std::vector<Node*>& nonleafs);
 
-  void M2LListHadamard(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
+  void hadamard_product(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
                        AlignedVec& fft_in, AlignedVec& fft_out, int level);
 
-  void FFT_UpEquiv(std::vector<size_t>& fft_vec, ComplexVec& input_data, AlignedVec& fft_in);
+  void fft_up_equiv(std::vector<size_t>& fft_vec, ComplexVec& all_up_equiv, AlignedVec& fft_in);
 
-  void FFT_Check2Equiv(std::vector<size_t>& ifft_vec, AlignedVec& fft_out, ComplexVec& output_data);
+  void ifft_dn_check(std::vector<size_t>& ifft_vec, AlignedVec& fft_out, ComplexVec& all_dn_equiv);
 
   void M2L(Nodes& nodes);
 }//end namespace

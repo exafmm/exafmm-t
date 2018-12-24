@@ -51,7 +51,8 @@ namespace exafmm_t {
 
   //! SIMD vector types for AVX512, AVX, and SSE
   const int NSIMD = SIMD_BYTES / int(sizeof(real_t));  //!< SIMD vector length (SIMD_BYTES defined in vec.h)
-  typedef vec<NSIMD, real_t> simdvec;                  //!< SIMD vector type
+  typedef vec<NSIMD, real_t> simdvec;           //!< SIMD vector type
+
   typedef std::vector<real_t> RealVec;
   typedef std::vector<complex_t> ComplexVec;
   typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;
@@ -88,35 +89,35 @@ namespace exafmm_t {
   //! Structure of nodes
   struct Node {
     size_t idx;
-    size_t node_id;
+    size_t idx_M2L;
     bool is_leaf;
-    int numTargets;
-    int numSources;
-    vec3 Xmin;    // the coordinates of the front-left-bottom corner
-    real_t R;
+    int ntrgs;
+    int nsrcs;
+    vec3 xmin;    // the coordinates of the front-left-bottom corner
+    real_t r;
     uint64_t key;
     int level;
     int octant;
     Node* parent;
     std::vector<Node*> children;
     std::vector<Node*> colleagues;
-    std::vector<Node*> P2Llist;
-    std::vector<Node*> M2Plist;
-    std::vector<Node*> P2Plist;
-    std::vector<Node*> M2Llist;
+    std::vector<Node*> P2L_list;
+    std::vector<Node*> M2P_list;
+    std::vector<Node*> P2P_list;
+    std::vector<Node*> M2L_list;
     
     RealVec src_coord;
     RealVec trg_coord;
 #if COMPLEX
     ComplexVec src_value; // source's charge
     ComplexVec trg_value; // target's potential and gradient
-    ComplexVec upward_equiv; // M
-    ComplexVec dnward_equiv; // L
+    ComplexVec up_equiv; // M
+    ComplexVec dn_equiv; // L
 #else
     RealVec src_value; // source's charge
     RealVec trg_value; // target's potential and gradient
-    RealVec upward_equiv; // M
-    RealVec dnward_equiv; // L
+    RealVec up_equiv; // M
+    RealVec dn_equiv; // L
 #endif
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes
@@ -124,37 +125,32 @@ namespace exafmm_t {
   typedef std::vector<std::set<uint64_t>> Keys; //!< Vector of Morton keys of each level
 
   struct M2LData {
-    std::vector<size_t> fft_vec;   // source's first child's upward_equiv's displacement
-    std::vector<size_t> ifft_vec;  // target's first child's dnward_equiv's displacement
-    RealVec ifft_scl;
-    std::vector<size_t> interac_vec;
-    std::vector<size_t> interac_dsp;
+    std::vector<size_t> fft_offset;   // source's first child's upward_equiv's displacement
+    std::vector<size_t> ifft_offset;  // target's first child's dnward_equiv's displacement
+    RealVec ifft_scale;
+    std::vector<size_t> interaction_offset_f;
+    std::vector<size_t> interaction_count_offset;
   };
-#if HELMHOLTZ
-  extern std::vector<M2LData> M2Ldata;
-#else
-  extern M2LData M2Ldata;
-#endif
 
   // Relative coordinates and interaction lists
   extern std::vector<std::vector<ivec3>> rel_coord;
 
   // Precomputation matrices
 #if HELMHOLTZ
-  extern std::vector<ComplexVec> M2M_U, M2M_V;
-  extern std::vector<ComplexVec> L2L_U, L2L_V;
-  extern std::vector<std::vector<ComplexVec>> mat_M2M, mat_L2L;
-  extern std::vector<std::vector<RealVec>> mat_M2L;
+  extern std::vector<ComplexVec> matrix_UC2E_U, matrix_UC2E_V;
+  extern std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
+  extern std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
+  extern std::vector<std::vector<RealVec>> matrix_M2L;
 #else
-  extern RealVec M2M_U, M2M_V;
-  extern RealVec L2L_U, L2L_V;
-  extern std::vector<RealVec> mat_M2M, mat_L2L, mat_M2L;
+  extern RealVec matrix_UC2E_U, matrix_UC2E_V;
+  extern RealVec matrix_DC2E_U, matrix_DC2E_V;
+  extern std::vector<RealVec> matrix_M2M, matrix_L2L, matrix_M2L;
 #endif
 
-  extern int MULTIPOLE_ORDER;   // order of multipole expansion
+  extern int P;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates
   extern int MAXLEVEL;
-  extern vec3 Xmin0;    // coordinates of root
+  extern vec3 XMIN0;    // coordinates of root
   extern real_t R0;     // radius of root
   const int NCHILD = 8;
 #if HELMHOLTZ

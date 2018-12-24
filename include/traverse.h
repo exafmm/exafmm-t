@@ -4,7 +4,7 @@
 #include "profile.h"
 
 namespace exafmm_t {
-  void upwardPass(Nodes& nodes, NodePtrs& leafs) {
+  void upward_pass(Nodes& nodes, NodePtrs& leafs) {
     Profile::Tic("P2M", false, 5);
     P2M(leafs);
     Profile::Toc();
@@ -15,7 +15,7 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  void downwardPass(Nodes& nodes, NodePtrs& leafs) {
+  void downward_pass(Nodes& nodes, NodePtrs& leafs) {
     Profile::Tic("P2L", false, 5);
     P2L(nodes);
     Profile::Toc();
@@ -39,10 +39,10 @@ namespace exafmm_t {
   }
 
   RealVec verify(NodePtrs& leafs) {
-    int numTargets = 10;
-    int stride = leafs.size() / numTargets;
+    int ntrgs = 10;
+    int stride = leafs.size() / ntrgs;
     Nodes targets;
-    for(size_t i=0; i<numTargets; i++) {
+    for(size_t i=0; i<ntrgs; i++) {
       targets.push_back(*(leafs[i*stride]));
     }
     Nodes targets2 = targets;    // used for direct summation
@@ -55,13 +55,13 @@ namespace exafmm_t {
       std::fill(target->trg_value.begin(), target->trg_value.end(), 0.);
 #endif
       for(size_t j=0; j<leafs.size(); j++) {
-        gradientP2P(leafs[j]->src_coord, leafs[j]->src_value, target->trg_coord, target->trg_value);
+        gradient_P2P(leafs[j]->src_coord, leafs[j]->src_value, target->trg_coord, target->trg_value);
         // potentialP2P(leafs[j]->src_coord, leafs[j]->src_value, target->trg_coord, target->trg_value);
       }
     }
     real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm = 0;
     for(size_t i=0; i<targets.size(); i++) {
-      if (targets2[i].numTargets != 0) {  // if current leaf is not empty
+      if (targets2[i].ntrgs != 0) {  // if current leaf is not empty
 #if COMPLEX
         p_norm += std::norm(targets2[i].trg_value[0]);
         p_diff += std::norm(targets2[i].trg_value[0] - targets[i].trg_value[0]);
