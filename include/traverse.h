@@ -1,41 +1,42 @@
 #ifndef traverse_h
 #define traverse_h
 #include "exafmm_t.h"
-#include "profile.h"
+// #include "profile.h"
+#include "timer.h"
 
 namespace exafmm_t {
   void upward_pass(Nodes& nodes, NodePtrs& leafs) {
-    Profile::Tic("P2M", false, 5);
+    start("P2M");
     P2M(leafs);
-    Profile::Toc();
-    Profile::Tic("M2M", false, 5);
+    stop("P2M");
+    start("M2M");
     #pragma omp parallel
     #pragma omp single nowait
     M2M(&nodes[0]);
-    Profile::Toc();
+    stop("M2M");
   }
 
   void downward_pass(Nodes& nodes, NodePtrs& leafs) {
-    Profile::Tic("P2L", false, 5);
+    start("P2L");
     P2L(nodes);
-    Profile::Toc();
-    Profile::Tic("M2P", false, 5);
+    stop("P2L");
+    start("M2P");
     M2P(leafs);
-    Profile::Toc();
-    Profile::Tic("P2P", false, 5);
+    stop("M2P");
+    start("P2P");
     P2P(leafs);
-    Profile::Toc();
-    Profile::Tic("M2L", false, 5);
+    stop("P2P");
+    start("M2L");
     M2L(nodes);
-    Profile::Toc();
-    Profile::Tic("L2L", false, 5);
+    stop("M2L");
+    start("L2L");
     #pragma omp parallel
     #pragma omp single nowait
     L2L(&nodes[0]);
-    Profile::Toc();
-    Profile::Tic("L2P", false, 5);
+    stop("L2L");
+    start("L2P");
     L2P(leafs);
-    Profile::Toc();
+    stop("L2P");
   }
 
   RealVec verify(NodePtrs& leafs) {

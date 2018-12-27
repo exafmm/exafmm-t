@@ -6,6 +6,7 @@
 #include <complex>
 #include <fftw3.h>
 #include <iostream>
+#include <omp.h>
 #include <set>
 #include <vector>
 #include "align.h"
