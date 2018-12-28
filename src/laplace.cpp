@@ -410,7 +410,7 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
     }
   }
 
-  void FFT_Check2Equiv(Nodes& nodes, std::vector<int> &M2Ltargets_idx, AlignedVec& dw_equiv_fft) {
+  void FFT_Check2Equiv(Nodes& nodes, std::vector<int> &M2Ltargets_idx, std::vector<real_t> dnCheck) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -426,21 +426,14 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
               + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+1])) * n1
               + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+2])) * n1 * n1;
     }
-
-    // create idft plan for downward check
-    AlignedVec in2(2*n3_);
-    AlignedVec out2(n3);
-    int dim[3] = {n1, n1, n1};
-    fft_plan iplan = fft_plan_dft_c2r(3, dim, (fft_complex*)(&in2[0]), &out2[0], FFTW_ESTIMATE);
+    
     #pragma omp parallel for
     for(int i=0; i<M2Ltargets_idx.size(); ++i) {
       Node* target = &nodes[M2Ltargets_idx[i]];
-      AlignedVec dnCheck(n3);
-      fft_execute_dft_c2r(iplan, (fft_complex*)(&dw_equiv_fft[i*2*n3_]), &dnCheck[0]);
       real_t scale = powf(2, target->depth);
       for(int j=0; j<NSURF; ++j) {
         int conv_id = map2[j];
-        target->dnward_equiv[j] += dnCheck[conv_id] * scale;
+        target->dnward_equiv[j] += dnCheck[i*n3+conv_id] * scale;
       }
     }
   }
@@ -475,14 +468,7 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
     
     M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
     FFT_UpEquiv(nodes, M2Lsources_idx, up_equiv);
-    Profile::Tic("FFT_UpEquiv", true);
-    M2LGPU(M2Ltargets_idx, dw_equiv_fft, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, up_equiv, M2Lsources_idx.size());
-    Profile::Toc();
-    Profile::Tic("hadamard", true);
-//    FFT_Hadmard(M2Ltargets_idx, up_equiv_fft, dw_equiv_fft, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss);
-    Profile::Toc();
-    Profile::Tic("FFT_Check2Equiv", true);
-    FFT_Check2Equiv(nodes, M2Ltargets_idx, dw_equiv_fft);
-    Profile::Toc();
+    std::vector<real_t> dnCheck = M2LGPU(M2Ltargets_idx, dw_equiv_fft, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, up_equiv, M2Lsources_idx.size());
+    FFT_Check2Equiv(nodes, M2Ltargets_idx, dnCheck);
   }
 }//end namespace
