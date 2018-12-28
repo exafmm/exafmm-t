@@ -68,19 +68,19 @@ namespace exafmm_t {
     }
   }
   __global__
-  void hadmard_kernel(int *d_M2Ltargets_idx, real_t *d_up_equiv_fft, real_t *d_dw_equiv_fft, int *d_M2LRelPos_start_idx, int *d_index_in_up_equiv_fft, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int n3_, int BLOCKS) {
+  void hadmard_kernel(int *d_M2Ltargets_idx, cufftComplex *d_up_equiv_fft, real_t *d_dw_equiv_fft, int *d_M2LRelPos_start_idx, int *d_index_in_up_equiv_fft, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int n3_, int BLOCKS) {
     int i = blockIdx.x;
     int k = threadIdx.x;
     int M2LRelPos_size = d_M2LRelPos_start_idx[i+1]-d_M2LRelPos_start_idx[i];
     for(int j=0; j <M2LRelPos_size; j++) {
       int relPosidx = d_M2LRelPoss[d_M2LRelPos_start_idx[i]+j];
       real_t *kernel = &d_mat_M2L_Helper[relPosidx*2*n3_];
-      real_t *equiv = &d_up_equiv_fft[d_index_in_up_equiv_fft[d_M2LRelPos_start_idx[i]+j]*2*n3_];
+      cufftComplex *equiv = &d_up_equiv_fft[d_index_in_up_equiv_fft[d_M2LRelPos_start_idx[i]+j]*n3_];
       real_t *check = &d_dw_equiv_fft[i*2*n3_];
       int real = 2*k+0;
       int imag = 2*k+1;
-      check[real] += kernel[real]*equiv[real] - kernel[imag]*equiv[imag];
-      check[imag] += kernel[real]*equiv[imag] + kernel[imag]*equiv[real];
+      check[real] += kernel[real]*equiv[k].x - kernel[imag]*equiv[k].y;
+      check[imag] += kernel[real]*equiv[k].y + kernel[imag]*equiv[k].x;
     }
   }
 
@@ -130,19 +130,35 @@ namespace exafmm_t {
     cudaFree(d_leafs_idx);
     cudaFree(d_trg_val);
   }
-  
-  void HadmardGPU(std::vector<int> &M2Ltargets_idx, AlignedVec &up_equiv_fft, AlignedVec &dw_equiv_fft, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_) {
+
+  void M2LGPU(std::vector<int> &M2Ltargets_idx, AlignedVec &dw_equiv_fft, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, AlignedVec &up_equiv, int M2Lsources_idx_size) {
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
+    int dims[] = {n1,n1,n1};
+    cufftHandle plan_up_equiv;
+    cufftPlanMany(&plan_up_equiv, 3, dims, NULL, 1, 0, NULL, 1, 0, CUFFT_R2C, M2Lsources_idx_size); // first call to cufft will always take time so this is why ill leave it out from the timing
+    cufftComplex *d_up_equiv_fft;
+    real_t *d_up_equiv;
+    cudaMalloc(&d_up_equiv, sizeof(real_t)*up_equiv.size());
+    cudaMalloc(&d_up_equiv_fft, sizeof(cufftComplex)*M2Lsources_idx_size*n3_);
+    cudaMemcpy(d_up_equiv, &up_equiv[0], sizeof(real_t)*up_equiv.size(), cudaMemcpyHostToDevice);
+    cufftExecR2C(plan_up_equiv, &d_up_equiv[0], &d_up_equiv_fft[0]);
+    cufftDestroy(plan_up_equiv);
+    HadmardGPU(M2Ltargets_idx, dw_equiv_fft, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, d_up_equiv_fft);
+ 
+ }
+
+  void HadmardGPU(std::vector<int> &M2Ltargets_idx, AlignedVec &dw_equiv_fft, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, cufftComplex *d_up_equiv_fft) {
     int BLOCKS = M2Ltargets_idx.size();
     int THREADS = n3_;
 
     int *d_M2Ltargets_idx, *d_M2LRelPos_start_idx, *d_index_in_up_equiv_fft, *d_M2LRelPoss;
-    real_t *d_up_equiv_fft, *d_dw_equiv_fft, *d_mat_M2L_Helper;
+    real_t *d_dw_equiv_fft, *d_mat_M2L_Helper;
     
     cudaMalloc(&d_M2Ltargets_idx, sizeof(int)*M2Ltargets_idx.size());
     cudaMalloc(&d_M2LRelPos_start_idx, sizeof(int)*M2LRelPos_start_idx.size());
     cudaMalloc(&d_index_in_up_equiv_fft, sizeof(int)*index_in_up_equiv_fft.size());
     cudaMalloc(&d_M2LRelPoss, sizeof(int)*M2LRelPoss.size());
-    cudaMalloc(&d_up_equiv_fft, sizeof(real_t)*up_equiv_fft.size());
     cudaMalloc(&d_dw_equiv_fft, sizeof(real_t)*dw_equiv_fft.size());
     cudaMalloc(&d_mat_M2L_Helper, sizeof(real_t)*mat_M2L_Helper.size());
 
@@ -150,7 +166,6 @@ namespace exafmm_t {
     cudaMemcpy(d_M2LRelPos_start_idx, &M2LRelPos_start_idx[0], sizeof(int)*M2LRelPos_start_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_index_in_up_equiv_fft, &index_in_up_equiv_fft[0], sizeof(int)*index_in_up_equiv_fft.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_M2LRelPoss, &M2LRelPoss[0], sizeof(int)*M2LRelPoss.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_up_equiv_fft, &up_equiv_fft[0], sizeof(real_t)*up_equiv_fft.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_dw_equiv_fft, &dw_equiv_fft[0], sizeof(real_t)*dw_equiv_fft.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_mat_M2L_Helper, &mat_M2L_Helper[0], sizeof(real_t)*mat_M2L_Helper.size(), cudaMemcpyHostToDevice);    
     hadmard_kernel<<<BLOCKS, THREADS>>>(d_M2Ltargets_idx, d_up_equiv_fft, d_dw_equiv_fft, d_M2LRelPos_start_idx, d_index_in_up_equiv_fft, d_M2LRelPoss, d_mat_M2L_Helper, n3_, BLOCKS);

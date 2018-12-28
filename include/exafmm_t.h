@@ -23,6 +23,7 @@ namespace exafmm_t {
 #define fft_plan_dft fftwf_plan_dft
 #define fft_plan_many_dft fftwf_plan_many_dft
 #define fft_plan_dft_r2c fftwf_plan_dft_r2c
+#define fft_plan_dft_r2c_3d fftwf_plan_dft_r2c_3d
 #define fft_plan_dft_c2r fftwf_plan_dft_c2r
 #define fft_execute_dft fftwf_execute_dft
 #define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c
@@ -38,6 +39,7 @@ namespace exafmm_t {
 #define fft_plan_dft fftw_plan_dft
 #define fft_plan_many_dft fftw_plan_many_dft
 #define fft_plan_dft_r2c fftw_plan_dft_r2c
+#define fft_plan_dft_r2c_3d fftw_plan_dft_r2c_3d
 #define fft_plan_dft_c2r fftw_plan_dft_c2r
 #define fft_execute_dft fftw_execute_dft
 #define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c

@@ -357,7 +357,7 @@ namespace exafmm_t {
     }
 }
 
-void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_equiv_fft) {
+void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_equiv) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -373,25 +373,18 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
              + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+2]+0.5)) * n1 * n1;
     }
     // create dft plan for upward equiv
-    AlignedVec in(n3);
-    AlignedVec out(2*n3_);
     int dim[3] = {n1, n1, n1};
-    fft_plan plan = fft_plan_dft_r2c(3, dim, &in[0], (fft_complex*)(&out[0]), FFTW_ESTIMATE);
     // evaluate dft of upward equivalent of sources
      #pragma omp parallel for
     for(int i=0; i<M2Lsources_idx.size(); ++i) {
       // upward equiv on convolution grid
-      AlignedVec upequiv(n3, 0);
       Node *source = &nodes[M2Lsources_idx[i]];
       RealVec upward_equiv = source->upward_equiv;
       for(int j=0; j<NSURF; ++j) {
         int conv_id = map[j];
-        upequiv[conv_id] = upward_equiv[j];
+        up_equiv[i*n3+conv_id] = upward_equiv[j];
       }
-      // dft of upward equiv on convolution grid
-      fft_execute_dft_r2c(plan, &upequiv[0], (fft_complex*)(&(up_equiv_fft[i*2*n3_])));
     }
-    fft_destroy_plan(plan);
   }
 
   void FFT_Hadmard(std::vector<int> &M2Ltargets_idx, AlignedVec& up_equiv_fft, AlignedVec& dw_equiv_fft, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss) {
@@ -457,8 +450,9 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
-    AlignedVec up_equiv_fft(M2Lsources_idx.size()*2*n3_);
+    AlignedVec up_equiv(M2Lsources_idx.size()*n3);
     AlignedVec dw_equiv_fft(M2Ltargets_idx.size()*2*n3_);
+    AlignedVec up_equiv_fft(M2Lsources_idx.size()*2*n3_);
     std::vector<int> index_in_up_equiv_fft;
     std::vector<int> M2LRelPos_start_idx;
     std::vector<int> M2LRelPoss;
@@ -478,12 +472,13 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
         M2LRelPos_start_idx_cnt ++;
       }
     }
+    
     M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
+    FFT_UpEquiv(nodes, M2Lsources_idx, up_equiv);
     Profile::Tic("FFT_UpEquiv", true);
-    FFT_UpEquiv(nodes, M2Lsources_idx, up_equiv_fft);
+    M2LGPU(M2Ltargets_idx, dw_equiv_fft, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, up_equiv, M2Lsources_idx.size());
     Profile::Toc();
     Profile::Tic("hadamard", true);
-    HadmardGPU(M2Ltargets_idx, up_equiv_fft, dw_equiv_fft, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_);
 //    FFT_Hadmard(M2Ltargets_idx, up_equiv_fft, dw_equiv_fft, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss);
     Profile::Toc();
     Profile::Tic("FFT_Check2Equiv", true);
