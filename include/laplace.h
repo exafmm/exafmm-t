@@ -30,7 +30,7 @@ namespace exafmm_t {
 
   void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
 
-  void P2M(std::vector<Node*>& leafs);
+  void P2M(Nodes &nodes, std::vector<int> &leafs_idx);
 
   void M2M(Node* node);
 

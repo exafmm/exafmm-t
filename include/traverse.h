@@ -4,9 +4,9 @@
 #include "profile.h"
 
 namespace exafmm_t {
-  void upwardPass(Nodes& nodes, std::vector<Node*>& leafs) {
+  void upwardPass(Nodes& nodes, std::vector<int> &leafs_idx) {
     Profile::Tic("P2M", false, 5);
-    P2M(leafs);
+    P2M(nodes, leafs_idx);
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
     #pragma omp parallel

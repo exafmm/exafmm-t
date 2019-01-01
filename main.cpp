@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
   Profile::Toc();
   setColleagues(nodes);
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
-  upwardPass(nodes, leafs);
+  upwardPass(nodes, leafs_idx);
   downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx);
   Profile::Toc();
   RealVec error = verify(leafs);

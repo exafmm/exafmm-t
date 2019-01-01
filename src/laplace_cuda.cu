@@ -133,7 +133,6 @@ namespace exafmm_t {
 
   cufftComplex *FFT_UpEquiv_GPU(int M2Lsources_idx_size, AlignedVec &up_equiv) {
     int n1 = MULTIPOLE_ORDER * 2;
-    int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     int dims[] = {n1,n1,n1};
     cufftHandle plan_up_equiv;
@@ -145,13 +144,13 @@ namespace exafmm_t {
     cudaMemcpy(d_up_equiv, &up_equiv[0], sizeof(real_t)*up_equiv.size(), cudaMemcpyHostToDevice);
     cufftExecR2C(plan_up_equiv, &d_up_equiv[0], &d_up_equiv_fft[0]);
     cufftDestroy(plan_up_equiv);
+    cudaFree(d_up_equiv);
     return &d_up_equiv_fft[0];
   }
 
   std::vector<real_t> FFT_Check2Equiv_GPU(cufftComplex *d_dw_equiv_fft, int M2Ltargets_idx_size) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
     int dims[] = {n1,n1,n1};
     
     real_t *d_dnCheck;
@@ -162,6 +161,8 @@ namespace exafmm_t {
     cufftDestroy(plan_check_equiv);
     std::vector<real_t> dnCheck(M2Ltargets_idx_size*n3);
     cudaMemcpy(&dnCheck[0], d_dnCheck, sizeof(real_t)*M2Ltargets_idx_size*n3, cudaMemcpyDeviceToHost); 
+    cudaFree(d_dnCheck);
+    cudaFree(d_dw_equiv_fft);
     return dnCheck;
   }
 
@@ -196,13 +197,9 @@ namespace exafmm_t {
     return &d_dw_equiv_fft[0];
   }
   
-  std::vector<real_t> M2LGPU(std::vector<int> &M2Ltargets_idx, AlignedVec &dw_equiv_fft, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, AlignedVec &up_equiv, int M2Lsources_idx_size) {
-    int n1 = MULTIPOLE_ORDER * 2;
-    int n3 = n1 * n1 * n1;
+  std::vector<real_t> M2LGPU(std::vector<int> &M2Ltargets_idx, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, AlignedVec &up_equiv, int M2Lsources_idx_size) {
     cufftComplex *d_up_equiv_fft = FFT_UpEquiv_GPU(M2Lsources_idx_size, up_equiv);
     cufftComplex *d_dw_equiv_fft = HadmardGPU(M2Ltargets_idx, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, d_up_equiv_fft);
     return FFT_Check2Equiv_GPU(d_dw_equiv_fft, M2Ltargets_idx.size());
- }
-
-  
+  }
 }
