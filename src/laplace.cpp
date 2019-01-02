@@ -335,49 +335,46 @@ namespace exafmm_t {
   }
 
  void P2P(Nodes &nodes, std::vector<int> leafs_idx) {
-    std::vector<real_t> nodes_coord; 
-    std::vector<int>nodes_coord_idx;
-    int nodes_coord_idx_cnt = 0;
+    std::vector<real_t> leafs_coord; 
+    std::vector<int>leafs_coord_idx;
+    int leafs_coord_idx_cnt = 0;
 
-    std::vector<real_t> nodes_pt_src;
-    std::vector<int> nodes_pt_src_idx;
-    int nodes_pt_src_idx_cnt = 0;
+    std::vector<real_t> leafs_pt_src;
+    std::vector<int> leafs_pt_src_idx;
+    int leafs_pt_src_idx_cnt = 0;
     
     std::vector<int>P2Plists;
     std::vector<int>P2Plists_idx;
     int P2Plists_idx_cnt = 0;
     
     Profile::Tic("memcpy vector to array", true);
-    for(int i=0; i<nodes.size(); i++) {
-      Node *node = &nodes[i];
-     
-      RealVec& pt_coord = node->pt_coord;
-      nodes_coord.insert(nodes_coord.end() , pt_coord.begin(), pt_coord.end());
-      nodes_coord_idx.push_back(nodes_coord_idx_cnt);
-      nodes_coord_idx_cnt += pt_coord.size();
+    for(int i=0; i<leafs_idx.size(); i++) {
+      Node *leaf = &nodes[leafs_idx[i]];
+      RealVec& pt_coord = leaf->pt_coord;
+      leafs_coord.insert(leafs_coord.end() , pt_coord.begin(), pt_coord.end());
+      leafs_coord_idx.push_back(leafs_coord_idx_cnt);
+      leafs_coord_idx_cnt += pt_coord.size();
 
-      RealVec& pt_src = node->pt_src;
-      nodes_pt_src.insert(nodes_pt_src.end(), pt_src.begin(), pt_src.end());
-      nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
-      nodes_pt_src_idx_cnt += pt_src.size();
+      RealVec& pt_src = leaf->pt_src;
+      leafs_pt_src.insert(leafs_pt_src.end(), pt_src.begin(), pt_src.end());
+      leafs_pt_src_idx.push_back(leafs_pt_src_idx_cnt);
+      leafs_pt_src_idx_cnt += pt_src.size();
     }
-    nodes_coord_idx.push_back(nodes_coord_idx_cnt);
-    nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
-    int trg_val_size = 0;
+    leafs_pt_src_idx.push_back(leafs_pt_src_idx_cnt);
+    leafs_coord_idx.push_back(leafs_coord_idx_cnt);
+
     std::vector<int> targets_idx = leafs_idx;
     for(int i=0; i<targets_idx.size(); i++) {
       Node* target = &nodes[targets_idx[i]];
       std::vector<int> sources_idx = target->P2Plist_idx;
       P2Plists.insert(P2Plists.end(), sources_idx.begin(), sources_idx.end());
       P2Plists_idx.push_back(P2Plists_idx_cnt);
-      P2Plists_idx_cnt += sources_idx.size();
-    
-      trg_val_size += target->pt_trg.size();
+      P2Plists_idx_cnt += sources_idx.size();    
     }
-    std::vector<real_t> trg_val(4*nodes_coord_idx_cnt/3);
     P2Plists_idx.push_back(P2Plists_idx_cnt);
     Profile::Toc();
-    P2PGPU(leafs_idx, nodes_coord, nodes_coord_idx, nodes_pt_src, nodes_pt_src_idx, P2Plists, P2Plists_idx, trg_val);
+    std::vector<real_t> trg_val(4*leafs_coord_idx_cnt/3);
+    P2PGPU(leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx,P2Plists, P2Plists_idx, trg_val, leafs_idx.size());
     int pt_trg_count = 0;
     Profile::Tic("memcpy array to vec", true);
     for(int i=0; i<targets_idx.size(); i++) {

@@ -32,12 +32,15 @@ int main(int argc, char **argv) {
 
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
+  int leafs_cnt = 0;
   std::vector<int> leafs_idx;
   for(int i=0; i<nodes.size(); i++) {
     for(int d=0; d<3; d++) {
       nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
     }
     if(nodes[i].IsLeaf()) {
+      nodes[i].leaf_id = leafs_cnt;
+      leafs_cnt ++;
       leafs_idx.push_back(nodes[i].idx);
       for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
         nodes[i].pt_coord.push_back(B->X[0]);

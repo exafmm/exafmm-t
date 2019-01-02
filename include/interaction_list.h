@@ -64,12 +64,12 @@ namespace exafmm_t {
         if (isleaf) {
           int idx1 = hash_lut[P2P0_Type][c_hash];
           if (idx1>=0)
-            n->P2Plist_idx.push_back(pc->idx);
+            n->P2Plist_idx.push_back(pc->leaf_id);
         }
         int idx2 = hash_lut[P2L_Type][c_hash];
         if (idx2>=0) {
           if (isleaf && n->numBodies<=NSURF)
-            n->P2Plist_idx.push_back(pc->idx);
+            n->P2Plist_idx.push_back(pc->leaf_id);
           else
             n->P2Llist_idx.push_back(pc->idx);
         }
@@ -90,7 +90,7 @@ namespace exafmm_t {
         int c_hash = hash(rel_coord);
         if (col->IsLeaf() && isleaf) {
           int idx1 = hash_lut[P2P1_Type][c_hash];
-          if (idx1>=0) n->P2Plist_idx.push_back(col->idx);
+          if (idx1>=0) n->P2Plist_idx.push_back(col->leaf_id);
         }
       }
     }
@@ -113,13 +113,13 @@ namespace exafmm_t {
           int idx2 = hash_lut[M2P_Type][c_hash];
           if (idx1>=0) {
             assert(col->child[j]->IsLeaf()); //2:1 balanced
-            n->P2Plist_idx.push_back(cc->idx);
+            n->P2Plist_idx.push_back(cc->leaf_id);
           }
           // since we currently don't save bodies' information in nonleaf nodes
           // M2P can only be switched to P2P when source is leaf
           if (idx2>=0) {
             if (cc->IsLeaf() && cc->numBodies<=NSURF)
-              n->P2Plist_idx.push_back(cc->idx);
+              n->P2Plist_idx.push_back(cc->leaf_id);
             else
               n->M2Plist_idx.push_back(cc->idx);
           }
