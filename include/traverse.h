@@ -4,9 +4,9 @@
 #include "profile.h"
 
 namespace exafmm_t {
-  void upwardPass(Nodes& nodes, std::vector<int> &leafs_idx) {
+  void upwardPass(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx) {
     Profile::Tic("P2M", false, 5);
-    P2M(nodes, leafs_idx);
+    P2M(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx);
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
     #pragma omp parallel
@@ -15,7 +15,7 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx) {
+  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx) {
     Profile::Tic("P2L", false, 5);
     P2L(nodes);
     Profile::Toc();
@@ -23,7 +23,7 @@ namespace exafmm_t {
     M2P(nodes, leafs);
     Profile::Toc();
     Profile::Tic("P2P", false, 5);
-    P2P(nodes, leafs_idx);
+    P2P(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx);
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
     M2L(nodes, M2Lsources_idx, M2Ltargets_idx);
