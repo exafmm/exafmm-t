@@ -80,8 +80,8 @@ int main(int argc, char **argv) {
   Profile::Toc();
   setColleagues(nodes);
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
-  upwardPass(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx);
-  downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx);
+  upwardPass(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, args.ncrit);
+  downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, args.ncrit);
   Profile::Toc();
   RealVec error = verify(leafs);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;

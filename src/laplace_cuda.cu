@@ -15,6 +15,33 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 namespace exafmm_t {
   __global__
+  void P2M_potential_p2p_kernel(int *d_leafs_coord_idx, int *d_leafs_pt_src_idx, real_t *d_leafs_coord, real_t *d_leafs_pt_src, real_t *d_checkCoord, real_t *d_upward_equiv, real_t *d_r, real_t *d_leaf_xyz) {
+    int i = blockIdx.x;
+    int t = threadIdx.x;
+    const real_t COEF = 1.0/(2*4*M_PI);
+    real_t tx = d_checkCoord[3*t+0]*d_r[i]+d_leaf_xyz[3*i+0];
+    real_t ty = d_checkCoord[3*t+1]*d_r[i]+d_leaf_xyz[3*i+1];
+    real_t tz = d_checkCoord[3*t+2]*d_r[i]+d_leaf_xyz[3*i+2];
+    real_t tv = 0;
+    int src_cnt = (d_leafs_coord_idx[i+1]-d_leafs_coord_idx[i])/3;
+    int leaf_coord_idx = d_leafs_coord_idx[i];
+    int leaf_pt_src_idx = d_leafs_pt_src_idx[i];
+    for(int s=0; s<src_cnt; s++) {
+      real_t sx = d_leafs_coord[leaf_coord_idx+3*s+0]-tx;
+      real_t sy = d_leafs_coord[leaf_coord_idx+3*s+1]-ty;
+      real_t sz = d_leafs_coord[leaf_coord_idx+3*s+2]-tz;
+      real_t sv = d_leafs_pt_src[leaf_pt_src_idx+s];
+      real_t r2 = sx*sx + sy*sy + sz*sz;;
+      if (r2 != 0) {
+        real_t invR = 1.0/sqrt(r2);
+        tv += invR * sv;
+      }
+    }
+    tv *= COEF;
+    d_upward_equiv[i*blockDim.x+t] += tv;
+  }
+
+ __global__
   void gradientP2PKernel(int *d_leafs_coord_idx, int *d_leafs_pt_src_idx, int *d_P2Plists, int *d_P2Plists_idx, real_t *d_leafs_coord, real_t *d_leafs_pt_src, real_t *d_trg_val) {
     const real_t COEFP = 1.0/(2*4*M_PI);
     const real_t COEFG = -1.0/(4*2*2*6*M_PI);
@@ -86,9 +113,47 @@ namespace exafmm_t {
   void cuda_init_drivers() {
     cudaFree(0);
 }
-void P2PGPU(std::vector<real_t> leafs_coord, std::vector<int> leafs_coord_idx, std::vector<real_t> leafs_pt_src, std::vector<int> leafs_pt_src_idx, std::vector<int> P2Plists, std::vector<int> P2Plists_idx, std::vector<real_t> &trg_val, int leafs_size) {
+  
+  void P2MGPU(std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, std::vector<real_t> &checkCoord, int trg_cnt, std::vector<real_t> &upward_equiv, std::vector<real_t> &r, std::vector<real_t> &leaf_xyz, int leafs_size, int ncrit) {
     int BLOCKS = leafs_size;
-    int THREADS = 64;
+    int THREADS = trg_cnt/3; 
+    int *d_leafs_coord_idx, *d_leafs_pt_src_idx;
+    real_t *d_leafs_coord, *d_leafs_pt_src, *d_checkCoord, *d_upward_equiv, *d_r, *d_leaf_xyz;
+    cudaMalloc(&d_leafs_coord_idx, sizeof(int)*leafs_coord_idx.size());
+    cudaMalloc(&d_leafs_pt_src_idx, sizeof(int)*leafs_pt_src_idx.size());
+    cudaMalloc(&d_leafs_coord, sizeof(real_t)*leafs_coord.size());
+    cudaMalloc(&d_leafs_pt_src, sizeof(real_t)*leafs_pt_src.size());
+    cudaMalloc(&d_checkCoord, sizeof(real_t)*checkCoord.size());
+    cudaMalloc(&d_upward_equiv, sizeof(real_t)*upward_equiv.size());
+    cudaMalloc(&d_r, sizeof(real_t)*r.size());
+    cudaMalloc(&d_leaf_xyz, sizeof(real_t)*leaf_xyz.size());
+
+    cudaMemcpy(d_leafs_coord_idx, &leafs_coord_idx[0], sizeof(int)*leafs_coord_idx.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_leafs_pt_src_idx, &leafs_pt_src_idx[0], sizeof(int)*leafs_pt_src_idx.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_leafs_coord, &leafs_coord[0], sizeof(real_t)*leafs_coord.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_leafs_pt_src, &leafs_pt_src[0], sizeof(real_t)*leafs_pt_src.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_checkCoord, &checkCoord[0], sizeof(real_t)*checkCoord.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_upward_equiv, &upward_equiv[0], sizeof(real_t)*upward_equiv.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_r, &r[0], sizeof(real_t)*r.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_leaf_xyz, &leaf_xyz[0], sizeof(real_t)*leaf_xyz.size(), cudaMemcpyHostToDevice);
+    
+    P2M_potential_p2p_kernel<<<BLOCKS, THREADS>>>(d_leafs_coord_idx, d_leafs_pt_src_idx, d_leafs_coord, d_leafs_pt_src, d_checkCoord, d_upward_equiv, d_r, d_leaf_xyz);
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+    cudaMemcpy(&upward_equiv[0], d_upward_equiv, sizeof(real_t)*upward_equiv.size(), cudaMemcpyDeviceToHost);
+    cudaFree(d_leafs_coord_idx);
+    cudaFree(d_leafs_pt_src_idx);
+    cudaFree(d_leafs_coord);
+    cudaFree(d_leafs_pt_src);
+    cudaFree(d_checkCoord);
+    cudaFree(d_upward_equiv);
+    cudaFree(d_r);
+    cudaFree(d_leaf_xyz);
+  }
+
+  void P2PGPU(std::vector<real_t> leafs_coord, std::vector<int> leafs_coord_idx, std::vector<real_t> leafs_pt_src, std::vector<int> leafs_pt_src_idx, std::vector<int> P2Plists, std::vector<int> P2Plists_idx, std::vector<real_t> &trg_val, int leafs_size, int ncrit) {
+    int BLOCKS = leafs_size;
+    int THREADS = ncrit;
 
     int *d_leafs_coord_idx, *d_leafs_pt_src_idx, *d_P2Plists, *d_P2Plists_idx;
     real_t *d_leafs_coord, *d_leafs_pt_src, *d_trg_val;
