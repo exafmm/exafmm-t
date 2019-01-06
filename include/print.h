@@ -25,7 +25,7 @@ namespace exafmm_t {
     // if (!VERBOSE | (MPIRANK != 0)) return;
     std::cout << std::setw(stringLength) << std::left << s << " : ";
     if(fixed)
-      std::cout << std::setprecision(decimal) << std::fixed;
+      std::cout << std::setprecision(decimal) << std::fixed << std::scientific;
     else
       std::cout << std::setprecision(1) << std::scientific;
     std::cout << v << std::endl;
