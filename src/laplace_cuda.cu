@@ -114,11 +114,16 @@ namespace exafmm_t {
     cudaFree(0);
 }
   
-  void P2MGPU(std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, std::vector<real_t> &checkCoord, int trg_cnt, std::vector<real_t> &upward_equiv, std::vector<real_t> &r, std::vector<real_t> &leaf_xyz, int leafs_size, int ncrit) {
+  void P2MGPU(std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, std::vector<real_t> &checkCoord, int trg_cnt, std::vector<real_t> &upward_equiv, std::vector<real_t> &r, std::vector<real_t> &leaf_xyz, int leafs_size, int ncrit, std::vector<real_t> &equiv) {
+    cublasHandle_t handle;
+    cublasStatus_t stat;
+    stat = cublasCreate(&handle);
+
     int BLOCKS = leafs_size;
     int THREADS = trg_cnt/3; 
     int *d_leafs_coord_idx, *d_leafs_pt_src_idx;
-    real_t *d_leafs_coord, *d_leafs_pt_src, *d_checkCoord, *d_upward_equiv, *d_r, *d_leaf_xyz;
+    real_t *d_leafs_coord, *d_leafs_pt_src, *d_checkCoord, *d_upward_equiv, *d_r, *d_leaf_xyz, *d_M2M_V, *d_buffer, *d_M2M_U, *d_equiv;
+
     cudaMalloc(&d_leafs_coord_idx, sizeof(int)*leafs_coord_idx.size());
     cudaMalloc(&d_leafs_pt_src_idx, sizeof(int)*leafs_pt_src_idx.size());
     cudaMalloc(&d_leafs_coord, sizeof(real_t)*leafs_coord.size());
@@ -127,7 +132,13 @@ namespace exafmm_t {
     cudaMalloc(&d_upward_equiv, sizeof(real_t)*upward_equiv.size());
     cudaMalloc(&d_r, sizeof(real_t)*r.size());
     cudaMalloc(&d_leaf_xyz, sizeof(real_t)*leaf_xyz.size());
+    cudaMalloc(&d_M2M_V, sizeof(real_t)*M2M_V.size());
+    cudaMalloc(&d_buffer, sizeof(real_t)*upward_equiv.size());
+    cudaMalloc(&d_equiv, sizeof(real_t)*upward_equiv.size());
+    cudaMalloc(&d_M2M_U, sizeof(real_t)*M2M_U.size());
 
+    cudaMemcpy(d_M2M_U, &M2M_U[0], sizeof(real_t)*M2M_U.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_M2M_V, &M2M_V[0], sizeof(real_t)*M2M_V.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_leafs_coord_idx, &leafs_coord_idx[0], sizeof(int)*leafs_coord_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_leafs_pt_src_idx, &leafs_pt_src_idx[0], sizeof(int)*leafs_pt_src_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_leafs_coord, &leafs_coord[0], sizeof(real_t)*leafs_coord.size(), cudaMemcpyHostToDevice);
@@ -136,11 +147,15 @@ namespace exafmm_t {
     cudaMemcpy(d_upward_equiv, &upward_equiv[0], sizeof(real_t)*upward_equiv.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_r, &r[0], sizeof(real_t)*r.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_leaf_xyz, &leaf_xyz[0], sizeof(real_t)*leaf_xyz.size(), cudaMemcpyHostToDevice);
-    
+    Profile::Tic("general", true);
     P2M_potential_p2p_kernel<<<BLOCKS, THREADS>>>(d_leafs_coord_idx, d_leafs_pt_src_idx, d_leafs_coord, d_leafs_pt_src, d_checkCoord, d_upward_equiv, d_r, d_leaf_xyz);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
-    cudaMemcpy(&upward_equiv[0], d_upward_equiv, sizeof(real_t)*upward_equiv.size(), cudaMemcpyDeviceToHost);
+    real_t alpha=1.0, beta=0.0;
+    cublasSgemmStridedBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, NSURF, 1, NSURF, &alpha, d_M2M_V, NSURF, 0, d_upward_equiv, NSURF, NSURF, &beta, d_buffer, NSURF, NSURF, leafs_size);
+    cublasSgemmStridedBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, NSURF, 1, NSURF, &alpha, d_M2M_U, NSURF, 0, d_buffer, NSURF, NSURF, &beta, d_equiv, NSURF, NSURF, leafs_size);
+    Profile::Toc();
+    cudaMemcpy(&equiv[0], d_equiv, sizeof(real_t)*equiv.size(), cudaMemcpyDeviceToHost);
     cudaFree(d_leafs_coord_idx);
     cudaFree(d_leafs_pt_src_idx);
     cudaFree(d_leafs_coord);
@@ -149,6 +164,10 @@ namespace exafmm_t {
     cudaFree(d_upward_equiv);
     cudaFree(d_r);
     cudaFree(d_leaf_xyz);
+    cudaFree(d_M2M_U);
+    cudaFree(d_M2M_V);
+    cudaFree(d_buffer);
+    cudaFree(d_equiv);
   }
 
   void P2PGPU(std::vector<real_t> leafs_coord, std::vector<int> leafs_coord_idx, std::vector<real_t> leafs_pt_src, std::vector<int> leafs_pt_src_idx, std::vector<int> P2Plists, std::vector<int> P2Plists_idx, std::vector<real_t> &trg_val, int leafs_size, int ncrit) {

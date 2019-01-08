@@ -208,20 +208,17 @@ namespace exafmm_t {
         upward_equiv[i*NSURF+j] = leaf->upward_equiv[j];
       }
     }
-    P2MGPU(leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, checkCoord, checkCoord.size(), upward_equiv, r, leaf_xyz, leafs_idx.size(), ncrit);
 
+    std::vector<real_t> equiv(leafs_idx.size()*NSURF);
+    P2MGPU(leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, checkCoord, checkCoord.size(), upward_equiv, r, leaf_xyz, leafs_idx.size(), ncrit, equiv);
     #pragma omp parallel for
     for(int i=0; i<leafs_idx.size(); i++) {
       Node* leaf = &nodes[leafs_idx[i]];
       int level = leaf->depth;
-      real_t scal = powf(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
-      real_t r=0.5*scal;
-      RealVec buffer(NSURF);
-      RealVec equiv(NSURF);
-      gemm(1, NSURF, NSURF, &upward_equiv[i*NSURF], &M2M_V[0], &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], &M2M_U[0], &equiv[0]);
-      for(int k=0; k<NSURF; k++)
-        leaf->upward_equiv[k] = scal * equiv[k];
+      real_t scal = powf(0.5, level);
+      for(int k=0; k<NSURF; k++) {
+        leaf->upward_equiv[k] = scal * equiv[i*NSURF+k];
+      }
     }
   }
 
