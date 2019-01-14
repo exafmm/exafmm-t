@@ -1,10 +1,10 @@
 ###TODO
 -------------
 
-- [ ] Use timer.h and print.h from exafmm, remove profile.h
-- [ ] Add hadamard product function for AVX512 in intrinsic.h
-- [ ] Write wrapper for BEM (Tingyu)
-- [ ] Laplace P2P on GPU (Elket)
+- [ ] Check warnings and const correctness (Tingyu)
+- [ ] CI, unit tests (Tingyu, Chou)
+- [ ] Write wrapper for BEM (Tingyu, Chou)
+- [ ] M2M, L2L, L2P on GPU (Elket)
 - [ ] Compare exafmm vs. exafmm-t (Rio)
 
 ###LONG TERM
