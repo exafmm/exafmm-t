@@ -32,7 +32,7 @@ namespace exafmm_t {
 
   void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit);
 
-  void M2M(Node* node);
+  void M2M(Nodes &nodes);
 
   void L2L(Node* node);
 

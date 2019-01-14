@@ -222,21 +222,20 @@ namespace exafmm_t {
     }
   }
 
-  void M2M(Node* node) {
-    if(node->IsLeaf()) return;
-    for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL)
-        #pragma omp task untied
-        M2M(node->child[octant]);
+  void M2M(Nodes &nodes) {
+    std::vector<std::vector<int>> nodes_by_level_idx(MAXLEVEL+1);
+    for(int i=0;i<nodes.size();i++){
+      nodes_by_level_idx[nodes[i].depth].push_back(nodes[i].idx);
     }
-    #pragma omp taskwait
-    for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL) {
-        Node* child = node->child[octant];
+    
+    for(int i=nodes_by_level_idx.size()-1;i>=1;i--) {
+      for(int j=0;j<nodes_by_level_idx[i].size();j++) {
+        Node *node = &nodes[nodes_by_level_idx[i][j]];
+        Node *parent = node->parent;
         RealVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &child->upward_equiv[0], &(mat_M2M[octant][0]), &buffer[0]);
+        gemm(1, NSURF, NSURF, &node->upward_equiv[0], &(mat_M2M[node->octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++) {
-          node->upward_equiv[k] += buffer[k];
+          parent->upward_equiv[k] += buffer[k];
         }
       }
     }

@@ -29,7 +29,6 @@ int main(int argc, char **argv) {
   for(size_t i=0; i<leafs.size(); i++) {
     MAXLEVEL = std::max(MAXLEVEL, leafs[i]->depth);
   }
-
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
   int leafs_cnt = 0;
@@ -72,7 +71,6 @@ int main(int argc, char **argv) {
   }
   leafs_pt_src_idx.push_back(leafs_pt_src_idx_cnt);
   leafs_coord_idx.push_back(leafs_coord_idx_cnt);
-  
   std::vector<int> M2Lsources_idx, M2Ltargets_idx;
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);

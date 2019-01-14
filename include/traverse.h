@@ -9,9 +9,7 @@ namespace exafmm_t {
     P2M(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, ncrit);
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
-    #pragma omp parallel
-    #pragma omp single nowait
-    M2M(&nodes[0]);
+    M2M(nodes);
     Profile::Toc();
   }
 

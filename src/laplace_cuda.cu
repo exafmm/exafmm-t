@@ -33,7 +33,7 @@ namespace exafmm_t {
       real_t sv = d_leafs_pt_src[leaf_pt_src_idx+s];
       real_t r2 = sx*sx + sy*sy + sz*sz;;
       if (r2 != 0) {
-        real_t invR = 1.0/sqrt(r2);
+        real_t invR = rsqrtf(r2);
         tv += invR * sv;
       }
     }
@@ -72,7 +72,7 @@ namespace exafmm_t {
           real_t r2 = sx*sx + sy*sy + sz*sz;
           real_t sv = d_leafs_pt_src[first_src_val_idx+k];
           if (r2 != 0) {
-            real_t invR = 1.0/sqrt(r2);
+            real_t invR = rsqrtf(r2);
             real_t invR3 = invR*invR*invR;
             tv0 += invR*sv;
             sv *= invR3;
@@ -186,7 +186,6 @@ namespace exafmm_t {
     cudaMalloc(&d_trg_val, sizeof(real_t)*trg_val.size());
     
     Profile::Tic("memcpy host to device", true);
-    cudaMemcpy(d_trg_val, &trg_val[0], sizeof(int)*trg_val.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_leafs_coord_idx, &leafs_coord_idx[0], sizeof(int)*leafs_coord_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_leafs_pt_src_idx, &leafs_pt_src_idx[0], sizeof(int)*leafs_pt_src_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_P2Plists, &P2Plists[0], sizeof(int)*P2Plists.size(), cudaMemcpyHostToDevice);
