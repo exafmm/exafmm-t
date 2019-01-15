@@ -4,27 +4,27 @@
 #include "profile.h"
 
 namespace exafmm_t {
-  void upwardPass(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit) {
+  void upwardPass(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit, RealVec &upward_equiv) {
     Profile::Tic("P2M", false, 5);
-    P2M(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, ncrit);
+    P2M(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, ncrit, upward_equiv);
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
-    M2M(nodes);
+    M2M(nodes, upward_equiv);
     Profile::Toc();
   }
 
-  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit) {
+  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit, RealVec &upward_equiv) {
     Profile::Tic("P2L", false, 5);
     P2L(nodes);
     Profile::Toc();
     Profile::Tic("M2P", false, 5);
-    M2P(nodes, leafs);
+    M2P(nodes, leafs, upward_equiv);
     Profile::Toc();
     Profile::Tic("P2P", false, 5);
     P2P(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, ncrit);
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
-    M2L(nodes, M2Lsources_idx, M2Ltargets_idx);
+    M2L(nodes, M2Lsources_idx, M2Ltargets_idx, upward_equiv);
     Profile::Toc();
     Profile::Tic("L2L", false, 5);
     #pragma omp parallel

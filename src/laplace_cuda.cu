@@ -114,7 +114,7 @@ namespace exafmm_t {
     cudaFree(0);
 }
   
-  void P2MGPU(std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, std::vector<real_t> &checkCoord, int trg_cnt, std::vector<real_t> &upward_equiv, std::vector<real_t> &r, std::vector<real_t> &leaf_xyz, int leafs_size, int ncrit, std::vector<real_t> &equiv) {
+  void P2MGPU(std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, std::vector<real_t> &checkCoord, int trg_cnt, RealVec &upward_equiv, std::vector<real_t> &r, std::vector<real_t> &leaf_xyz, int leafs_size, int ncrit, std::vector<real_t> &equiv) {
     cublasHandle_t handle;
     cublasStatus_t stat;
     stat = cublasCreate(&handle);

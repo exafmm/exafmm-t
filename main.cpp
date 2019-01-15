@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
   std::vector<real_t> leafs_coord; 
   std::vector<int>leafs_coord_idx;
   int leafs_coord_idx_cnt = 0;
-  
+  RealVec upward_equiv(nodes.size()*NSURF);  
   std::vector<real_t> leafs_pt_src;
   std::vector<int> leafs_pt_src_idx;
   int leafs_pt_src_idx_cnt = 0;
@@ -78,8 +78,8 @@ int main(int argc, char **argv) {
   Profile::Toc();
   setColleagues(nodes);
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
-  upwardPass(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, args.ncrit);
-  downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, args.ncrit);
+  upwardPass(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, args.ncrit, upward_equiv);
+  downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, args.ncrit, upward_equiv);
   Profile::Toc();
   RealVec error = verify(leafs);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;

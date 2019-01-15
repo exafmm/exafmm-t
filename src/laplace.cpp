@@ -190,10 +190,10 @@ namespace exafmm_t {
     }
   }
 
-  void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit) {
+  void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit, RealVec &upward_equiv) {
     RealVec checkCoord = surface_test(MULTIPOLE_ORDER,2.95);
-    RealVec upward_equiv(leafs_idx.size()*NSURF);
     RealVec r(leafs_idx.size());
+    RealVec up_equiv(leafs_idx.size()*NSURF);
     RealVec leaf_xyz(3*leafs_idx.size());
     #pragma omp parallel for
     for(int i=0; i<leafs_idx.size(); i++) {
@@ -205,24 +205,24 @@ namespace exafmm_t {
       leaf_xyz[3*i+1] = leaf->coord[1];
       leaf_xyz[3*i+2] = leaf->coord[2];
       for(int j=0; j<NSURF; j++) {
-        upward_equiv[i*NSURF+j] = leaf->upward_equiv[j];
+        up_equiv[i*NSURF+j] = upward_equiv[leafs_idx[i]*NSURF+j];
       }
     }
 
     std::vector<real_t> equiv(leafs_idx.size()*NSURF);
-    P2MGPU(leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, checkCoord, checkCoord.size(), upward_equiv, r, leaf_xyz, leafs_idx.size(), ncrit, equiv);
+    P2MGPU(leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, checkCoord, checkCoord.size(), up_equiv, r, leaf_xyz, leafs_idx.size(), ncrit, equiv);
     #pragma omp parallel for
     for(int i=0; i<leafs_idx.size(); i++) {
       Node* leaf = &nodes[leafs_idx[i]];
       int level = leaf->depth;
       real_t scal = powf(0.5, level);
       for(int k=0; k<NSURF; k++) {
-        leaf->upward_equiv[k] = scal * equiv[i*NSURF+k];
+        upward_equiv[leafs_idx[i]*NSURF+k] = scal * equiv[i*NSURF+k];
       }
     }
   }
 
-  void M2M(Nodes &nodes) {
+  void M2M(Nodes &nodes, RealVec &upward_equiv) {
     std::vector<std::vector<int>> nodes_by_level_idx(MAXLEVEL+1);
     for(int i=0;i<nodes.size();i++){
       nodes_by_level_idx[nodes[i].depth].push_back(nodes[i].idx);
@@ -233,9 +233,9 @@ namespace exafmm_t {
         Node *node = &nodes[nodes_by_level_idx[i][j]];
         Node *parent = node->parent;
         RealVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &node->upward_equiv[0], &(mat_M2M[node->octant][0]), &buffer[0]);
+        gemm(1, NSURF, NSURF, &upward_equiv[node->idx*NSURF+0], &(mat_M2M[node->octant][0]), &buffer[0]);
         for(int k=0; k<NSURF; k++) {
-          parent->upward_equiv[k] += buffer[k];
+          upward_equiv[parent->idx*NSURF+k] += buffer[k];
         }
       }
     }
@@ -318,8 +318,48 @@ namespace exafmm_t {
       }
     }
   }
+  
+  void M2P_gradientP2P(RealVec& src_coord, real_t* src_value, RealVec& trg_coord, RealVec& trg_value) {
+    const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    const real_t COEFG = -1.0/(4*2*2*6*M_PI);
+    int src_cnt = src_coord.size() / 3;
+    int trg_cnt = trg_coord.size() / 3;
+    for(int i=0; i<trg_cnt; i++) {
+      real_t tx = trg_coord[3*i+0];
+      real_t ty = trg_coord[3*i+1];
+      real_t tz = trg_coord[3*i+2];
+      real_t tv0=0;
+      real_t tv1=0;
+      real_t tv2=0;
+      real_t tv3=0;
+      for(int j=0; j<src_cnt; j++) {
+        real_t sx = src_coord[3*j+0] - tx;
+        real_t sy = src_coord[3*j+1] - ty;
+        real_t sz = src_coord[3*j+2] - tz;
+	real_t r2 = sx*sx + sy*sy + sz*sz;
+        real_t sv = src_value[j];
+	if (r2 != 0) {
+	  real_t invR = 1.0/sqrt(r2);
+	  real_t invR3 = invR*invR*invR;
+	  tv0 += invR*sv;
+	  sv *= invR3;
+	  tv1 += sv*sx;
+          tv2 += sv*sy;
+          tv3 += sv*sz;
+        }
+      }
+      tv0 *= COEFP;
+      tv1 *= COEFG;
+      tv2 *= COEFG;
+      tv3 *= COEFG;
+      trg_value[4*i+0] += tv0;
+      trg_value[4*i+1] += tv1;
+      trg_value[4*i+2] += tv2;
+      trg_value[4*i+3] += tv3;
+    }
+  }
 
-  void M2P(Nodes &nodes, std::vector<Node*>& leafs) {
+  void M2P(Nodes &nodes, std::vector<Node*>& leafs, RealVec &upward_equiv) {
     std::vector<Node*>& targets = leafs;
     real_t c[3] = {0.0};
     std::vector<RealVec> upwd_equiv_surf;
@@ -342,7 +382,7 @@ namespace exafmm_t {
           sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
           sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
         }
-        gradientP2P(sourceEquivCoord, source->upward_equiv, target->pt_coord, target->pt_trg);
+        M2P_gradientP2P(sourceEquivCoord, &upward_equiv[source->idx*NSURF], target->pt_coord, target->pt_trg);
       }
     }
   }
@@ -385,7 +425,7 @@ namespace exafmm_t {
     }
 }
 
-void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_equiv) {
+void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_equiv, RealVec &upward_equiv) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -407,10 +447,9 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
     for(int i=0; i<M2Lsources_idx.size(); ++i) {
       // upward equiv on convolution grid
       Node *source = &nodes[M2Lsources_idx[i]];
-      RealVec upward_equiv = source->upward_equiv;
       for(int j=0; j<NSURF; ++j) {
         int conv_id = map[j];
-        up_equiv[i*n3+conv_id] = upward_equiv[j];
+        up_equiv[i*n3+conv_id] = upward_equiv[source->idx*NSURF+j];
       }
     }
   }
@@ -442,7 +481,7 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
     }
   }
 
-  void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx) {
+  void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, RealVec &upward_equiv) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -470,7 +509,7 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
       }
     }
     M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
-    FFT_UpEquiv(nodes, M2Lsources_idx, up_equiv);
+    FFT_UpEquiv(nodes, M2Lsources_idx, up_equiv, upward_equiv);
     std::vector<real_t> dnCheck = M2LGPU(M2Ltargets_idx, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, up_equiv, M2Lsources_idx.size());
     FFT_Check2Equiv(nodes, M2Ltargets_idx, dnCheck);
   }
