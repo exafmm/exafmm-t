@@ -7,7 +7,7 @@ WFLAGS = -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -fno-strict-aliasin
 # -Wstrict-overflow=5 -Wswitch-enum -Wno-unused-local-typedefs -fmudflap
 
 CXX = mpiicpc
-CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -debug all -traceback -I./include
+CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -debug all -traceback -I./include $(WFLAGS)
 LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
 #CXX = mpicxx
 #CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include
@@ -19,7 +19,7 @@ OBJHF = main.hfo src/geometry.hfo src/helmholtz.hfo
 OBJHD = main.hdo src/geometry.hdo src/helmholtz.hdo
 
 %.fo: %.cpp
-	time $(CXX) $(CXXFLAGS) $(WFLAGS) -c $< -o $@ -DFLOAT
+	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT
 
 %.do: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@
