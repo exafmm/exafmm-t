@@ -87,7 +87,7 @@ namespace exafmm_t {
       }
     }
 
-    void print(int stringLength, int P) {
+    void print(int stringLength, int P_) {
       std::cout << std::setw(stringLength) << std::fixed << std::left
                 << "ncrit" << " : " << ncrit << std::endl
                 << std::setw(stringLength)
@@ -95,7 +95,7 @@ namespace exafmm_t {
                 << std::setw(stringLength)
                 << "numBodies" << " : " << numBodies << std::endl
                 << std::setw(stringLength)
-                << "P" << " : " << P << std::endl
+                << "P" << " : " << P_ << std::endl
                 << std::setw(stringLength)
                 << "threads" << " : " << threads << std::endl
                 << std::setw(stringLength);

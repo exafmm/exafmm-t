@@ -28,9 +28,9 @@ namespace exafmm_t {
     matrix_UC2E_V.resize(NSURF*NSURF);
     matrix_DC2E_U.resize(NSURF*NSURF);
     matrix_DC2E_V.resize(NSURF*NSURF);
-    matrix_M2M.resize(rel_coord[M2M_Type].size(), RealVec(NSURF*NSURF));
-    matrix_L2L.resize(rel_coord[L2L_Type].size(), RealVec(NSURF*NSURF));
-    matrix_M2L.resize(rel_coord[M2L_Type].size(), RealVec(fft_size));
+    matrix_M2M.resize(REL_COORD[M2M_Type].size(), RealVec(NSURF*NSURF));
+    matrix_L2L.resize(REL_COORD[L2L_Type].size(), RealVec(NSURF*NSURF));
+    matrix_M2L.resize(REL_COORD[M2L_Type].size(), RealVec(fft_size));
   }
 
   void precompute_check2equiv() {
@@ -61,14 +61,14 @@ namespace exafmm_t {
   }
 
   void precompute_M2M() {
-    int numRelCoord = rel_coord[M2M_Type].size();
+    int numRelCoord = REL_COORD[M2M_Type].size();
     int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
     RealVec parent_up_check_surf = surface(P,parent_coord,2.95,level);
     real_t s = R0 * powf(0.5, level+1);
 #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
-      ivec3& coord = rel_coord[M2M_Type][i];
+      ivec3& coord = REL_COORD[M2M_Type][i];
       real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
       RealVec child_up_equiv_surf = surface(P,child_coord,1.05,level+1);
       RealVec matrix_pc2ce(NSURF*NSURF);
@@ -95,13 +95,13 @@ namespace exafmm_t {
     fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, &fftw_in[0], nullptr, 1, n3,
                     (fft_complex*)(&fftw_out[0]), nullptr, 1, n3_, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
-    int numRelCoord = rel_coord[M2L_Helper_Type].size();
+    int numRelCoord = REL_COORD[M2L_Helper_Type].size();
     matrix_M2L_Helper.resize(numRelCoord);
     #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
       real_t coord[3];
       for(int d=0; d<3; d++) {
-        coord[d] = rel_coord[M2L_Helper_Type][i][d] * R0 / 0.5;
+        coord[d] = REL_COORD[M2L_Helper_Type][i][d] * R0 / 0.5;
       }
       RealVec conv_coord = convolution_grid(coord, 0);
       RealVec r_trg(3, 0.0);
@@ -117,12 +117,12 @@ namespace exafmm_t {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
-    int numParentRelCoord = rel_coord[M2L_Type].size();
-    int numChildRelCoord = rel_coord[M2L_Helper_Type].size();
+    int numParentRelCoord = REL_COORD[M2L_Type].size();
+    int numChildRelCoord = REL_COORD[M2L_Helper_Type].size();
     RealVec zero_vec(n3_*2, 0);
     #pragma omp parallel for schedule(dynamic)
     for(int i=0; i<numParentRelCoord; i++) {
-      ivec3& parentRelCoord = rel_coord[M2L_Type][i];
+      ivec3& parentRelCoord = REL_COORD[M2L_Type][i];
       std::vector<real_t*> matrix_ptr(NCHILD*NCHILD, &zero_vec[0]);
       for(int j1=0; j1<NCHILD; j1++) {
         for(int j2=0; j2<NCHILD; j2++) {
@@ -130,7 +130,7 @@ namespace exafmm_t {
                                   parentRelCoord[1]*2 - (j1/2)%2 + (j2/2)%2,
                                   parentRelCoord[2]*2 - (j1/4)%2 + (j2/4)%2 };
           for(int k=0; k<numChildRelCoord; k++) {
-            ivec3& childRefCoord = rel_coord[M2L_Helper_Type][k];
+            ivec3& childRefCoord = REL_COORD[M2L_Helper_Type][k];
             if (childRelCoord[0] == childRefCoord[0] &&
                 childRelCoord[1] == childRefCoord[1] &&
                 childRelCoord[2] == childRefCoord[2]) {
@@ -155,8 +155,8 @@ namespace exafmm_t {
     int n1 = P * 2;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     size_t fft_size = n3_ * 2 * NCHILD * NCHILD;
-    size_t file_size = (2*rel_coord[M2M_Type].size()+4) * NSURF * NSURF
-                     +  rel_coord[M2L_Type].size() * fft_size;
+    size_t file_size = (2*REL_COORD[M2M_Type].size()+4) * NSURF * NSURF
+                     +  REL_COORD[M2L_Type].size() * fft_size;
     file_size *= sizeof(real_t);
     if (file.good()) {     // if file exists
       file.seekg(0, file.end);
@@ -176,8 +176,6 @@ namespace exafmm_t {
           file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
         }
         // M2L
-        int n1 = P * 2;
-        int n3_ = n1 * n1 * (n1 / 2 + 1);
         size = n3_ * 2 * NCHILD * NCHILD;
         for(auto & vec : matrix_M2L) {
           file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));

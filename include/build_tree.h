@@ -11,7 +11,7 @@ namespace exafmm_t {
   real_t R0;
 
   // Get bounding box of sources and targets
-  void get_bounds(Bodies& sources, Bodies& targets, vec3& Xmin0, real_t& R0) {
+  void get_bounds(Bodies& sources, Bodies& targets, vec3& Xmin0, real_t& r0) {
     vec3 Xmin = sources[0].X;
     vec3 Xmax = sources[0].X;
     for (size_t b=0; b<sources.size(); ++b) {
@@ -23,9 +23,9 @@ namespace exafmm_t {
       Xmax = max(targets[b].X, Xmax);
     }
     vec3 X0 = (Xmax + Xmin) / 2;
-    R0 = fmax(max(X0-Xmin), max(Xmax-X0));
-    R0 *= 1.00001;
-    Xmin0 = X0 - R0;
+    r0 = fmax(max(X0-Xmin), max(Xmax-X0));
+    r0 *= 1.00001;
+    Xmin0 = X0 - r0;
   } 
 
   // Sort bodies in a node according to their octants
@@ -146,14 +146,14 @@ namespace exafmm_t {
     }
   }
 
-  Nodes build_tree(Bodies & sources, Bodies & targets, vec3 Xmin0, real_t R0, NodePtrs & leafs, NodePtrs & nonleafs, Args & args, const Keys & leafkeys=Keys()) {
+  Nodes build_tree(Bodies & sources, Bodies & targets, vec3 Xmin0, real_t r0, NodePtrs & leafs, NodePtrs & nonleafs, Args & args, const Keys & leafkeys=Keys()) {
     Bodies sources_buffer = sources;
     Bodies targets_buffer = targets;
     Nodes nodes(1);
     nodes[0].parent = nullptr;
     nodes[0].octant = 0;
     nodes[0].xmin = Xmin0;
-    nodes[0].r = R0;
+    nodes[0].r = r0;
     nodes[0].level = 0;
     nodes.reserve((sources.size()+targets.size()) * (32/args.ncrit+1));
     build_tree(&sources[0], &sources_buffer[0], 0, sources.size(), 
@@ -262,7 +262,7 @@ namespace exafmm_t {
     return leafkeys;
   }
 
-  void balance_tree(Nodes& nodes, Bodies& sources, Bodies& targets, vec3 Xmin0, real_t R0, NodePtrs& leafs, NodePtrs& nonleafs, Args& args) {
+  void balance_tree(Nodes& nodes, Bodies& sources, Bodies& targets, vec3 Xmin0, real_t r0, NodePtrs& leafs, NodePtrs& nonleafs, Args& args) {
     std::unordered_map<uint64_t, size_t> key2id;
     Keys keys = breadth_first_traversal(&nodes[0], key2id);
     Keys balanced_keys = balance_tree(keys, key2id, nodes);
@@ -270,7 +270,7 @@ namespace exafmm_t {
     nodes.clear();
     leafs.clear();
     nonleafs.clear();
-    nodes = build_tree(sources, targets, Xmin0, R0, leafs, nonleafs, args, leaf_keys);
+    nodes = build_tree(sources, targets, Xmin0, r0, leafs, nonleafs, args, leaf_keys);
     MAXLEVEL = keys.size() - 1;
   }
 }

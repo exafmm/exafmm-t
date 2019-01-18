@@ -335,7 +335,7 @@ namespace exafmm_t {
   void M2L_setup(NodePtrs& nonleafs) {
     int n1 = P * 2;
     int n3_ = n1 * n1 * (n1/2 + 1);
-    size_t mat_cnt = rel_coord[M2L_Type].size();
+    size_t mat_cnt = REL_COORD[M2L_Type].size();
     // construct nodes_out & nodes_in
     NodePtrs& nodes_out = nonleafs;
     std::set<Node*> nodes_in_;
