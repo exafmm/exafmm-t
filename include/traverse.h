@@ -1,7 +1,6 @@
 #ifndef traverse_h
 #define traverse_h
 #include "exafmm_t.h"
-// #include "profile.h"
 #include "timer.h"
 
 namespace exafmm_t {

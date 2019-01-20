@@ -474,7 +474,7 @@ namespace exafmm_t {
   void M2L_setup(NodePtrs& nonleafs) {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
-    size_t mat_cnt = rel_coord[M2L_Type].size();
+    size_t mat_cnt = REL_COORD[M2L_Type].size();
     // initialize M2Ldata
     M2Ldata.resize(MAXLEVEL);
     // construct M2L target nodes for each level

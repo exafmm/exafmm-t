@@ -30,11 +30,11 @@ namespace exafmm_t {
       matrix_UC2E_U[level].resize(NSURF*NSURF);
       matrix_DC2E_V[level].resize(NSURF*NSURF);
       matrix_DC2E_U[level].resize(NSURF*NSURF);
-      matrix_M2M[level].resize(rel_coord[M2M_Type].size(), ComplexVec(NSURF*NSURF));
-      matrix_L2L[level].resize(rel_coord[L2L_Type].size(), ComplexVec(NSURF*NSURF));
+      matrix_M2M[level].resize(REL_COORD[M2M_Type].size(), ComplexVec(NSURF*NSURF));
+      matrix_L2L[level].resize(REL_COORD[L2L_Type].size(), ComplexVec(NSURF*NSURF));
     }
     for(int level = 0; level < MAXLEVEL; level++) {
-      matrix_M2L[level].resize(rel_coord[M2L_Type].size(), RealVec(fft_size));  // N3 by (2*NCHILD*NCHILD) matrix
+      matrix_M2L[level].resize(REL_COORD[M2L_Type].size(), RealVec(fft_size));  // N3 by (2*NCHILD*NCHILD) matrix
     }
   }
 
@@ -75,10 +75,10 @@ namespace exafmm_t {
       RealVec parent_up_check_surf = surface(P,parent_coord,2.95,level);
       real_t s = R0 * powf(0.5, level+1);
 
-      int numRelCoord = rel_coord[M2M_Type].size();
+      int numRelCoord = REL_COORD[M2M_Type].size();
 #pragma omp parallel for
       for(int i=0; i<numRelCoord; i++) {
-        ivec3& coord = rel_coord[M2M_Type][i];
+        ivec3& coord = REL_COORD[M2M_Type][i];
         real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
         RealVec child_up_equiv_surf = surface(P,child_coord,1.05,level+1);
         ComplexVec matrix_pc2ce(NSURF*NSURF);
@@ -106,7 +106,7 @@ namespace exafmm_t {
     fft_plan plan = fft_plan_dft(3, dim, reinterpret_cast<fft_complex*>(&fftw_in[0]), 
                                 (fft_complex*)(&fftw_out[0]), FFTW_FORWARD, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
-    int numRelCoord = rel_coord[M2L_Helper_Type].size();
+    int numRelCoord = REL_COORD[M2L_Helper_Type].size();
     RealVec r_trg(3, 0.0);
     for(int l=0; l<=MAXLEVEL; l++) {
       matrix_M2L_Helper[l].resize(numRelCoord);
@@ -114,7 +114,7 @@ namespace exafmm_t {
       for(int i=0; i<numRelCoord; i++) {
         real_t coord[3];
         for(int d=0; d<3; d++) {
-          coord[d] = rel_coord[M2L_Helper_Type][i][d] * R0 * powf(0.5, l-1);
+          coord[d] = REL_COORD[M2L_Helper_Type][i][d] * R0 * powf(0.5, l-1);
         }
         RealVec conv_coord = convolution_grid(coord, l);
         ComplexVec conv_poten(n3);
@@ -129,13 +129,13 @@ namespace exafmm_t {
   void precompute_M2L() {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
-    int numParentRelCoord = rel_coord[M2L_Type].size();
+    int numParentRelCoord = REL_COORD[M2L_Type].size();
     // parent rel, child rel -> m2l_helper_idx
     std::vector<std::vector<int>> index_mapping(numParentRelCoord, std::vector<int>(NCHILD*NCHILD));
     for(int i=0; i<numParentRelCoord; ++i) {
       for(int j1=0; j1<NCHILD; ++j1) {
         for(int j2=0; j2<NCHILD; ++j2) {
-          ivec3& parent_rel_coord = rel_coord[M2L_Type][i];
+          ivec3& parent_rel_coord = REL_COORD[M2L_Type][i];
           ivec3  child_rel_coord;
           child_rel_coord[0] = parent_rel_coord[0]*2 - (j1/1)%2 + (j2/1)%2;
           child_rel_coord[1] = parent_rel_coord[1]*2 - (j1/2)%2 + (j2/2)%2;
@@ -169,8 +169,8 @@ namespace exafmm_t {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     size_t fft_size = n3 * 2 * NCHILD * NCHILD;
-    size_t file_size = (2*rel_coord[M2M_Type].size()+4) * NSURF * NSURF * (MAXLEVEL+1) * sizeof(complex_t)
-                     +  rel_coord[M2L_Type].size() * fft_size * MAXLEVEL * sizeof(real_t);
+    size_t file_size = (2*REL_COORD[M2M_Type].size()+4) * NSURF * NSURF * (MAXLEVEL+1) * sizeof(complex_t)
+                     +  REL_COORD[M2L_Type].size() * fft_size * MAXLEVEL * sizeof(real_t);
     if (file.good()) {     // if file exists
       file.seekg(0, file.end);
       if (file.tellg() == file_size) {   // if file size is correct

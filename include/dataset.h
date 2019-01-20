@@ -51,7 +51,7 @@ namespace exafmm_t {
       }
     }
     real_t scale = 0.5 / (Xmax + 1);
-    for (int i=0; i<numBodies; i++) {
+    for (i=0; i<numBodies; i++) {
       for (int d=0; d<3; d++) {
         bodies[i].X[d] = bodies[i].X[d]*scale + 0.5;
       }

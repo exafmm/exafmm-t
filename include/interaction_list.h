@@ -3,7 +3,7 @@
 #include "exafmm_t.h"
 
 namespace exafmm_t {
-  std::vector<std::vector<ivec3>> rel_coord;
+  std::vector<std::vector<ivec3>> REL_COORD;
   std::vector<std::vector<int>> hash_lut;     // coord_hash -> index in rel_coord
 
   //! return x + 10y + 100z + 555
@@ -26,8 +26,8 @@ namespace exafmm_t {
             coord[0] = i;
             coord[1] = j;
             coord[2] = k;
-            rel_coord[t].push_back(coord);
-            hash_lut[t][hash(coord)] = rel_coord[t].size() - 1;
+            REL_COORD[t].push_back(coord);
+            hash_lut[t][hash(coord)] = REL_COORD[t].size() - 1;
           }
         }
       }
@@ -35,7 +35,7 @@ namespace exafmm_t {
   }
 
   void init_rel_coord() {
-    rel_coord.resize(Type_Count);
+    REL_COORD.resize(Type_Count);
     hash_lut.resize(Type_Count);
     init_rel_coord(1, 1, 2, M2M_Type);
     init_rel_coord(1, 1, 2, L2L_Type);
@@ -136,7 +136,7 @@ namespace exafmm_t {
     #pragma omp parallel for
     for(size_t i=0; i<nodes.size(); i++) {
       Node* node = &nodes[i];
-      node->M2L_list.resize(rel_coord[M2L_Type].size(), 0);
+      node->M2L_list.resize(REL_COORD[M2L_Type].size(), 0);
       build_list_parent_level(node);
       build_list_current_level(node);
       build_list_child_level(node);

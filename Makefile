@@ -1,10 +1,13 @@
 .SUFFIXES: .cpp .cu
 
-WFLAGS = -fmudflap -fno-strict-aliasing -fsanitize=address -fsanitize=leak -fstack-protector -ftrapv -Wall -Warray-bounds -Wcast-align -Wcast-qual -Wextra -Wfatal-errors -Wformat=2 -Wformat-nonliteral -Wformat-security -Winit-self -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wno-missing-field-initializers -Wno-overloaded-virtual -Wno-unused-local-typedefs -Wno-unused-parameter -Wno-unused-variable -Wpointer-arith -Wredundant-decls -Wreturn-type -Wshadow -Wstrict-aliasing -Wstrict-overflow=5 -Wswitch-enum -Wuninitialized -Wunreachable-code -Wunused-but-set-variable -Wwrite-strings -Wno-error=missing-field-initializers -Wno-error=overloaded-virtual -Wno-error=unused-local-typedefs -Wno-error=unused-parameter -Wno-error=unused-variable
-# -Wsign-compare -Werror
+WFLAGS = -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -fno-strict-aliasing -fstack-protector -Warray-bounds -Wcast-qual -Wfatal-errors -Wformat=2 -Wformat-security -Winit-self -Wmissing-include-dirs -Wno-missing-field-initializers -Wno-overloaded-virtual -Wno-unused-parameter -Wno-unused-variable -Wpointer-arith -Wreturn-type -Wstrict-aliasing -Wuninitialized -Wunreachable-code -Wunused-but-set-variable -Wwrite-strings -Wno-error=missing-field-initializers -Wno-error=overloaded-virtual -Wno-error=unused-parameter -Wno-error=unused-variable
+
+# -Wsign-compare -Werror -fsanitize=address -fsanitize=leak -ftrapv -Wcast-align -Wformat-nonliteral
+# -Wno-error=unused-local-typedefs -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls
+# -Wstrict-overflow=5 -Wswitch-enum -Wno-unused-local-typedefs -fmudflap
 
 CXX = mpiicpc
-CXXFLAGS = -g -O3 -mavx -march=skylake -fabi-version=6 -std=c++11 -fopenmp -debug all -traceback -I./include
+CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -debug all -traceback -I./include $(WFLAGS)
 LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
 #CXX = mpicxx
 #CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include
