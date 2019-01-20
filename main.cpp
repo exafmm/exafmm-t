@@ -4,12 +4,9 @@
 #if HELMHOLTZ
 #include "helmholtz.h"
 #include "precompute_helmholtz.h"
-#elif COMPLEX
-#include "laplace_c.h"
-#include "precompute_c.h"
 #else
 #include "laplace.h"
-#include "precompute.h"
+#include "precompute_laplace.h"
 #endif
 #include "traverse.h"
 

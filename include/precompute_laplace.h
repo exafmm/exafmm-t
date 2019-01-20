@@ -1,5 +1,5 @@
-#ifndef precompute_h
-#define precompute_h
+#ifndef precompute_laplace_h
+#define precompute_laplace_h
 #include <fstream>
 #include <string>
 #include "exafmm_t.h"
