@@ -1,7 +1,6 @@
 ###TODO
 -------------
 
-- [ ] Check warnings and const correctness (Tingyu)
 - [ ] CI, unit tests (Tingyu, Chou)
 - [ ] Write wrapper for BEM (Tingyu, Chou)
 - [ ] M2M, L2L, L2P on GPU (Elket)
