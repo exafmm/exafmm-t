@@ -3,10 +3,8 @@
 #include "interaction_list.h"
 #if HELMHOLTZ
 #include "helmholtz.h"
-#include "precompute_helmholtz.h"
 #else
 #include "laplace.h"
-#include "precompute_laplace.h"
 #endif
 #include "traverse.h"
 
