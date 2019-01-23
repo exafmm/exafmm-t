@@ -59,14 +59,8 @@ void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_co
 
 int main() {
   // WAVEK = complex_t(1, .1) / real_t(2*M_PI);
-  // Args args(argc, argv);
   struct timeval tic, toc;
-  // size_t N = args.numBodies;
   size_t N = 10000;
-  // double a = 0.0;
-  // std::complex<double> b = 0.0;
-  // std::cout << sizeof(a) << "    " << sizeof(b) << std::endl;
-  // NCRIT = args.ncrit;
   srand48(0);
   RealVec src_coord, trg_coord, test_coord;
 #if HELMHOLTZ
