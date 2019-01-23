@@ -15,8 +15,8 @@ LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp
 
 OBJF = main.fo src/geometry.fo src/laplace.fo src/precompute_laplace.fo
 OBJD = main.do src/geometry.do src/laplace.do src/precompute_laplace.do
-OBJHF = main.hfo src/geometry.hfo src/helmholtz.hfo
-OBJHD = main.hdo src/geometry.hdo src/helmholtz.hdo
+OBJHF = main.hfo src/geometry.hfo src/helmholtz.hfo src/precompute_helmholtz.hfo
+OBJHD = main.hdo src/geometry.hdo src/helmholtz.hdo src/precompute_helmholtz.hdo
 
 %.fo: %.cpp
 	time $(CXX) $(CXXFLAGS) -c $< -o $@ -DFLOAT
