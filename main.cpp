@@ -8,6 +8,11 @@
 #endif
 #include "traverse.h"
 
+namespace exafmm_t {
+  vec3 XMIN0;
+  real_t R0;
+}
+
 using namespace exafmm_t;
 using namespace std;
 int main(int argc, char **argv) {
