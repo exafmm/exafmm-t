@@ -9,8 +9,14 @@
 #include "traverse.h"
 
 namespace exafmm_t {
+  int P;
+  int NSURF;
+  int MAXLEVEL;
   vec3 XMIN0;
   real_t R0;
+#if HELMHOLTZ
+  real_t MU;
+#endif
 }
 
 using namespace exafmm_t;

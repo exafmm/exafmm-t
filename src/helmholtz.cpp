@@ -1,10 +1,6 @@
 #include "helmholtz.h"
 
 namespace exafmm_t {
-  int P;
-  int NSURF;
-  int MAXLEVEL;
-  real_t MU;
   std::vector<M2LData> M2Ldata;
 
   // complex gemv by blas lib

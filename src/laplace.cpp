@@ -1,9 +1,6 @@
 #include "laplace.h"
 
 namespace exafmm_t {
-  int P;
-  int NSURF;
-  int MAXLEVEL;
   M2LData M2Ldata;
 
   //! blas gemv with row major data
