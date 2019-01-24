@@ -1,80 +1,80 @@
 #### exafmm-t
-History: 2017/12/11 - Now
-Branch: gpu, matrix_multi, vanilla-m2l
-Kernel: LaplaceKI, HelmholtzKI (PVFMM hack)
-Periodic: no
-SIMD: vec.h
-Thread: OpenMP loops
-MPI: none
-GPU: P2P, M2L
-Build: Makefile
-Wrapper: none
-Plotting: none
+History: 2017/12/11 - Now  
+Branch: gpu, matrix_multi, vanilla-m2l  
+Kernel: LaplaceKI, HelmholtzKI (PVFMM hack)  
+Periodic: no  
+SIMD: vec.h  
+Thread: OpenMP loops  
+MPI: none  
+GPU: P2P, M2L  
+Build: Makefile  
+Wrapper: none  
+Plotting: none  
 
 #### exafmm
-History: 2017/03/03 - Now
-Branch: dev, learning
-Kernel: Laplace, LaplaceKI, Helmholtz, Stokes
-Periodic: yes
-SIMD: vec.h
-Thread: OpenMP tasks
-MPI: HOT (global histogram sort)
-GPU: no
-Build: autoconf
-Wrapper: none
-Plotting: Python
+History: 2017/03/03 - Now  
+Branch: dev, learning  
+Kernel: Laplace, LaplaceKI, Helmholtz, Stokes  
+Periodic: yes  
+SIMD: vec.h  
+Thread: OpenMP tasks  
+MPI: HOT (global histogram sort)  
+GPU: no  
+Build: autoconf  
+Wrapper: none  
+Plotting: Python  
 
 #### exafmm-alpha > exafmm-beta
-History: 2012/07/21 - 2017/03/01
-Branch: develop, sc16
-Kernel: Laplace, Helmholtz, BiotSavart, Van der Waals
-Periodic: yes
-SIMD: Agner's vectorclass
-Thread: OpenMP, Cilk, TBB, Mthreads
-MPI: ORB (bisection, octsection)
-GPU: separate code (Bonsai hack)
-Build: autoconf & CMake
-Wrapper: CHARMM, GROMACS, general MD, PetIGA
-Plotting: none
+History: 2012/07/21 - 2017/03/01  
+Branch: develop, sc16  
+Kernel: Laplace, Helmholtz, BiotSavart, Van der Waals  
+Periodic: yes  
+SIMD: Agner's vectorclass  
+Thread: OpenMP, Cilk, TBB, Mthreads  
+MPI: ORB (bisection, octsection)  
+GPU: separate code (Bonsai hack)  
+Build: autoconf & CMake  
+Wrapper: CHARMM, GROMACS, general MD, PetIGA  
+Plotting: none  
 
 #### exafmm-alpha/old + vortex_method > exafmm-alpha
-History: 2010/12/22 - 2012/07/21
-Branch: none
-Kernel: Laplace, Van der Waals, Biot Savart, Stretching, Gaussian
-Periodic: yes
-SIMD: none
-Thread: QUARK
-MPI: ORB (global nth_element)
-GPU: offload all kernels
-Build: Makefile
-Wrapper: MR3 compatible MD
-Plotting: VTK
+History: 2010/12/22 - 2012/07/21  
+Branch: none  
+Kernel: Laplace, Van der Waals, Biot Savart, Stretching, Gaussian  
+Periodic: yes  
+SIMD: none  
+Thread: QUARK  
+MPI: ORB (global nth_element)  
+GPU: offload all kernels  
+Build: Makefile  
+Wrapper: MR3 compatible MD  
+Plotting: VTK  
 
 #### old_fmm_bem
-History: mid 2010 - late 2010
-Branch: none
-Kernel: Laplace, Laplace Gn, Helmholtz
-Periodic: no
-SIMD: none
-Thread: none
-MPI: Allgather LET
-GPU: offload all kernels
-Build: Makefile
-Wrapper: none
-Plotting: none
+History: mid 2010 - late 2010  
+Branch: none  
+Kernel: Laplace, Laplace Gn, Helmholtz  
+Periodic: no  
+SIMD: none  
+Thread: none  
+MPI: Allgather LET  
+GPU: offload all kernels  
+Build: Makefile  
+Wrapper: none  
+Plotting: none  
 
 #### old_fmm_vortex
-History: early 2010 - mid 2010
-Branch: none
-Kernel: Laplace, Biot Savart, Stretching (transpose,mixed), Gaussian
-Periodic: yes (shear, channel)
-SIMD: none
-Thread: none
-MPI: Allgather LET
-GPU: offload all kernels
-Build: Makefile
-Wrapper: none
-Plotting: none
+History: early 2010 - mid 2010  
+Branch: none  
+Kernel: Laplace, Biot Savart, Stretching (transpose,mixed), Gaussian  
+Periodic: yes (shear, channel)  
+SIMD: none  
+Thread: none  
+MPI: Allgather LET  
+GPU: offload all kernels  
+Build: Makefile  
+Wrapper: none  
+Plotting: none  
 
 #### Other FMM codes
 [ASKIT](http://padas.ices.utexas.edu/libaskit/)
