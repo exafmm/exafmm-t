@@ -1,6 +1,6 @@
 #include "build_tree.h"
+#include "build_list.h"
 #include "dataset.h"
-#include "interaction_list.h"
 #if HELMHOLTZ
 #include "helmholtz.h"
 #else

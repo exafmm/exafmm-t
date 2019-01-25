@@ -1,10 +1,6 @@
 #include "precompute_helmholtz.h"
 
 namespace exafmm_t {
-  // forward declaration
-  int hash(ivec3& coord);
-  extern std::vector<std::vector<int>> hash_lut;     // coord_hash -> index in rel_coord
-
   std::vector<ComplexVec> matrix_UC2E_U, matrix_UC2E_V;
   std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
   std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;

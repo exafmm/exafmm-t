@@ -136,6 +136,7 @@ namespace exafmm_t {
 
   // Relative coordinates and interaction lists
   extern std::vector<std::vector<ivec3>> REL_COORD;
+  extern std::vector<std::vector<int>> hash_lut;     // coord_hash -> index in rel_coord
 
   // Precomputation matrices
 #if HELMHOLTZ
