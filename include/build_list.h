@@ -18,11 +18,11 @@ namespace exafmm_t {
         rel_coord[2]=((i/9)%3)*4-4-(octant & 4?2:0)+1;
         int c_hash = hash(rel_coord);
         if (isleaf) {
-          int idx1 = hash_lut[P2P0_Type][c_hash];
+          int idx1 = HASH_LUT[P2P0_Type][c_hash];
           if (idx1>=0)
             n->P2P_list.push_back(pc);
         }
-        int idx2 = hash_lut[P2L_Type][c_hash];
+        int idx2 = HASH_LUT[P2L_Type][c_hash];
         if (idx2>=0) {
           if (isleaf && n->ntrgs<=NSURF)
             n->P2P_list.push_back(pc);
@@ -45,10 +45,10 @@ namespace exafmm_t {
         rel_coord[2]=((i/9)%3)-1;
         int c_hash = hash(rel_coord);
         if (col->is_leaf && isleaf) {
-          int idx1 = hash_lut[P2P1_Type][c_hash];
+          int idx1 = HASH_LUT[P2P1_Type][c_hash];
           if (idx1>=0) n->P2P_list.push_back(col);
         } else if (!col->is_leaf && !isleaf) {
-          int idx2 = hash_lut[M2L_Type][c_hash];
+          int idx2 = HASH_LUT[M2L_Type][c_hash];
           if (idx2>=0) n->M2L_list[idx2] = col;
         }
       }
@@ -68,8 +68,8 @@ namespace exafmm_t {
           rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
           rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
           int c_hash = hash(rel_coord);
-          int idx1 = hash_lut[P2P2_Type][c_hash];
-          int idx2 = hash_lut[M2P_Type][c_hash];
+          int idx1 = HASH_LUT[P2P2_Type][c_hash];
+          int idx2 = HASH_LUT[M2P_Type][c_hash];
           if (idx1>=0) {
             assert(col->children[j]->is_leaf); //2:1 balanced
             n->P2P_list.push_back(cc);

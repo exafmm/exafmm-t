@@ -227,7 +227,7 @@ namespace exafmm_t {
           child_rel_coord[1] = parent_rel_coord[1]*2 - (j1/2)%2 + (j2/2)%2;
           child_rel_coord[2] = parent_rel_coord[2]*2 - (j1/4)%2 + (j2/4)%2;
           int coord_hash = hash(child_rel_coord);
-          int child_rel_idx = hash_lut[M2L_Helper_Type][coord_hash];
+          int child_rel_idx = HASH_LUT[M2L_Helper_Type][coord_hash];
           int j = j2*NCHILD + j1;
           index_mapping[i][j] = child_rel_idx;
         }

@@ -2,7 +2,7 @@
 
 namespace exafmm_t {
   std::vector<std::vector<ivec3>> REL_COORD;
-  std::vector<std::vector<int>> hash_lut;     // coord_hash -> index in rel_coord
+  std::vector<std::vector<int>> HASH_LUT;     // coord_hash -> index in rel_coord
 
   // alpha is the ratio r_surface/r_node
   // 2.95 for upward check surface / downward equivalent surface
@@ -84,7 +84,7 @@ namespace exafmm_t {
     int n1 = (max_r*2)/step+1;
     int n2 = (min_r*2)/step-1;
     int count = n1*n1*n1 - (min_r>0?n2*n2*n2:0);
-    hash_lut[t].resize(max_hash, -1);
+    HASH_LUT[t].resize(max_hash, -1);
     for(int k=-max_r; k<=max_r; k+=step) {
       for(int j=-max_r; j<=max_r; j+=step) {
         for(int i=-max_r; i<=max_r; i+=step) {
@@ -94,7 +94,7 @@ namespace exafmm_t {
             coord[1] = j;
             coord[2] = k;
             REL_COORD[t].push_back(coord);
-            hash_lut[t][hash(coord)] = REL_COORD[t].size() - 1;
+            HASH_LUT[t][hash(coord)] = REL_COORD[t].size() - 1;
           }
         }
       }
@@ -103,7 +103,7 @@ namespace exafmm_t {
 
   void init_rel_coord() {
     REL_COORD.resize(Type_Count);
-    hash_lut.resize(Type_Count);
+    HASH_LUT.resize(Type_Count);
     init_rel_coord(1, 1, 2, M2M_Type);
     init_rel_coord(1, 1, 2, L2L_Type);
     init_rel_coord(3, 3, 2, P2P0_Type);
