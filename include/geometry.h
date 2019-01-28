@@ -6,5 +6,11 @@ namespace exafmm_t {
   RealVec surface(int p, real_t* c, real_t alpha, int level, bool is_mapping=false);
 
   RealVec convolution_grid(real_t* c, int level);
+
+  int hash(ivec3& coord);
+
+  void init_rel_coord(int max_r, int min_r, int step, Mat_Type t);
+
+  void init_rel_coord();
 } // end namespace
 #endif

@@ -14,8 +14,9 @@
 #include "vec.h"
 
 namespace exafmm_t {
-#define MEM_ALIGN 64
-#define CACHE_SIZE 512
+  const int MEM_ALIGN = 64;
+  const int CACHE_SIZE = 512;
+  const int NCHILD = 8;
 
 #if FLOAT
   typedef float real_t;
@@ -135,27 +136,28 @@ namespace exafmm_t {
 
   // Relative coordinates and interaction lists
   extern std::vector<std::vector<ivec3>> REL_COORD;
+  extern std::vector<std::vector<int>> HASH_LUT;     // coord_hash -> index in rel_coord
 
   // Precomputation matrices
 #if HELMHOLTZ
   extern std::vector<ComplexVec> matrix_UC2E_U, matrix_UC2E_V;
   extern std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
   extern std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
-  extern std::vector<std::vector<RealVec>> matrix_M2L;
+  extern std::vector<std::vector<AlignedVec>> matrix_M2L;
 #else
   extern RealVec matrix_UC2E_U, matrix_UC2E_V;
   extern RealVec matrix_DC2E_U, matrix_DC2E_V;
-  extern std::vector<RealVec> matrix_M2M, matrix_L2L, matrix_M2L;
+  extern std::vector<RealVec> matrix_M2M, matrix_L2L;
+  extern std::vector<AlignedVec> matrix_M2L;
 #endif
 
   extern int P;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates
-  extern int MAXLEVEL;
+  extern int MAXLEVEL;  // max depth of tree
   extern vec3 XMIN0;    // coordinates of root
   extern real_t R0;     // radius of root
-  const int NCHILD = 8;
 #if HELMHOLTZ
-  extern real_t MU;
+  extern real_t MU;     // wave number of Helmholtz kernel
 #endif
 }
 #endif

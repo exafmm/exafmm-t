@@ -1,6 +1,9 @@
 #include "geometry.h"
 
 namespace exafmm_t {
+  std::vector<std::vector<ivec3>> REL_COORD;
+  std::vector<std::vector<int>> HASH_LUT;     // coord_hash -> index in rel_coord
+
   // alpha is the ratio r_surface/r_node
   // 2.95 for upward check surface / downward equivalent surface
   // 1.05 for upward equivalent surface / downward check surface
@@ -68,5 +71,47 @@ namespace exafmm_t {
       }
     }
     return grid;
+  }
+
+  //! return x + 10y + 100z + 555
+  int hash(ivec3& coord) {
+    const int n = 5;
+    return ((coord[2]+n) * (2*n) + (coord[1]+n)) *(2*n) + (coord[0]+n);
+  }
+
+  void init_rel_coord(int max_r, int min_r, int step, Mat_Type t) {
+    const int max_hash = 2000;
+    int n1 = (max_r*2)/step+1;
+    int n2 = (min_r*2)/step-1;
+    int count = n1*n1*n1 - (min_r>0?n2*n2*n2:0);
+    HASH_LUT[t].resize(max_hash, -1);
+    for(int k=-max_r; k<=max_r; k+=step) {
+      for(int j=-max_r; j<=max_r; j+=step) {
+        for(int i=-max_r; i<=max_r; i+=step) {
+          if(abs(i)>=min_r || abs(j)>=min_r || abs(k)>=min_r) {
+            ivec3 coord;
+            coord[0] = i;
+            coord[1] = j;
+            coord[2] = k;
+            REL_COORD[t].push_back(coord);
+            HASH_LUT[t][hash(coord)] = REL_COORD[t].size() - 1;
+          }
+        }
+      }
+    }
+  }
+
+  void init_rel_coord() {
+    REL_COORD.resize(Type_Count);
+    HASH_LUT.resize(Type_Count);
+    init_rel_coord(1, 1, 2, M2M_Type);
+    init_rel_coord(1, 1, 2, L2L_Type);
+    init_rel_coord(3, 3, 2, P2P0_Type);
+    init_rel_coord(1, 0, 1, P2P1_Type);
+    init_rel_coord(3, 3, 2, P2P2_Type);
+    init_rel_coord(3, 2, 1, M2L_Helper_Type);
+    init_rel_coord(1, 1, 1, M2L_Type);
+    init_rel_coord(5, 5, 2, M2P_Type);
+    init_rel_coord(5, 5, 2, P2L_Type);
   }
 } // end namespace

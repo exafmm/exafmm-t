@@ -7,9 +7,6 @@
 
 using namespace std;
 namespace exafmm_t {
-  vec3 XMIN0;
-  real_t R0;
-
   // Get bounding box of sources and targets
   void get_bounds(const Bodies& sources, const Bodies& targets, vec3& Xmin0, real_t& r0) {
     vec3 Xmin = sources[0].X;

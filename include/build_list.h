@@ -1,53 +1,9 @@
-#ifndef interaction_list
-#define interaction_list
+#ifndef build_list_h
+#define build_list_h
 #include "exafmm_t.h"
+#include "geometry.h"
 
 namespace exafmm_t {
-  std::vector<std::vector<ivec3>> REL_COORD;
-  std::vector<std::vector<int>> hash_lut;     // coord_hash -> index in rel_coord
-
-  //! return x + 10y + 100z + 555
-  int hash(ivec3& coord) {
-    const int n = 5;
-    return ((coord[2]+n) * (2*n) + (coord[1]+n)) *(2*n) + (coord[0]+n);
-  }
-
-  void init_rel_coord(int max_r, int min_r, int step, Mat_Type t) {
-    const int max_hash = 2000;
-    int n1 = (max_r*2)/step+1;
-    int n2 = (min_r*2)/step-1;
-    int count = n1*n1*n1 - (min_r>0?n2*n2*n2:0);
-    hash_lut[t].resize(max_hash, -1);
-    for(int k=-max_r; k<=max_r; k+=step) {
-      for(int j=-max_r; j<=max_r; j+=step) {
-        for(int i=-max_r; i<=max_r; i+=step) {
-          if(abs(i)>=min_r || abs(j)>=min_r || abs(k)>=min_r) {
-            ivec3 coord;
-            coord[0] = i;
-            coord[1] = j;
-            coord[2] = k;
-            REL_COORD[t].push_back(coord);
-            hash_lut[t][hash(coord)] = REL_COORD[t].size() - 1;
-          }
-        }
-      }
-    }
-  }
-
-  void init_rel_coord() {
-    REL_COORD.resize(Type_Count);
-    hash_lut.resize(Type_Count);
-    init_rel_coord(1, 1, 2, M2M_Type);
-    init_rel_coord(1, 1, 2, L2L_Type);
-    init_rel_coord(3, 3, 2, P2P0_Type);
-    init_rel_coord(1, 0, 1, P2P1_Type);
-    init_rel_coord(3, 3, 2, P2P2_Type);
-    init_rel_coord(3, 2, 1, M2L_Helper_Type);
-    init_rel_coord(1, 1, 1, M2L_Type);
-    init_rel_coord(5, 5, 2, M2P_Type);
-    init_rel_coord(5, 5, 2, P2L_Type);
-  }
-
   // Build interaction lists of P2P0_Type and P2L_Type
   void build_list_parent_level(Node* n) {
     if (!n->parent) return;
@@ -62,11 +18,11 @@ namespace exafmm_t {
         rel_coord[2]=((i/9)%3)*4-4-(octant & 4?2:0)+1;
         int c_hash = hash(rel_coord);
         if (isleaf) {
-          int idx1 = hash_lut[P2P0_Type][c_hash];
+          int idx1 = HASH_LUT[P2P0_Type][c_hash];
           if (idx1>=0)
             n->P2P_list.push_back(pc);
         }
-        int idx2 = hash_lut[P2L_Type][c_hash];
+        int idx2 = HASH_LUT[P2L_Type][c_hash];
         if (idx2>=0) {
           if (isleaf && n->ntrgs<=NSURF)
             n->P2P_list.push_back(pc);
@@ -89,10 +45,10 @@ namespace exafmm_t {
         rel_coord[2]=((i/9)%3)-1;
         int c_hash = hash(rel_coord);
         if (col->is_leaf && isleaf) {
-          int idx1 = hash_lut[P2P1_Type][c_hash];
+          int idx1 = HASH_LUT[P2P1_Type][c_hash];
           if (idx1>=0) n->P2P_list.push_back(col);
         } else if (!col->is_leaf && !isleaf) {
-          int idx2 = hash_lut[M2L_Type][c_hash];
+          int idx2 = HASH_LUT[M2L_Type][c_hash];
           if (idx2>=0) n->M2L_list[idx2] = col;
         }
       }
@@ -112,8 +68,8 @@ namespace exafmm_t {
           rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
           rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
           int c_hash = hash(rel_coord);
-          int idx1 = hash_lut[P2P2_Type][c_hash];
-          int idx2 = hash_lut[M2P_Type][c_hash];
+          int idx1 = HASH_LUT[P2P2_Type][c_hash];
+          int idx2 = HASH_LUT[M2P_Type][c_hash];
           if (idx1>=0) {
             assert(col->children[j]->is_leaf); //2:1 balanced
             n->P2P_list.push_back(cc);
