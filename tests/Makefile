@@ -48,9 +48,10 @@ helmholtz16: $(OBJHD)
 
 kernel: kernel.fo ../src/geometry.fo ../src/laplace.fo ../src/precompute_laplace.fo
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
+	./a.out
 
 clean:
-	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) $(OBJHF) $(OBJHD) *.out
+	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) $(OBJHF) $(OBJHD) *.out *.dat
 
 run:
 	./a.out
