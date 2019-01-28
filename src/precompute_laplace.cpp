@@ -61,7 +61,7 @@ namespace exafmm_t {
     matrix_DC2E_V.resize(NSURF*NSURF);
     matrix_M2M.resize(REL_COORD[M2M_Type].size(), RealVec(NSURF*NSURF));
     matrix_L2L.resize(REL_COORD[L2L_Type].size(), RealVec(NSURF*NSURF));
-    matrix_M2L.resize(REL_COORD[M2L_Type].size(), RealVec(fft_size));
+    matrix_M2L.resize(REL_COORD[M2L_Type].size(), AlignedVec(fft_size));
   }
 
   void precompute_check2equiv() {

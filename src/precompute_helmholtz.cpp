@@ -50,7 +50,7 @@ namespace exafmm_t {
       matrix_L2L[level].resize(REL_COORD[L2L_Type].size(), ComplexVec(NSURF*NSURF));
     }
     for(int level = 0; level < MAXLEVEL; level++) {
-      matrix_M2L[level].resize(REL_COORD[M2L_Type].size(), RealVec(fft_size));  // N3 by (2*NCHILD*NCHILD) matrix
+      matrix_M2L[level].resize(REL_COORD[M2L_Type].size(), AlignedVec(fft_size));  // N3 by (2*NCHILD*NCHILD) matrix
     }
   }
 
