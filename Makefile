@@ -6,12 +6,15 @@ WFLAGS = -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic -fno-strict-aliasin
 # -Wno-error=unused-local-typedefs -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls
 # -Wstrict-overflow=5 -Wswitch-enum -Wno-unused-local-typedefs -fmudflap
 
-CXX = mpiicpc
-CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -debug all -traceback -I./include $(WFLAGS)
-LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
-#CXX = mpicxx
-#CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include
-#LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm
+CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include $(WFLAGS)
+
+ifeq ($(CXX), mpicxx)
+  LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm
+else
+  CXX = mpiicpc
+  LDFLAGS = -lfftw3 -lfftw3f -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
+  CXXFLAGS += -debug all -traceback
+endif
 
 OBJF = main.fo src/geometry.fo src/laplace.fo src/precompute_laplace.fo
 OBJD = main.do src/geometry.do src/laplace.do src/precompute_laplace.do

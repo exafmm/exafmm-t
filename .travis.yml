@@ -1,0 +1,9 @@
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y openmpi
+  - sudo apt-get install -y libfftw3-3
+  - sudo apt-get install -y openblas lapack
+language: cpp
+compiler: mpicxx
+script:
+  - make laplace8 p4 CXX=mpicxx
