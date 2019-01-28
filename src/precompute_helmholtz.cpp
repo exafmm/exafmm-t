@@ -8,17 +8,6 @@ namespace exafmm_t {
   std::vector<std::vector<AlignedVec>> matrix_M2L;
   std::string FILE_NAME;
 
-  // mixed-type gemm: A is complex_t matrix; B is real_t matrix
-  void gemm(int m, int n, int k, complex_t* A, real_t* B, complex_t* C) {
-    char transA = 'N', transB = 'N';
-    complex_t alpha(1., 0.), beta(0.,0.);
-#if FLOAT
-    scgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
-#else
-    dzgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
-#endif
-  }
-
   // complex gemm by blas lib
   void gemm(int m, int n, int k, complex_t* A, complex_t* B, complex_t* C) {
     char transA = 'N', transB = 'N';
@@ -55,25 +44,6 @@ namespace exafmm_t {
   }
 
   //! lapack svd with row major data: A = U*S*VT, A is m by n
-  void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT) {
-    char JOBU = 'S', JOBVT = 'S';
-    int INFO;
-    int LWORK = std::max(3*std::min(m,n)+std::max(m,n), 5*std::min(m,n));
-    LWORK = std::max(LWORK, 1);
-    int k = std::min(m, n);
-    RealVec tS(k, 0.);
-    RealVec WORK(LWORK);
-#if FLOAT
-    sgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &INFO);
-#else
-    dgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &INFO);
-#endif
-    // copy singular values from 1d layout (tS) to 2d layout (S)
-    for(int i=0; i<k; i++) {
-      S[i*n+i] = tS[i];
-    }
-  }
-
   void svd(int m, int n, complex_t* A, real_t* S, complex_t* U, complex_t* VT) {
     char JOBU = 'S', JOBVT = 'S';
     int INFO;
@@ -92,16 +62,6 @@ namespace exafmm_t {
     for(int i=0; i<k; i++) {
       S[i*n+i] = tS[i];
     }
-  }
-
-  RealVec transpose(RealVec& vec, int m, int n) {
-    RealVec temp(vec.size());
-    for(int i=0; i<m; i++) {
-      for(int j=0; j<n; j++) {
-        temp[j*m+i] = vec[i*n+j];
-      }
-    }
-    return temp;
   }
 
   ComplexVec transpose(ComplexVec& vec, int m, int n) {
@@ -133,6 +93,7 @@ namespace exafmm_t {
       ComplexVec matrix_c2e(NSURF*NSURF);
       kernel_matrix(&up_check_surf[0], NSURF, &up_equiv_surf[0], NSURF, &matrix_c2e[0]);
       RealVec S(NSURF*NSURF);
+      ComplexVec S_(NSURF*NSURF);
       ComplexVec U(NSURF*NSURF), VH(NSURF*NSURF);
       svd(NSURF, NSURF, &matrix_c2e[0], &S[0], &U[0], &VH[0]);
       // inverse S
@@ -143,15 +104,18 @@ namespace exafmm_t {
       for(size_t i=0; i<NSURF; i++) {
         S[i*NSURF+i] = S[i*NSURF+i]>EPS*max_S*4 ? 1.0/S[i*NSURF+i] : 0.0;
       }
+      for(int i=0; i<S.size(); ++i) {
+        S_[i] = S[i];
+      }
       // save matrix
       ComplexVec V = conjugate_transpose(VH, NSURF, NSURF);
       ComplexVec UH = conjugate_transpose(U, NSURF, NSURF);
       matrix_UC2E_U[level] = UH;
-      gemm(NSURF, NSURF, NSURF, &V[0], &S[0], &(matrix_UC2E_V[level][0]));
+      gemm(NSURF, NSURF, NSURF, &V[0], &S_[0], &(matrix_UC2E_V[level][0]));
 
       matrix_DC2E_U[level] = transpose(V, NSURF, NSURF);
       ComplexVec UTH = transpose(UH, NSURF, NSURF);
-      gemm(NSURF, NSURF, NSURF, &UTH[0], &S[0], &(matrix_DC2E_V[level][0]));
+      gemm(NSURF, NSURF, NSURF, &UTH[0], &S_[0], &(matrix_DC2E_V[level][0]));
     }
   }
 
