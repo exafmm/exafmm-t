@@ -1,6 +1,7 @@
 #ifndef laplace_cuda_h
 #define laplace_cuda_h
 #include "exafmm_t.h"
+#include <cuda_runtime.h>
 #include "cufft.h"
 #include "cublas_v2.h"
 
@@ -8,6 +9,8 @@ namespace exafmm_t {
   void cuda_init_drivers();
 
   void P2MGPU(std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, std::vector<real_t> &checkCoord, int trg_cnt, std::vector<real_t> &upward_equiv, std::vector<real_t> &r, std::vector<real_t> &leaf_xyz, int leafs_size, int ncrit, std::vector<real_t> &equiv);
+
+  void M2MGPU(RealVec &upward_equiv, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx);
 
   void P2PGPU(std::vector<real_t> leafs_coord, std::vector<int> leafs_coord_idx, std::vector<real_t> leafs_pt_src, std::vector<int> leafs_pt_src_idx, std::vector<int> P2Plists, std::vector<int> P2Plists_idx, std::vector<real_t> &trg_val, int leafs_size, int ncrit);
 

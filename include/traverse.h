@@ -4,12 +4,12 @@
 #include "profile.h"
 
 namespace exafmm_t {
-  void upwardPass(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit, RealVec &upward_equiv) {
+  void upwardPass(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit, RealVec &upward_equiv, std::vector<int> &nonleafs_idx) {
     Profile::Tic("P2M", false, 5);
     P2M(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, ncrit, upward_equiv);
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
-    M2M(nodes, upward_equiv);
+    M2M(nodes, upward_equiv, nonleafs_idx);
     Profile::Toc();
   }
 

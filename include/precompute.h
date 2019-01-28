@@ -8,10 +8,10 @@ namespace exafmm_t {
   RealVec M2M_U, M2M_V;
   RealVec L2L_U, L2L_V;
   RealVec mat_M2L_Helper;
-  std::vector<RealVec> mat_M2M;
+  RealVec mat_M2M;
   std::vector<RealVec> mat_L2L;
 
-  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
+  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C, real_t beta);
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
   RealVec transpose(RealVec& vec, int m, int n);
 
@@ -51,8 +51,9 @@ namespace exafmm_t {
     real_t s = powf(0.5, level+2);
 
     int numRelCoord = rel_coord[M2M_Type].size();
-    mat_M2M.resize(numRelCoord);
+    mat_M2M.resize(numRelCoord*NSURF*NSURF);
     mat_L2L.resize(numRelCoord);
+
 #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
       ivec3& coord = rel_coord[M2M_Type][i];
@@ -62,9 +63,8 @@ namespace exafmm_t {
       kernelMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_e2c[0]);
       // M2M: child's upward_equiv to parent's check
       RealVec buffer(NSURF*NSURF);
-      mat_M2M[i].resize(NSURF*NSURF);
       gemm(NSURF, NSURF, NSURF, &M_e2c[0], &M2M_V[0], &buffer[0]);
-      gemm(NSURF, NSURF, NSURF, &buffer[0], &M2M_U[0], &(mat_M2M[i][0]));
+      gemm(NSURF, NSURF, NSURF, &buffer[0], &M2M_U[0], &(mat_M2M[i*NSURF*NSURF]));
       // L2L: parent's dnward_equiv to child's check, reuse surface coordinates
       M_e2c = transpose(M_e2c, NSURF, NSURF);
       mat_L2L[i].resize(NSURF*NSURF);

@@ -18,7 +18,7 @@ extern "C" {
 }
 
 namespace exafmm_t {
-  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
+  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C, real_t beta=0.0);
 
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
 
@@ -32,7 +32,7 @@ namespace exafmm_t {
 
   void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit, RealVec &upward_equiv);
 
-  void M2M(Nodes &nodes, RealVec &upward_equiv);
+  void M2M(Nodes &nodes, RealVec &upward_equiv, std::vector<int> &nonleafs_idx);
 
   void L2L(Node* node);
 

@@ -9,9 +9,9 @@ namespace exafmm_t {
   M2LData M2Ldata;
 
   //! using blas gemm with row major data
-  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C) {
+  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C, real_t beta) {
     char transA = 'N', transB = 'N';
-    real_t alpha = 1.0, beta = 0.0;
+    real_t alpha = 1.0;
 #if FLOAT
     sgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #else
@@ -222,23 +222,16 @@ namespace exafmm_t {
     }
   }
 
-  void M2M(Nodes &nodes, RealVec &upward_equiv) {
-    std::vector<std::vector<int>> nodes_by_level_idx(MAXLEVEL+1);
-    for(int i=0;i<nodes.size();i++){
-      nodes_by_level_idx[nodes[i].depth].push_back(nodes[i].idx);
+  void M2M(Nodes &nodes, RealVec &upward_equiv, std::vector<int> &nonleafs_idx) {
+    std::vector<std::vector<int>> nodes_by_level_idx(MAXLEVEL);
+    std::vector<std::vector<int>> parent_by_level_idx(MAXLEVEL);
+    std::vector<std::vector<int>> octant_by_level_idx(MAXLEVEL);
+    for(int i=1;i<nodes.size();i++){
+      nodes_by_level_idx[nodes[i].depth-1].push_back(nodes[i].idx);
+      parent_by_level_idx[nodes[i].depth-1].push_back(nodes[i].parent->idx);
+      octant_by_level_idx[nodes[i].depth-1].push_back(nodes[i].octant);
     }
-    
-    for(int i=nodes_by_level_idx.size()-1;i>=1;i--) {
-      for(int j=0;j<nodes_by_level_idx[i].size();j++) {
-        Node *node = &nodes[nodes_by_level_idx[i][j]];
-        Node *parent = node->parent;
-        RealVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &upward_equiv[node->idx*NSURF+0], &(mat_M2M[node->octant][0]), &buffer[0]);
-        for(int k=0; k<NSURF; k++) {
-          upward_equiv[parent->idx*NSURF+k] += buffer[k];
-        }
-      }
-    }
+    M2MGPU(upward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
   }
 
   void L2L(Node* node) {
@@ -491,13 +484,11 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
     std::vector<int> M2LRelPos_start_idx;
     std::vector<int> M2LRelPoss;
     int M2LRelPos_start_idx_cnt = 0;
-    Profile::Tic("general", true);
     #pragma omp parallel for
     for(int i=0; i<M2Lsources_idx.size(); ++i) {
       Node *node = &nodes[M2Lsources_idx[i]];
       node->index_in_up_equiv_fft = i;
     }
-    Profile::Toc();
     for (int i=0;i<M2Ltargets_idx.size(); i++) {
       Node* target = &nodes[M2Ltargets_idx[i]];
       M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
