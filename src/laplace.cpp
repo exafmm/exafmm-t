@@ -47,7 +47,6 @@ namespace exafmm_t {
         trg_value[t+k] += tv[k];
       }
     }
-    //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*20);
   }
 
   void gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
@@ -98,7 +97,6 @@ namespace exafmm_t {
         trg_value[3+4*(t+k)] += tv3[k];
       }
     }
-    //Profile::Add_FLOP((long long)trg_cnt*(long long)src_cnt*27);
   }
 
   //! Laplace P2P save pairwise contributions to k_out (not aggregate over each target)
@@ -399,7 +397,6 @@ namespace exafmm_t {
         }
       }
     }
-    //Profile::Add_FLOP(8*8*8*(interaction_offset_f.size()/2)*n3_);
   }
 
   void fft_up_equiv(std::vector<size_t>& fft_offset,

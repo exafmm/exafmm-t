@@ -492,7 +492,6 @@ namespace exafmm_t {
         }
       }
     }
-    //Profile::Add_FLOP(8*8*8*(interaction_offset_f.size()/2)*n3);
   }
 
   void fft_up_equiv(std::vector<size_t>& fft_offset, ComplexVec& all_up_equiv, AlignedVec& fft_in) {
