@@ -46,6 +46,9 @@ helmholtz8: $(OBJHF)
 helmholtz16: $(OBJHD)
 	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
 
+kernel: kernel.fo ../src/geometry.fo ../src/laplace.fo ../src/precompute_laplace.fo
+	$(CXX) $(CXXFLAGS) $? $(LDFLAGS)
+
 clean:
 	rm -f $(OBJF) $(OBJD) $(OBJC) $(OBJZ) $(OBJHF) $(OBJHD) *.out
 
