@@ -92,7 +92,7 @@ namespace exafmm_t {
     #pragma omp parallel for
     for(size_t i=0; i<nodes.size(); i++) {
       Node* node = &nodes[i];
-      node->M2L_list.resize(REL_COORD[M2L_Type].size(), 0);
+      node->M2L_list.resize(REL_COORD[M2L_Type].size(), nullptr);
       build_list_parent_level(node);
       build_list_current_level(node);
       build_list_child_level(node);
