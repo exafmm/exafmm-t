@@ -5,7 +5,7 @@ namespace exafmm_t {
   std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
   std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
   std::vector<std::vector<RealVec>> matrix_M2L_Helper;
-  std::vector<std::vector<RealVec>> matrix_M2L;
+  std::vector<std::vector<AlignedVec>> matrix_M2L;
   std::string FILE_NAME;
 
   // mixed-type gemm: A is complex_t matrix; B is real_t matrix

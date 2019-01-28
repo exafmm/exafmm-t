@@ -5,7 +5,7 @@ namespace exafmm_t {
   RealVec matrix_DC2E_U, matrix_DC2E_V;
   std::vector<RealVec> matrix_M2L_Helper;
   std::vector<RealVec> matrix_M2M;
-  std::vector<RealVec> matrix_M2L;
+  std::vector<AlignedVec> matrix_M2L;
   std::vector<RealVec> matrix_L2L;
   std::string FILE_NAME;
 
