@@ -2,7 +2,7 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install -y libopenmpi-dev
   - sudo apt-get install -y libfftw3-3
-  - sudo apt-get install -y openblas lapack
+  - sudo apt-get install -y libopenblas-dev liblapack-dev
 language: cpp
 compiler: mpicxx
 script:
