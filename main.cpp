@@ -26,7 +26,9 @@ int main(int argc, char **argv) {
   MU = 20;
 #endif
   Args args(argc, argv);
+#if HAVE_OPENMP
   omp_set_num_threads(args.threads);
+#endif
   size_t N = args.numBodies;
   P = args.P;
   NSURF = 6*(P-1)*(P-1) + 2;

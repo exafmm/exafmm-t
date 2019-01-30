@@ -1,5 +1,9 @@
-AM_CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I$(top_srcdir)/include
-AM_LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm -fopenmp
+AM_CXXFLAGS = -g -O3 -mavx -fabi-version=6 -std=c++11 -I$(top_srcdir)/include
+AM_LDFLAGS = -lfftw3 -lfftw3f -lpthread -lblas -llapack -lm
+
+# OpenMP flags
+AM_CXXFLAGS += $(OPENMP_CXXFLAGS)
+AM_LDFLAGS += $(OPENMP_CXXFLAGS)
 
 bin_PROGRAMS = laplace helmholtz
 
