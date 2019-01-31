@@ -1226,6 +1226,23 @@ namespace exafmm_t {
       return vec(_mm_div_ps(one.data,_mm_sqrt_ps(v.data)));
 #endif
     }
+#ifdef __INTEL_COMPILER
+    friend vec cos(const vec &v) {
+      return vec(_mm_cos_ps(v.data));
+    }
+    friend vec sin(const vec &v) {
+      return vec(_mm_sin_ps(v.data));
+    }
+#else
+    friend vec sin(const vec & v) {
+      vec temp = _mm_setr_ps(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]));
+      return temp;
+    }
+    friend vec cos(const vec & v) {
+      vec temp = _mm_setr_ps(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]));
+      return temp;
+    }
+#endif
   };
 
   template<>
@@ -1349,6 +1366,23 @@ namespace exafmm_t {
       return vec(_mm_div_pd(one.data,_mm_sqrt_pd(v.data)));
 #endif
     }
+#ifdef __INTEL_COMPILER
+    friend vec cos(const vec &v) {
+      return vec(_mm_cos_pd(v.data));
+    }
+    friend vec sin(const vec &v) {
+      return vec(_mm_sin_pd(v.data));
+    }
+#else
+    friend vec sin(const vec & v) {
+      vec temp = _mm_setr_pd(std::sin(v[0]), std::sin(v[1]));
+      return temp;
+    }
+    friend vec cos(const vec & v) {
+      vec temp = _mm_setr_pd(std::cos(v[0]), std::cos(v[1]));
+      return temp;
+    }
+#endif
   };
 #endif
 
