@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-
+AC_PREREQ([2.69])
 AC_INIT([exaFMM-t], [1.0], [twang66@gwu.edu])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_HEADERS([config.h])
@@ -43,6 +43,15 @@ if test "$enable_mpi" = "yes"; then
    AC_CHECK_PROG(MPIRUN, mpirun, mpirun)
    AC_SUBST(MPIRUN)
    CXX=$MPICXX
+fi
+
+# SIMD extensions, compiler flags passed to SIMD_FLAGS, CPUEXT_FLAGS
+AC_ARG_ENABLE([simd],
+              [AS_HELP_STRING([--disable-simd],[disable SIMD])],
+              [enable_simd=$enableval],
+              [enable_simd=yes])
+if test "$enable_simd" = "yes"; then
+   AX_EXT
 fi
 
 # Checks for libraries.
