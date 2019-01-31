@@ -12,6 +12,7 @@ LT_INIT
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
+AC_PROG_F77
 
 # Choose precision
 AC_ARG_ENABLE([single],
@@ -55,6 +56,11 @@ if test "$enable_simd" = "yes"; then
 fi
 
 # Checks for libraries.
+# set BLAS_LIBS, LAPACK_LIBS
+AX_BLAS([], [AC_MSG_ERROR([could not find BLAS library])])
+AC_SUBST([BLAS_LIBS])
+AX_LAPACK([], [AC_MSG_ERROR([could not find LAPACK library])])
+AC_SUBST([LAPACK_LIBS])
 
 # Checks for header files.
 
