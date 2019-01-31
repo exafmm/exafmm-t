@@ -13,6 +13,16 @@ LT_INIT
 AC_PROG_CXX
 AC_PROG_CC
 
+# Choose precision
+AC_ARG_ENABLE([single],
+              [AS_HELP_STRING([--enable-single],[compile in single precision])],
+              [enable_single=$enableval],
+              [enable_single=no])
+AC_ARG_ENABLE([float],
+              [AS_HELP_STRING([--enable-float],[synonym for --enable-single])],
+              [enable_single=$enableval])
+AM_CONDITIONAL([USE_FLOAT], [test "$enable_single" = "yes"])
+
 # Checks for OpenMP, compiler flags passed to OPENMP_CXXFLAGS
 AC_ARG_ENABLE([openmp],
               [AS_HELP_STRING([--disable-openmp],[disable OpenMP])],

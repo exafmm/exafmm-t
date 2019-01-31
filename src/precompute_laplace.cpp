@@ -13,7 +13,7 @@ namespace exafmm_t {
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C) {
     char transA = 'N', transB = 'N';
     real_t alpha = 1.0, beta = 0.0;
-#if FLOAT
+#if USE_FLOAT
     sgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #else
     dgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
@@ -29,7 +29,7 @@ namespace exafmm_t {
     int k = std::min(m, n);
     RealVec tS(k, 0.);
     RealVec WORK(LWORK);
-#if FLOAT
+#if USE_FLOAT
     sgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &INFO);
 #else
     dgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &INFO);
