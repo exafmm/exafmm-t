@@ -385,7 +385,7 @@ namespace exafmm_t {
     std::vector<int>P2Plists_idx;
     int P2Plists_idx_cnt = 0;
     
-    Profile::Tic("memcpy vector to array", true);
+    Profile::Tic("vec to array", true);
     std::vector<int> targets_idx = leafs_idx;
     for(int i=0; i<targets_idx.size(); i++) {
       Node* target = &nodes[targets_idx[i]];
@@ -399,7 +399,7 @@ namespace exafmm_t {
     std::vector<real_t> trg_val(4*nodes_pt_src_idx[nodes_pt_src_idx.size()-1]);
     P2PGPU(leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx,P2Plists, P2Plists_idx, trg_val, leafs_idx.size(), ncrit);
     int pt_trg_count = 0;
-    Profile::Tic("memcpy array to vec", true);
+    Profile::Tic("array to vec", true);
     for(int i=0; i<targets_idx.size(); i++) {
       Node* target = &nodes[targets_idx[i]];
       for(int j=0;j<target->pt_trg.size();j++) {
