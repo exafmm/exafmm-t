@@ -4,16 +4,16 @@
 #include "profile.h"
 
 namespace exafmm_t {
-  void upwardPass(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit, RealVec &upward_equiv, std::vector<int> &nonleafs_idx) {
+  void upwardPass(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv, std::vector<int> &nonleafs_idx) {
     Profile::Tic("P2M", false, 5);
-    P2M(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, ncrit, upward_equiv);
+    P2M(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, ncrit, upward_equiv);
     Profile::Toc();
     Profile::Tic("M2M", false, 5);
     M2M(nodes, upward_equiv, nonleafs_idx);
     Profile::Toc();
   }
 
-  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit, RealVec &upward_equiv) {
+  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv) {
     Profile::Tic("P2L", false, 5);
     P2L(nodes);
     Profile::Toc();
@@ -21,7 +21,7 @@ namespace exafmm_t {
     M2P(nodes, leafs, upward_equiv);
     Profile::Toc();
     Profile::Tic("P2P", false, 5);
-    P2P(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, ncrit);
+    P2P(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, ncrit);
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
     M2L(nodes, M2Lsources_idx, M2Ltargets_idx, upward_equiv);

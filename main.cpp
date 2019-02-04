@@ -34,19 +34,17 @@ int main(int argc, char **argv) {
   int leafs_cnt = 0;
   std::vector<int> leafs_idx;
   std::vector<int> nonleafs_idx;
-  std::vector<real_t> leafs_coord; 
-  std::vector<int>leafs_coord_idx;
-  int leafs_coord_idx_cnt = 0;
+  std::vector<real_t> nodes_coord;
   RealVec upward_equiv(nodes.size()*NSURF);  
-  std::vector<real_t> leafs_pt_src;
-  std::vector<int> leafs_pt_src_idx;
-  int leafs_pt_src_idx_cnt = 0;
+  std::vector<real_t> nodes_pt_src;
+  std::vector<int> nodes_pt_src_idx;
+  int nodes_pt_src_idx_cnt = 0;
   for(int i=0; i<nodes.size(); i++) {
     for(int d=0; d<3; d++) {
       nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
     }
+    nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
     if(nodes[i].IsLeaf()) {
-      nodes[i].leaf_id = leafs_cnt;
       leafs_cnt ++;
       leafs_idx.push_back(nodes[i].idx);
       for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
@@ -54,24 +52,16 @@ int main(int argc, char **argv) {
         nodes[i].pt_coord.push_back(B->X[1]);
         nodes[i].pt_coord.push_back(B->X[2]);
 	nodes[i].pt_src.push_back(B->q);
+
+        nodes_coord.push_back(B->X[0]);
+        nodes_coord.push_back(B->X[1]);
+        nodes_coord.push_back(B->X[2]);
+        nodes_pt_src.push_back(B->q);
+        nodes_pt_src_idx_cnt ++;
       }
     }
   }
-  
-  for(int i=0; i<leafs_idx.size(); i++) {
-       Node *leaf = &nodes[leafs_idx[i]];
-      RealVec& pt_coord = leaf->pt_coord;
-      leafs_coord.insert(leafs_coord.end() , pt_coord.begin(), pt_coord.end());
-      leafs_coord_idx.push_back(leafs_coord_idx_cnt);
-      leafs_coord_idx_cnt += pt_coord.size();
-
-      RealVec& pt_src = leaf->pt_src;
-      leafs_pt_src.insert(leafs_pt_src.end(), pt_src.begin(), pt_src.end());
-      leafs_pt_src_idx.push_back(leafs_pt_src_idx_cnt);
-      leafs_pt_src_idx_cnt += pt_src.size();
-  }
-  leafs_pt_src_idx.push_back(leafs_pt_src_idx_cnt);
-  leafs_coord_idx.push_back(leafs_coord_idx_cnt);
+  nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
   std::vector<int> M2Lsources_idx, M2Ltargets_idx;
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
@@ -79,8 +69,8 @@ int main(int argc, char **argv) {
   Profile::Toc();
   setColleagues(nodes);
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
-  upwardPass(nodes, leafs_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, args.ncrit, upward_equiv, nonleafs_idx);
-  downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, leafs_coord, leafs_coord_idx, leafs_pt_src, leafs_pt_src_idx, args.ncrit, upward_equiv);
+  upwardPass(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nonleafs_idx);
+  downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv);
   Profile::Toc();
   RealVec error = verify(leafs);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;

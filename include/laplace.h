@@ -30,7 +30,7 @@ namespace exafmm_t {
 
   void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
 
-  void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit, RealVec &upward_equiv);
+  void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv);
 
   void M2M(Nodes &nodes, RealVec &upward_equiv, std::vector<int> &nonleafs_idx);
 
@@ -42,7 +42,7 @@ namespace exafmm_t {
 
   void M2P(Nodes &nodes, std::vector<Node*> &leafs, RealVec &upward_equiv);
   
-  void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &leafs_coord, std::vector<int> &leafs_coord_idx, std::vector<real_t> &leafs_pt_src, std::vector<int> &leafs_pt_src_idx, int ncrit);
+  void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit);
 
   void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, RealVec &upward_equiv);
 
