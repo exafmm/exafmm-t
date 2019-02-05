@@ -110,7 +110,6 @@ namespace exafmm_t {
     std::vector<int> M2LRelPos;
     AlignedVec up_equiv_fft;  // upward_equiv in frequency domain
     int index_in_up_equiv_fft;
-    int leaf_id; //used for p2p to decrease copying
     bool IsLeaf() {
       return numChilds == 0;
     }

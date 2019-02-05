@@ -193,7 +193,6 @@ namespace exafmm_t {
   void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv) {
     RealVec checkCoord = surface_test(MULTIPOLE_ORDER,2.95);
     RealVec r(leafs_idx.size());
-    RealVec up_equiv(leafs_idx.size()*NSURF);
     RealVec leaf_xyz(3*leafs_idx.size());
     #pragma omp parallel for
     for(int i=0; i<leafs_idx.size(); i++) {
@@ -204,20 +203,16 @@ namespace exafmm_t {
       leaf_xyz[3*i+0] = leaf->coord[0];
       leaf_xyz[3*i+1] = leaf->coord[1];
       leaf_xyz[3*i+2] = leaf->coord[2];
-      for(int j=0; j<NSURF; j++) {
-        up_equiv[i*NSURF+j] = upward_equiv[leafs_idx[i]*NSURF+j];
-      }
     }
-
-    std::vector<real_t> equiv(leafs_idx.size()*NSURF);
-    P2MGPU(leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, checkCoord, checkCoord.size(), up_equiv, r, leaf_xyz, leafs_idx.size(), ncrit, equiv);
+    P2MGPU(leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, checkCoord, checkCoord.size(), upward_equiv, r, leaf_xyz, leafs_idx.size(), ncrit);
     #pragma omp parallel for
     for(int i=0; i<leafs_idx.size(); i++) {
       Node* leaf = &nodes[leafs_idx[i]];
       int level = leaf->depth;
       real_t scal = powf(0.5, level);
+      
       for(int k=0; k<NSURF; k++) {
-        upward_equiv[leafs_idx[i]*NSURF+k] = scal * equiv[i*NSURF+k];
+        upward_equiv[leafs_idx[i]*NSURF+k] = upward_equiv[leafs_idx[i]*NSURF+k]*scal;
       }
     }
   }
