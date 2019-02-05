@@ -1,6 +1,4 @@
-#include "build_tree.h"
-#include "dataset.h"
-#include "interaction_list.h"
+#include <sys/time.h>
 #if HELMHOLTZ
 #include "helmholtz.h"
 #include "precompute_helmholtz.h"
@@ -8,9 +6,18 @@
 #include "laplace.h"
 #include "precompute_laplace.h"
 #endif
-#include "traverse.h"
 #include "exafmm_t.h"
-// #include <math.h>
+
+namespace exafmm_t {
+  int P;
+  int NSURF;
+  int MAXLEVEL;
+  vec3 XMIN0;
+  real_t R0;
+#if HELMHOLTZ
+  real_t MU;
+#endif
+}
 
 using namespace exafmm_t;
 using namespace std;

@@ -6,6 +6,7 @@
 #include "laplace.h"
 #include "precompute_laplace.h"
 #endif
+#include "exafmm_t.h"
 
 namespace exafmm_t {
   int P;
