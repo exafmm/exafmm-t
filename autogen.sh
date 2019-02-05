@@ -1,3 +1,3 @@
 #!/bin/bash
 
-autoreconf --install || exit 1
+autoreconf --force --install || exit 1
