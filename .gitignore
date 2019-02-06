@@ -12,5 +12,6 @@ config.log
 .deps
 .dirstamp
 
+Makefile
 *.out
 *.o

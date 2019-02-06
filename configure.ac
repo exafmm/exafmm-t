@@ -2,11 +2,13 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.69])
 AC_INIT([exaFMM-t], [1.0], [twang66@gwu.edu])
-AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([build-aux])
 AC_LANG([C++])
+
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 LT_INIT
 
 # Checks for programs.
