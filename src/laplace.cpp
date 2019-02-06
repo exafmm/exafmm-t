@@ -204,7 +204,7 @@ namespace exafmm_t {
       leaf_xyz[3*i+1] = leaf->coord[1];
       leaf_xyz[3*i+2] = leaf->coord[2];
     }
-    P2MGPU(leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, checkCoord, checkCoord.size(), upward_equiv, r, leaf_xyz, leafs_idx.size(), ncrit);
+    P2MGPU(leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, checkCoord, checkCoord.size(), upward_equiv, r, leaf_xyz, ncrit);
     #pragma omp parallel for
     for(int i=0; i<leafs_idx.size(); i++) {
       Node* leaf = &nodes[leafs_idx[i]];
