@@ -6,15 +6,18 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
-AC_LANG([C++])
 
-AM_INIT_AUTOMAKE([foreign subdir-objects])
+AM_INIT_AUTOMAKE([foreign subdir-objects -Wall -Werror])
 LT_INIT
 
+# change default compiler flag from -O2 to -O3
+: ${CXXFLAGS="-g -O3"}
+: ${CFLAGS="-g -O3"}
+
 # Checks for programs.
-AC_PROG_CXX
-AC_PROG_CC
+AC_PROG_CXX([icpc g++])
 AC_PROG_F77
+AC_LANG([C++])
 
 # Choose precision
 AC_ARG_ENABLE([single],

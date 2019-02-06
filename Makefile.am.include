@@ -1,6 +1,3 @@
-# force level 3 optimization (-O2 by default)
-CXXFLAGS += -O3
-
 # automake preprocessor, compiler and linker flags
 AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_CXXFLAGS = -fabi-version=6 -std=c++11
