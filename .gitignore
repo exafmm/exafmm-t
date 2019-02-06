@@ -1,9 +1,16 @@
+# precomputation matrix file
 *.dat
+
+# autotools build system
+autom4te.cache
+libtool
+stamp-h1
+config.h
+config.h.in~
+config.status
+config.log
+.deps
+.dirstamp
+
 *.out
 *.o
-*.fo
-*.do
-*.co
-*.zo
-*.hfo
-*.hdo
