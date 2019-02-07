@@ -48,7 +48,6 @@ if test "$enable_mpi" = "yes"; then
    AX_MPI([],[AC_MSG_ERROR([could not find mpi library for --enable-mpi])])
    AC_CHECK_PROG(MPIRUN, mpirun, mpirun)
    AC_SUBST(MPIRUN)
-   CXX=$MPICXX
 fi
 
 # SIMD extensions, compiler flags passed to SIMD_FLAGS, CPUEXT_FLAGS
@@ -74,5 +73,11 @@ AC_TYPE_SIZE_T
 AC_TYPE_UINT64_T
 
 # Checks for library functions.
+
+# Use MPICXX as CXX if MPI is enabled
+# this step has to be after AX_BLAS and AX_LAPACK
+if test "$enable_mpi" = "yes"; then
+  CXX=$MPICXX
+fi
 
 AC_OUTPUT

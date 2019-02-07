@@ -19334,7 +19334,7 @@ if test "$enable_mpi" = "yes"; then
 
 
 
-    for ac_prog in mpic++ mpicxx mpiCC hcp mpxlC_r mpxlC mpCC cmpic++
+    for ac_prog in mpiicpc mpic++ mpicxx mpiCC hcp mpxlC_r mpxlC mpCC cmpic++
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -19553,7 +19553,6 @@ fi
 
 
 
-   CXX=$MPICXX
 fi
 
 # SIMD extensions, compiler flags passed to SIMD_FLAGS, CPUEXT_FLAGS
@@ -22655,6 +22654,12 @@ _ACEOF
 
 
 # Checks for library functions.
+
+# Use MPICXX as CXX if MPI is enabled
+# this step has to be after AX_BLAS and AX_LAPACK
+if test "$enable_mpi" = "yes"; then
+  CXX=$MPICXX
+fi
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure

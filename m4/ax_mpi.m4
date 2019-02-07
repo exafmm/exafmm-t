@@ -72,7 +72,7 @@ AC_PREREQ(2.50) dnl for AC_LANG_CASE
 AC_LANG_CASE([C], [
     AC_REQUIRE([AC_PROG_CC])
     AC_ARG_VAR(MPICC,[MPI C compiler command])
-    AC_CHECK_PROGS(MPICC, mpicc hcc mpxlc_r mpxlc mpcc cmpicc, $CC)
+    AC_CHECK_PROGS(MPICC, mpiicc mpicc hcc mpxlc_r mpxlc mpcc cmpicc, $CC)
     ax_mpi_save_CC="$CC"
     CC="$MPICC"
     AC_SUBST(MPICC)
@@ -80,7 +80,7 @@ AC_LANG_CASE([C], [
 [C++], [
     AC_REQUIRE([AC_PROG_CXX])
     AC_ARG_VAR(MPICXX,[MPI C++ compiler command])
-    AC_CHECK_PROGS(MPICXX, mpic++ mpicxx mpiCC hcp mpxlC_r mpxlC mpCC cmpic++, $CXX)
+    AC_CHECK_PROGS(MPICXX, mpiicpc mpic++ mpicxx mpiCC hcp mpxlC_r mpxlC mpCC cmpic++, $CXX)
     ax_mpi_save_CXX="$CXX"
     CXX="$MPICXX"
     AC_SUBST(MPICXX)
