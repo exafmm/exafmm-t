@@ -65,6 +65,18 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
+/* Define if you have the FFTW library in double precision. */
+#undef HAVE_FFTW
+
+/* Define to 1 if you have the <fftw3.h> header file. */
+#undef HAVE_FFTW3_H
+
+/* Define if you have the FFTW library in single precision. */
+#undef HAVE_FFTW_F
+
+/* Define if you have the FFTW threads library. */
+#undef HAVE_FFTW_THREADS
+
 /* Define to 1 to support Fused Multiply-Add Extensions 3 */
 #undef HAVE_FMA3
 

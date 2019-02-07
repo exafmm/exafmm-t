@@ -60,11 +60,12 @@ if test "$enable_simd" = "yes"; then
 fi
 
 # Checks for libraries.
-# set BLAS_LIBS, LAPACK_LIBS
+# set BLAS_LIBS, LAPACK_LIBS, FFTW_LIBS, FFTW_CPPFLAGS
 AX_BLAS([], [AC_MSG_ERROR([could not find BLAS library])])
 AC_SUBST([BLAS_LIBS])
 AX_LAPACK([], [AC_MSG_ERROR([could not find LAPACK library])])
 AC_SUBST([LAPACK_LIBS])
+AX_FFTW
 
 # Checks for header files.
 
