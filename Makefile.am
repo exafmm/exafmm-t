@@ -1,5 +1,8 @@
 include $(top_srcdir)/Makefile.am.include
 
+touch:
+	touch --date="`date`" aclocal.m4 Makefile.am configure Makefile.in
+
 bin_PROGRAMS = laplace helmholtz
 
 laplace_SOURCES = main.cpp src/precompute_laplace.cpp src/geometry.cpp src/laplace.cpp
