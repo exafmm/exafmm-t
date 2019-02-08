@@ -19,6 +19,9 @@ AC_PROG_CXX([icpc g++])
 AC_PROG_F77
 AC_LANG([C++])
 
+# Check compiler vendor
+AX_COMPILER_VENDOR
+
 # Choose precision
 AC_ARG_ENABLE([single],
               [AS_HELP_STRING([--enable-single],[compile in single precision])],
@@ -56,7 +59,12 @@ AC_ARG_ENABLE([simd],
               [enable_simd=$enableval],
               [enable_simd=yes])
 if test "$enable_simd" = "yes"; then
-   AX_EXT
+   if test "$ax_cv_cxx_compiler_vendor" = "intel"; then
+      SIMD_FLAGS="-xHOST"
+      AC_SUBST(SIMD_FLAGS)
+   else
+      AX_EXT
+   fi
 fi
 
 # Checks for libraries.
