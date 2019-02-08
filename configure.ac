@@ -19,8 +19,9 @@ AC_PROG_CXX([icpc g++])
 AC_PROG_F77
 AC_LANG([C++])
 
-# Check compiler vendor
+# Check compiler vendor & warning flags
 AX_COMPILER_VENDOR
+AX_COMPILER_FLAGS
 
 # Choose precision
 AC_ARG_ENABLE([single],

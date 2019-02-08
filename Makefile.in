@@ -95,17 +95,20 @@ bin_PROGRAMS = laplace$(EXEEXT) helmholtz$(EXEEXT) \
 	laplace_p2p$(EXEEXT) laplace_kernel$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_blas.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_append_compile_flags.m4 \
+	$(top_srcdir)/m4/ax_append_flag.m4 $(top_srcdir)/m4/ax_blas.m4 \
 	$(top_srcdir)/m4/ax_check_compile_flag.m4 \
+	$(top_srcdir)/m4/ax_compiler_flags.m4 \
 	$(top_srcdir)/m4/ax_compiler_vendor.m4 \
 	$(top_srcdir)/m4/ax_ext.m4 $(top_srcdir)/m4/ax_fftw.m4 \
 	$(top_srcdir)/m4/ax_gcc_x86_avx_xgetbv.m4 \
 	$(top_srcdir)/m4/ax_gcc_x86_cpuid.m4 \
 	$(top_srcdir)/m4/ax_lapack.m4 $(top_srcdir)/m4/ax_mpi.m4 \
-	$(top_srcdir)/m4/ax_openmp.m4 $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
-	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/ax_openmp.m4 \
+	$(top_srcdir)/m4/ax_require_defined.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
@@ -251,6 +254,7 @@ BLAS_LIBS = @BLAS_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COMPILER_CXXFLAGS = @COMPILER_CXXFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CPUEXT_FLAGS = @CPUEXT_FLAGS@
@@ -333,6 +337,7 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
+ax_compiler_cxxflags = @ax_compiler_cxxflags@
 bindir = @bindir@
 build = @build@
 build_alias = @build_alias@
@@ -382,8 +387,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/include $(am__append_1) $(FFTW_CPPFLAGS) \
 # OpenMP flags
 
 # SIMD and other extensions flags
+
+# Compiler warning flags
 AM_CXXFLAGS = -fabi-version=6 -std=c++11 $(OPENMP_CXXFLAGS) \
-	$(SIMD_FLAGS) $(CPUEXT_FLAGS)
+	$(SIMD_FLAGS) $(CPUEXT_FLAGS) $(COMPILER_CXXFLAGS)
 
 # libraries
 AM_LDFLAGS = -lpthread -lm $(OPENMP_CXXFLAGS) $(BLAS_LIBS) \

@@ -10,6 +10,9 @@ AM_LDFLAGS += $(OPENMP_CXXFLAGS)
 # SIMD and other extensions flags
 AM_CXXFLAGS += $(SIMD_FLAGS) $(CPUEXT_FLAGS)
 
+# Compiler warning flags
+AM_CXXFLAGS += $(COMPILER_CXXFLAGS)
+
 # Single/Double precision
 if USE_FLOAT
 AM_CPPFLAGS += -DUSE_FLOAT
