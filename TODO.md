@@ -1,6 +1,8 @@
 ###TODO
 -------------
 
+fix signed vs unsigned warnings
+
 - [ ] CI, unit tests (Tingyu, Chou)
   - [ ] create tests folder
   - [ ] P2P test: write non-simd P2P functions for each kernel to compare with

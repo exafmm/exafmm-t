@@ -3,11 +3,12 @@
 AC_PREREQ([2.69])
 AC_INIT([exaFMM-t], [1.0], [twang66@gwu.edu])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile wrappers/Makefile])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 
 AM_INIT_AUTOMAKE([foreign subdir-objects -Wall -Werror])
+AM_PROG_AR
 LT_INIT
 
 # change default compiler flag from -O2 to -O3
@@ -18,6 +19,7 @@ LT_INIT
 AC_PROG_CXX([icpc g++])
 AC_PROG_F77
 AC_LANG([C++])
+
 
 # Check compiler vendor & warning flags
 AX_COMPILER_VENDOR
