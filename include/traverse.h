@@ -42,7 +42,7 @@ namespace exafmm_t {
     int ntrgs = 10;
     int stride = leafs.size() / ntrgs;
     Nodes targets;
-    for(size_t i=0; i<ntrgs; i++) {
+    for(int i=0; i<ntrgs; i++) {
       targets.push_back(*(leafs[i*stride]));
     }
     Nodes targets2 = targets;    // used for direct summation

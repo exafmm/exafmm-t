@@ -76,10 +76,10 @@ namespace exafmm_t {
     svd(NSURF, NSURF, &matrix_c2e[0], &S[0], &U[0], &VT[0]);
     // inverse S
     real_t max_S = 0;
-    for(size_t i=0; i<NSURF; i++) {
+    for(int i=0; i<NSURF; i++) {
       max_S = fabs(S[i*NSURF+i])>max_S ? fabs(S[i*NSURF+i]) : max_S;
     }
-    for(size_t i=0; i<NSURF; i++) {
+    for(int i=0; i<NSURF; i++) {
       S[i*NSURF+i] = S[i*NSURF+i]>EPS*max_S*4 ? 1.0/S[i*NSURF+i] : 0.0;
     }
     // save matrix

@@ -116,12 +116,12 @@ namespace exafmm_t {
     real_t c[3] = {0.0};
     std::vector<RealVec> up_check_surf;
     up_check_surf.resize(MAXLEVEL+1);
-    for(size_t level = 0; level <= MAXLEVEL; level++) {
+    for(int level = 0; level <= MAXLEVEL; level++) {
       up_check_surf[level].resize(NSURF*3);
       up_check_surf[level] = surface(P,c,2.95,level);
     }
     #pragma omp parallel for
-    for(int i=0; i<leafs.size(); i++) {
+    for(size_t i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
       int level = leaf->level;
       real_t scal = pow(0.5, level);  // scaling factor of UC2UE precomputation matrix
@@ -189,12 +189,12 @@ namespace exafmm_t {
     real_t c[3] = {0.0};
     std::vector<RealVec> dn_equiv_surf;
     dn_equiv_surf.resize(MAXLEVEL+1);
-    for(size_t level = 0; level <= MAXLEVEL; level++) {
+    for(int level = 0; level <= MAXLEVEL; level++) {
       dn_equiv_surf[level].resize(NSURF*3);
       dn_equiv_surf[level] = surface(P,c,2.95,level);
     }
     #pragma omp parallel for
-    for(int i=0; i<leafs.size(); i++) {
+    for(size_t i=0; i<leafs.size(); i++) {
       Node* leaf = leafs[i];
       int level = leaf->level;
       real_t scal = pow(0.5, level);
@@ -222,15 +222,15 @@ namespace exafmm_t {
     real_t c[3] = {0.0};
     std::vector<RealVec> dn_check_surf;
     dn_check_surf.resize(MAXLEVEL+1);
-    for(size_t level = 0; level <= MAXLEVEL; level++) {
+    for(int level = 0; level <= MAXLEVEL; level++) {
       dn_check_surf[level].resize(NSURF*3);
       dn_check_surf[level] = surface(P,c,1.05,level);
     }
     #pragma omp parallel for
-    for(int i=0; i<targets.size(); i++) {
+    for(size_t i=0; i<targets.size(); i++) {
       Node* target = &targets[i];
       NodePtrs& sources = target->P2L_list;
-      for(int j=0; j<sources.size(); j++) {
+      for(size_t j=0; j<sources.size(); j++) {
         Node* source = sources[j];
         RealVec trg_check_coord(NSURF*3);
         int level = target->level;
@@ -250,15 +250,15 @@ namespace exafmm_t {
     real_t c[3] = {0.0};
     std::vector<RealVec> up_equiv_surf;
     up_equiv_surf.resize(MAXLEVEL+1);
-    for(size_t level = 0; level <= MAXLEVEL; level++) {
+    for(int level = 0; level <= MAXLEVEL; level++) {
       up_equiv_surf[level].resize(NSURF*3);
       up_equiv_surf[level] = surface(P,c,1.05,level);
     }
     #pragma omp parallel for
-    for(int i=0; i<targets.size(); i++) {
+    for(size_t i=0; i<targets.size(); i++) {
       Node* target = targets[i];
       NodePtrs& sources = target->M2P_list;
-      for(int j=0; j<sources.size(); j++) {
+      for(size_t j=0; j<sources.size(); j++) {
       Node* source = sources[j];
         RealVec sourceEquivCoord(NSURF*3);
         int level = source->level;
@@ -276,10 +276,10 @@ namespace exafmm_t {
   void P2P(NodePtrs& leafs) {
     NodePtrs& targets = leafs;   // assume sources == targets
     #pragma omp parallel for
-    for(int i=0; i<targets.size(); i++) {
+    for(size_t i=0; i<targets.size(); i++) {
       Node* target = targets[i];
       NodePtrs& sources = target->P2P_list;
-      for(int j=0; j<sources.size(); j++) {
+      for(size_t j=0; j<sources.size(); j++) {
         Node* source = sources[j];
         gradient_P2P(source->src_coord, source->src_value, target->trg_coord, target->trg_value);
       }
@@ -377,7 +377,7 @@ namespace exafmm_t {
 
     for(size_t blk1=0; blk1<blk1_cnt; blk1++) {
     #pragma omp parallel for
-      for(size_t k=0; k<n3_; k++) {
+      for(int k=0; k<n3_; k++) {
         for(size_t mat_indx=0; mat_indx< mat_cnt; mat_indx++) {
           size_t interac_blk1 = blk1*mat_cnt+mat_indx;
           size_t interaction_count_offset0 = (interac_blk1==0?0:interaction_count_offset[interac_blk1-1]);
@@ -430,14 +430,14 @@ namespace exafmm_t {
       // the node_idx's chunk of fft_out has a size of 2*N3_*NCHILD
       // since it's larger than what we need,  we can use fft_out as fftw_in buffer here
       real_t* up_equiv_f = &fft_in[fftsize*node_idx]; // offset ptr of node_idx in fft_in vector, size=fftsize
-      for(size_t k=0; k<NSURF; k++) {
+      for(int k=0; k<NSURF; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<(int)NCHILD; j0++)
           // up_equiv_f[idx+j0*n3] = up_equiv[j0*NSURF+k] * fft_scal[node_idx];
           up_equiv_f[idx+j0*n3] = up_equiv[j0*NSURF+k];
       }
       fft_execute_dft_r2c(m2l_list_fftplan, up_equiv_f, (fft_complex*)&buffer[0]);
-      for(size_t j=0; j<n3_; j++) {
+      for(int j=0; j<n3_; j++) {
         for(size_t k=0; k<NCHILD; k++) {
           up_equiv_f[2*(NCHILD*j+k)+0] = buffer[2*(n3_*k+j)+0];
           up_equiv_f[2*(NCHILD*j+k)+1] = buffer[2*(n3_*k+j)+1];
@@ -476,13 +476,13 @@ namespace exafmm_t {
       RealVec buffer1(fftsize, 0);
       real_t* dn_check_f = &fft_out[fftsize*node_idx];  // offset ptr for node_idx in fft_out vector, size=fftsize
       real_t* dn_equiv = &all_dn_equiv[ifft_offset[node_idx]];  // offset ptr for node_idx's child's dn_equiv in all_dn_equiv, size=numChilds * NSURF
-      for(size_t j=0; j<n3_; j++)
+      for(int j=0; j<n3_; j++)
         for(size_t k=0; k<NCHILD; k++) {
           buffer0[2*(n3_*k+j)+0] = dn_check_f[2*(NCHILD*j+k)+0];
           buffer0[2*(n3_*k+j)+1] = dn_check_f[2*(NCHILD*j+k)+1];
         }
       fft_execute_dft_c2r(m2l_list_ifftplan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
-      for(size_t k=0; k<NSURF; k++) {
+      for(int k=0; k<NSURF; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<NCHILD; j0++)
           dn_equiv[NSURF*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
@@ -498,7 +498,7 @@ namespace exafmm_t {
     RealVec all_up_equiv(numNodes*NSURF);
     RealVec all_dn_equiv(numNodes*NSURF);
     #pragma omp parallel for collapse(2)
-    for(int i=0; i<numNodes; i++) {
+    for(size_t i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
         all_up_equiv[i*NSURF+j] = nodes[i].up_equiv[j];
         all_dn_equiv[i*NSURF+j] = nodes[i].dn_equiv[j];
@@ -513,7 +513,7 @@ namespace exafmm_t {
     ifft_dn_check(M2Ldata.ifft_offset, M2Ldata.ifft_scale, fft_out, all_dn_equiv);
 
     #pragma omp parallel for collapse(2)
-    for(int i=0; i<numNodes; i++) {
+    for(size_t i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
         nodes[i].up_equiv[j] = all_up_equiv[i*NSURF+j];
         nodes[i].dn_equiv[j] = all_dn_equiv[i*NSURF+j];
