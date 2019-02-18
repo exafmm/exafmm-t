@@ -191,7 +191,7 @@ namespace exafmm_t {
     file_size *= sizeof(real_t);
     if (file.good()) {     // if file exists
       file.seekg(0, file.end);
-      if (file.tellg() == file_size) {   // if file size is correct
+      if (size_t(file.tellg()) == file_size) {   // if file size is correct
         file.seekg(0, file.beg);         // move the position back to the beginning
         // check whether R0 matches
         real_t R0_;

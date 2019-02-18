@@ -56,7 +56,7 @@ int main() {
   vector<int> nnodes = {1, 8, 8*2, 8*2};  // number of nodes at each level
   Nodes nodes(accumulate(nnodes.begin(), nnodes.end(), 0));
   // initialize nodes
-  for(int i=0; i<nodes.size(); ++i) {
+  for(size_t i=0; i<nodes.size(); ++i) {
     Node& node = nodes[i];
     node.is_leaf = true;
     node.idx = i;

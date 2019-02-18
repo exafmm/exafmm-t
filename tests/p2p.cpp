@@ -27,7 +27,7 @@ void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, 
 #pragma omp parallel for
   for(int t = 0; t < trg_cnt; t++) {
     real_t p = 0;
-    for(int s = 0; s < src_value.size(); s++) {
+    for(size_t s = 0; s < src_value.size(); s++) {
       real_t r = 0;
       for(int k = 0; k < 3; k++) {
         r += (trg_coord[t*3+k] - src_coord[s*3+k])*(trg_coord[t*3+k] - src_coord[s*3+k]);
@@ -46,10 +46,10 @@ void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_co
   real_t WAVEK = 20*M_PI;
   complex_t I = std::complex<real_t>(0., 1.);
 #pragma omp parallel for
-  for(int i=0; i<trg_coord.size()/3; ++i) {
+  for(size_t i=0; i<trg_coord.size()/3; ++i) {
     complex_t p = 0;
     real_t * tX = &trg_coord[3*i];
-    for(int j=0; j<src_value.size(); ++j) {
+    for(size_t j=0; j<src_value.size(); ++j) {
       vec3 dX;
       real_t * sX = &src_coord[3*j];
       for(int d=0; d<3; ++d) dX[d] = tX[d] - sX[d];
@@ -109,7 +109,7 @@ int main() {
   potential_P2P(src_coord, src_value, test_coord, test_value);
   gettimeofday(&toc, NULL);
   double diff = 0;
-  for(int i = 0; i < N; i++) {
+  for(size_t i = 0; i < N; i++) {
 #if HELMHOLTZ
     diff += test_value[i].real() - trg_value[i].real();
     diff += test_value[i].imag() - trg_value[i].imag();

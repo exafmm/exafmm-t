@@ -98,13 +98,13 @@ namespace exafmm_t {
       svd(NSURF, NSURF, &matrix_c2e[0], &S[0], &U[0], &VH[0]);
       // inverse S
       real_t max_S = 0;
-      for(size_t i=0; i<NSURF; i++) {
+      for(int i=0; i<NSURF; i++) {
         max_S = fabs(S[i*NSURF+i])>max_S ? fabs(S[i*NSURF+i]) : max_S;
       }
-      for(size_t i=0; i<NSURF; i++) {
+      for(int i=0; i<NSURF; i++) {
         S[i*NSURF+i] = S[i*NSURF+i]>EPS*max_S*4 ? 1.0/S[i*NSURF+i] : 0.0;
       }
-      for(int i=0; i<S.size(); ++i) {
+      for(size_t i=0; i<S.size(); ++i) {
         S_[i] = S[i];
       }
       // save matrix
@@ -223,7 +223,7 @@ namespace exafmm_t {
                      +  REL_COORD[M2L_Type].size() * fft_size * MAXLEVEL * sizeof(real_t) + 1;    // +1 denotes R0
     if (file.good()) {     // if file exists
       file.seekg(0, file.end);
-      if (file.tellg() == file_size) {   // if file size is correct
+      if (size_t(file.tellg()) == file_size) {   // if file size is correct
         file.seekg(0, file.beg);         // move the position back to the beginning
         // check whether R0 matches
         real_t R0_;
