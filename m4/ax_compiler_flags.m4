@@ -57,7 +57,6 @@ AC_DEFUN([AX_COMPILER_FLAGS],[
         "-check all" dnl
         "-debug all" dnl
 	"-diag-disable remark" dnl
-	-fmudflap dnl
 	-fno-strict-aliasing dnl
 	-fsanitize=address dnl
 	-fsanitize=leak dnl
