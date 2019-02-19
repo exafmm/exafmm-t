@@ -1,6 +1,8 @@
+[![Build Status](https://travis-ci.com/exafmm/exafmm-t.svg?branch=master)](https://travis-ci.com/exafmm/exafmm-t)
+
 #### exafmm-t
 History: 2017/12/11 - Now  
-Branch: gpu, matrix_multi, vanilla-m2l  
+Branch: gpu, vanilla-m2l  
 Kernel: LaplaceKI, HelmholtzKI (PVFMM hack)  
 Periodic: no  
 SIMD: vec.h  
