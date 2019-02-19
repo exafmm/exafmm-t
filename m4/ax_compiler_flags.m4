@@ -72,7 +72,6 @@ AC_DEFUN([AX_COMPILER_FLAGS],[
 	-Wcast-align dnl
 	-Wcast-qual dnl
 	-Wextra dnl
-	-Wfatal-errors dnl
 	dnl -Wfloat-equal dnl
 	-Wformat=2 dnl
 	-Wformat-nonliteral dnl

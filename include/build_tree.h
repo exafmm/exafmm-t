@@ -215,13 +215,13 @@ namespace exafmm_t {
                 ciX[0] = iX[0] + m;
                 ciX[1] = iX[1] + n;
                 ciX[2] = iX[2] + p;
-              }
-              if (ciX[0]>=0 && ciX[0]<pow(2,l) &&  // boundary check
-                  ciX[1]>=0 && ciX[1]<pow(2,l) &&
-                  ciX[2]>=0 && ciX[2]<pow(2,l)) {
-                uint64_t colleague = getKey(ciX, l);
-                uint64_t parent = getParent(colleague);
-                S.insert(parent);          // S: parent of N's colleague
+                if (ciX[0]>=0 && ciX[0]<pow(2,l) &&  // boundary check
+                    ciX[1]>=0 && ciX[1]<pow(2,l) &&
+                    ciX[2]>=0 && ciX[2]<pow(2,l)) {
+                  uint64_t colleague = getKey(ciX, l);
+                  uint64_t parent = getParent(colleague);
+                  S.insert(parent);          // S: parent of N's colleague
+                }
               }
             }
           }
