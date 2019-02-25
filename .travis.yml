@@ -7,6 +7,6 @@ before_install:
 language: cpp
 compiler: mpicxx
 script:
-  - ./autogen.sh
+  - ./bootstrap
   - ./configure
   - make
