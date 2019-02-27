@@ -20,6 +20,9 @@ namespace exafmm_t {
 #endif
 
   extern "C" void run_FMM() {
+#if HELMHOLTZ
+    MU = 20;
+#endif
     P = 6;
     NSURF = 6*(P-1)*(P-1) + 2;
 

@@ -13,5 +13,5 @@ config.log
 .dirstamp
 
 Makefile
-*.out
 *.o
+*.a
