@@ -45,11 +45,6 @@ AC_DEFUN([AX_COMPILER_FLAGS],[
     ])
 
     # Base flags
-    AX_APPEND_COMPILE_FLAGS([dnl
-        -O0 dnl
-        -g dnl
-    ],ax_compiler_[]_AC_LANG_ABBREV[]flags,[$ax_compiler_flags_test])
-
     # http://stackoverflow.com/questions/3375697/useful-gcc-flags-for-c
     # http://stackoverflow.com/questions/5088460/flags-to-enable-thorough-and-verbose-g-warnings
     AX_APPEND_COMPILE_FLAGS([ dnl
