@@ -1,21 +1,16 @@
 #include <iostream>
-#include "args.h"
 #include "exafmm_t.h"
 
 using namespace exafmm_t;
 
 extern "C" Bodies array_to_bodies(size_t count, real_t* coord, real_t* value, bool is_source=true);
-extern "C" void init_FMM(Args& args);
-extern "C" Nodes setup_FMM(Bodies& sources, Bodies& targets, NodePtrs& leafs, Args& args);
+extern "C" void init_FMM();
+extern "C" Nodes setup_FMM(Bodies& sources, Bodies& targets, NodePtrs& leafs);
 extern "C" void run_FMM(Nodes& nodes, NodePtrs& leafs);
 
 int main(int argc, char **argv) {
-  // initialize global variables
-  size_t N = 1000000;
-  Args args;
-  init_FMM(args);
-
   // generate random coordinates and charges
+  size_t N = 1000000;
   real_t * src_coord = new real_t [3*N];
   real_t * src_q = new real_t [N];
   real_t * trg_coord = new real_t [3*N];
@@ -30,9 +25,12 @@ int main(int argc, char **argv) {
   Bodies sources = array_to_bodies(N, src_coord, src_q);
   Bodies targets = array_to_bodies(N, trg_coord, trg_p, false);
 
+  // initialize global variables
+  init_FMM();
+
   // setup FMM
   NodePtrs leafs;
-  Nodes nodes = setup_FMM(sources, targets, leafs, args);
+  Nodes nodes = setup_FMM(sources, targets, leafs);
 
   // run FMM
   run_FMM(nodes, leafs);

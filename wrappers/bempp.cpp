@@ -10,6 +10,7 @@
 #include "traverse.h"
 
 namespace exafmm_t {
+  Args args;
   int P;
   int NSURF;
   int MAXLEVEL;
@@ -19,7 +20,7 @@ namespace exafmm_t {
   real_t MU;
 #endif
 
-  extern "C" void init_FMM(Args& args) {
+  extern "C" void init_FMM(int threads) {
     P = 16; 
     NSURF = 6*(P-1)*(P-1) + 2;
 #if HELMHOLTZ
@@ -27,6 +28,7 @@ namespace exafmm_t {
 #endif
     args.P = P;
     args.ncrit = 320;
+    args.threads = threads;
   }
 
   extern "C" Bodies array_to_bodies(size_t count, real_t* coord, real_t* value, bool is_source=true) {
@@ -42,7 +44,10 @@ namespace exafmm_t {
   }
 
   // build 2:1 balanced tree, precompute invariant matrices, build interaction lists
-  extern "C" Nodes setup_FMM(Bodies& sources, Bodies& targets, NodePtrs& leafs, const Args& args) {
+  extern "C" Nodes setup_FMM(Bodies& sources, Bodies& targets, NodePtrs& leafs) {
+#if HAVE_OPENMP
+  omp_set_num_threads(args.threads);
+#endif
     start("Build Tree");
     get_bounds(sources, targets, XMIN0, R0);
     NodePtrs nonleafs;
@@ -64,6 +69,9 @@ namespace exafmm_t {
   }
 
   extern "C" void run_FMM(Nodes& nodes, NodePtrs& leafs) {
+#if HAVE_OPENMP
+  omp_set_num_threads(args.threads);
+#endif
     start("Total");
     upward_pass(nodes, leafs);
     downward_pass(nodes, leafs);
