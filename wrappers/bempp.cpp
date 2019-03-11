@@ -19,27 +19,33 @@ namespace exafmm_t {
   real_t MU;
 #endif
 
-  extern "C" void run_FMM() {
+  extern "C" void init_FMM(Args& args) {
+    P = 16; 
+    NSURF = 6*(P-1)*(P-1) + 2;
 #if HELMHOLTZ
     MU = 20;
 #endif
-    P = 6;
-    NSURF = 6*(P-1)*(P-1) + 2;
-
-    Args args;
-    args.ncrit = 64;
-    args.numBodies = 100000;
     args.P = P;
-    args.threads = 4;
-    args.distribution = "c";
+    args.ncrit = 320;
+  }
 
-    start("Total");
-    Bodies sources = init_bodies(args.numBodies, args.distribution, 0);
-    Bodies targets = init_bodies(args.numBodies, args.distribution, 0);
+  extern "C" Bodies array_to_bodies(size_t count, real_t* coord, real_t* value, bool is_source=true) {
+    Bodies bodies(count);
+    for (size_t i=0; i<count; ++i) {
+      for (int d=0; d<3; ++d) {
+        bodies[i].X[d] = coord[3*i+d];
+      }
+      if (is_source)
+        bodies[i].q = value[i];
+    }
+    return bodies;
+  }
 
+  // build 2:1 balanced tree, precompute invariant matrices, build interaction lists
+  extern "C" Nodes setup_FMM(Bodies& sources, Bodies& targets, NodePtrs& leafs, const Args& args) {
     start("Build Tree");
     get_bounds(sources, targets, XMIN0, R0);
-    NodePtrs leafs, nonleafs;
+    NodePtrs nonleafs;
     Nodes nodes = build_tree(sources, targets, XMIN0, R0, leafs, nonleafs, args);
     balance_tree(nodes, sources, targets, XMIN0, R0, leafs, nonleafs, args);
     stop("Build Tree");
@@ -52,7 +58,13 @@ namespace exafmm_t {
     set_colleagues(nodes);
     build_list(nodes);
     stop("Build Lists");
+
     M2L_setup(nonleafs);
+    return nodes;
+  }
+
+  extern "C" void run_FMM(Nodes& nodes, NodePtrs& leafs) {
+    start("Total");
     upward_pass(nodes, leafs);
     downward_pass(nodes, leafs);
     stop("Total");
@@ -60,7 +72,7 @@ namespace exafmm_t {
     RealVec error = verify(leafs);
     std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;
     std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << error[1] << std::endl;
-    std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
-    std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< MAXLEVEL << std::endl;
+    std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : " << leafs.size() << std::endl;
+    std::cout << std::setw(20) << std::left << "Tree Depth" << " : " << MAXLEVEL << std::endl;
   }
 }
