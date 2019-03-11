@@ -4,7 +4,7 @@
 using namespace exafmm_t;
 
 extern "C" Bodies array_to_bodies(size_t count, real_t* coord, real_t* value, bool is_source=true);
-extern "C" void init_FMM();
+extern "C" void init_FMM(int threads);
 extern "C" Nodes setup_FMM(Bodies& sources, Bodies& targets, NodePtrs& leafs);
 extern "C" void run_FMM(Nodes& nodes, NodePtrs& leafs);
 
@@ -26,7 +26,8 @@ int main(int argc, char **argv) {
   Bodies targets = array_to_bodies(N, trg_coord, trg_p, false);
 
   // initialize global variables
-  init_FMM();
+  int threads = 6;
+  init_FMM(threads);
 
   // setup FMM
   NodePtrs leafs;

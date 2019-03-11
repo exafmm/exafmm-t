@@ -1,5 +1,6 @@
 #include "build_tree.h"
 #include "build_list.h"
+#include "config.h"
 #include "dataset.h"
 #if HELMHOLTZ
 #include "helmholtz.h"

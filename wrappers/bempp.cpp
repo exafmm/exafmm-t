@@ -1,6 +1,8 @@
 #include <iostream>
+#include <omp.h>
 #include "build_tree.h"
 #include "build_list.h"
+#include "config.h"
 #include "dataset.h"
 #if HELMHOLTZ
 #include "helmholtz.h"
@@ -29,6 +31,9 @@ namespace exafmm_t {
     args.P = P;
     args.ncrit = 320;
     args.threads = threads;
+#if HAVE_OPENMP
+    omp_set_num_threads(args.threads);
+#endif
   }
 
   extern "C" Bodies array_to_bodies(size_t count, real_t* coord, real_t* value, bool is_source=true) {
@@ -45,9 +50,6 @@ namespace exafmm_t {
 
   // build 2:1 balanced tree, precompute invariant matrices, build interaction lists
   extern "C" Nodes setup_FMM(Bodies& sources, Bodies& targets, NodePtrs& leafs) {
-#if HAVE_OPENMP
-  omp_set_num_threads(args.threads);
-#endif
     start("Build Tree");
     get_bounds(sources, targets, XMIN0, R0);
     NodePtrs nonleafs;
@@ -69,9 +71,6 @@ namespace exafmm_t {
   }
 
   extern "C" void run_FMM(Nodes& nodes, NodePtrs& leafs) {
-#if HAVE_OPENMP
-  omp_set_num_threads(args.threads);
-#endif
     start("Total");
     upward_pass(nodes, leafs);
     downward_pass(nodes, leafs);
