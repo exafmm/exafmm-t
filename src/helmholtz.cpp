@@ -17,13 +17,15 @@ namespace exafmm_t {
 
   void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
-    int newton_scale = 16;      // from 2-step Newton method
-    const real_t COEF = 1.0/(newton_scale*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
+    const real_t COEF = 1.0/(4*M_PI*newton_scale);
     simdvec coef(COEF);
     simdvec mu(MU*M_PI/newton_scale);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
-    for(int t=0; t<trg_cnt; t+=NSIMD) {
+    int t;
+    const complex_t I(0, 1);
+    for(t=0; t+NSIMD<=trg_cnt; t+=NSIMD) {
       simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
       simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
       simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
@@ -57,21 +59,34 @@ namespace exafmm_t {
         trg_value[t+k] += complex_t(tv_real[k], tv_imag[k]);
       }
     }
+    for(; t<trg_cnt; t++) {
+      complex_t p(0, 0);
+      for(int s=0; s<src_cnt; s++) {
+        real_t r = 0;
+        for(int d=0; d<3; d++) {
+          r += (trg_coord[t*3+d] - src_coord[s*3+d]) * (trg_coord[t*3+d] - src_coord[s*3+d]);
+        }
+        r = sqrt(r);
+        if(r != 0) {
+          p += std::exp(I * MU * M_PI * r) * src_value[s] / r;
+        }
+      }
+      trg_value[t] += p / (4*M_PI);
+    }
   }
 
   void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
-    int newton_scale = 1;
-    for(int i=0; i<2; i++) {
-      newton_scale = 2*newton_scale*newton_scale*newton_scale;
-    }
-    const real_t COEF = 1.0/(newton_scale*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
+    const real_t COEF = 1.0/(4*M_PI*newton_scale);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
     simdvec mu(MU*M_PI/newton_scale);
     simdvec NEWTON(newton_scale);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
-    for(int t=0; t<trg_cnt; t+=NSIMD) {
+    int t;
+    const complex_t I(0, 1);
+    for(t=0; t+NSIMD<=trg_cnt; t+=NSIMD) {
       simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
       simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
       simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
@@ -123,6 +138,28 @@ namespace exafmm_t {
         trg_value[4*(t+k)+2] += complex_t(F1_real[k], F1_imag[k]);
         trg_value[4*(t+k)+3] += complex_t(F2_real[k], F2_imag[k]);
       }
+    }
+    for(; t<trg_cnt; t++) {
+      complex_t p(0, 0);
+      cvec3 F = complex_t(0., 0.);
+      for(int s=0; s<src_cnt; s++) {
+        vec3 dX;
+        for(int d=0; d<3; d++)
+          dX[d] = trg_coord[3*t+d] - src_coord[3*s+d];
+        real_t R2 = norm(dX);
+        if(R2 != 0) {
+          real_t R = std::sqrt(R2);
+          complex_t pij = std::exp(I * R * MU * M_PI) * src_value[s] / R;
+          complex_t coefg = (1/R2 - I*MU*M_PI/R) * pij;
+          p += pij;
+          for(int d=0; d<3; d++)
+            F[d] += coefg * dX[d];
+        }
+      }
+      trg_value[4*t+0] += p / (4*M_PI);
+      trg_value[4*t+1] += F[0] / (4*M_PI);
+      trg_value[4*t+2] += F[1] / (4*M_PI);
+      trg_value[4*t+3] += F[2] / (4*M_PI);
     }
   }
 
