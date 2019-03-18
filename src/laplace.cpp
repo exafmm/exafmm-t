@@ -16,8 +16,9 @@ namespace exafmm_t {
   }
 
   void potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
-    simdvec zero((real_t)0);
-    const real_t COEF = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
+    simdvec zero(real_t(0));
+    real_t newton_coef = 16;   // comes from Newton's method in simd rsqrt function
+    const real_t COEF = 1.0/(4*M_PI*newton_coef);
     simdvec coef(COEF);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
@@ -48,26 +49,28 @@ namespace exafmm_t {
         trg_value[t+k] += tv[k];
       }
     }
-    for(; t < trg_cnt; t++) {
+    for(; t<trg_cnt; t++) {
       real_t p = 0;
-      for(int s = 0; s < src_cnt; s++) {
+      for(int s=0; s<src_cnt; s++) {
         real_t r = 0;
-        for(int k = 0; k < 3; k++) {
-          r += (trg_coord[t*3+k] - src_coord[s*3+k])*(trg_coord[t*3+k] - src_coord[s*3+k]);
+        for(int d=0; d<3; d++) {
+          r += (trg_coord[t*3+d] - src_coord[s*3+d]) * (trg_coord[t*3+d] - src_coord[s*3+d]);
         }
         r = sqrt(r);
         if(r != 0) {
-          p += src_value[s]/r;
+          p += src_value[s] / r;
         }
       }
-      trg_value[t] += p * COEF;
+      trg_value[t] += p / (4*M_PI);
     }
   }
 
   void gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
-    simdvec zero((real_t)0);
-    const real_t COEFP = 1.0/(16*4*M_PI);   // factor 16 comes from the simd rsqrt function
-    const real_t COEFG = -1.0/(16*16*16*4*M_PI);
+    simdvec zero(real_t(0));
+    real_t newton_coefp = 16;   // comes from Newton's method in simd rsqrt function
+    real_t newton_coefg = 16*16*16;
+    const real_t COEFP = 1.0/(4*M_PI*newton_coefp);
+    const real_t COEFG = -1.0/(4*M_PI*newton_coefg);
     simdvec coefp(COEFP);
     simdvec coefg(COEFG);
     int src_cnt = src_coord.size() / 3;
@@ -113,12 +116,12 @@ namespace exafmm_t {
         trg_value[3+4*(t+k)] += tv3[k];
       }
     }
-    for(; t < trg_cnt; t++) {
+    for(; t<trg_cnt; t++) {
       real_t p = 0, tx = 0, ty = 0, tz = 0;
-      for(int s = 0; s < src_cnt; s++) {
+      for(int s=0; s<src_cnt; s++) {
         real_t r = 0;
-        for(int k = 0; k < 3; k++) {
-          r += (trg_coord[t*3+k] - src_coord[s*3+k])*(trg_coord[t*3+k] - src_coord[s*3+k]);
+        for(int d=0; d<3; d++) {
+          r += (trg_coord[t*3+d] - src_coord[s*3+d]) * (trg_coord[t*3+d] - src_coord[s*3+d]);
         }
         r = sqrt(r);
         if(r != 0) {
@@ -128,10 +131,10 @@ namespace exafmm_t {
           tz += src_value[s] * (trg_coord[t*3+2] - src_coord[s*3+2])/(r * r * r);
         }
       }
-      trg_value[4*t] += p * COEFP;
-      trg_value[4*t+1] += tx * COEFG;
-      trg_value[4*t+2] += ty * COEFG;
-      trg_value[4*t+3] += tz * COEFG;
+      trg_value[4*t] += p / (4*M_PI) ;
+      trg_value[4*t+1] -= tx / (4*M_PI);
+      trg_value[4*t+2] -= ty / (4*M_PI);
+      trg_value[4*t+3] -= tz / (4*M_PI);
     }
   }
 
