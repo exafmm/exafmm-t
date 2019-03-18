@@ -22,7 +22,7 @@ namespace exafmm_t {
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     int t;
-    for(t=0; t<trg_cnt; t+=NSIMD) {
+    for(t=0; t+NSIMD<=trg_cnt; t+=NSIMD) {
       simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
       simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
       simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
@@ -73,7 +73,7 @@ namespace exafmm_t {
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     int t;
-    for(t=0; t<trg_cnt; t+=NSIMD) {
+    for(t=0; t+NSIMD<=trg_cnt; t+=NSIMD) {
       simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
       simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
       simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
