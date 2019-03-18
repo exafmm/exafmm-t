@@ -21,7 +21,8 @@ namespace exafmm_t {
     simdvec coef(COEF);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
-    for(int t=0; t<trg_cnt; t+=NSIMD) {
+    int t;
+    for(t=0; t<trg_cnt; t+=NSIMD) {
       simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
       simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
       simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
@@ -47,6 +48,20 @@ namespace exafmm_t {
         trg_value[t+k] += tv[k];
       }
     }
+    for(; t < trg_cnt; t++) {
+      real_t p = 0;
+      for(int s = 0; s < src_cnt; s++) {
+        real_t r = 0;
+        for(int k = 0; k < 3; k++) {
+          r += (trg_coord[t*3+k] - src_coord[s*3+k])*(trg_coord[t*3+k] - src_coord[s*3+k]);
+        }
+        r = sqrt(r);
+        if(r != 0) {
+          p += src_value[s]/r;
+        }
+      }
+      trg_value[t] += p * COEF;
+    }
   }
 
   void gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
@@ -57,7 +72,8 @@ namespace exafmm_t {
     simdvec coefg(COEFG);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
-    for(int t=0; t<trg_cnt; t+=NSIMD) {
+    int t;
+    for(t=0; t<trg_cnt; t+=NSIMD) {
       simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
       simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
       simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
@@ -96,6 +112,26 @@ namespace exafmm_t {
         trg_value[2+4*(t+k)] += tv2[k];
         trg_value[3+4*(t+k)] += tv3[k];
       }
+    }
+    for(; t < trg_cnt; t++) {
+      real_t p = 0, tx = 0, ty = 0, tz = 0;
+      for(int s = 0; s < src_cnt; s++) {
+        real_t r = 0;
+        for(int k = 0; k < 3; k++) {
+          r += (trg_coord[t*3+k] - src_coord[s*3+k])*(trg_coord[t*3+k] - src_coord[s*3+k]);
+        }
+        r = sqrt(r);
+        if(r != 0) {
+          p += src_value[s]/r;
+          tx += src_value[s] * (trg_coord[t*3] - src_coord[s*3])/(r * r * r);
+          ty += src_value[s] * (trg_coord[t*3+1] - src_coord[s*3+1])/(r * r * r);
+          tz += src_value[s] * (trg_coord[t*3+2] - src_coord[s*3+2])/(r * r * r);
+        }
+      }
+      trg_value[4*t] += p * COEFP;
+      trg_value[4*t+1] += tx * COEFG;
+      trg_value[4*t+2] += ty * COEFG;
+      trg_value[4*t+3] += tz * COEFG;
     }
   }
 

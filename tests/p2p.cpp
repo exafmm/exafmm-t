@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
   gettimeofday(&tic, NULL);
   gradient_P2P(src_coord, src_value, test_coord, test_value);
   gettimeofday(&toc, NULL);
-  double p_diff = 0, g_diff;
+  double p_diff = 0, g_diff = 0;
 #pragma omp parallel for
   for(size_t i = 0; i < N; i++) {
 #if HELMHOLTZ
