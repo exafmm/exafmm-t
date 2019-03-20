@@ -26,6 +26,8 @@ namespace exafmm_t {
   } 
 
   // Sort bodies in a node according to their octants
+  // bodies: the bodies to be sorted
+  // buffer: the sorted bodies
   void sort_bodies(Node* const node, Body* const bodies, Body* const buffer,
                    int begin, int end, std::vector<int>& size, std::vector<int>& offsets) {
     // Count number of bodies in each octant
@@ -50,6 +52,9 @@ namespace exafmm_t {
       int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
       buffer[counter[octant]].X = bodies[i].X;
       buffer[counter[octant]].q = bodies[i].q;
+#if SORT_BACK
+      buffer[counter[octant]].ibody = bodies[i].ibody;
+#endif
       counter[octant]++;
     }
   }
@@ -106,12 +111,18 @@ namespace exafmm_t {
           for (int d=0; d<3; ++d) {
             node->src_coord.push_back(B->X[d]);
           }
+#if SORT_BACK
+          node->isrcs.push_back(B->ibody);
+#endif
           node->src_value.push_back(B->q);
         }
         for (Body* B=first_target; B<first_target+node->ntrgs; ++B) {
           for (int d=0; d<3; ++d) {
             node->trg_coord.push_back(B->X[d]);
           }
+#if SORT_BACK
+          node->itrgs.push_back(B->ibody);
+#endif
         }
       }
       return;
@@ -119,8 +130,8 @@ namespace exafmm_t {
     // Sort bodies and save in buffer
     std::vector<int> source_size, source_offsets;
     std::vector<int> target_size, target_offsets;
-    sort_bodies(node, sources, sources_buffer, source_begin, source_end, source_size, source_offsets);
-    sort_bodies(node, targets, targets_buffer, target_begin, target_end, target_size, target_offsets);
+    sort_bodies(node, sources, sources_buffer, source_begin, source_end, source_size, source_offsets);  // sources_buffer is sorted
+    sort_bodies(node, targets, targets_buffer, target_begin, target_end, target_size, target_offsets);  // targets_buffer is sorted
     //! Loop over children and recurse
     node->is_leaf = false;
     nonleafs.push_back(node);

@@ -75,6 +75,9 @@ namespace exafmm_t {
 
   //! Structure of bodies
   struct Body {
+#if SORT_BACK
+    int ibody;                                  //!< Initial body numbering for sorting back
+#endif
     vec3 X;                                     //!< Position
 #if COMPLEX
     complex_t q;                                   //!< Charge
@@ -107,6 +110,10 @@ namespace exafmm_t {
     std::vector<Node*> M2P_list;
     std::vector<Node*> P2P_list;
     std::vector<Node*> M2L_list;
+#if SORT_BACK
+    std::vector<int> isrcs;  // Initial source numbering
+    std::vector<int> itrgs;  // Initial target numbering
+#endif
     
     RealVec src_coord;
     RealVec trg_coord;
