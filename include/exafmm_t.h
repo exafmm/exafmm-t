@@ -18,7 +18,7 @@ namespace exafmm_t {
   const int CACHE_SIZE = 512;
   const int NCHILD = 8;
 
-#if USE_FLOAT
+#if FLOAT
   typedef float real_t;
   const real_t EPS = 1e-8f;
   typedef fftwf_complex fft_complex;

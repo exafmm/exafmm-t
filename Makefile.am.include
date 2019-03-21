@@ -15,7 +15,7 @@ AM_CXXFLAGS += $(COMPILER_CXXFLAGS)
 
 # Single/Double precision
 if USE_FLOAT
-AM_CPPFLAGS += -DUSE_FLOAT
+AM_CPPFLAGS += -DFLOAT
 endif
 
 # libraries

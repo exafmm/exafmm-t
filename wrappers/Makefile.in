@@ -91,7 +91,7 @@ build_triplet = @build@
 host_triplet = @host@
 
 # Single/Double precision
-@USE_FLOAT_TRUE@am__append_1 = -DUSE_FLOAT
+@USE_FLOAT_TRUE@am__append_1 = -DFLOAT
 bin_PROGRAMS = bempp_laplace$(EXEEXT) bempp_helmholtz$(EXEEXT)
 subdir = wrappers
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4

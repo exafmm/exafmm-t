@@ -8,7 +8,7 @@ namespace exafmm_t {
     char trans = 'T';
     complex_t alpha(1., 0.), beta(0.,0.);
     int incx = 1, incy = 1;
-#if USE_FLOAT
+#if FLOAT
     cgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #else
     zgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);

@@ -90,7 +90,7 @@ build_triplet = @build@
 host_triplet = @host@
 
 # Single/Double precision
-@USE_FLOAT_TRUE@am__append_1 = -DUSE_FLOAT
+@USE_FLOAT_TRUE@am__append_1 = -DFLOAT
 bin_PROGRAMS = laplace$(EXEEXT) helmholtz$(EXEEXT) \
 	laplace_p2p$(EXEEXT) laplace_kernel$(EXEEXT)
 subdir = .

@@ -12,7 +12,7 @@ namespace exafmm_t {
   void gemm(int m, int n, int k, complex_t* A, complex_t* B, complex_t* C) {
     char transA = 'N', transB = 'N';
     complex_t alpha(1., 0.), beta(0.,0.);
-#if USE_FLOAT
+#if FLOAT
     cgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #else
     zgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
@@ -53,7 +53,7 @@ namespace exafmm_t {
     RealVec tS(k, 0.);
     ComplexVec WORK(LWORK);
     RealVec RWORK(5*k);
-#if USE_FLOAT
+#if FLOAT
     cgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &RWORK[0], &INFO);
 #else
     zgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &RWORK[0], &INFO);
