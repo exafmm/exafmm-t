@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <iostream>
 #include <omp.h>
 #include "build_tree.h"
@@ -113,22 +114,31 @@ namespace exafmm_t {
     RealVec src_value_(src_value, src_value+src_count);
     RealVec trg_coord_(3*ntrgs);
     RealVec trg_value_(4*ntrgs, 0);
-    RealVec trg_value_fmm(4*ntrgs, 0);
+    // prepare the coordinates of the sampled targets
     for(int i=0; i<ntrgs; ++i) {
       int itrg = i*stride;
       for(int d=0; d<3; ++d) {
         trg_coord_[3*i+d] = trg_coord[3*itrg+d];
       }
-      for(int d=0; d<4; ++d) {
-        trg_value_fmm[4*i+d] = trg_value[4*itrg+d];   // store sampled targets' values
-      }
     }
     gradient_P2P(src_coord_, src_value_, trg_coord_, trg_value_);
+    // compute relative error in L2 norm
+    real_t p_norm = 0, p_diff = 0, g_norm = 0, g_diff = 0;
     for(int i=0; i<ntrgs; ++i) {
       int itrg = i*stride;
+      p_norm += trg_value_[4*i] * trg_value_[4*i];
+      p_diff += (trg_value_[4*i]-trg_value[4*itrg]) * (trg_value_[4*i]-trg_value[4*itrg]);
+      for(int d=1; d<4; ++d) {
+        g_norm += trg_value_[4*i+d] * trg_value_[4*i+d];
+        g_diff += (trg_value_[4*i+d]-trg_value[4*itrg+d]) * (trg_value_[4*i+d]-trg_value[4*itrg+d]);
+      }
+#if 0
       for(int d=0; d<4; ++d) {
         cout << trg_value_[4*i+d] << " " << trg_value[4*itrg+d] << endl;
       }
+#endif
     }
+    cout << setw(20) << left << "Potn Error" << " : " << scientific << sqrt(p_diff/p_norm) << endl;
+    cout << setw(20) << left << "Grad Error" << " : " << scientific << sqrt(g_diff/g_norm) << endl;
   }
 }
