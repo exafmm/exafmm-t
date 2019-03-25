@@ -100,11 +100,11 @@ namespace exafmm_t {
       simdvec F2_imag(zero);
       for(int s=0; s<src_cnt; s++) {
         simdvec sx(src_coord[3*s+0]);
-        sx = sx - tx;
+        sx = tx - sx;
         simdvec sy(src_coord[3*s+1]);
-        sy = sy - ty;
+        sy = ty - sy;
         simdvec sz(src_coord[3*s+2]);
-        sz = sz - tz;
+        sz = tz - sz;
         simdvec sv_real(src_value[s].real());
         simdvec sv_imag(src_value[s].imag());
         simdvec r2(zero);
@@ -132,6 +132,12 @@ namespace exafmm_t {
       }
       tv_real *= coef;
       tv_imag *= coef;
+      F0_real *= coef;
+      F0_imag *= coef;
+      F1_real *= coef;
+      F1_imag *= coef;
+      F2_real *= coef;
+      F2_imag *= coef;
       for(int k=0; k<NSIMD && (t+k)<trg_cnt; k++) {
         trg_value[4*(t+k)+0] += complex_t(tv_real[k], tv_imag[k]);
         trg_value[4*(t+k)+1] += complex_t(F0_real[k], F0_imag[k]);

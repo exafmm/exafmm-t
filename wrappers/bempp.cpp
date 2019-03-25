@@ -1,3 +1,4 @@
+#include <complex>
 #include <iomanip>
 #include <iostream>
 #include <omp.h>
@@ -27,6 +28,12 @@ namespace exafmm_t {
   Nodes NODES;
   NodePtrs LEAFS;
 
+#if COMPLEX
+  typedef complex_t value_t;
+#else
+  typedef real_t value_t;
+#endif
+
   // Convert SoA to AoS
   Bodies array_to_bodies(int count, real_t* coord) {
     Bodies bodies(count);
@@ -41,7 +48,7 @@ namespace exafmm_t {
 
   // Initialize args and set global constants
   extern "C" void init_FMM(int threads) {
-    P = 6;
+    P = 10;
     NSURF = 6*(P-1)*(P-1) + 2;
 #if HELMHOLTZ
     MU = 20;
@@ -78,7 +85,7 @@ namespace exafmm_t {
     M2L_setup(nonleafs);
   }
 
-  extern "C" void run_FMM(real_t* src_value, real_t* trg_value) {
+  extern "C" void run_FMM(value_t* src_value, value_t* trg_value) {
     // update sources' charge
     for(size_t i=0; i<LEAFS.size(); ++i) {
       Node* leaf = LEAFS[i];
@@ -105,15 +112,15 @@ namespace exafmm_t {
     }
   }
 
-  extern "C" void verify_FMM(int src_count, real_t* src_coord, real_t* src_value,
-                             int trg_count, real_t* trg_coord, real_t* trg_value) {
-    int ntrgs = 20;  // number of sampled targets
+  extern "C" void verify_FMM(int src_count, real_t* src_coord, value_t* src_value,
+                             int trg_count, real_t* trg_coord, value_t* trg_value) {
+    int ntrgs = 30;  // number of sampled targets
     int stride = trg_count / ntrgs;
     // use RealVec type in P2P kernel
     RealVec src_coord_(src_coord, src_coord+3*src_count);
-    RealVec src_value_(src_value, src_value+src_count);
+    vector<value_t> src_value_(src_value, src_value+src_count);
     RealVec trg_coord_(3*ntrgs);
-    RealVec trg_value_(4*ntrgs, 0);
+    vector<value_t> trg_value_(4*ntrgs, 0);
     // prepare the coordinates of the sampled targets
     for(int i=0; i<ntrgs; ++i) {
       int itrg = i*stride;
@@ -126,15 +133,19 @@ namespace exafmm_t {
     real_t p_norm = 0, p_diff = 0, g_norm = 0, g_diff = 0;
     for(int i=0; i<ntrgs; ++i) {
       int itrg = i*stride;
+#if COMPLEX
+      p_norm += norm(trg_value_[4*i]);
+      p_diff += norm(trg_value_[4*i]-trg_value[4*itrg]);
+      for(int d=1; d<4; ++d) {
+        g_norm += norm(trg_value_[4*i+d]);
+        g_diff += norm(trg_value_[4*i+d]-trg_value[4*itrg+d]);
+      }
+#else
       p_norm += trg_value_[4*i] * trg_value_[4*i];
       p_diff += (trg_value_[4*i]-trg_value[4*itrg]) * (trg_value_[4*i]-trg_value[4*itrg]);
       for(int d=1; d<4; ++d) {
         g_norm += trg_value_[4*i+d] * trg_value_[4*i+d];
         g_diff += (trg_value_[4*i+d]-trg_value[4*itrg+d]) * (trg_value_[4*i+d]-trg_value[4*itrg+d]);
-      }
-#if 0
-      for(int d=0; d<4; ++d) {
-        cout << trg_value_[4*i+d] << " " << trg_value[4*itrg+d] << endl;
       }
 #endif
     }
