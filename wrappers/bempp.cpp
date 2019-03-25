@@ -23,7 +23,7 @@ namespace exafmm_t {
   vec3 XMIN0;
   real_t R0;
 #if HELMHOLTZ
-  real_t MU;
+  real_t WAVEK;
 #endif
   Nodes NODES;
   NodePtrs LEAFS;
@@ -51,7 +51,7 @@ namespace exafmm_t {
     P = 10;
     NSURF = 6*(P-1)*(P-1) + 2;
 #if HELMHOLTZ
-    MU = 20;
+    WAVEK = 20;
 #endif
     args.P = P;
     args.ncrit = 120;

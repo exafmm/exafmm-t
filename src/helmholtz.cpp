@@ -20,7 +20,7 @@ namespace exafmm_t {
     real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
     const real_t COEF = 1.0/(4*M_PI*newton_scale);
     simdvec coef(COEF);
-    simdvec mu(MU*M_PI/newton_scale);
+    simdvec K(WAVEK/newton_scale);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     int t;
@@ -47,9 +47,9 @@ namespace exafmm_t {
         simdvec invR = rsqrt(r2);
         invR &= r2 > zero;
 
-        simdvec mu_r = mu * r2 * invR;
-        simdvec G0 = cos(mu_r)*invR;
-        simdvec G1 = sin(mu_r)*invR;
+        simdvec kr = K * r2 * invR;
+        simdvec G0 = cos(kr)*invR;
+        simdvec G1 = sin(kr)*invR;
         tv_real += sv_real*G0 - sv_imag*G1;
         tv_imag += sv_real*G1 + sv_imag*G0;
       }
@@ -68,7 +68,7 @@ namespace exafmm_t {
         }
         r = sqrt(r);
         if(r != 0) {
-          p += std::exp(I * MU * M_PI * r) * src_value[s] / r;
+          p += std::exp(I * WAVEK * r) * src_value[s] / r;
         }
       }
       trg_value[t] += p / (4*M_PI);
@@ -80,7 +80,7 @@ namespace exafmm_t {
     real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
     const real_t COEF = 1.0/(4*M_PI*newton_scale);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
-    simdvec mu(MU*M_PI/newton_scale);
+    simdvec K(WAVEK/newton_scale);
     simdvec NEWTON(newton_scale);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
@@ -114,15 +114,15 @@ namespace exafmm_t {
         simdvec invR = rsqrt(r2);
         invR &= r2 > zero;
 
-        simdvec mu_r = mu*r2*invR;
-        simdvec G0 = cos(mu_r)*invR;
-        simdvec G1 = sin(mu_r)*invR;
+        simdvec kr = K*r2*invR;
+        simdvec G0 = cos(kr)*invR;
+        simdvec G1 = sin(kr)*invR;
         simdvec p_real = sv_real*G0 - sv_imag*G1;
         simdvec p_imag = sv_real*G1 + sv_imag*G0;
         tv_real += p_real;
         tv_imag += p_imag;
-        simdvec coef_real = invR*invR*p_real/(NEWTON*NEWTON) + mu*p_imag*invR;
-        simdvec coef_imag = invR*invR*p_imag/(NEWTON*NEWTON) - mu*p_real*invR;
+        simdvec coef_real = invR*invR*p_real/(NEWTON*NEWTON) + K*p_imag*invR;
+        simdvec coef_imag = invR*invR*p_imag/(NEWTON*NEWTON) - K*p_real*invR;
         F0_real += sx*coef_real;
         F0_imag += sx*coef_imag;
         F1_real += sy*coef_real;
@@ -155,8 +155,8 @@ namespace exafmm_t {
         real_t R2 = norm(dX);
         if(R2 != 0) {
           real_t R = std::sqrt(R2);
-          complex_t pij = std::exp(I * R * MU * M_PI) * src_value[s] / R;
-          complex_t coefg = (1/R2 - I*MU*M_PI/R) * pij;
+          complex_t pij = std::exp(I * R * WAVEK) * src_value[s] / R;
+          complex_t coefg = (1/R2 - I*WAVEK/R) * pij;
           p += pij;
           for(int d=0; d<3; d++)
             F[d] += coefg * dX[d];

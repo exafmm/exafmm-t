@@ -16,7 +16,7 @@ namespace exafmm_t {
   vec3 XMIN0;
   real_t R0;
 #if HELMHOLTZ
-  real_t MU;
+  real_t WAVEK;
 #endif
 }
 
@@ -24,7 +24,7 @@ using namespace exafmm_t;
 using namespace std;
 int main(int argc, char **argv) {
 #if HELMHOLTZ
-  MU = 20;
+  WAVEK = 20;
 #endif
   Args args(argc, argv);
 #if HAVE_OPENMP

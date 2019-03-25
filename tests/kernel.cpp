@@ -15,7 +15,7 @@ namespace exafmm_t {
   vec3 XMIN0;
   real_t R0;
 #if HELMHOLTZ
-  real_t MU;
+  real_t WAVEK;
 #endif
 }
 
@@ -46,7 +46,7 @@ int main() {
   XMIN0 = 0.;
   R0 = 4.;
 #if HELMHOLTZ
-  MU = 20;
+  WAVEK = 20;
 #endif
   // precomputation
   init_rel_coord();

@@ -164,7 +164,7 @@ namespace exafmm_t {
   extern vec3 XMIN0;    // coordinates of root
   extern real_t R0;     // radius of root
 #if HELMHOLTZ
-  extern real_t MU;     // wave number of Helmholtz kernel
+  extern real_t WAVEK;     // wave number of Helmholtz kernel
 #endif
 }
 #endif

@@ -15,7 +15,7 @@ namespace exafmm_t {
   vec3 XMIN0;
   real_t R0;
 #if HELMHOLTZ
-  real_t MU;
+  real_t WAVEK;
 #endif
 }
 
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
   srand48(0);
   RealVec src_coord, trg_coord, test_coord;
 #if HELMHOLTZ
-  MU = 20;
+  WAVEK = 20;
   ComplexVec src_value, trg_value, test_value;
   for(size_t i=0; i<N; i++){
     src_value.push_back(std::complex<real_t>(drand48()-0.5, drand48()-0.5));
