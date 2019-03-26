@@ -20,7 +20,7 @@ namespace exafmm_t {
     real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
     const real_t COEF = 1.0/(4*M_PI*newton_scale);
     simdvec coef(COEF);
-    simdvec K(WAVEK/newton_scale);
+    simdvec k(WAVEK/newton_scale);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     int t;
@@ -33,42 +33,42 @@ namespace exafmm_t {
       simdvec tv_imag(zero);
       for(int s=0; s<src_cnt; s++) {
         simdvec sx(src_coord[3*s+0]);
-        sx = sx - tx;
+        sx = tx - sx;
         simdvec sy(src_coord[3*s+1]);
-        sy = sy - ty;
+        sy = ty - sy;
         simdvec sz(src_coord[3*s+2]);
-        sz = sz - tz;
+        sz = tz - sz;
         simdvec sv_real(src_value[s].real());
         simdvec sv_imag(src_value[s].imag());
         simdvec r2(zero);
         r2 += sx * sx;
         r2 += sy * sy;
         r2 += sz * sz;
-        simdvec invR = rsqrt(r2);
+        simdvec invR = rsqrt(r2);   // invR = newton_scale * 1/r
         invR &= r2 > zero;
 
-        simdvec kr = K * r2 * invR;
-        simdvec G0 = cos(kr)*invR;
-        simdvec G1 = sin(kr)*invR;
-        tv_real += sv_real*G0 - sv_imag*G1;
-        tv_imag += sv_real*G1 + sv_imag*G0;
+        simdvec kr = k * r2 * invR;   // newton_scales in k & invR cancel out
+        simdvec G_real = cos(kr) * invR;  // G = e^(ikr) / r
+        simdvec G_imag = sin(kr) * invR;  // invR carries newton_scale
+        tv_real += sv_real*G_real - sv_imag*G_imag;  // p += G * q
+        tv_imag += sv_real*G_imag + sv_imag*G_real;
       }
-      tv_real *= coef;
+      tv_real *= coef;  // coef carries 1/(4*PI) and offsets newton_scale in invR
       tv_imag *= coef;
-      for(int k=0; k<NSIMD && (t+k)<trg_cnt; k++) {
-        trg_value[t+k] += complex_t(tv_real[k], tv_imag[k]);
+      for(int m=0; m<NSIMD && (t+m)<trg_cnt; m++) {
+        trg_value[t+m] += complex_t(tv_real[m], tv_imag[m]);
       }
     }
     for(; t<trg_cnt; t++) {
       complex_t p(0, 0);
       for(int s=0; s<src_cnt; s++) {
-        real_t r = 0;
-        for(int d=0; d<3; d++) {
-          r += (trg_coord[t*3+d] - src_coord[s*3+d]) * (trg_coord[t*3+d] - src_coord[s*3+d]);
-        }
-        r = sqrt(r);
-        if(r != 0) {
-          p += std::exp(I * WAVEK * r) * src_value[s] / r;
+        vec3 dX;
+        for(int d=0; d<3; d++)
+          dX[d] = trg_coord[3*t+d] - src_coord[3*s+d];
+        real_t R2 = norm(dX);
+        if(R2 != 0) {
+          real_t R = std::sqrt(R2);
+          p += std::exp(I * R * WAVEK) * src_value[s] / R;
         }
       }
       trg_value[t] += p / (4*M_PI);
@@ -80,7 +80,7 @@ namespace exafmm_t {
     real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
     const real_t COEF = 1.0/(4*M_PI*newton_scale);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
-    simdvec K(WAVEK/newton_scale);
+    simdvec k(WAVEK/newton_scale);
     simdvec NEWTON(newton_scale);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
@@ -114,21 +114,24 @@ namespace exafmm_t {
         simdvec invR = rsqrt(r2);
         invR &= r2 > zero;
 
-        simdvec kr = K*r2*invR;
-        simdvec G0 = cos(kr)*invR;
-        simdvec G1 = sin(kr)*invR;
-        simdvec p_real = sv_real*G0 - sv_imag*G1;
-        simdvec p_imag = sv_real*G1 + sv_imag*G0;
+        simdvec kr = k * r2 * invR;   // newton_scales in k & invR cancel out
+        simdvec G_real = cos(kr) * invR;  // G = e^(ikr) / r
+        simdvec G_imag = sin(kr) * invR;  // invR carries newton_scale
+        simdvec p_real = sv_real*G_real - sv_imag*G_imag;    // p = G * q
+        simdvec p_imag = sv_real*G_imag + sv_imag*G_real;
         tv_real += p_real;
         tv_imag += p_imag;
-        simdvec coef_real = invR*invR*p_real/(NEWTON*NEWTON) + K*p_imag*invR;
-        simdvec coef_imag = invR*invR*p_imag/(NEWTON*NEWTON) - K*p_real*invR;
-        F0_real += sx*coef_real;
-        F0_imag += sx*coef_imag;
-        F1_real += sy*coef_real;
-        F1_imag += sy*coef_imag;
-        F2_real += sz*coef_real;
-        F2_imag += sz*coef_imag;
+        // F = -\nabla p = (1/(r^2) - k/r*I) * p * dX
+        simdvec coefg_real = invR * invR / NEWTON / NEWTON;  // coefg = 1/(r^2) - k/r*I
+        simdvec coefg_imag = - k * invR;
+        simdvec F_real = coefg_real*p_real - coefg_imag*p_imag; // F = coefg * p * dX
+        simdvec F_imag = coefg_real*p_imag + coefg_imag*p_real;
+        F0_real += sx * F_real;
+        F0_imag += sx * F_imag;
+        F1_real += sy * F_real;
+        F1_imag += sy * F_imag;
+        F2_real += sz * F_real;
+        F2_imag += sz * F_imag;
       }
       tv_real *= coef;
       tv_imag *= coef;
@@ -138,11 +141,11 @@ namespace exafmm_t {
       F1_imag *= coef;
       F2_real *= coef;
       F2_imag *= coef;
-      for(int k=0; k<NSIMD && (t+k)<trg_cnt; k++) {
-        trg_value[4*(t+k)+0] += complex_t(tv_real[k], tv_imag[k]);
-        trg_value[4*(t+k)+1] += complex_t(F0_real[k], F0_imag[k]);
-        trg_value[4*(t+k)+2] += complex_t(F1_real[k], F1_imag[k]);
-        trg_value[4*(t+k)+3] += complex_t(F2_real[k], F2_imag[k]);
+      for(int m=0; m<NSIMD && (t+m)<trg_cnt; m++) {
+        trg_value[4*(t+m)+0] += complex_t(tv_real[m], tv_imag[m]);
+        trg_value[4*(t+m)+1] += complex_t(F0_real[m], F0_imag[m]);
+        trg_value[4*(t+m)+2] += complex_t(F1_real[m], F1_imag[m]);
+        trg_value[4*(t+m)+3] += complex_t(F2_real[m], F2_imag[m]);
       }
     }
     for(; t<trg_cnt; t++) {
@@ -169,8 +172,8 @@ namespace exafmm_t {
     }
   }
 
-  // non-simd P2P
 #if 0
+  // non-simd P2P
   void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
     //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
