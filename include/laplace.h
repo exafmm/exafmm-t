@@ -34,17 +34,17 @@ namespace exafmm_t {
 
   void M2M(Nodes &nodes, RealVec &upward_equiv, std::vector<int> &nonleafs_idx);
 
-  void L2L(Node* node);
+  void L2L(Node* node, RealVec &dnward_equiv);
 
-  void L2P(std::vector<Node*>& leafs);
+  void L2P(std::vector<Node*>& leafs, RealVec &dnward_equiv);
 
-  void P2L(Nodes& nodes);
+  void P2L(Nodes& nodes, RealVec &dnward_equiv);
 
   void M2P(Nodes &nodes, std::vector<Node*> &leafs, RealVec &upward_equiv);
   
   void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit);
 
-  void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, RealVec &upward_equiv);
+  void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, RealVec &upward_equiv, RealVec &dnward_equiv);
 
 }//end namespace
 #endif

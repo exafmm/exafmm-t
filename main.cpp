@@ -36,6 +36,7 @@ int main(int argc, char **argv) {
   std::vector<int> nonleafs_idx;
   std::vector<real_t> nodes_coord;
   RealVec upward_equiv(nodes.size()*NSURF);  
+  RealVec dnward_equiv(nodes.size()*NSURF);
   std::vector<real_t> nodes_pt_src;
   std::vector<int> nodes_pt_src_idx;
   int nodes_pt_src_idx_cnt = 0;
@@ -70,7 +71,7 @@ int main(int argc, char **argv) {
   setColleagues(nodes);
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
   upwardPass(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nonleafs_idx);
-  downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv);
+  downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, dnward_equiv);
   Profile::Toc();
   RealVec error = verify(leafs);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
