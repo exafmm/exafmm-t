@@ -49,11 +49,6 @@ int main(int argc, char **argv) {
       leafs_cnt ++;
       leafs_idx.push_back(nodes[i].idx);
       for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
-        nodes[i].pt_coord.push_back(B->X[0]);
-        nodes[i].pt_coord.push_back(B->X[1]);
-        nodes[i].pt_coord.push_back(B->X[2]);
-	nodes[i].pt_src.push_back(B->q);
-
         nodes_coord.push_back(B->X[0]);
         nodes_coord.push_back(B->X[1]);
         nodes_coord.push_back(B->X[2]);
@@ -74,7 +69,7 @@ int main(int argc, char **argv) {
   upwardPass(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nonleafs_idx);
   downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, dnward_equiv, nodes_trg);
   Profile::Toc();
-  RealVec error = verify(nodes, leafs_idx, nodes_coord, nodes_pt_src_idx, nodes_trg);
+  RealVec error = verify(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, nodes_trg);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
   std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< leafs.back()->depth << std::endl;
   std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;

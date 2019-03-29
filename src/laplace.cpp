@@ -220,7 +220,7 @@ namespace exafmm_t {
     #pragma omp taskwait
   }
 
-  void L2P(Nodes &nodes, RealVec &dnward_equiv, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx) {
+  void L2P(Nodes &nodes, RealVec &dnward_equiv, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &nodes_coord) {
     real_t c[3] = {0.0};
     std::vector<RealVec> dnwd_equiv_surf;
     dnwd_equiv_surf.resize(MAXLEVEL+1);
@@ -245,17 +245,19 @@ namespace exafmm_t {
     #pragma omp parallel for
     for(int i=0; i<leafs_idx.size(); i++) {
       int leaf_idx = leafs_idx[i];
+      int node_start = nodes_pt_src_idx[leaf_idx];
+      int node_end = nodes_pt_src_idx[leaf_idx+1];
       Node* leaf = &nodes[leaf_idx];
       // check surface potential -> equivalent surface charge
       RealVec buffer(NSURF);
       gemm(1, NSURF, NSURF, &(dnward_equiv[leaf->idx*NSURF]), &L2L_V[0], &buffer[0]);
       gemm(1, NSURF, NSURF, &buffer[0], &L2L_U[0], &dnward_equiv[leaf->idx*NSURF]);
       // equivalent surface charge -> target potential
-      gradientP2P(&equivCoord[i*NSURF*3], NSURF*3, &dnward_equiv[leaf->idx*NSURF], &leaf->pt_coord[0], leaf->pt_coord.size(),  &nodes_trg[nodes_pt_src_idx[leaf_idx]*4]);
+      gradientP2P(&equivCoord[i*NSURF*3], NSURF*3, &dnward_equiv[leaf->idx*NSURF], &nodes_coord[node_start*3], 3*(node_end-node_start), &nodes_trg[node_start*4]);
     }
   }
     
-  void P2L(Nodes& nodes, RealVec &dnward_equiv) {
+  void P2L(Nodes& nodes, RealVec &dnward_equiv, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx,std::vector<real_t> &nodes_coord) {
     Nodes& targets = nodes;
     real_t c[3] = {0.0};
     std::vector<RealVec> dnwd_check_surf;
@@ -269,7 +271,10 @@ namespace exafmm_t {
       Node* target = &targets[i];
       std::vector<int> sources_idx = target->P2Llist_idx;
       for(int j=0; j<sources_idx.size(); j++) {
-        Node* source = &nodes[sources_idx[j]];
+        int src_idx = sources_idx[j];
+        int node_start = nodes_pt_src_idx[src_idx];
+        int node_end = nodes_pt_src_idx[src_idx+1];
+        Node* source = &nodes[src_idx];
         RealVec targetCheckCoord(NSURF*3);
         int level = target->depth;
         // target node's check coord = relative check coord + node's origin
@@ -278,12 +283,12 @@ namespace exafmm_t {
           targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
           targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
         }
-        potentialP2P(&source->pt_coord[0], source->pt_coord.size(), &source->pt_src[0], &targetCheckCoord[0], 3*NSURF, &dnward_equiv[target->idx*NSURF]);
+        potentialP2P(&nodes_coord[node_start*3], 3*(node_end-node_start), &nodes_pt_src[node_start], &targetCheckCoord[0], 3*NSURF, &dnward_equiv[target->idx*NSURF]);
       }
     }
   }
   
-  void M2P(Nodes &nodes, std::vector<int>& leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx) {
+  void M2P(Nodes &nodes, std::vector<int>& leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &nodes_coord) {
     real_t c[3] = {0.0};
     std::vector<RealVec> upwd_equiv_surf;
     upwd_equiv_surf.resize(MAXLEVEL+1);
@@ -293,7 +298,10 @@ namespace exafmm_t {
     }
     #pragma omp parallel for
     for(int i=0; i<leafs_idx.size(); i++) {
-      Node* target = &nodes[leafs_idx[i]];
+      int leaf_idx = leafs_idx[i];
+      int node_start = nodes_pt_src_idx[leaf_idx];
+      int node_end = nodes_pt_src_idx[leaf_idx+1];
+      Node* target = &nodes[leaf_idx];
       std::vector<int> sources_idx= target->M2Plist_idx;
       for(int j=0; j<sources_idx.size(); j++) {
         Node* source = &nodes[sources_idx[j]];
@@ -305,7 +313,7 @@ namespace exafmm_t {
           sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
           sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
         }
-        gradientP2P(&sourceEquivCoord[0], NSURF*3, &upward_equiv[source->idx*NSURF], &target->pt_coord[0], target->pt_coord.size(), &nodes_trg[nodes_pt_src_idx[leafs_idx[i]]*4]);
+        gradientP2P(&sourceEquivCoord[0], NSURF*3, &upward_equiv[source->idx*NSURF], &nodes_coord[node_start*3], 3*(node_end-node_end), &nodes_trg[node_start*4]);
       }
     }
   }
