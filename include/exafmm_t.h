@@ -105,7 +105,6 @@ namespace exafmm_t {
     std::vector<int> M2Llist_idx;
     RealVec pt_coord;
     RealVec pt_src;  // src's charge
-    RealVec pt_trg;  // trg's potential
     std::vector<int> M2LRelPos;
     AlignedVec up_equiv_fft;  // upward_equiv in frequency domain
     int index_in_up_equiv_fft;

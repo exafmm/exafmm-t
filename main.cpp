@@ -63,6 +63,7 @@ int main(int argc, char **argv) {
     }
   }
   nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
+  std::vector<real_t> nodes_trg(nodes_pt_src.size()*4, 0.);
   std::vector<int> M2Lsources_idx, M2Ltargets_idx;
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
@@ -71,9 +72,9 @@ int main(int argc, char **argv) {
   setColleagues(nodes);
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
   upwardPass(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nonleafs_idx);
-  downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, dnward_equiv);
+  downwardPass(nodes, leafs, leafs_idx, M2Lsources_idx, M2Ltargets_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, dnward_equiv, nodes_trg);
   Profile::Toc();
-  RealVec error = verify(leafs);
+  RealVec error = verify(nodes, leafs_idx, nodes_coord, nodes_pt_src_idx, nodes_trg);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
   std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< leafs.back()->depth << std::endl;
   std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;

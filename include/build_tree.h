@@ -33,7 +33,6 @@ namespace exafmm_t {
     //! If node is a leaf
     if (end - begin <= args.ncrit) {
       node->numChilds = 0;
-      node->pt_trg.resize(node->numBodies*4);   // initialize target result vector
       leafs.push_back(node);
       if (direction) {
         for (int i=begin; i<end; i++) {

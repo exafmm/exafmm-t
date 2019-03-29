@@ -24,9 +24,9 @@ namespace exafmm_t {
 
   RealVec transpose(RealVec& vec, int m, int n);
 
-  void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
+  void potentialP2P(real_t *src_coord, int src_coord_size, real_t *src_value, real_t *trg_coord, int trg_coord_size, real_t *trg_value);
 
-  void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
+  void gradientP2P(real_t *src_coord, int src_coord_size, real_t *src_value, real_t *trg_coord, int trg_coord_size, real_t *trg_value);
 
   void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
 
@@ -36,13 +36,13 @@ namespace exafmm_t {
 
   void L2L(Node* node, RealVec &dnward_equiv);
 
-  void L2P(std::vector<Node*>& leafs, RealVec &dnward_equiv);
+  void L2P(Nodes& nodes, RealVec &dnward_equiv, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx);
 
   void P2L(Nodes& nodes, RealVec &dnward_equiv);
 
-  void M2P(Nodes &nodes, std::vector<Node*> &leafs, RealVec &upward_equiv);
+  void M2P(Nodes &nodes, std::vector<int> &leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx);
   
-  void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit);
+  void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, int ncrit);
 
   void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, RealVec &upward_equiv, RealVec &dnward_equiv);
 

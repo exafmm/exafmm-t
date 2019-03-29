@@ -13,15 +13,15 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv, RealVec &dnward_equiv) {
+  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv, RealVec &dnward_equiv, std::vector<real_t> &nodes_trg) {
     Profile::Tic("P2L", false, 5);
     P2L(nodes, dnward_equiv);
     Profile::Toc();
     Profile::Tic("M2P", false, 5);
-    M2P(nodes, leafs, upward_equiv);
+    M2P(nodes, leafs_idx, upward_equiv, nodes_trg, nodes_pt_src_idx);
     Profile::Toc();
     Profile::Tic("P2P", false, 5);
-    P2P(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, ncrit);
+    P2P(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_trg, nodes_pt_src_idx, ncrit);
     Profile::Toc();
     Profile::Tic("M2L", false, 5);
     M2L(nodes, M2Lsources_idx, M2Ltargets_idx, upward_equiv, dnward_equiv);
@@ -32,35 +32,38 @@ namespace exafmm_t {
     L2L(&nodes[0], dnward_equiv);
     Profile::Toc();
     Profile::Tic("L2P", false, 5);
-    L2P(leafs, dnward_equiv);
+    L2P(nodes, dnward_equiv, leafs_idx, nodes_trg, nodes_pt_src_idx);
     Profile::Toc();
   }
 
-  RealVec verify(std::vector<Node*>& leafs) {
+  RealVec verify(Nodes &nodes, std::vector<int>& leafs_idx, std::vector<real_t> &nodes_coord, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &nodes_trg) {
     int numTargets = 10;
-    int stride = leafs.size() / numTargets;
-    Nodes targets;
+    int stride = leafs_idx.size() / numTargets;
+    int direct_target_pt_trg_size = 0;
+    std::vector<int> direct_target_pt_trg_idx;
     for(size_t i=0; i<numTargets; i++) {
-      targets.push_back(*(leafs[i*stride]));
+      direct_target_pt_trg_idx.push_back(direct_target_pt_trg_size);
+      direct_target_pt_trg_size += 4*(nodes_pt_src_idx[leafs_idx[i*stride]+1]-nodes_pt_src_idx[leafs_idx[i*stride]]);
     }
-    Nodes targets2 = targets;    // used for direct summation
+    direct_target_pt_trg_idx.push_back(direct_target_pt_trg_size);
+    RealVec direct_target_pt_trg(direct_target_pt_trg_size, 0.);
 #pragma omp parallel for
-    for(size_t i=0; i<targets2.size(); i++) {
-      Node *target = &targets2[i];
-      std::fill(target->pt_trg.begin(), target->pt_trg.end(), 0.);
-      for(size_t j=0; j<leafs.size(); j++) {
-        gradientP2P(leafs[j]->pt_coord, leafs[j]->pt_src, target->pt_coord, target->pt_trg);
+    for(size_t i=0; i<numTargets; i++) {
+      for(size_t j=0; j<leafs_idx.size(); j++) {
+        int leaf_coord_size = 3*(nodes_pt_src_idx[leafs_idx[j]+1] - nodes_pt_src_idx[leafs_idx[j]]);
+        int pt_coord_size = 3*(nodes_pt_src_idx[leafs_idx[i*stride]+1]-nodes_pt_src_idx[leafs_idx[i*stride]]);
+        gradientP2P(&nodes_coord[nodes_pt_src_idx[leafs_idx[j]]*3], leaf_coord_size, &nodes[leafs_idx[j]].pt_src[0], &nodes_coord[nodes_pt_src_idx[leafs_idx[i*stride]]*3], pt_coord_size, &direct_target_pt_trg[direct_target_pt_trg_idx[i]]);
       }
     }
     real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm = 0;
-    for(size_t i=0; i<targets.size(); i++) {
-      p_norm += targets2[i].pt_trg[0] * targets2[i].pt_trg[0];
-      p_diff += (targets2[i].pt_trg[0] - targets[i].pt_trg[0]) * (targets2[i].pt_trg[0] - targets[i].pt_trg[0]);
+    for(size_t i=0; i<numTargets; i++) {
+      p_norm += direct_target_pt_trg[direct_target_pt_trg_idx[i]]*direct_target_pt_trg[direct_target_pt_trg_idx[i]];
+      p_diff += (direct_target_pt_trg[direct_target_pt_trg_idx[i]] - nodes_trg[nodes_pt_src_idx[leafs_idx[i*stride]]*4]) * (direct_target_pt_trg[direct_target_pt_trg_idx[i]] - nodes_trg[nodes_pt_src_idx[leafs_idx[i*stride]]*4]);
       for(int d=1; d<4; d++) {
-        g_diff += (targets2[i].pt_trg[d] - targets[i].pt_trg[d]) * (targets2[i].pt_trg[d] - targets[i].pt_trg[d]);
-        g_norm += targets2[i].pt_trg[d] * targets2[i].pt_trg[d];
+        g_diff += (direct_target_pt_trg[direct_target_pt_trg_idx[i]+d] - nodes_trg[nodes_pt_src_idx[leafs_idx[i*stride]]*4+d]) * (direct_target_pt_trg[direct_target_pt_trg_idx[i]+d] - nodes_trg[nodes_pt_src_idx[leafs_idx[i*stride]]*4+d]);
+        g_norm += direct_target_pt_trg[direct_target_pt_trg_idx[i]+d] * direct_target_pt_trg[direct_target_pt_trg_idx[i]+d];
       }
-    }
+    } 
     RealVec l2_error(2);
     l2_error[0] = sqrt(p_diff/p_norm);
     l2_error[1] = sqrt(g_diff/g_norm);
