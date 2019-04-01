@@ -229,32 +229,21 @@ namespace exafmm_t {
       dnwd_equiv_surf[depth] = surface(MULTIPOLE_ORDER,c,2.95,depth);
     }
     RealVec equivCoord(leafs_idx.size()*NSURF*3);
-    RealVec scal(leafs_idx.size());
+    int max = 0;
     for(int i=0;i<leafs_idx.size(); i++) {
       Node* leaf = &nodes[leafs_idx[i]];
-      scal[i] = pow(0.5, leaf->depth);
+      int leaf_idx = leafs_idx[i];
+      int node_start = nodes_pt_src_idx[leaf_idx];
+      int node_end = nodes_pt_src_idx[leaf_idx+1];
+      max = (node_end-node_start)>max?(node_end-node_start):max;
       for(int k=0; k<NSURF; k++) {
         equivCoord[i*NSURF*3 + 3*k+0] = dnwd_equiv_surf[leaf->depth][3*k+0] + leaf->coord[0];
         equivCoord[i*NSURF*3 + 3*k+1] = dnwd_equiv_surf[leaf->depth][3*k+1] + leaf->coord[1];
         equivCoord[i*NSURF*3 + 3*k+2] = dnwd_equiv_surf[leaf->depth][3*k+2] + leaf->coord[2];
-        dnward_equiv[leaf->idx*NSURF+k] *= scal[i];
+        dnward_equiv[leaf_idx*NSURF+k] *= pow(0.5, leaf->depth);
       }
     }
-
-    //GPUL2P(equivCoord, dnward_equiv, );
-    #pragma omp parallel for
-    for(int i=0; i<leafs_idx.size(); i++) {
-      int leaf_idx = leafs_idx[i];
-      int node_start = nodes_pt_src_idx[leaf_idx];
-      int node_end = nodes_pt_src_idx[leaf_idx+1];
-      Node* leaf = &nodes[leaf_idx];
-      // check surface potential -> equivalent surface charge
-      RealVec buffer(NSURF);
-      gemm(1, NSURF, NSURF, &(dnward_equiv[leaf->idx*NSURF]), &L2L_V[0], &buffer[0]);
-      gemm(1, NSURF, NSURF, &buffer[0], &L2L_U[0], &dnward_equiv[leaf->idx*NSURF]);
-      // equivalent surface charge -> target potential
-      gradientP2P(&equivCoord[i*NSURF*3], NSURF*3, &dnward_equiv[leaf->idx*NSURF], &nodes_coord[node_start*3], 3*(node_end-node_start), &nodes_trg[node_start*4]);
-    }
+    L2PGPU(equivCoord, dnward_equiv, nodes_coord, nodes_trg, leafs_idx, nodes_pt_src_idx, max);
   }
     
   void P2L(Nodes& nodes, RealVec &dnward_equiv, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx,std::vector<real_t> &nodes_coord) {
