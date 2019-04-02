@@ -1,4 +1,8 @@
+#if FULL_TREE
+#include "build_full_tree.h"
+#else
 #include "build_tree.h"
+#endif
 #include "build_list.h"
 #include "config.h"
 #include "dataset.h"
@@ -41,8 +45,13 @@ int main(int argc, char **argv) {
   start("Build Tree");
   get_bounds(sources, targets, XMIN0, R0);
   NodePtrs leafs, nonleafs;
+#if FULL_TREE
+  MAXLEVEL = 6;   // explicitly define the max level when constructing a full tree
+  Nodes nodes = build_tree(sources, targets, XMIN0, R0, leafs, nonleafs);
+#else
   Nodes nodes = build_tree(sources, targets, XMIN0, R0, leafs, nonleafs, args);
   balance_tree(nodes, sources, targets, XMIN0, R0, leafs, nonleafs, args);
+#endif
   stop("Build Tree");
 
   init_rel_coord();
