@@ -13,6 +13,7 @@ namespace exafmm_t {
     {"P",            required_argument, 0, 'P'},
     {"threads",      required_argument, 0, 'T'},
     {"distribution", required_argument, 0, 'd'},
+    {"maxlevel",     required_argument, 0, 'l'},
     {0, 0, 0, 0}
   };
 
@@ -22,6 +23,7 @@ namespace exafmm_t {
     int numBodies;
     int P;
     int threads;
+    int maxlevel;
     const char * distribution;
 
   private:
@@ -33,13 +35,15 @@ namespace exafmm_t {
               " --distribution (-d) [c/p]     : cube, plummer (%s)\n"
 	      " --numBodies (-n)              : Number of bodies (%d)\n"
 	      " --P (-P)                      : Order of expansion (%d)\n"
-	      " --threads (-T)                : Number of threads (%d)\n",
+	      " --threads (-T)                : Number of threads (%d)\n"
+              " --maxlevel (-l)               : Max level of tree (%d) (only applies to non-adaptive tree)\n",
 	      name,
 	      ncrit,
               distribution,
 	      numBodies,
 	      P,
-	      threads);
+	      threads,
+              maxlevel);
     }
 
     const char * parseDistribution(const char * arg) {
@@ -59,10 +63,11 @@ namespace exafmm_t {
       numBodies(1000000),
       P(4),
       threads(16),
+      maxlevel(5),
       distribution("cube") {
       while (1) {
 	int option_index;
-	int c = getopt_long(argc, argv, "c:d:DgGhi:jmn:oP:r:s:t:T:vwx", long_options, &option_index);
+	int c = getopt_long(argc, argv, "c:d:n:P:T:l:", long_options, &option_index);
 	if (c == -1) break;
 	switch (c) {
 	case 'c':
@@ -80,6 +85,9 @@ namespace exafmm_t {
 	case 'T':
 	  threads = atoi(optarg);
 	  break;
+        case 'l':
+          maxlevel = atoi(optarg);
+          break;
 	default:
 	  usage(argv[0]);
 	  exit(0);
@@ -96,6 +104,8 @@ namespace exafmm_t {
                 << "numBodies" << " : " << numBodies << std::endl
                 << std::setw(stringLength)
                 << "P" << " : " << P_ << std::endl
+                << std::setw(stringLength)
+                << "maxlevel" << " : " << maxlevel << std::endl
                 << std::setw(stringLength)
                 << "threads" << " : " << threads << std::endl
                 << std::setw(stringLength);

@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
   get_bounds(sources, targets, XMIN0, R0);
   NodePtrs leafs, nonleafs;
 #if FULL_TREE
-  MAXLEVEL = 6;   // explicitly define the max level when constructing a full tree
+  MAXLEVEL = args.maxlevel;   // explicitly define the max level when constructing a full tree
   Nodes nodes = build_tree(sources, targets, XMIN0, R0, leafs, nonleafs);
 #else
   Nodes nodes = build_tree(sources, targets, XMIN0, R0, leafs, nonleafs, args);
