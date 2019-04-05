@@ -30,7 +30,11 @@ namespace exafmm_t {
   // size: the vector of the number of bodies in each octant
   // offsets: the vector of the begin index of the sorted bodies in each octant
   void sort_bodies(Node* const node, Body* const bodies, int begin, int end, vector<int>& size, vector<int>& offsets) {
-    if (end == begin) return;
+    if (end == begin) {
+      size.resize(8, 0);
+      offsets.resize(8, begin);
+      return;
+    }
     // Count number of bodies in each octant
     size.resize(8, 0);
     vec3 X = node->xmin + node->r;  // the center of the node
@@ -149,8 +153,10 @@ namespace exafmm_t {
       child[c].octant = c;
       child[c].level = node->level + 1;
 #if DEBUG
-      cout << "create node at level: " << child[c].level << " octant: " << c << " " << source_offsets[c] << " " << source_offsets[c] + source_size[c] 
-           << " sources address: " << sources << endl; 
+      cout << "create node at level: " << child[c].level << " octant: " << c
+           << " sources range: " << source_offsets[c] << " " << source_offsets[c] + source_size[c]
+           << " targets range: " << target_offsets[c] << " " << target_offsets[c] + target_size[c]
+           << " sources address: " << sources << " targets address: " << targets << endl;
 #endif
       build_tree(sources, source_offsets[c], source_offsets[c] + source_size[c],
                  targets, target_offsets[c], target_offsets[c] + target_size[c],
