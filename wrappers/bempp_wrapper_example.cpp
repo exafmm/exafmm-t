@@ -1,5 +1,5 @@
 #include <iostream>
-#include "bempp.h"
+#include "bempp_wrapper.h"
 
 using namespace exafmm_t;
 
