@@ -93,9 +93,14 @@ namespace exafmm_t {
     for(size_t i=0; i<nodes.size(); i++) {
       Node* node = &nodes[i];
       node->M2L_list.resize(REL_COORD[M2L_Type].size(), nullptr);
-      build_list_parent_level(node);
-      build_list_current_level(node);
-      build_list_child_level(node);
+      build_list_parent_level(node);   // P2P0 & P2L
+      build_list_current_level(node);  // P2P1 & M2L
+#if FULL_TREE
+      if (node->ntrgs)
+        build_list_child_level(node);  // P2P2 & M2P
+#else
+      build_list_child_level(node);    // P2P2 & M2P
+#endif
     }
   }
   
