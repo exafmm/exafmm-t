@@ -211,22 +211,38 @@ static inline VTYPE sincos_d(VTYPE * cosret, VTYPE const & xx) {
 static inline Vec2d sin(Vec2d const & x) {
     return sincos_d<Vec2d, Vec2q, Vec4i, Vec2db, 1>(0, x);
 }
+static inline __m128d _mm_sin_pd(__m128d const & x) {
+    return __m128d(sincos_d<Vec2d, Vec2q, Vec4i, Vec2db, 1>(0, Vec2d(x)));
+}
 
 static inline Vec2d cos(Vec2d const & x) {
     return sincos_d<Vec2d, Vec2q, Vec4i, Vec2db, 2>(0, x);
+}
+
+static inline __m128d _mm_cos_pd(__m128d const & x) {
+    return __m128d(sincos_d<Vec2d, Vec2q, Vec4i, Vec2db, 2>(0, Vec2d(x)));
 }
 
 static inline Vec2d sincos(Vec2d * cosret, Vec2d const & x) {
     return sincos_d<Vec2d, Vec2q, Vec4i, Vec2db, 3>(cosret, x);
 }
 
-#if MAX_VECTOR_SIZE >= 256
+// #if MAX_VECTOR_SIZE >= 256
+#ifdef __AVX__
 static inline Vec4d sin(Vec4d const & x) {
     return sincos_d<Vec4d, Vec4q, Vec4i, Vec4db, 1>(0, x);
 }
 
+static inline __m256d _mm256_sin_pd(__m256d const & x) {
+    return __m256d(sincos_d<Vec4d, Vec4q, Vec4i, Vec4db, 1>(0, Vec4d(x)));
+}
+
 static inline Vec4d cos(Vec4d const & x) {
     return sincos_d<Vec4d, Vec4q, Vec4i, Vec4db, 2>(0, x);
+}
+
+static inline __m256d _mm256_cos_pd(__m256d const & x) {
+    return __m256d(sincos_d<Vec4d, Vec4q, Vec4i, Vec4db, 2>(0, Vec4d(x)));
 }
 
 static inline Vec4d sincos(Vec4d * cosret, Vec4d const & x) {
@@ -234,13 +250,22 @@ static inline Vec4d sincos(Vec4d * cosret, Vec4d const & x) {
 }
 #endif // MAX_VECTOR_SIZE >= 256
 
-#if MAX_VECTOR_SIZE >= 512
+// #if MAX_VECTOR_SIZE >= 512
+#ifdef __AVX512F__
 static inline Vec8d sin(Vec8d const & x) {
     return sincos_d<Vec8d, Vec8q, Vec8i, Vec8db, 1>(0, x);
 }
 
+static inline __m512d _mm512_sin_pd(__m512d const & x) {
+    return __m512d(sincos_d<Vec8d, Vec8q, Vec8i, Vec8db, 1>(0, Vec8d(x)));
+}
+
 static inline Vec8d cos(Vec8d const & x) {
     return sincos_d<Vec8d, Vec8q, Vec8i, Vec8db, 2>(0, x);
+}
+
+static inline __m512d _mm512_cos_pd(__m512d const & x) {
+    return __m512d(sincos_d<Vec8d, Vec8q, Vec8i, Vec8db, 2>(0, Vec8d(x)));
 }
 
 static inline Vec8d sincos(Vec8d * cosret, Vec8d const & x) {
@@ -341,8 +366,16 @@ static inline Vec4f sin(Vec4f const & x) {
     return sincos_f<Vec4f, Vec4i, Vec4fb, 1>(0, x);
 }
 
+static inline __m128 _mm_sin_ps(__m128 const & x) {
+    return __m128(sincos_f<Vec4f, Vec4i, Vec4fb, 1>(0, Vec4f(x)));
+}
+
 static inline Vec4f cos(Vec4f const & x) {
     return sincos_f<Vec4f, Vec4i, Vec4fb, 2>(0, x);
+}
+
+static inline __m128 _mm_cos_ps(__m128 const & x) {
+    return __m128(sincos_f<Vec4f, Vec4i, Vec4fb, 2>(0, Vec4f(x)));
 }
 
 static inline Vec4f sincos(Vec4f * cosret, Vec4f const & x) {
@@ -353,13 +386,22 @@ static inline Vec4f tan(Vec4f const & x) {
     return sincos_f<Vec4f, Vec4i, Vec4fb, 4>(0, x);
 }
 
-#if MAX_VECTOR_SIZE >= 256
+// #if MAX_VECTOR_SIZE >= 256
+#ifdef __AVX__
 static inline Vec8f sin(Vec8f const & x) {
     return sincos_f<Vec8f, Vec8i, Vec8fb, 1>(0, x);
 }
 
+static inline __m256 _mm256_sin_ps(__m256 const & x) {
+    return __m256(sincos_f<Vec8f, Vec8i, Vec8fb, 1>(0, Vec8f(x)));
+}
+
 static inline Vec8f cos(Vec8f const & x) {
     return sincos_f<Vec8f, Vec8i, Vec8fb, 2>(0, x);
+}
+
+static inline __m256 _mm256_cos_ps(__m256 const & x) {
+    return __m256(sincos_f<Vec8f, Vec8i, Vec8fb, 2>(0, Vec8f(x)));
 }
 
 static inline Vec8f sincos(Vec8f * cosret, Vec8f const & x) {
@@ -371,13 +413,22 @@ static inline Vec8f tan(Vec8f const & x) {
 }
 #endif // MAX_VECTOR_SIZE >= 256
 
-#if MAX_VECTOR_SIZE >= 512
+// #if MAX_VECTOR_SIZE >= 512
+#ifdef __AVX512F__
 static inline Vec16f sin(Vec16f const & x) {
     return sincos_f<Vec16f, Vec16i, Vec16fb, 1>(0, x);
 }
 
+static inline __m512 _mm512_sin_ps(__m512 const & x) {
+    return __m512(sincos_f<Vec16f, Vec16i, Vec16fb, 1>(0, Vec16f(x)));
+}
+
 static inline Vec16f cos(Vec16f const & x) {
     return sincos_f<Vec16f, Vec16i, Vec16fb, 2>(0, x);
+}
+
+static inline __m512 _mm512_cos_ps(__m512 const & x) {
+    return __m512(sincos_f<Vec16f, Vec16i, Vec16fb, 2>(0, Vec16f(x)));
 }
 
 static inline Vec16f sincos(Vec16f * cosret, Vec16f const & x) {

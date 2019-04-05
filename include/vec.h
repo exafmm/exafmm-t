@@ -2,6 +2,11 @@
 #define vec_h
 #include <ostream>
 
+#if defined __INTEL_COMPILER
+#else
+#include "vectormath_trig.h"
+#endif
+
 #if __MIC__ | __AVX512F__
 const int SIMD_BYTES = 64;
 #elif __AVX__
@@ -930,25 +935,25 @@ namespace exafmm_t {
       return vec(_mm256_div_ps(one.data,_mm256_sqrt_ps(v.data)));
 #endif
     }
-#ifdef __INTEL_COMPILER
+// #ifdef __INTEL_COMPILER
     friend vec sin(const vec & v) {
       return vec(_mm256_sin_ps(v.data));
     }
     friend vec cos(const vec & v) {
       return vec(_mm256_cos_ps(v.data));
     }
-#else
-    friend vec sin(const vec & v) {
-      vec temp = _mm256_setr_ps(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]),
-                                std::sin(v[4]), std::sin(v[5]), std::sin(v[6]), std::sin(v[7]));
-      return temp;
-    }
-    friend vec cos(const vec & v) {
-      vec temp = _mm256_setr_ps(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]),
-                                std::cos(v[4]), std::cos(v[5]), std::cos(v[6]), std::cos(v[7]));
-      return temp;
-    }
-#endif
+// #else
+    // friend vec sin(const vec & v) {
+      // vec temp = _mm256_setr_ps(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]),
+                                // std::sin(v[4]), std::sin(v[5]), std::sin(v[6]), std::sin(v[7]));
+      // return temp;
+    // }
+    // friend vec cos(const vec & v) {
+      // vec temp = _mm256_setr_ps(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]),
+                                // std::cos(v[4]), std::cos(v[5]), std::cos(v[6]), std::cos(v[7]));
+      // return temp;
+    // }
+// #endif
   };
 
   template<>
@@ -1079,23 +1084,23 @@ namespace exafmm_t {
       return vec(_mm256_div_pd(one.data,_mm256_sqrt_pd(v.data)));
 #endif
     }
-#ifdef __INTEL_COMPILER
+// #ifdef __INTEL_COMPILER
     friend vec sin(const vec & v) {
       return vec(_mm256_sin_pd(v.data));
     }
     friend vec cos(const vec & v) {
       return vec(_mm256_cos_pd(v.data));
     }
-#else
-    friend vec sin(const vec & v) {
-      vec temp = _mm256_setr_pd(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]));
-      return temp;
-    }
-    friend vec cos(const vec & v) {
-      vec temp = _mm256_setr_pd(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]));
-      return temp;
-    }
-#endif
+// #else
+    // friend vec sin(const vec & v) {
+      // vec temp = _mm256_setr_pd(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]));
+      // return temp;
+    // }
+    // friend vec cos(const vec & v) {
+      // vec temp = _mm256_setr_pd(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]));
+      // return temp;
+    // }
+// #endif
   };
 #endif
 
@@ -1226,23 +1231,23 @@ namespace exafmm_t {
       return vec(_mm_div_ps(one.data,_mm_sqrt_ps(v.data)));
 #endif
     }
-#ifdef __INTEL_COMPILER
+// #ifdef __INTEL_COMPILER
     friend vec cos(const vec &v) {
       return vec(_mm_cos_ps(v.data));
     }
     friend vec sin(const vec &v) {
       return vec(_mm_sin_ps(v.data));
     }
-#else
-    friend vec sin(const vec & v) {
-      vec temp = _mm_setr_ps(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]));
-      return temp;
-    }
-    friend vec cos(const vec & v) {
-      vec temp = _mm_setr_ps(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]));
-      return temp;
-    }
-#endif
+// #else
+    // friend vec sin(const vec & v) {
+      // vec temp = _mm_setr_ps(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]));
+      // return temp;
+    // }
+    // friend vec cos(const vec & v) {
+      // vec temp = _mm_setr_ps(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]));
+      // return temp;
+    // }
+// #endif
   };
 
   template<>
@@ -1366,23 +1371,23 @@ namespace exafmm_t {
       return vec(_mm_div_pd(one.data,_mm_sqrt_pd(v.data)));
 #endif
     }
-#ifdef __INTEL_COMPILER
+// #ifdef __INTEL_COMPILER
     friend vec cos(const vec &v) {
       return vec(_mm_cos_pd(v.data));
     }
     friend vec sin(const vec &v) {
       return vec(_mm_sin_pd(v.data));
     }
-#else
-    friend vec sin(const vec & v) {
-      vec temp = _mm_setr_pd(std::sin(v[0]), std::sin(v[1]));
-      return temp;
-    }
-    friend vec cos(const vec & v) {
-      vec temp = _mm_setr_pd(std::cos(v[0]), std::cos(v[1]));
-      return temp;
-    }
-#endif
+// #else
+    // friend vec sin(const vec & v) {
+      // vec temp = _mm_setr_pd(std::sin(v[0]), std::sin(v[1]));
+      // return temp;
+    // }
+    // friend vec cos(const vec & v) {
+      // vec temp = _mm_setr_pd(std::cos(v[0]), std::cos(v[1]));
+      // return temp;
+    // }
+// #endif
   };
 #endif
 
