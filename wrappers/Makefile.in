@@ -89,9 +89,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-
-# Single/Double precision
-@USE_FLOAT_TRUE@am__append_1 = -DFLOAT
 bin_PROGRAMS = bempp_laplace$(EXEEXT) bempp_helmholtz$(EXEEXT)
 subdir = wrappers
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -389,8 +386,7 @@ top_srcdir = @top_srcdir@
 
 # automake preprocessor, compiler and linker flags
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/vectorclass \
-	$(am__append_1) $(FFTW_CPPFLAGS) # include user-defined path \
-	of fftw3.h
+	$(FFTW_CPPFLAGS) # include user-defined path of fftw3.h
 
 # OpenMP flags
 
@@ -403,6 +399,11 @@ AM_CXXFLAGS = -fabi-version=6 -std=c++11 $(OPENMP_CXXFLAGS) \
 # libraries
 AM_LDFLAGS = -lpthread -lm $(OPENMP_CXXFLAGS) $(BLAS_LIBS) \
 	$(LAPACK_LIBS) $(FFTW_LIBS)
+
+# Single/Double precision
+@USE_FLOAT_TRUE@PRECISION = -DFLOAT
+
+# compile library with double precision
 lib_LIBRARIES = libbempp_exafmm_laplace.a libbempp_exafmm_helmholtz.a
 libbempp_exafmm_laplace_a_SOURCES = bempp_wrapper.cpp ../src/precompute_laplace.cpp ../src/geometry.cpp ../src/laplace.cpp
 libbempp_exafmm_laplace_a_CPPFLAGS = -DSORT_BACK $(AM_CPPFLAGS)

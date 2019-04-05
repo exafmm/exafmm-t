@@ -1,5 +1,7 @@
 include ../Makefile.am.include
 
+# compile library with double precision
+
 lib_LIBRARIES = libbempp_exafmm_laplace.a libbempp_exafmm_helmholtz.a
 
 libbempp_exafmm_laplace_a_SOURCES = bempp_wrapper.cpp ../src/precompute_laplace.cpp ../src/geometry.cpp ../src/laplace.cpp

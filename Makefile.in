@@ -88,9 +88,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-
-# Single/Double precision
-@USE_FLOAT_TRUE@am__append_1 = -DFLOAT
 bin_PROGRAMS = laplace$(EXEEXT) helmholtz$(EXEEXT) \
 	laplace_p2p$(EXEEXT) laplace_kernel$(EXEEXT)
 subdir = .
@@ -383,8 +380,7 @@ top_srcdir = @top_srcdir@
 
 # automake preprocessor, compiler and linker flags
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/vectorclass \
-	$(am__append_1) $(FFTW_CPPFLAGS) # include user-defined path \
-	of fftw3.h
+	$(FFTW_CPPFLAGS) # include user-defined path of fftw3.h
 
 # OpenMP flags
 
@@ -397,10 +393,13 @@ AM_CXXFLAGS = -fabi-version=6 -std=c++11 $(OPENMP_CXXFLAGS) \
 # libraries
 AM_LDFLAGS = -lpthread -lm $(OPENMP_CXXFLAGS) $(BLAS_LIBS) \
 	$(LAPACK_LIBS) $(FFTW_LIBS)
+
+# Single/Double precision
+@USE_FLOAT_TRUE@PRECISION = -DFLOAT
 laplace_SOURCES = main.cpp src/precompute_laplace.cpp src/geometry.cpp src/laplace.cpp
-laplace_CPPFLAGS = $(AM_CPPFLAGS)
+laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 helmholtz_SOURCES = main.cpp src/precompute_helmholtz.cpp src/geometry.cpp src/helmholtz.cpp
-helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(AM_CPPFLAGS)
+helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
 laplace_p2p_SOURCES = tests/p2p.cpp src/precompute_laplace.cpp src/laplace.cpp src/geometry.cpp
 laplace_p2p_CPPFLAGS = $(AM_CPPFLAGS)
 laplace_kernel_SOURCES = tests/kernel.cpp src/precompute_laplace.cpp src/laplace.cpp src/geometry.cpp

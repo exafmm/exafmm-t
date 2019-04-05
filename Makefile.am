@@ -6,10 +6,10 @@ touch:
 bin_PROGRAMS = laplace helmholtz
 
 laplace_SOURCES = main.cpp src/precompute_laplace.cpp src/geometry.cpp src/laplace.cpp
-laplace_CPPFLAGS = $(AM_CPPFLAGS)
+laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 
 helmholtz_SOURCES = main.cpp src/precompute_helmholtz.cpp src/geometry.cpp src/helmholtz.cpp
-helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(AM_CPPFLAGS)
+helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
 
 bin_PROGRAMS += laplace_p2p
 laplace_p2p_SOURCES = tests/p2p.cpp src/precompute_laplace.cpp src/laplace.cpp src/geometry.cpp
