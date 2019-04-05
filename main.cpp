@@ -1,5 +1,5 @@
-#if FULL_TREE
-#include "build_full_tree.h"
+#if NON_ADAPTIVE
+#include "build_non_adaptive_tree.h"
 #else
 #include "build_tree.h"
 #endif
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   start("Build Tree");
   get_bounds(sources, targets, XMIN0, R0);
   NodePtrs leafs, nonleafs;
-#if FULL_TREE
+#if NON_ADAPTIVE
   MAXLEVEL = args.maxlevel;   // explicitly define the max level when constructing a full tree
   Nodes nodes = build_tree(sources, targets, XMIN0, R0, leafs, nonleafs);
 #else

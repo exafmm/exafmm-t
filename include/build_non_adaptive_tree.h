@@ -1,5 +1,5 @@
-#ifndef build_full_tree_h
-#define build_full_tree_h
+#ifndef build_non_adaptive_tree_h
+#define build_non_adaptive_tree_h
 #include "exafmm_t.h"
 #include "hilbert.h"
 
@@ -75,7 +75,7 @@ namespace exafmm_t {
   }
 
   //! Build nodes of tree adaptively using a top-down approach based on recursion
-  void build_tree(Body * sources, int source_begin, int source_end, 
+  void build_tree(Body * sources, int source_begin, int source_end,
                   Body * targets, int target_begin, int target_end,
                   Node * node, Nodes & nodes, NodePtrs & leafs, NodePtrs & nonleafs) {
     //! Create a tree node
@@ -173,7 +173,7 @@ namespace exafmm_t {
     nodes[0].r = r0;
     nodes[0].level = 0;
     nodes.reserve((pow(8,MAXLEVEL+1)-1) / 7);  // reserve for 8^(level+1)/7 nodes
-    build_tree(&sources[0], 0, sources.size(), 
+    build_tree(&sources[0], 0, sources.size(),
                &targets[0], 0, targets.size(),
                &nodes[0], nodes, leafs, nonleafs);
     return nodes;

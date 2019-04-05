@@ -95,7 +95,7 @@ namespace exafmm_t {
       node->M2L_list.resize(REL_COORD[M2L_Type].size(), nullptr);
       build_list_parent_level(node);   // P2P0 & P2L
       build_list_current_level(node);  // P2P1 & M2L
-#if FULL_TREE
+#if NON_ADAPTIVE
       if (node->ntrgs)
         build_list_child_level(node);  // P2P2 & M2P
 #else
