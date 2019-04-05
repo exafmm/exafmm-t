@@ -39,8 +39,8 @@ int main(int argc, char **argv) {
   NSURF = 6*(P-1)*(P-1) + 2;
 
   start("Total");
-  Bodies sources = init_bodies(args.numBodies, args.distribution, 0);
-  Bodies targets = init_bodies(args.numBodies, args.distribution, 0);
+  Bodies sources = init_bodies(args.numBodies, args.distribution, 0, true);
+  Bodies targets = init_bodies(args.numBodies, args.distribution, 5, false);
 
   start("Build Tree");
   get_bounds(sources, targets, XMIN0, R0);

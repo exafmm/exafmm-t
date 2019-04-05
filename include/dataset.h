@@ -11,12 +11,19 @@ namespace exafmm_t {
         bodies[b].X[d] = drand48();
       }
     }
+    return bodies;
+  }
+
+  // Generate random distribution on r=1 sphere
+  Bodies sphere(int numBodies, int seed) {
+    Bodies bodies(numBodies);
+    srand48(seed);
     for (int b=0; b<numBodies; b++) {
-#if COMPLEX
-      bodies[b].q = complex_t(drand48()-0.5, drand48()-0.5);
-#else
-      bodies[b].q = drand48() - 0.5;
-#endif
+      for (int d=0; d<3; d++) {
+        bodies[b].X[d] = drand48() * 2 - 1;
+      }
+      real_t r = std::sqrt(norm(bodies[b].X));
+      bodies[b].X /= r;
     }
     return bodies;
   }
@@ -39,11 +46,6 @@ namespace exafmm_t {
         bodies[i].X[0] = X;
         bodies[i].X[1] = Y;
         bodies[i].X[2] = Z;
-#if COMPLEX
-        bodies[i].q = complex_t(drand48()-0.5, drand48()-0.5);
-#else
-        bodies[i].q = drand48() - 0.5;
-#endif
         for (int d=0; d<3; d++) {
           Xmax = Xmax > fabs(bodies[i].X[d]) ? Xmax : fabs(bodies[i].X[d]);
         }
@@ -77,16 +79,11 @@ namespace exafmm_t {
           bodies[i].X[d] = drand48();
         }
       }
-#if COMPLEX
-      bodies[i].q = complex_t(drand48()-0.5, drand48()-0.5);
-#else
-      bodies[i].q = drand48() - 0.5;
-#endif
     }
     return bodies;
   }
 
-  Bodies init_bodies(int numBodies, const char * distribution, int seed) {
+  Bodies init_bodies(int numBodies, const char * distribution, int seed, bool is_source=true) {
     Bodies bodies;
     switch (distribution[0]) {
       case 'c':
@@ -95,8 +92,20 @@ namespace exafmm_t {
       case 'p':
         bodies = plummer(numBodies, seed);
         break;
+      case 's':
+        bodies = sphere(numBodies, seed);
+        break;
       default:
         fprintf(stderr, "Unknown data distribution %s\n", distribution);
+    }
+    if (is_source) {
+      for (int b=0; b<numBodies; ++b) {
+#if COMPLEX
+        bodies[b].q = complex_t(drand48()-0.5, drand48()-0.5);
+#else
+        bodies[b].q = drand48() - 0.5;
+#endif
+      }
     }
     return bodies;
   }

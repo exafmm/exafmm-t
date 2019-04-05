@@ -32,7 +32,7 @@ namespace exafmm_t {
 	      "Usage: %s [options]\n"
 	      "Long option (short option)     : Description (Default value)\n"
 	      " --ncrit (-c)                  : Number of bodies per leaf node (%d)\n"
-              " --distribution (-d) [c/p]     : cube, plummer (%s)\n"
+              " --distribution (-d) [c/s/p]   : cube, sphere, plummer (%s)\n"
 	      " --numBodies (-n)              : Number of bodies (%d)\n"
 	      " --P (-P)                      : Order of expansion (%d)\n"
 	      " --threads (-T)                : Number of threads (%d)\n"
@@ -49,6 +49,7 @@ namespace exafmm_t {
     const char * parseDistribution(const char * arg) {
       switch (arg[0]) {
         case 'c': return "cube";
+        case 's': return "sphere";
         case 'p': return "plummer";
         default:
           fprintf(stderr, "invalid distribution %s\n", arg);
