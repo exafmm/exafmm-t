@@ -1,6 +1,7 @@
 include ../Makefile.am.include
 
 # compile library with double precision
+# append $(PRECISION) to CPPFLAGS to compile with single precision
 
 lib_LIBRARIES = libbempp_exafmm_laplace.a libbempp_exafmm_helmholtz.a
 
@@ -12,10 +13,10 @@ libbempp_exafmm_helmholtz_a_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ -DSORT_BACK $(AM_CP
 
 bin_PROGRAMS = bempp_laplace bempp_helmholtz
 
-bempp_laplace_SOURCES = bempp_wrapper_example.cpp
+bempp_laplace_SOURCES = bempp_example_laplace.cpp
 bempp_laplace_CPPFLAGS = $(libbempp_exafmm_laplace_a_CPPFLAGS)
 bempp_laplace_LDADD = libbempp_exafmm_laplace.a
 
-bempp_helmholtz_SOURCES = bempp_wrapper_example.cpp
+bempp_helmholtz_SOURCES = bempp_example_helmholtz.cpp
 bempp_helmholtz_CPPFLAGS = $(libbempp_exafmm_helmholtz_a_CPPFLAGS)
 bempp_helmholtz_LDADD = libbempp_exafmm_helmholtz.a

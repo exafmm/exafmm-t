@@ -168,7 +168,7 @@ libbempp_exafmm_laplace_a_OBJECTS =  \
 	$(am_libbempp_exafmm_laplace_a_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
 am_bempp_helmholtz_OBJECTS =  \
-	bempp_helmholtz-bempp_wrapper_example.$(OBJEXT)
+	bempp_helmholtz-bempp_example_helmholtz.$(OBJEXT)
 bempp_helmholtz_OBJECTS = $(am_bempp_helmholtz_OBJECTS)
 bempp_helmholtz_DEPENDENCIES = libbempp_exafmm_helmholtz.a
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -176,7 +176,7 @@ am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 am_bempp_laplace_OBJECTS =  \
-	bempp_laplace-bempp_wrapper_example.$(OBJEXT)
+	bempp_laplace-bempp_example_laplace.$(OBJEXT)
 bempp_laplace_OBJECTS = $(am_bempp_laplace_OBJECTS)
 bempp_laplace_DEPENDENCIES = libbempp_exafmm_laplace.a
 AM_V_P = $(am__v_P_@AM_V@)
@@ -404,15 +404,16 @@ AM_LDFLAGS = -lpthread -lm $(OPENMP_CXXFLAGS) $(BLAS_LIBS) \
 @USE_FLOAT_TRUE@PRECISION = -DFLOAT
 
 # compile library with double precision
+# append $(PRECISION) to CPPFLAGS to compile with single precision
 lib_LIBRARIES = libbempp_exafmm_laplace.a libbempp_exafmm_helmholtz.a
 libbempp_exafmm_laplace_a_SOURCES = bempp_wrapper.cpp ../src/precompute_laplace.cpp ../src/geometry.cpp ../src/laplace.cpp
 libbempp_exafmm_laplace_a_CPPFLAGS = -DSORT_BACK $(AM_CPPFLAGS)
 libbempp_exafmm_helmholtz_a_SOURCES = bempp_wrapper.cpp ../src/precompute_helmholtz.cpp ../src/geometry.cpp ../src/helmholtz.cpp
 libbempp_exafmm_helmholtz_a_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ -DSORT_BACK $(AM_CPPFLAGS)
-bempp_laplace_SOURCES = bempp_wrapper_example.cpp
+bempp_laplace_SOURCES = bempp_example_laplace.cpp
 bempp_laplace_CPPFLAGS = $(libbempp_exafmm_laplace_a_CPPFLAGS)
 bempp_laplace_LDADD = libbempp_exafmm_laplace.a
-bempp_helmholtz_SOURCES = bempp_wrapper_example.cpp
+bempp_helmholtz_SOURCES = bempp_example_helmholtz.cpp
 bempp_helmholtz_CPPFLAGS = $(libbempp_exafmm_helmholtz_a_CPPFLAGS)
 bempp_helmholtz_LDADD = libbempp_exafmm_helmholtz.a
 all: all-am
@@ -579,8 +580,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/libbempp_exafmm_laplace_a-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/libbempp_exafmm_laplace_a-laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/libbempp_exafmm_laplace_a-precompute_laplace.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bempp_helmholtz-bempp_wrapper_example.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bempp_laplace-bempp_wrapper_example.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bempp_helmholtz-bempp_example_helmholtz.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bempp_laplace-bempp_example_laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbempp_exafmm_helmholtz_a-bempp_wrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbempp_exafmm_laplace_a-bempp_wrapper.Po@am__quote@
 
@@ -720,33 +721,33 @@ libbempp_exafmm_laplace_a-bempp_wrapper.obj: bempp_wrapper.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbempp_exafmm_laplace_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/libbempp_exafmm_laplace_a-laplace.obj `if test -f '../src/laplace.cpp'; then $(CYGPATH_W) '../src/laplace.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/laplace.cpp'; fi`
 
-bempp_helmholtz-bempp_wrapper_example.o: bempp_wrapper_example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bempp_helmholtz-bempp_wrapper_example.o -MD -MP -MF $(DEPDIR)/bempp_helmholtz-bempp_wrapper_example.Tpo -c -o bempp_helmholtz-bempp_wrapper_example.o `test -f 'bempp_wrapper_example.cpp' || echo '$(srcdir)/'`bempp_wrapper_example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bempp_helmholtz-bempp_wrapper_example.Tpo $(DEPDIR)/bempp_helmholtz-bempp_wrapper_example.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bempp_wrapper_example.cpp' object='bempp_helmholtz-bempp_wrapper_example.o' libtool=no @AMDEPBACKSLASH@
+bempp_helmholtz-bempp_example_helmholtz.o: bempp_example_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bempp_helmholtz-bempp_example_helmholtz.o -MD -MP -MF $(DEPDIR)/bempp_helmholtz-bempp_example_helmholtz.Tpo -c -o bempp_helmholtz-bempp_example_helmholtz.o `test -f 'bempp_example_helmholtz.cpp' || echo '$(srcdir)/'`bempp_example_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bempp_helmholtz-bempp_example_helmholtz.Tpo $(DEPDIR)/bempp_helmholtz-bempp_example_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bempp_example_helmholtz.cpp' object='bempp_helmholtz-bempp_example_helmholtz.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bempp_helmholtz-bempp_wrapper_example.o `test -f 'bempp_wrapper_example.cpp' || echo '$(srcdir)/'`bempp_wrapper_example.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bempp_helmholtz-bempp_example_helmholtz.o `test -f 'bempp_example_helmholtz.cpp' || echo '$(srcdir)/'`bempp_example_helmholtz.cpp
 
-bempp_helmholtz-bempp_wrapper_example.obj: bempp_wrapper_example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bempp_helmholtz-bempp_wrapper_example.obj -MD -MP -MF $(DEPDIR)/bempp_helmholtz-bempp_wrapper_example.Tpo -c -o bempp_helmholtz-bempp_wrapper_example.obj `if test -f 'bempp_wrapper_example.cpp'; then $(CYGPATH_W) 'bempp_wrapper_example.cpp'; else $(CYGPATH_W) '$(srcdir)/bempp_wrapper_example.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bempp_helmholtz-bempp_wrapper_example.Tpo $(DEPDIR)/bempp_helmholtz-bempp_wrapper_example.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bempp_wrapper_example.cpp' object='bempp_helmholtz-bempp_wrapper_example.obj' libtool=no @AMDEPBACKSLASH@
+bempp_helmholtz-bempp_example_helmholtz.obj: bempp_example_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bempp_helmholtz-bempp_example_helmholtz.obj -MD -MP -MF $(DEPDIR)/bempp_helmholtz-bempp_example_helmholtz.Tpo -c -o bempp_helmholtz-bempp_example_helmholtz.obj `if test -f 'bempp_example_helmholtz.cpp'; then $(CYGPATH_W) 'bempp_example_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/bempp_example_helmholtz.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bempp_helmholtz-bempp_example_helmholtz.Tpo $(DEPDIR)/bempp_helmholtz-bempp_example_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bempp_example_helmholtz.cpp' object='bempp_helmholtz-bempp_example_helmholtz.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bempp_helmholtz-bempp_wrapper_example.obj `if test -f 'bempp_wrapper_example.cpp'; then $(CYGPATH_W) 'bempp_wrapper_example.cpp'; else $(CYGPATH_W) '$(srcdir)/bempp_wrapper_example.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bempp_helmholtz-bempp_example_helmholtz.obj `if test -f 'bempp_example_helmholtz.cpp'; then $(CYGPATH_W) 'bempp_example_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/bempp_example_helmholtz.cpp'; fi`
 
-bempp_laplace-bempp_wrapper_example.o: bempp_wrapper_example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bempp_laplace-bempp_wrapper_example.o -MD -MP -MF $(DEPDIR)/bempp_laplace-bempp_wrapper_example.Tpo -c -o bempp_laplace-bempp_wrapper_example.o `test -f 'bempp_wrapper_example.cpp' || echo '$(srcdir)/'`bempp_wrapper_example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bempp_laplace-bempp_wrapper_example.Tpo $(DEPDIR)/bempp_laplace-bempp_wrapper_example.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bempp_wrapper_example.cpp' object='bempp_laplace-bempp_wrapper_example.o' libtool=no @AMDEPBACKSLASH@
+bempp_laplace-bempp_example_laplace.o: bempp_example_laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bempp_laplace-bempp_example_laplace.o -MD -MP -MF $(DEPDIR)/bempp_laplace-bempp_example_laplace.Tpo -c -o bempp_laplace-bempp_example_laplace.o `test -f 'bempp_example_laplace.cpp' || echo '$(srcdir)/'`bempp_example_laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bempp_laplace-bempp_example_laplace.Tpo $(DEPDIR)/bempp_laplace-bempp_example_laplace.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bempp_example_laplace.cpp' object='bempp_laplace-bempp_example_laplace.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bempp_laplace-bempp_wrapper_example.o `test -f 'bempp_wrapper_example.cpp' || echo '$(srcdir)/'`bempp_wrapper_example.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bempp_laplace-bempp_example_laplace.o `test -f 'bempp_example_laplace.cpp' || echo '$(srcdir)/'`bempp_example_laplace.cpp
 
-bempp_laplace-bempp_wrapper_example.obj: bempp_wrapper_example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bempp_laplace-bempp_wrapper_example.obj -MD -MP -MF $(DEPDIR)/bempp_laplace-bempp_wrapper_example.Tpo -c -o bempp_laplace-bempp_wrapper_example.obj `if test -f 'bempp_wrapper_example.cpp'; then $(CYGPATH_W) 'bempp_wrapper_example.cpp'; else $(CYGPATH_W) '$(srcdir)/bempp_wrapper_example.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bempp_laplace-bempp_wrapper_example.Tpo $(DEPDIR)/bempp_laplace-bempp_wrapper_example.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bempp_wrapper_example.cpp' object='bempp_laplace-bempp_wrapper_example.obj' libtool=no @AMDEPBACKSLASH@
+bempp_laplace-bempp_example_laplace.obj: bempp_example_laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bempp_laplace-bempp_example_laplace.obj -MD -MP -MF $(DEPDIR)/bempp_laplace-bempp_example_laplace.Tpo -c -o bempp_laplace-bempp_example_laplace.obj `if test -f 'bempp_example_laplace.cpp'; then $(CYGPATH_W) 'bempp_example_laplace.cpp'; else $(CYGPATH_W) '$(srcdir)/bempp_example_laplace.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bempp_laplace-bempp_example_laplace.Tpo $(DEPDIR)/bempp_laplace-bempp_example_laplace.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bempp_example_laplace.cpp' object='bempp_laplace-bempp_example_laplace.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bempp_laplace-bempp_wrapper_example.obj `if test -f 'bempp_wrapper_example.cpp'; then $(CYGPATH_W) 'bempp_wrapper_example.cpp'; else $(CYGPATH_W) '$(srcdir)/bempp_wrapper_example.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bempp_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o bempp_laplace-bempp_example_laplace.obj `if test -f 'bempp_example_laplace.cpp'; then $(CYGPATH_W) 'bempp_example_laplace.cpp'; else $(CYGPATH_W) '$(srcdir)/bempp_example_laplace.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
