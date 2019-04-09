@@ -16,8 +16,8 @@ laplace_p2p_SOURCES = tests/p2p.cpp src/precompute_laplace.cpp src/laplace.cpp s
 laplace_p2p_CPPFLAGS = $(AM_CPPFLAGS)
 
 bin_PROGRAMS += helmholtz_p2p
-helmholtz_SOURCES = main.cpp src/precompute_helmholtz.cpp src/geometry.cpp src/helmholtz.cpp
-helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(AM_CPPFLAGS)
+helmholtz_p2p_SOURCES = tests/p2p.cpp src/precompute_helmholtz.cpp src/geometry.cpp src/helmholtz.cpp
+helmholtz_p2p_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(AM_CPPFLAGS)
 
 bin_PROGRAMS += laplace_kernel
 laplace_kernel_SOURCES = tests/kernel.cpp src/precompute_laplace.cpp src/laplace.cpp src/geometry.cpp
