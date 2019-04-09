@@ -10,7 +10,18 @@ Welcome to exafmm-t's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+.. toctree::
+   :caption: INTRO
+   :maxdepth: 2
 
+   compile
+   documentation
+
+.. toctree::
+   :caption: API REFERENCE
+   :maxdepth: 2
+
+   api/build_tree
 
 Indices and tables
 ==================

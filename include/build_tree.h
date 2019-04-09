@@ -7,7 +7,14 @@
 
 using namespace std;
 namespace exafmm_t {
-  // Get bounding box of sources and targets
+  /**
+   * @brief Get bounding box of sources and targets
+   *
+   * @param sources Vector of sources
+   * @param targets Vector of targets
+   * @param Xmin0 Coordinates of the lower left bottom vertex of the bounding box
+   * @param r0 Radius of the bounding box
+   */
   void get_bounds(const Bodies& sources, const Bodies& targets, vec3& Xmin0, real_t& r0) {
     vec3 Xmin = sources[0].X;
     vec3 Xmax = sources[0].X;
@@ -25,9 +32,17 @@ namespace exafmm_t {
     Xmin0 = X0 - r0;
   } 
 
-  // Sort bodies in a node according to their octants
-  // bodies: the bodies to be sorted
-  // buffer: the sorted bodies
+  /**
+   * @brief Sort a chunk of bodies in a node according to their octants
+   *
+   * @param node The node that bodies are in 
+   * @param bodies The bodies to be sorted
+   * @param buffer The sorted bodies
+   * @param begin Begin index of the chunk 
+   * @param end End index of the chunk
+   * @param size Vector of the counts of bodies in each octant after
+   * @param offsets Vector of the offsets of sorted bodies in each octant
+   */
   void sort_bodies(Node* const node, Body* const bodies, Body* const buffer,
                    int begin, int end, std::vector<int>& size, std::vector<int>& offsets) {
     // Count number of bodies in each octant
@@ -155,6 +170,20 @@ namespace exafmm_t {
     }
   }
 
+  /**
+   * @brief Recursively build the tree and return the tree as a vector of nodes
+   *
+   * @param sources Vector of sources
+   * @param targets Vector of targets
+   * @param Xmin0 Coordinates of the lower left bottom vertex of the bounding box
+   * @param r0 Radius of the bounding box
+   * @param leafs Vector of pointers of leaf nodes
+   * @param nonleafs Vector of pointers of nonleaf nodes
+   * @param args Args that contains tree information
+   * @param leafkeys Vector of leaf Hilbert keys of each level, only used during 2:1 tree balancing 
+   *
+   * @return Vector of nodes that represents the tree
+   */
   Nodes build_tree(Bodies& sources, Bodies& targets, vec3 Xmin0, real_t r0, NodePtrs& leafs,
                    NodePtrs& nonleafs, const Args& args, const Keys& leafkeys=Keys()) {
     Bodies sources_buffer = sources;
