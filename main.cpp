@@ -38,6 +38,7 @@ int main(int argc, char **argv) {
   P = args.P;
   NSURF = 6*(P-1)*(P-1) + 2;
 
+  print_divider("Time");
   start("Total");
   Bodies sources = init_bodies(args.numBodies, args.distribution, 0, true);
   Bodies targets = init_bodies(args.numBodies, args.distribution, 5, false);
@@ -68,9 +69,24 @@ int main(int argc, char **argv) {
   stop("Total");
 
   RealVec error = verify(leafs);
-  std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;
-  std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << error[1] << std::endl;
-  std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
-  std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< MAXLEVEL << std::endl;
+  
+  print_divider("Error");
+  print("Potn Error", error[0]);
+  print("Grad Error", error[1]);
+  
+  print_divider("Configuration");
+  print("Num of Sources", sources.size());
+  print("Num of Targets", targets.size());
+  print("Distribution", args.distribution);
+  print("Ncrit", args.ncrit);
+  print("Order of Exp.", P);
+
+  print_divider("Tree");
+  print("Root center x", XMIN0[0] + R0);
+  print("Root center y", XMIN0[1] + R0);
+  print("Root center z", XMIN0[2] + R0);
+  print("Root radius R", R0);
+  print("Tree Depth", MAXLEVEL);
+  print("Leaf Nodes", leafs.size());
   return 0;
 }
