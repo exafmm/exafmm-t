@@ -1,27 +1,37 @@
-#include <iostream>
+#include <cmath>    // sin, cos
+#include <cstdlib>  // drand48
 #include "bempp_wrapper_laplace.h"
 
 int main(int argc, char **argv) {
-  // generate random coordinates and charges
-  size_t N = 100000;
+  // generate coordinates of sphere distribution and random charges
+  int N = 1000000;
   double * src_coord = new double [3*N];
   double * src_value = new double [N];
   double * trg_coord = new double [3*N];
   double * trg_value = new double [4*N];
-  for(size_t i=0; i<N; ++i) {
-    src_value[i] = drand48();
-    for(int d=0; d<3; ++d) {
-      src_coord[3*i+d] = drand48();
-      trg_coord[3*i+d] = drand48();
-    }
-    for(int d=0; d<3; ++d) {
+  double theta, phi, r = 1;
+  for(int i=0; i<N; ++i) {
+    src_value[i] = drand48() - 0.5;
+    theta = drand48() * M_PI;
+    phi = drand48() * 2 * M_PI;
+    src_coord[3*i+0] = r * std::sin(theta) * std::cos(phi);
+    src_coord[3*i+1] = r * std::sin(theta) * std::sin(phi);
+    src_coord[3*i+2] = r * std::cos(theta);
+    theta = drand48() * M_PI;
+    phi = drand48() * 2 * M_PI;
+    trg_coord[3*i+0] = r * std::sin(theta) * std::cos(phi);
+    trg_coord[3*i+1] = r * std::sin(theta) * std::sin(phi);
+    trg_coord[3*i+2] = r * std::cos(theta);
+    for(int d=0; d<4; ++d) {
       trg_value[4*i+d] = 0.;
     }
   }
 
   // initialize global variables
+  int p = 10;
+  int maxlevel = 5;
   int threads = 6;
-  init_FMM(threads);
+  init_FMM(p, maxlevel, threads);
 
   // setup FMM
   setup_FMM(N, src_coord, N, trg_coord);
