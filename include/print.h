@@ -11,6 +11,7 @@ namespace exafmm_t {
   static const int stringLength = 20;           //!< Length of formatted string
   static const int decimal = 7;                 //!< Decimal precision
   static const int wait = 100;                  //!< Waiting time between output of different ranks
+  static const int dividerLength = stringLength + decimal + 9;  // length of output section divider
 
   void print(std::string s) {
     // if (!VERBOSE | (MPIRANK != 0)) return;
@@ -29,6 +30,14 @@ namespace exafmm_t {
     else
       std::cout << std::setprecision(1) << std::scientific;
     std::cout << v << std::endl;
+  }
+
+  void print_divider(std::string s) {
+    s.insert(0, " ");
+    s.append(" ");
+    int halfLength = (dividerLength - s.length()) / 2;
+    std::cout << std::string(halfLength, '-') << s
+              << std::string(dividerLength-halfLength-s.length(), '-') << std::endl;
   }
 
   // template<typename T>
