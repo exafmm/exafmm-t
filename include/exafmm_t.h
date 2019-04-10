@@ -80,7 +80,6 @@ namespace exafmm_t {
     vec3 F;                                     //!< Force
   };
   typedef std::vector<Body> Bodies;             //!< Vector of bodies
-
   //! Structure of nodes
   struct Node {
     int numChilds;
@@ -98,6 +97,7 @@ namespace exafmm_t {
     real_t coord[3];
     Node* parent;
     std::vector<Node*> child;
+    std::vector<int> child_idx;
     Node* colleague[27];
     std::vector<int> P2Llist_idx;
     std::vector<int> M2Plist_idx;

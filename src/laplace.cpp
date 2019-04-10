@@ -201,6 +201,27 @@ namespace exafmm_t {
     M2MGPU(upward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
   }
   
+  /*void L2L(Nodes &nodes, int *nonleafs_idx, RealVec &dnward_equiv, std::vector<int> &childs_idx, int idx) {
+    int nonleaf_idx = nonleafs_idx[0];
+    if(nodes[nonleaf_idx].IsLeaf()) return;
+    for(int octant=0; octant<8; octant++) {
+      if(childs_idx[]node->child[octant] != NULL) {
+        Node* child = node->child[octant];
+        RealVec buffer(NSURF);
+        gemm(1, NSURF, NSURF, &dnward_equiv[node->idx*NSURF], &(mat_L2L[octant][0]), &buffer[0]);
+        for(int k=0; k<NSURF; k++)
+          dnward_equiv[child->idx*NSURF+k] += buffer[k];
+      }
+    }
+    for(int octant=0; octant<8; octant++) {
+      if(node->child[octant] != NULL)
+        #pragma omp task untied
+        L2L(node->child[octant], dnward_equiv);
+    }
+    #pragma omp taskwait
+  }*/
+
+
   void L2L(Node* node, RealVec &dnward_equiv) {
     if(node->IsLeaf()) return;
     for(int octant=0; octant<8; octant++) {

@@ -13,7 +13,7 @@ namespace exafmm_t {
     Profile::Toc();
   }
 
-  void downwardPass(Nodes& nodes, std::vector<Node*> leafs, std::vector<int> leafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv, RealVec &dnward_equiv, std::vector<real_t> &nodes_trg) {
+  void downwardPass(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<int> &nonleafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv, RealVec &dnward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &childs_idx) {
     Profile::Tic("P2L", false, 5);
     P2L(nodes, dnward_equiv, nodes_pt_src, nodes_pt_src_idx, nodes_coord);
     Profile::Toc();
@@ -29,6 +29,7 @@ namespace exafmm_t {
     Profile::Tic("L2L", false, 5);
     #pragma omp parallel
     #pragma omp single nowait
+    //L2L(nodes, &nonleafs_idx[0], dnward_equiv, childs_idx, 0);
     L2L(&nodes[0], dnward_equiv);
     Profile::Toc();
     Profile::Tic("L2P", false, 5);

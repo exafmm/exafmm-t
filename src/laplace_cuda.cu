@@ -13,6 +13,12 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
+struct d_node {
+  int idx;
+  int *child;
+  int child_size;
+};
+
 namespace exafmm_t {
   __global__
   void P2M_potential_p2p_kernel(int *leafs_idx, int *d_nodes_pt_src_idx, real_t *d_nodes_coord, real_t *d_nodes_pt_src, real_t *d_checkCoord, real_t *d_upward_equiv, real_t *d_r, real_t *d_leaf_xyz) {
@@ -477,4 +483,32 @@ void M2MGPU(RealVec &upward_equiv, std::vector<std::vector<int>> &nodes_by_level
     cudaFree(d_nodes_pt_src_idx);
 
   }
+  __global__
+  void print_child(d_node *d_nodes, int size) {
+    for(int i=0; i<size; i++)
+      for(int j=0;j< d_nodes[i].child_size; j++)
+        printf("%d \n", d_nodes[i].child[j]);
+  }
+
+  void test_cuda(Nodes &nodes) {
+    
+    d_node *h_nodes, *d_nodes;
+    h_nodes = (d_node*)malloc(nodes.size()*sizeof(d_node));
+    for (int i=0; i<nodes.size(); i ++) {
+      h_nodes[i].idx = nodes[i].idx;
+      cudaMalloc(&h_nodes[i].child, nodes[i].child.size()*sizeof(int));
+      cudaMemcpy(h_nodes[i].child, &nodes[i].child_idx[0], nodes[i].child.size()*sizeof(int), cudaMemcpyHostToDevice);
+      h_nodes[i].child_size = nodes[i].child.size();
+    }
+    cudaMalloc((void**)&d_nodes, nodes.size()*sizeof(d_node));
+    cudaMemcpy(d_nodes, h_nodes, sizeof(d_node)*nodes.size(), cudaMemcpyHostToDevice); 
+    print_child<<<1,1>>>(d_nodes, nodes.size());
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+    for (int i=0; i<nodes.size(); i ++)
+      cudaFree(h_nodes[i].child);
+    free(h_nodes);
+    cudaFree(d_nodes);
+  }
 }
+
