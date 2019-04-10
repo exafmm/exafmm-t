@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'exafmm-t'
-copyright = '2019, Tingyu Wang'
-author = 'Tingyu Wang'
+copyright = '2019, exafmm'
+author = 'exafmm'
 
 # The short X.Y version
 version = ''
