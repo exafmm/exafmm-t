@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <iostream>
 #include <omp.h>
-#include "build_tree.h"
+#include "build_non_adaptive_tree.h"
 #include "build_list.h"
 #include "config.h"
 #include "dataset.h"
@@ -59,9 +59,10 @@ namespace exafmm_t {
 #if HAVE_OPENMP
     omp_set_num_threads(args.threads);
 #endif
+    MAXLEVEL = args.maxlevel;
   }
 
-  // build 2:1 balanced tree, precompute invariant matrices, build interaction lists
+  // build non-adaptive tree, precompute invariant matrices, build interaction lists
   extern "C" void setup_FMM(int src_count, real_t* src_coord,
                             int trg_count, real_t* trg_coord) {
     Bodies sources = array_to_bodies(src_count, src_coord);
@@ -70,8 +71,7 @@ namespace exafmm_t {
     start("Build Tree");
     get_bounds(sources, targets, XMIN0, R0);
     NodePtrs nonleafs;
-    NODES = build_tree(sources, targets, XMIN0, R0, LEAFS, nonleafs, args);
-    balance_tree(NODES, sources, targets, XMIN0, R0, LEAFS, nonleafs, args);
+    NODES = build_tree(sources, targets, XMIN0, R0, LEAFS, nonleafs);
     stop("Build Tree");
 
     init_rel_coord();
