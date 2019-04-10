@@ -47,19 +47,18 @@ namespace exafmm_t {
   }
 
   // Initialize args and set global constants
-  extern "C" void init_FMM(int threads) {
-    P = 10;
+  extern "C" void init_FMM(int p, int maxlevel, int threads, real_t wavek=20) {
+    P = p;
     NSURF = 6*(P-1)*(P-1) + 2;
 #if HELMHOLTZ
-    WAVEK = 20;
+    WAVEK = wavek;
 #endif
     args.P = P;
-    args.ncrit = 120;
     args.threads = threads;
 #if HAVE_OPENMP
     omp_set_num_threads(args.threads);
 #endif
-    MAXLEVEL = args.maxlevel;
+    MAXLEVEL = maxlevel;
   }
 
   // build non-adaptive tree, precompute invariant matrices, build interaction lists
