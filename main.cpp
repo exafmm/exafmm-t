@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
   size_t N = args.numBodies;
   P = args.P;
   NSURF = 6*(P-1)*(P-1) + 2;
+  print_divider("Parameters");
+  args.print();
 
   print_divider("Time");
   start("Total");
@@ -71,22 +73,16 @@ int main(int argc, char **argv) {
   RealVec error = verify(leafs);
   
   print_divider("Error");
-  print("Potn Error", error[0]);
-  print("Grad Error", error[1]);
+  print("Potential Error", error[0]);
+  print("Gradient Error", error[1]);
   
-  print_divider("Configuration");
-  print("Num of Sources", sources.size());
-  print("Num of Targets", targets.size());
-  print("Distribution", args.distribution);
-  print("Ncrit", args.ncrit);
-  print("Order of Exp.", P);
-
   print_divider("Tree");
-  print("Root center x", XMIN0[0] + R0);
-  print("Root center y", XMIN0[1] + R0);
-  print("Root center z", XMIN0[2] + R0);
-  print("Root radius R", R0);
+  print("Root Center x", XMIN0[0] + R0);
+  print("Root Center y", XMIN0[1] + R0);
+  print("Root Center z", XMIN0[2] + R0);
+  print("Root Radius R", R0);
   print("Tree Depth", MAXLEVEL);
   print("Leaf Nodes", leafs.size());
+
   return 0;
 }
