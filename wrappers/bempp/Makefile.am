@@ -1,14 +1,14 @@
-include ../Makefile.am.include
+include ../../Makefile.am.include
 
 # compile library with double precision
 # append $(PRECISION) to CPPFLAGS to compile with single precision
 
 lib_LIBRARIES = libbempp_exafmm_laplace.a libbempp_exafmm_helmholtz.a
 
-libbempp_exafmm_laplace_a_SOURCES = bempp_wrapper.cpp ../src/precompute_laplace.cpp ../src/geometry.cpp ../src/laplace.cpp
+libbempp_exafmm_laplace_a_SOURCES = bempp_wrapper.cpp ../../src/precompute_laplace.cpp ../../src/geometry.cpp ../../src/laplace.cpp
 libbempp_exafmm_laplace_a_CPPFLAGS = -DSORT_BACK -DNON_ADAPTIVE $(AM_CPPFLAGS)
 
-libbempp_exafmm_helmholtz_a_SOURCES = bempp_wrapper.cpp ../src/precompute_helmholtz.cpp ../src/geometry.cpp ../src/helmholtz.cpp
+libbempp_exafmm_helmholtz_a_SOURCES = bempp_wrapper.cpp ../../src/precompute_helmholtz.cpp ../../src/geometry.cpp ../../src/helmholtz.cpp
 libbempp_exafmm_helmholtz_a_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ -DSORT_BACK -DNON_ADAPTIVE $(AM_CPPFLAGS)
 
 bin_PROGRAMS = bempp_laplace bempp_helmholtz
