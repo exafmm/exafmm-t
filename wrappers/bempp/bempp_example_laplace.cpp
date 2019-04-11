@@ -43,6 +43,9 @@ int main(int argc, char **argv) {
   verify_FMM(N, src_coord, src_value,
              N, trg_coord, trg_value);
 
+  // print tree information
+  print_tree();
+
   // delete arrays
   delete[] src_coord;
   delete[] src_value;
