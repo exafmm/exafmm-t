@@ -151,4 +151,14 @@ namespace exafmm_t {
     cout << setw(20) << left << "Potn Error" << " : " << scientific << sqrt(p_diff/p_norm) << endl;
     cout << setw(20) << left << "Grad Error" << " : " << scientific << sqrt(g_diff/g_norm) << endl;
   }
+
+  extern "C" void print_tree() {
+    print_divider("Tree");
+    print("Root Center x", XMIN0[0] + R0);
+    print("Root Center y", XMIN0[1] + R0);
+    print("Root Center z", XMIN0[2] + R0);
+    print("Root Radius R", R0);
+    print("Tree Depth", MAXLEVEL);
+    print("Leaf Nodes", LEAFS.size());
+  }
 }
