@@ -133,19 +133,27 @@ int main() {
   L2P(leafs);
 
   // direct summation
+#if HELMHOLTZ
+  ComplexVec trg_value_direct(4, 0.);
+#else
   RealVec trg_value_direct(4, 0.);
+#endif
   gradient_P2P(source->src_coord, source->src_value, target->trg_coord, trg_value_direct);
 
   // calculate error
+#if HELMHOLTZ
+  ComplexVec& trg_value = target->trg_value;
+#else
   RealVec& trg_value = target->trg_value;
+#endif
   real_t p_diff = 0, p_norm = 0, p_error = 0;
-  p_diff = (trg_value[0]-trg_value_direct[0]) * (trg_value[0]-trg_value_direct[0]);
-  p_norm = trg_value_direct[0] * trg_value_direct[0];
+  p_diff = norm(trg_value[0]-trg_value_direct[0]);
+  p_norm = norm(trg_value_direct[0]);
   p_error = sqrt(p_diff/p_norm);
   real_t F_diff = 0, F_norm = 0, F_error = 0;
   for(int d=1; d<4; ++d) {
-    F_diff += (trg_value[d]-trg_value_direct[d]) * (trg_value[d]-trg_value_direct[d]);
-    F_norm += trg_value_direct[d] * trg_value_direct[d];
+    F_diff += norm(trg_value[d]-trg_value_direct[d]);
+    F_norm += norm(trg_value_direct[d]);
   }
   F_error = sqrt(F_diff/F_norm);
   print("Potential Error", p_error);
