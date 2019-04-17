@@ -13,6 +13,8 @@ bin_PROGRAMS = laplace helmholtz
 
 laplace_SOURCES = main.cpp $(LAPLACE_SRCS)
 laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+laplace_LDADD = $(LIBS_LDADD)
 
 helmholtz_SOURCES = main.cpp $(HELMHOLTZ_SRCS)
 helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
+helmholtz_LDADD = $(LIBS_LDADD)

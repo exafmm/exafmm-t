@@ -19,8 +19,8 @@ bin_PROGRAMS = bempp_laplace bempp_helmholtz
 
 bempp_laplace_SOURCES = bempp_example_laplace.cpp
 bempp_laplace_CPPFLAGS = $(libbempp_exafmm_laplace_a_CPPFLAGS)
-bempp_laplace_LDADD = libbempp_exafmm_laplace.a
+bempp_laplace_LDADD = libbempp_exafmm_laplace.a $(LIBS_LDADD)
 
 bempp_helmholtz_SOURCES = bempp_example_helmholtz.cpp
 bempp_helmholtz_CPPFLAGS = $(libbempp_exafmm_helmholtz_a_CPPFLAGS)
-bempp_helmholtz_LDADD = libbempp_exafmm_helmholtz.a
+bempp_helmholtz_LDADD = libbempp_exafmm_helmholtz.a $(LIBS_LDADD)
