@@ -1,3 +1,5 @@
+SUBDIRS = wrappers
+
 include $(top_srcdir)/Makefile.am.include
 
 touch:
