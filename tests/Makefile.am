@@ -21,3 +21,8 @@ kernel_laplace_LDADD = $(LIBS_LDADD)
 kernel_helmholtz_SOURCES = kernel.cpp $(HELMHOLTZ_SRCS)
 kernel_helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
 kernel_helmholtz_LDADD = $(LIBS_LDADD)
+
+# tree tests
+bin_PROGRAMS += tree
+tree_SOURCES = tree.cpp
+tree_CPPFLAGS = $(AM_CPPFLAGS)
