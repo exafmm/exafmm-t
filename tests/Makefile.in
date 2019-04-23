@@ -89,7 +89,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = p2p_laplace$(EXEEXT) p2p_helmholtz$(EXEEXT) \
-	kernel_laplace$(EXEEXT) kernel_helmholtz$(EXEEXT)
+	kernel_laplace$(EXEEXT) kernel_helmholtz$(EXEEXT) \
+	tree$(EXEEXT) list$(EXEEXT) fmm_laplace$(EXEEXT) \
+	fmm_helmholtz$(EXEEXT)
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_append_compile_flags.m4 \
@@ -116,38 +118,61 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
-am__objects_1 = ../src/kernel_helmholtz-geometry.$(OBJEXT)
-am__objects_2 =  \
-	../src/kernel_helmholtz-precompute_helmholtz.$(OBJEXT) \
-	../src/kernel_helmholtz-helmholtz.$(OBJEXT) $(am__objects_1)
-am_kernel_helmholtz_OBJECTS = kernel_helmholtz-kernel.$(OBJEXT) \
+am__objects_1 = ../src/fmm_helmholtz-geometry.$(OBJEXT)
+am__objects_2 = ../src/fmm_helmholtz-precompute_helmholtz.$(OBJEXT) \
+	../src/fmm_helmholtz-helmholtz.$(OBJEXT) $(am__objects_1)
+am_fmm_helmholtz_OBJECTS = fmm_helmholtz-fmm.$(OBJEXT) \
 	$(am__objects_2)
-kernel_helmholtz_OBJECTS = $(am_kernel_helmholtz_OBJECTS)
-kernel_helmholtz_LDADD = $(LDADD)
+fmm_helmholtz_OBJECTS = $(am_fmm_helmholtz_OBJECTS)
+am__DEPENDENCIES_1 =
+am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+fmm_helmholtz_DEPENDENCIES = $(am__DEPENDENCIES_2)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am__objects_3 = ../src/kernel_laplace-geometry.$(OBJEXT)
-am__objects_4 = ../src/kernel_laplace-precompute_laplace.$(OBJEXT) \
-	../src/kernel_laplace-laplace.$(OBJEXT) $(am__objects_3)
-am_kernel_laplace_OBJECTS = kernel_laplace-kernel.$(OBJEXT) \
-	$(am__objects_4)
-kernel_laplace_OBJECTS = $(am_kernel_laplace_OBJECTS)
-kernel_laplace_LDADD = $(LDADD)
-am__objects_5 = ../src/p2p_helmholtz-geometry.$(OBJEXT)
-am__objects_6 = ../src/p2p_helmholtz-precompute_helmholtz.$(OBJEXT) \
-	../src/p2p_helmholtz-helmholtz.$(OBJEXT) $(am__objects_5)
-am_p2p_helmholtz_OBJECTS = p2p_helmholtz-p2p.$(OBJEXT) \
+am__objects_3 = ../src/fmm_laplace-geometry.$(OBJEXT)
+am__objects_4 = ../src/fmm_laplace-precompute_laplace.$(OBJEXT) \
+	../src/fmm_laplace-laplace.$(OBJEXT) $(am__objects_3)
+am_fmm_laplace_OBJECTS = fmm_laplace-fmm.$(OBJEXT) $(am__objects_4)
+fmm_laplace_OBJECTS = $(am_fmm_laplace_OBJECTS)
+fmm_laplace_DEPENDENCIES = $(am__DEPENDENCIES_2)
+am__objects_5 = ../src/kernel_helmholtz-geometry.$(OBJEXT)
+am__objects_6 =  \
+	../src/kernel_helmholtz-precompute_helmholtz.$(OBJEXT) \
+	../src/kernel_helmholtz-helmholtz.$(OBJEXT) $(am__objects_5)
+am_kernel_helmholtz_OBJECTS = kernel_helmholtz-kernel.$(OBJEXT) \
 	$(am__objects_6)
+kernel_helmholtz_OBJECTS = $(am_kernel_helmholtz_OBJECTS)
+kernel_helmholtz_DEPENDENCIES = $(am__DEPENDENCIES_2)
+am__objects_7 = ../src/kernel_laplace-geometry.$(OBJEXT)
+am__objects_8 = ../src/kernel_laplace-precompute_laplace.$(OBJEXT) \
+	../src/kernel_laplace-laplace.$(OBJEXT) $(am__objects_7)
+am_kernel_laplace_OBJECTS = kernel_laplace-kernel.$(OBJEXT) \
+	$(am__objects_8)
+kernel_laplace_OBJECTS = $(am_kernel_laplace_OBJECTS)
+kernel_laplace_DEPENDENCIES = $(am__DEPENDENCIES_2)
+am__objects_9 = ../src/list-geometry.$(OBJEXT)
+am_list_OBJECTS = list-list.$(OBJEXT) $(am__objects_9)
+list_OBJECTS = $(am_list_OBJECTS)
+list_LDADD = $(LDADD)
+am__objects_10 = ../src/p2p_helmholtz-geometry.$(OBJEXT)
+am__objects_11 = ../src/p2p_helmholtz-precompute_helmholtz.$(OBJEXT) \
+	../src/p2p_helmholtz-helmholtz.$(OBJEXT) $(am__objects_10)
+am_p2p_helmholtz_OBJECTS = p2p_helmholtz-p2p.$(OBJEXT) \
+	$(am__objects_11)
 p2p_helmholtz_OBJECTS = $(am_p2p_helmholtz_OBJECTS)
-p2p_helmholtz_LDADD = $(LDADD)
-am__objects_7 = ../src/p2p_laplace-geometry.$(OBJEXT)
-am__objects_8 = ../src/p2p_laplace-precompute_laplace.$(OBJEXT) \
-	../src/p2p_laplace-laplace.$(OBJEXT) $(am__objects_7)
-am_p2p_laplace_OBJECTS = p2p_laplace-p2p.$(OBJEXT) $(am__objects_8)
+p2p_helmholtz_DEPENDENCIES = $(am__DEPENDENCIES_2)
+am__objects_12 = ../src/p2p_laplace-geometry.$(OBJEXT)
+am__objects_13 = ../src/p2p_laplace-precompute_laplace.$(OBJEXT) \
+	../src/p2p_laplace-laplace.$(OBJEXT) $(am__objects_12)
+am_p2p_laplace_OBJECTS = p2p_laplace-p2p.$(OBJEXT) $(am__objects_13)
 p2p_laplace_OBJECTS = $(am_p2p_laplace_OBJECTS)
-p2p_laplace_LDADD = $(LDADD)
+p2p_laplace_DEPENDENCIES = $(am__DEPENDENCIES_2)
+am_tree_OBJECTS = tree-tree.$(OBJEXT)
+tree_OBJECTS = $(am_tree_OBJECTS)
+tree_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -182,10 +207,14 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(kernel_helmholtz_SOURCES) $(kernel_laplace_SOURCES) \
-	$(p2p_helmholtz_SOURCES) $(p2p_laplace_SOURCES)
-DIST_SOURCES = $(kernel_helmholtz_SOURCES) $(kernel_laplace_SOURCES) \
-	$(p2p_helmholtz_SOURCES) $(p2p_laplace_SOURCES)
+SOURCES = $(fmm_helmholtz_SOURCES) $(fmm_laplace_SOURCES) \
+	$(kernel_helmholtz_SOURCES) $(kernel_laplace_SOURCES) \
+	$(list_SOURCES) $(p2p_helmholtz_SOURCES) \
+	$(p2p_laplace_SOURCES) $(tree_SOURCES)
+DIST_SOURCES = $(fmm_helmholtz_SOURCES) $(fmm_laplace_SOURCES) \
+	$(kernel_helmholtz_SOURCES) $(kernel_laplace_SOURCES) \
+	$(list_SOURCES) $(p2p_helmholtz_SOURCES) \
+	$(p2p_laplace_SOURCES) $(tree_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -353,6 +382,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # automake preprocessor, compiler and linker flags
+
+# libraries
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/vectorclass \
 	$(FFTW_CPPFLAGS) # include user-defined path of fftw3.h
 
@@ -363,24 +394,36 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/vectorclass \
 # Compiler warning flags
 AM_CXXFLAGS = -fabi-version=6 -std=c++11 $(OPENMP_CXXFLAGS) \
 	$(SIMD_FLAGS) $(CPUEXT_FLAGS) $(COMPILER_CXXFLAGS)
-
-# libraries
-AM_LDFLAGS = -lpthread -lm $(OPENMP_CXXFLAGS) $(BLAS_LIBS) \
-	$(LAPACK_LIBS) $(FFTW_LIBS)
+AM_LDFLAGS = -lpthread -lm $(OPENMP_CXXFLAGS)
 
 # Single/Double precision
 @USE_FLOAT_TRUE@PRECISION = -DFLOAT
+LIBS_LDADD = $(BLAS_LIBS) $(LAPACK_LIBS) $(FFTW_LIBS)
 COMMON_SRCS = ../src/geometry.cpp
 LAPLACE_SRCS = ../src/precompute_laplace.cpp ../src/laplace.cpp $(COMMON_SRCS)
 HELMHOLTZ_SRCS = ../src/precompute_helmholtz.cpp ../src/helmholtz.cpp $(COMMON_SRCS)
 p2p_laplace_SOURCES = p2p.cpp $(LAPLACE_SRCS) 
 p2p_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+p2p_laplace_LDADD = $(LIBS_LDADD)
 p2p_helmholtz_SOURCES = p2p.cpp $(HELMHOLTZ_SRCS) 
 p2p_helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
+p2p_helmholtz_LDADD = $(LIBS_LDADD)
 kernel_laplace_SOURCES = kernel.cpp $(LAPLACE_SRCS)
 kernel_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+kernel_laplace_LDADD = $(LIBS_LDADD)
 kernel_helmholtz_SOURCES = kernel.cpp $(HELMHOLTZ_SRCS)
 kernel_helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
+kernel_helmholtz_LDADD = $(LIBS_LDADD)
+tree_SOURCES = tree.cpp
+tree_CPPFLAGS = $(AM_CPPFLAGS)
+list_SOURCES = list.cpp $(COMMON_SRCS)
+list_CPPFLAGS = $(AM_CPPFLAGS)
+fmm_laplace_SOURCES = fmm.cpp $(LAPLACE_SRCS)
+fmm_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+fmm_laplace_LDADD = $(LIBS_LDADD)
+fmm_helmholtz_SOURCES = fmm.cpp $(HELMHOLTZ_SRCS)
+fmm_helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
+fmm_helmholtz_LDADD = $(LIBS_LDADD)
 all: all-am
 
 .SUFFIXES:
@@ -470,6 +513,26 @@ clean-binPROGRAMS:
 ../src/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../src/$(DEPDIR)
 	@: > ../src/$(DEPDIR)/$(am__dirstamp)
+../src/fmm_helmholtz-precompute_helmholtz.$(OBJEXT):  \
+	../src/$(am__dirstamp) ../src/$(DEPDIR)/$(am__dirstamp)
+../src/fmm_helmholtz-helmholtz.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
+../src/fmm_helmholtz-geometry.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
+
+fmm_helmholtz$(EXEEXT): $(fmm_helmholtz_OBJECTS) $(fmm_helmholtz_DEPENDENCIES) $(EXTRA_fmm_helmholtz_DEPENDENCIES) 
+	@rm -f fmm_helmholtz$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(fmm_helmholtz_OBJECTS) $(fmm_helmholtz_LDADD) $(LIBS)
+../src/fmm_laplace-precompute_laplace.$(OBJEXT):  \
+	../src/$(am__dirstamp) ../src/$(DEPDIR)/$(am__dirstamp)
+../src/fmm_laplace-laplace.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
+../src/fmm_laplace-geometry.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
+
+fmm_laplace$(EXEEXT): $(fmm_laplace_OBJECTS) $(fmm_laplace_DEPENDENCIES) $(EXTRA_fmm_laplace_DEPENDENCIES) 
+	@rm -f fmm_laplace$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(fmm_laplace_OBJECTS) $(fmm_laplace_LDADD) $(LIBS)
 ../src/kernel_helmholtz-precompute_helmholtz.$(OBJEXT):  \
 	../src/$(am__dirstamp) ../src/$(DEPDIR)/$(am__dirstamp)
 ../src/kernel_helmholtz-helmholtz.$(OBJEXT): ../src/$(am__dirstamp) \
@@ -490,6 +553,12 @@ kernel_helmholtz$(EXEEXT): $(kernel_helmholtz_OBJECTS) $(kernel_helmholtz_DEPEND
 kernel_laplace$(EXEEXT): $(kernel_laplace_OBJECTS) $(kernel_laplace_DEPENDENCIES) $(EXTRA_kernel_laplace_DEPENDENCIES) 
 	@rm -f kernel_laplace$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(kernel_laplace_OBJECTS) $(kernel_laplace_LDADD) $(LIBS)
+../src/list-geometry.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
+
+list$(EXEEXT): $(list_OBJECTS) $(list_DEPENDENCIES) $(EXTRA_list_DEPENDENCIES) 
+	@rm -f list$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(list_OBJECTS) $(list_LDADD) $(LIBS)
 ../src/p2p_helmholtz-precompute_helmholtz.$(OBJEXT):  \
 	../src/$(am__dirstamp) ../src/$(DEPDIR)/$(am__dirstamp)
 ../src/p2p_helmholtz-helmholtz.$(OBJEXT): ../src/$(am__dirstamp) \
@@ -511,6 +580,10 @@ p2p_laplace$(EXEEXT): $(p2p_laplace_OBJECTS) $(p2p_laplace_DEPENDENCIES) $(EXTRA
 	@rm -f p2p_laplace$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(p2p_laplace_OBJECTS) $(p2p_laplace_LDADD) $(LIBS)
 
+tree$(EXEEXT): $(tree_OBJECTS) $(tree_DEPENDENCIES) $(EXTRA_tree_DEPENDENCIES) 
+	@rm -f tree$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(tree_OBJECTS) $(tree_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f ../src/*.$(OBJEXT)
@@ -518,22 +591,33 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_helmholtz-geometry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_helmholtz-helmholtz.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_helmholtz-precompute_helmholtz.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_laplace-geometry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_laplace-laplace.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_laplace-precompute_laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_helmholtz-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_helmholtz-helmholtz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_helmholtz-precompute_helmholtz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_laplace-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_laplace-laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_laplace-precompute_laplace.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/list-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/p2p_helmholtz-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/p2p_helmholtz-helmholtz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/p2p_helmholtz-precompute_helmholtz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/p2p_laplace-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/p2p_laplace-laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/p2p_laplace-precompute_laplace.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmm_helmholtz-fmm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmm_laplace-fmm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kernel_helmholtz-kernel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kernel_laplace-kernel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list-list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p2p_helmholtz-p2p.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p2p_laplace-p2p.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tree-tree.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -558,6 +642,118 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+fmm_helmholtz-fmm.o: fmm.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fmm_helmholtz-fmm.o -MD -MP -MF $(DEPDIR)/fmm_helmholtz-fmm.Tpo -c -o fmm_helmholtz-fmm.o `test -f 'fmm.cpp' || echo '$(srcdir)/'`fmm.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fmm_helmholtz-fmm.Tpo $(DEPDIR)/fmm_helmholtz-fmm.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fmm.cpp' object='fmm_helmholtz-fmm.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fmm_helmholtz-fmm.o `test -f 'fmm.cpp' || echo '$(srcdir)/'`fmm.cpp
+
+fmm_helmholtz-fmm.obj: fmm.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fmm_helmholtz-fmm.obj -MD -MP -MF $(DEPDIR)/fmm_helmholtz-fmm.Tpo -c -o fmm_helmholtz-fmm.obj `if test -f 'fmm.cpp'; then $(CYGPATH_W) 'fmm.cpp'; else $(CYGPATH_W) '$(srcdir)/fmm.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fmm_helmholtz-fmm.Tpo $(DEPDIR)/fmm_helmholtz-fmm.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fmm.cpp' object='fmm_helmholtz-fmm.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fmm_helmholtz-fmm.obj `if test -f 'fmm.cpp'; then $(CYGPATH_W) 'fmm.cpp'; else $(CYGPATH_W) '$(srcdir)/fmm.cpp'; fi`
+
+../src/fmm_helmholtz-precompute_helmholtz.o: ../src/precompute_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_helmholtz-precompute_helmholtz.o -MD -MP -MF ../src/$(DEPDIR)/fmm_helmholtz-precompute_helmholtz.Tpo -c -o ../src/fmm_helmholtz-precompute_helmholtz.o `test -f '../src/precompute_helmholtz.cpp' || echo '$(srcdir)/'`../src/precompute_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_helmholtz-precompute_helmholtz.Tpo ../src/$(DEPDIR)/fmm_helmholtz-precompute_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/precompute_helmholtz.cpp' object='../src/fmm_helmholtz-precompute_helmholtz.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_helmholtz-precompute_helmholtz.o `test -f '../src/precompute_helmholtz.cpp' || echo '$(srcdir)/'`../src/precompute_helmholtz.cpp
+
+../src/fmm_helmholtz-precompute_helmholtz.obj: ../src/precompute_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_helmholtz-precompute_helmholtz.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_helmholtz-precompute_helmholtz.Tpo -c -o ../src/fmm_helmholtz-precompute_helmholtz.obj `if test -f '../src/precompute_helmholtz.cpp'; then $(CYGPATH_W) '../src/precompute_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/precompute_helmholtz.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_helmholtz-precompute_helmholtz.Tpo ../src/$(DEPDIR)/fmm_helmholtz-precompute_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/precompute_helmholtz.cpp' object='../src/fmm_helmholtz-precompute_helmholtz.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_helmholtz-precompute_helmholtz.obj `if test -f '../src/precompute_helmholtz.cpp'; then $(CYGPATH_W) '../src/precompute_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/precompute_helmholtz.cpp'; fi`
+
+../src/fmm_helmholtz-helmholtz.o: ../src/helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_helmholtz-helmholtz.o -MD -MP -MF ../src/$(DEPDIR)/fmm_helmholtz-helmholtz.Tpo -c -o ../src/fmm_helmholtz-helmholtz.o `test -f '../src/helmholtz.cpp' || echo '$(srcdir)/'`../src/helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_helmholtz-helmholtz.Tpo ../src/$(DEPDIR)/fmm_helmholtz-helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/helmholtz.cpp' object='../src/fmm_helmholtz-helmholtz.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_helmholtz-helmholtz.o `test -f '../src/helmholtz.cpp' || echo '$(srcdir)/'`../src/helmholtz.cpp
+
+../src/fmm_helmholtz-helmholtz.obj: ../src/helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_helmholtz-helmholtz.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_helmholtz-helmholtz.Tpo -c -o ../src/fmm_helmholtz-helmholtz.obj `if test -f '../src/helmholtz.cpp'; then $(CYGPATH_W) '../src/helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/helmholtz.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_helmholtz-helmholtz.Tpo ../src/$(DEPDIR)/fmm_helmholtz-helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/helmholtz.cpp' object='../src/fmm_helmholtz-helmholtz.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_helmholtz-helmholtz.obj `if test -f '../src/helmholtz.cpp'; then $(CYGPATH_W) '../src/helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/helmholtz.cpp'; fi`
+
+../src/fmm_helmholtz-geometry.o: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_helmholtz-geometry.o -MD -MP -MF ../src/$(DEPDIR)/fmm_helmholtz-geometry.Tpo -c -o ../src/fmm_helmholtz-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_helmholtz-geometry.Tpo ../src/$(DEPDIR)/fmm_helmholtz-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/fmm_helmholtz-geometry.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_helmholtz-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+
+../src/fmm_helmholtz-geometry.obj: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_helmholtz-geometry.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_helmholtz-geometry.Tpo -c -o ../src/fmm_helmholtz-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_helmholtz-geometry.Tpo ../src/$(DEPDIR)/fmm_helmholtz-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/fmm_helmholtz-geometry.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_helmholtz-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+
+fmm_laplace-fmm.o: fmm.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fmm_laplace-fmm.o -MD -MP -MF $(DEPDIR)/fmm_laplace-fmm.Tpo -c -o fmm_laplace-fmm.o `test -f 'fmm.cpp' || echo '$(srcdir)/'`fmm.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fmm_laplace-fmm.Tpo $(DEPDIR)/fmm_laplace-fmm.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fmm.cpp' object='fmm_laplace-fmm.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fmm_laplace-fmm.o `test -f 'fmm.cpp' || echo '$(srcdir)/'`fmm.cpp
+
+fmm_laplace-fmm.obj: fmm.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fmm_laplace-fmm.obj -MD -MP -MF $(DEPDIR)/fmm_laplace-fmm.Tpo -c -o fmm_laplace-fmm.obj `if test -f 'fmm.cpp'; then $(CYGPATH_W) 'fmm.cpp'; else $(CYGPATH_W) '$(srcdir)/fmm.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fmm_laplace-fmm.Tpo $(DEPDIR)/fmm_laplace-fmm.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fmm.cpp' object='fmm_laplace-fmm.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fmm_laplace-fmm.obj `if test -f 'fmm.cpp'; then $(CYGPATH_W) 'fmm.cpp'; else $(CYGPATH_W) '$(srcdir)/fmm.cpp'; fi`
+
+../src/fmm_laplace-precompute_laplace.o: ../src/precompute_laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_laplace-precompute_laplace.o -MD -MP -MF ../src/$(DEPDIR)/fmm_laplace-precompute_laplace.Tpo -c -o ../src/fmm_laplace-precompute_laplace.o `test -f '../src/precompute_laplace.cpp' || echo '$(srcdir)/'`../src/precompute_laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_laplace-precompute_laplace.Tpo ../src/$(DEPDIR)/fmm_laplace-precompute_laplace.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/precompute_laplace.cpp' object='../src/fmm_laplace-precompute_laplace.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_laplace-precompute_laplace.o `test -f '../src/precompute_laplace.cpp' || echo '$(srcdir)/'`../src/precompute_laplace.cpp
+
+../src/fmm_laplace-precompute_laplace.obj: ../src/precompute_laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_laplace-precompute_laplace.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_laplace-precompute_laplace.Tpo -c -o ../src/fmm_laplace-precompute_laplace.obj `if test -f '../src/precompute_laplace.cpp'; then $(CYGPATH_W) '../src/precompute_laplace.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/precompute_laplace.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_laplace-precompute_laplace.Tpo ../src/$(DEPDIR)/fmm_laplace-precompute_laplace.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/precompute_laplace.cpp' object='../src/fmm_laplace-precompute_laplace.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_laplace-precompute_laplace.obj `if test -f '../src/precompute_laplace.cpp'; then $(CYGPATH_W) '../src/precompute_laplace.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/precompute_laplace.cpp'; fi`
+
+../src/fmm_laplace-laplace.o: ../src/laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_laplace-laplace.o -MD -MP -MF ../src/$(DEPDIR)/fmm_laplace-laplace.Tpo -c -o ../src/fmm_laplace-laplace.o `test -f '../src/laplace.cpp' || echo '$(srcdir)/'`../src/laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_laplace-laplace.Tpo ../src/$(DEPDIR)/fmm_laplace-laplace.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/laplace.cpp' object='../src/fmm_laplace-laplace.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_laplace-laplace.o `test -f '../src/laplace.cpp' || echo '$(srcdir)/'`../src/laplace.cpp
+
+../src/fmm_laplace-laplace.obj: ../src/laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_laplace-laplace.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_laplace-laplace.Tpo -c -o ../src/fmm_laplace-laplace.obj `if test -f '../src/laplace.cpp'; then $(CYGPATH_W) '../src/laplace.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/laplace.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_laplace-laplace.Tpo ../src/$(DEPDIR)/fmm_laplace-laplace.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/laplace.cpp' object='../src/fmm_laplace-laplace.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_laplace-laplace.obj `if test -f '../src/laplace.cpp'; then $(CYGPATH_W) '../src/laplace.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/laplace.cpp'; fi`
+
+../src/fmm_laplace-geometry.o: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_laplace-geometry.o -MD -MP -MF ../src/$(DEPDIR)/fmm_laplace-geometry.Tpo -c -o ../src/fmm_laplace-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_laplace-geometry.Tpo ../src/$(DEPDIR)/fmm_laplace-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/fmm_laplace-geometry.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_laplace-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+
+../src/fmm_laplace-geometry.obj: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_laplace-geometry.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_laplace-geometry.Tpo -c -o ../src/fmm_laplace-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_laplace-geometry.Tpo ../src/$(DEPDIR)/fmm_laplace-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/fmm_laplace-geometry.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_laplace-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
 
 kernel_helmholtz-kernel.o: kernel.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT kernel_helmholtz-kernel.o -MD -MP -MF $(DEPDIR)/kernel_helmholtz-kernel.Tpo -c -o kernel_helmholtz-kernel.o `test -f 'kernel.cpp' || echo '$(srcdir)/'`kernel.cpp
@@ -671,6 +867,34 @@ kernel_laplace-kernel.obj: kernel.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/kernel_laplace-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
 
+list-list.o: list.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT list-list.o -MD -MP -MF $(DEPDIR)/list-list.Tpo -c -o list-list.o `test -f 'list.cpp' || echo '$(srcdir)/'`list.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/list-list.Tpo $(DEPDIR)/list-list.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='list.cpp' object='list-list.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o list-list.o `test -f 'list.cpp' || echo '$(srcdir)/'`list.cpp
+
+list-list.obj: list.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT list-list.obj -MD -MP -MF $(DEPDIR)/list-list.Tpo -c -o list-list.obj `if test -f 'list.cpp'; then $(CYGPATH_W) 'list.cpp'; else $(CYGPATH_W) '$(srcdir)/list.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/list-list.Tpo $(DEPDIR)/list-list.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='list.cpp' object='list-list.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o list-list.obj `if test -f 'list.cpp'; then $(CYGPATH_W) 'list.cpp'; else $(CYGPATH_W) '$(srcdir)/list.cpp'; fi`
+
+../src/list-geometry.o: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/list-geometry.o -MD -MP -MF ../src/$(DEPDIR)/list-geometry.Tpo -c -o ../src/list-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/list-geometry.Tpo ../src/$(DEPDIR)/list-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/list-geometry.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/list-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+
+../src/list-geometry.obj: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/list-geometry.obj -MD -MP -MF ../src/$(DEPDIR)/list-geometry.Tpo -c -o ../src/list-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/list-geometry.Tpo ../src/$(DEPDIR)/list-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/list-geometry.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/list-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+
 p2p_helmholtz-p2p.o: p2p.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(p2p_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT p2p_helmholtz-p2p.o -MD -MP -MF $(DEPDIR)/p2p_helmholtz-p2p.Tpo -c -o p2p_helmholtz-p2p.o `test -f 'p2p.cpp' || echo '$(srcdir)/'`p2p.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/p2p_helmholtz-p2p.Tpo $(DEPDIR)/p2p_helmholtz-p2p.Po
@@ -782,6 +1006,20 @@ p2p_laplace-p2p.obj: p2p.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/p2p_laplace-geometry.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(p2p_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/p2p_laplace-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+
+tree-tree.o: tree.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tree_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tree-tree.o -MD -MP -MF $(DEPDIR)/tree-tree.Tpo -c -o tree-tree.o `test -f 'tree.cpp' || echo '$(srcdir)/'`tree.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/tree-tree.Tpo $(DEPDIR)/tree-tree.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='tree.cpp' object='tree-tree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tree_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tree-tree.o `test -f 'tree.cpp' || echo '$(srcdir)/'`tree.cpp
+
+tree-tree.obj: tree.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tree_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tree-tree.obj -MD -MP -MF $(DEPDIR)/tree-tree.Tpo -c -o tree-tree.obj `if test -f 'tree.cpp'; then $(CYGPATH_W) 'tree.cpp'; else $(CYGPATH_W) '$(srcdir)/tree.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/tree-tree.Tpo $(DEPDIR)/tree-tree.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='tree.cpp' object='tree-tree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tree_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tree-tree.obj `if test -f 'tree.cpp'; then $(CYGPATH_W) 'tree.cpp'; else $(CYGPATH_W) '$(srcdir)/tree.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -19,5 +19,5 @@ PRECISION = -DFLOAT
 endif
 
 # libraries
-AM_LDFLAGS += $(BLAS_LIBS) $(LAPACK_LIBS) $(FFTW_LIBS)
 AM_CPPFLAGS += $(FFTW_CPPFLAGS)   # include user-defined path of fftw3.h
+LIBS_LDADD = $(BLAS_LIBS) $(LAPACK_LIBS) $(FFTW_LIBS)
