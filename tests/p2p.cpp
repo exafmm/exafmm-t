@@ -20,7 +20,6 @@ namespace exafmm_t {
 }
 
 using namespace exafmm_t;
-using namespace std;
 
 void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
   int trg_cnt = trg_coord.size()/3;

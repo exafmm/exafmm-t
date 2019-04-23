@@ -3,7 +3,6 @@
 #include "exafmm_t.h"
 #include "hilbert.h"
 
-using namespace std;
 namespace exafmm_t {
   // Get bounding box of sources and targets
   void get_bounds(const Bodies& sources, const Bodies& targets, vec3& Xmin0, real_t& r0) {
@@ -29,7 +28,7 @@ namespace exafmm_t {
   // end: the end index of the segment
   // size: the vector of the number of bodies in each octant
   // offsets: the vector of the begin index of the sorted bodies in each octant
-  void sort_bodies(Node* const node, Body* const bodies, int begin, int end, vector<int>& size, vector<int>& offsets) {
+  void sort_bodies(Node* const node, Body* const bodies, int begin, int end, std::vector<int>& size, std::vector<int>& offsets) {
     if (end == begin) {
       size.resize(8, 0);
       offsets.resize(8, begin);
@@ -45,7 +44,7 @@ namespace exafmm_t {
     }
     // Exclusive scan to get offsets
     offsets.resize(8);
-    vector<int> counter(8);
+    std::vector<int> counter(8);
     int offset = begin;
     for (int i=0; i<8; i++) {
       offsets[i] = offset;
@@ -130,8 +129,8 @@ namespace exafmm_t {
       return;
     }
     // Sort bodies and save in buffer
-    vector<int> source_size, source_offsets;
-    vector<int> target_size, target_offsets;
+    std::vector<int> source_size, source_offsets;
+    std::vector<int> target_size, target_offsets;
     sort_bodies(node, sources, source_begin, source_end, source_size, source_offsets);
     sort_bodies(node, targets, target_begin, target_end, target_size, target_offsets);
     //! Loop over children and recurse

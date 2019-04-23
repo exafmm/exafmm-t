@@ -21,7 +21,6 @@ namespace exafmm_t {
 }
 
 using namespace exafmm_t;
-using namespace std;
 
 // Helper function to build the tree needed in kernel test
 void set_children(Node* parent, Node* first_child) {
@@ -55,8 +54,8 @@ int main() {
   precompute();
 
   // create tree
-  vector<int> nnodes = {1, 8, 8*2, 8*2};  // number of nodes at each level
-  Nodes nodes(accumulate(nnodes.begin(), nnodes.end(), 0));
+  std::vector<int> nnodes = {1, 8, 8*2, 8*2};  // number of nodes at each level
+  Nodes nodes(std::accumulate(nnodes.begin(), nnodes.end(), 0));
   // initialize nodes
   for(size_t i=0; i<nodes.size(); ++i) {
     Node& node = nodes[i];
@@ -147,13 +146,13 @@ int main() {
   RealVec& trg_value = target->trg_value;
 #endif
   real_t p_diff = 0, p_norm = 0, p_error = 0;
-  p_diff = norm(trg_value[0]-trg_value_direct[0]);
-  p_norm = norm(trg_value_direct[0]);
+  p_diff = std::norm(trg_value[0]-trg_value_direct[0]);
+  p_norm = std::norm(trg_value_direct[0]);
   p_error = sqrt(p_diff/p_norm);
   real_t F_diff = 0, F_norm = 0, F_error = 0;
   for(int d=1; d<4; ++d) {
-    F_diff += norm(trg_value[d]-trg_value_direct[d]);
-    F_norm += norm(trg_value_direct[d]);
+    F_diff += std::norm(trg_value[d]-trg_value_direct[d]);
+    F_norm += std::norm(trg_value_direct[d]);
   }
   F_error = sqrt(F_diff/F_norm);
   print("Potential Error", p_error);

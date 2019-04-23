@@ -25,7 +25,7 @@ namespace exafmm_t {
 }
 
 using namespace exafmm_t;
-using namespace std;
+
 int main(int argc, char **argv) {
 #if HELMHOLTZ
   WAVEK = 20;

@@ -5,7 +5,6 @@
 #include "exafmm_t.h"
 #include "hilbert.h"
 
-using namespace std;
 namespace exafmm_t {
   // Get bounding box of sources and targets
   void get_bounds(const Bodies& sources, const Bodies& targets, vec3& Xmin0, real_t& r0) {

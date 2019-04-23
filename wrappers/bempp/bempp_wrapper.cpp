@@ -1,6 +1,3 @@
-#include <complex>
-#include <iomanip>
-#include <iostream>
 #include <omp.h>
 #include "build_non_adaptive_tree.h"
 #include "build_list.h"
@@ -13,7 +10,6 @@
 #endif
 #include "traverse.h"
 
-using namespace std;
 namespace exafmm_t {
   // global variables
   Args args;
@@ -117,9 +113,9 @@ namespace exafmm_t {
     int stride = trg_count / ntrgs;
     // use RealVec type in P2P kernel
     RealVec src_coord_(src_coord, src_coord+3*src_count);
-    vector<value_t> src_value_(src_value, src_value+src_count);
+    std::vector<value_t> src_value_(src_value, src_value+src_count);
     RealVec trg_coord_(3*ntrgs);
-    vector<value_t> trg_value_(4*ntrgs, 0);
+    std::vector<value_t> trg_value_(4*ntrgs, 0);
     // prepare the coordinates of the sampled targets
     for(int i=0; i<ntrgs; ++i) {
       int itrg = i*stride;
@@ -148,8 +144,8 @@ namespace exafmm_t {
       }
 #endif
     }
-    cout << setw(20) << left << "Potn Error" << " : " << scientific << sqrt(p_diff/p_norm) << endl;
-    cout << setw(20) << left << "Grad Error" << " : " << scientific << sqrt(g_diff/g_norm) << endl;
+    print("Potential Error", std::sqrt(p_diff/p_norm));
+    print("Gradient Error", std::sqrt(g_diff/g_norm));
   }
 
   extern "C" void print_tree() {
