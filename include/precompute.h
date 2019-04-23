@@ -9,7 +9,7 @@ namespace exafmm_t {
   RealVec L2L_U, L2L_V;
   RealVec mat_M2L_Helper;
   RealVec mat_M2M;
-  std::vector<RealVec> mat_L2L;
+  RealVec mat_L2L;
 
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C, real_t beta);
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
@@ -52,7 +52,7 @@ namespace exafmm_t {
 
     int numRelCoord = rel_coord[M2M_Type].size();
     mat_M2M.resize(numRelCoord*NSURF*NSURF);
-    mat_L2L.resize(numRelCoord);
+    mat_L2L.resize(numRelCoord*NSURF*NSURF);
 
 #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
@@ -67,9 +67,8 @@ namespace exafmm_t {
       gemm(NSURF, NSURF, NSURF, &buffer[0], &M2M_U[0], &(mat_M2M[i*NSURF*NSURF]));
       // L2L: parent's dnward_equiv to child's check, reuse surface coordinates
       M_e2c = transpose(M_e2c, NSURF, NSURF);
-      mat_L2L[i].resize(NSURF*NSURF);
       gemm(NSURF, NSURF, NSURF, &L2L_U[0], &M_e2c[0], &buffer[0]);
-      gemm(NSURF, NSURF, NSURF, &L2L_V[0], &buffer[0], &(mat_L2L[i][0]));
+      gemm(NSURF, NSURF, NSURF, &L2L_V[0], &buffer[0], &(mat_L2L[i*NSURF*NSURF]));
     }
   }
   

@@ -25,13 +25,19 @@ int main(int argc, char **argv) {
   std::vector<int> leafs_idx;
   std::vector<int> nonleafs_idx;
   std::vector<int> childs_idx;
-  std::vector<int> nodes_idx;
   Bodies bodies = cube(args.numBodies, 0);
-  Nodes nodes = buildTree(bodies, leafs_idx, nonleafs_idx, childs_idx, nodes_idx, args);
-  test_cuda(nodes);
+  Nodes nodes = buildTree(bodies, leafs_idx, nonleafs_idx, args);
   MAXLEVEL = 0;
   for(size_t i=0; i<leafs_idx.size(); i++) {
     MAXLEVEL = std::max(MAXLEVEL, nodes[leafs_idx[i]].depth);
+  }
+  std::vector<std::vector<int>> nodes_by_level_idx(MAXLEVEL);
+  std::vector<std::vector<int>> parent_by_level_idx(MAXLEVEL);
+  std::vector<std::vector<int>> octant_by_level_idx(MAXLEVEL);
+  for(int i=1;i<nodes.size();i++){
+    nodes_by_level_idx[nodes[i].depth-1].push_back(nodes[i].idx);
+    parent_by_level_idx[nodes[i].depth-1].push_back(nodes[i].parent->idx);
+    octant_by_level_idx[nodes[i].depth-1].push_back(nodes[i].octant);
   }
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
@@ -65,8 +71,8 @@ int main(int argc, char **argv) {
   Profile::Toc();
   setColleagues(nodes);
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
-  upwardPass(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nonleafs_idx);
-  downwardPass(nodes, leafs_idx, nonleafs_idx, M2Lsources_idx, M2Ltargets_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, dnward_equiv, nodes_trg, childs_idx);
+  upwardPass(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nonleafs_idx, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
+  downwardPass(nodes, leafs_idx, nonleafs_idx, M2Lsources_idx, M2Ltargets_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, dnward_equiv, nodes_trg,  nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
   Profile::Toc();
   RealVec error = verify(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, nodes_trg);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs_idx.size() << std::endl;

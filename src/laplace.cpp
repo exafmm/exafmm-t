@@ -10,8 +10,8 @@ namespace exafmm_t {
 
   //! using blas gemm with row major data
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C, real_t beta) {
+    real_t alpha=1.0;
     char transA = 'N', transB = 'N';
-    real_t alpha = 1.0;
 #if FLOAT
     sgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #else
@@ -189,56 +189,12 @@ namespace exafmm_t {
     }
   }
 
-  void M2M(Nodes &nodes, RealVec &upward_equiv, std::vector<int> &nonleafs_idx) {
-    std::vector<std::vector<int>> nodes_by_level_idx(MAXLEVEL);
-    std::vector<std::vector<int>> parent_by_level_idx(MAXLEVEL);
-    std::vector<std::vector<int>> octant_by_level_idx(MAXLEVEL);
-    for(int i=1;i<nodes.size();i++){
-      nodes_by_level_idx[nodes[i].depth-1].push_back(nodes[i].idx);
-      parent_by_level_idx[nodes[i].depth-1].push_back(nodes[i].parent->idx);
-      octant_by_level_idx[nodes[i].depth-1].push_back(nodes[i].octant);
-    }
+  void M2M(Nodes &nodes, RealVec &upward_equiv, std::vector<int> &nonleafs_idx, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx) {
     M2MGPU(upward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
   }
   
-  /*void L2L(Nodes &nodes, int *nonleafs_idx, RealVec &dnward_equiv, std::vector<int> &childs_idx, int idx) {
-    int nonleaf_idx = nonleafs_idx[0];
-    if(nodes[nonleaf_idx].IsLeaf()) return;
-    for(int octant=0; octant<8; octant++) {
-      if(childs_idx[]node->child[octant] != NULL) {
-        Node* child = node->child[octant];
-        RealVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &dnward_equiv[node->idx*NSURF], &(mat_L2L[octant][0]), &buffer[0]);
-        for(int k=0; k<NSURF; k++)
-          dnward_equiv[child->idx*NSURF+k] += buffer[k];
-      }
-    }
-    for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL)
-        #pragma omp task untied
-        L2L(node->child[octant], dnward_equiv);
-    }
-    #pragma omp taskwait
-  }*/
-
-
-  void L2L(Node* node, RealVec &dnward_equiv) {
-    if(node->IsLeaf()) return;
-    for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL) {
-        Node* child = node->child[octant];
-        RealVec buffer(NSURF);
-        gemm(1, NSURF, NSURF, &dnward_equiv[node->idx*NSURF], &(mat_L2L[octant][0]), &buffer[0]);
-        for(int k=0; k<NSURF; k++)
-          dnward_equiv[child->idx*NSURF+k] += buffer[k];
-      }
-    }
-    for(int octant=0; octant<8; octant++) {
-      if(node->child[octant] != NULL)
-        #pragma omp task untied
-        L2L(node->child[octant], dnward_equiv);
-    }
-    #pragma omp taskwait
+  void L2L(Nodes &nodes, RealVec &dnward_equiv, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx) {
+    L2LGPU(nodes, dnward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
   }
 
   void L2P(Nodes &nodes, RealVec &dnward_equiv, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &nodes_coord) {
