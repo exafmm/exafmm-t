@@ -26,3 +26,8 @@ kernel_helmholtz_LDADD = $(LIBS_LDADD)
 bin_PROGRAMS += tree
 tree_SOURCES = tree.cpp
 tree_CPPFLAGS = $(AM_CPPFLAGS)
+
+# list tests
+bin_PROGRAMS += list
+list_SOURCES = list.cpp $(COMMON_SRCS)
+list_CPPFLAGS = $(AM_CPPFLAGS)
