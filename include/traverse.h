@@ -49,41 +49,27 @@ namespace exafmm_t {
 #pragma omp parallel for
     for(size_t i=0; i<targets2.size(); i++) {
       Node *target = &targets2[i];
-#if COMPLEX
-      std::fill(target->trg_value.begin(), target->trg_value.end(), complex_t(0.,0.));
-#else
       std::fill(target->trg_value.begin(), target->trg_value.end(), 0.);
-#endif
       for(size_t j=0; j<leafs.size(); j++) {
         gradient_P2P(leafs[j]->src_coord, leafs[j]->src_value, target->trg_coord, target->trg_value);
         // potentialP2P(leafs[j]->src_coord, leafs[j]->src_value, target->trg_coord, target->trg_value);
       }
     }
-    real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm = 0;
+    real_t p_diff = 0, p_norm = 0, F_diff = 0, F_norm = 0;
     for(size_t i=0; i<targets.size(); i++) {
       if (targets2[i].ntrgs != 0) {  // if current leaf is not empty
-#if COMPLEX
         p_norm += std::norm(targets2[i].trg_value[0]);
         p_diff += std::norm(targets2[i].trg_value[0] - targets[i].trg_value[0]);
-#else
-        p_norm += targets2[i].trg_value[0] * targets2[i].trg_value[0];
-        p_diff += (targets2[i].trg_value[0] - targets[i].trg_value[0]) * (targets2[i].trg_value[0] - targets[i].trg_value[0]);
-#endif
         for(int d=1; d<4; d++) {
-#if COMPLEX
-          g_diff += std::norm(targets2[i].trg_value[d] - targets[i].trg_value[d]);
-          g_norm += std::norm(targets2[i].trg_value[d]);
-#else
-          g_diff += (targets2[i].trg_value[d] - targets[i].trg_value[d]) * (targets2[i].trg_value[d] - targets[i].trg_value[d]);
-          g_norm += targets2[i].trg_value[d] * targets2[i].trg_value[d];
-#endif
+          F_diff += std::norm(targets2[i].trg_value[d] - targets[i].trg_value[d]);
+          F_norm += std::norm(targets2[i].trg_value[d]);
         }
       }
     }
-    RealVec l2_error(2);
-    l2_error[0] = sqrt(p_diff/p_norm);
-    l2_error[1] = sqrt(g_diff/g_norm);
-    return l2_error;
+    RealVec rel_error(2);
+    rel_error[0] = sqrt(p_diff/p_norm);   // potential error
+    rel_error[1] = sqrt(F_diff/F_norm);   // gradient error
+    return rel_error;
   }
 }//end namespace
 #endif

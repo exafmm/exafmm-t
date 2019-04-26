@@ -125,27 +125,18 @@ namespace exafmm_t {
     }
     gradient_P2P(src_coord_, src_value_, trg_coord_, trg_value_);
     // compute relative error in L2 norm
-    real_t p_norm = 0, p_diff = 0, g_norm = 0, g_diff = 0;
+    real_t p_norm = 0, p_diff = 0, F_norm = 0, F_diff = 0;
     for(int i=0; i<ntrgs; ++i) {
       int itrg = i*stride;
-#if COMPLEX
-      p_norm += norm(trg_value_[4*i]);
-      p_diff += norm(trg_value_[4*i]-trg_value[4*itrg]);
+      p_norm += std::norm(trg_value_[4*i]);
+      p_diff += std::norm(trg_value_[4*i]-trg_value[4*itrg]);
       for(int d=1; d<4; ++d) {
-        g_norm += norm(trg_value_[4*i+d]);
-        g_diff += norm(trg_value_[4*i+d]-trg_value[4*itrg+d]);
+        F_norm += std::norm(trg_value_[4*i+d]);
+        F_diff += std::norm(trg_value_[4*i+d]-trg_value[4*itrg+d]);
       }
-#else
-      p_norm += trg_value_[4*i] * trg_value_[4*i];
-      p_diff += (trg_value_[4*i]-trg_value[4*itrg]) * (trg_value_[4*i]-trg_value[4*itrg]);
-      for(int d=1; d<4; ++d) {
-        g_norm += trg_value_[4*i+d] * trg_value_[4*i+d];
-        g_diff += (trg_value_[4*i+d]-trg_value[4*itrg+d]) * (trg_value_[4*i+d]-trg_value[4*itrg+d]);
-      }
-#endif
     }
     print("Potential Error", std::sqrt(p_diff/p_norm));
-    print("Gradient Error", std::sqrt(g_diff/g_norm));
+    print("Gradient Error", std::sqrt(F_diff/F_norm));
   }
 
   extern "C" void print_tree() {
