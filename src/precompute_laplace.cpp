@@ -8,6 +8,7 @@ namespace exafmm_t {
   std::vector<AlignedVec> matrix_M2L;
   std::vector<RealVec> matrix_L2L;
   std::string FILE_NAME;
+  bool IS_PRECOMPUTED = true;  // whether matrices are precomputed
 
   //! blas gemm with row major data
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C) {
@@ -228,6 +229,7 @@ namespace exafmm_t {
   }
 
   void save_matrix() {
+    std::remove(FILE_NAME.c_str());
     std::ofstream file(FILE_NAME, std::ofstream::binary);
     // R0
     file.write(reinterpret_cast<char*>(&R0), sizeof(real_t));
@@ -261,6 +263,7 @@ namespace exafmm_t {
     FILE_NAME += ".dat";
     initialize_matrix();
     if (load_matrix()) {
+      IS_PRECOMPUTED = false;
       return;
     } else {
       precompute_check2equiv();
@@ -271,4 +274,3 @@ namespace exafmm_t {
     }
   }
 }//end namespace
-#
