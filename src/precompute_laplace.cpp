@@ -69,8 +69,8 @@ namespace exafmm_t {
     int level = 0;
     real_t c[3] = {0, 0, 0};
     // caculate upwardcheck to equiv U and V
-    RealVec up_check_surf = surface(P,c,2.95,level);
-    RealVec up_equiv_surf = surface(P,c,1.05,level);
+    RealVec up_check_surf = surface(P, c, 2.95, level);
+    RealVec up_equiv_surf = surface(P, c, 1.05, level);
     RealVec matrix_c2e(NSURF*NSURF);
     kernel_matrix(&up_check_surf[0], NSURF, &up_equiv_surf[0], NSURF, &matrix_c2e[0]);
     RealVec U(NSURF*NSURF), S(NSURF*NSURF), VT(NSURF*NSURF);
@@ -96,13 +96,15 @@ namespace exafmm_t {
     int numRelCoord = REL_COORD[M2M_Type].size();
     int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
-    RealVec parent_up_check_surf = surface(P,parent_coord,2.95,level);
+    RealVec parent_up_check_surf = surface(P, parent_coord, 2.95, level);
     real_t s = R0 * powf(0.5, level+1);
 #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
       ivec3& coord = REL_COORD[M2M_Type][i];
-      real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-      RealVec child_up_equiv_surf = surface(P,child_coord,1.05,level+1);
+      real_t child_coord[3] = {parent_coord[0] + coord[0]*s,
+                               parent_coord[1] + coord[1]*s,
+                               parent_coord[2] + coord[2]*s};
+      RealVec child_up_equiv_surf = surface(P, child_coord, 1.05, level+1);
       RealVec matrix_pc2ce(NSURF*NSURF);
       kernel_matrix(&parent_up_check_surf[0], NSURF, &child_up_equiv_surf[0], NSURF, &matrix_pc2ce[0]);
       // M2M
