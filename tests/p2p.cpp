@@ -12,7 +12,7 @@ namespace exafmm_t {
   int P;
   int NSURF;
   int MAXLEVEL;
-  vec3 XMIN0;
+  vec3 X0;
   real_t R0;
 #if HELMHOLTZ
   real_t WAVEK;

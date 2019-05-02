@@ -98,7 +98,7 @@ namespace exafmm_t {
     bool is_leaf;
     int ntrgs;
     int nsrcs;
-    vec3 xmin;    // the coordinates of the front-left-bottom corner
+    vec3 x;    // the coordinates of the center of the node
     real_t r;
     uint64_t key;
     int level;
@@ -161,7 +161,7 @@ namespace exafmm_t {
   extern int P;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates
   extern int MAXLEVEL;  // max depth of tree
-  extern vec3 XMIN0;    // coordinates of root
+  extern vec3 X0;    // root's center
   extern real_t R0;     // radius of root
 #if HELMHOLTZ
   extern real_t WAVEK;     // wave number of Helmholtz kernel

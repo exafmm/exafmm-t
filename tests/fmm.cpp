@@ -17,7 +17,7 @@ namespace exafmm_t {
   int P;
   int NSURF;
   int MAXLEVEL;
-  vec3 XMIN0;
+  vec3 X0;
   real_t R0;
 #if HELMHOLTZ
   real_t WAVEK;
@@ -46,14 +46,14 @@ int main(int argc, char **argv) {
   Bodies targets = init_bodies(args.numBodies, args.distribution, 5, false);
 
   start("Build Tree");
-  get_bounds(sources, targets, XMIN0, R0);
+  get_bounds(sources, targets, X0, R0);
   NodePtrs leafs, nonleafs;
 #if NON_ADAPTIVE
   MAXLEVEL = args.maxlevel;   // explicitly define the max level when constructing a full tree
-  Nodes nodes = build_tree(sources, targets, XMIN0, R0, leafs, nonleafs);
+  Nodes nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs);
 #else
-  Nodes nodes = build_tree(sources, targets, XMIN0, R0, leafs, nonleafs, args);
-  balance_tree(nodes, sources, targets, XMIN0, R0, leafs, nonleafs, args);
+  Nodes nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs, args);
+  balance_tree(nodes, sources, targets, X0, R0, leafs, nonleafs, args);
 #endif
   stop("Build Tree");
 
@@ -77,9 +77,9 @@ int main(int argc, char **argv) {
   print("Gradient Error", error[1]);
   
   print_divider("Tree");
-  print("Root Center x", XMIN0[0] + R0);
-  print("Root Center y", XMIN0[1] + R0);
-  print("Root Center z", XMIN0[2] + R0);
+  print("Root Center x", X0[0]);
+  print("Root Center y", X0[1]);
+  print("Root Center z", X0[2]);
   print("Root Radius R", R0);
   print("Tree Depth", MAXLEVEL);
   print("Leaf Nodes", leafs.size());

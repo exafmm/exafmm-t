@@ -7,7 +7,8 @@ namespace exafmm_t {
   // alpha is the ratio r_surface/r_node
   // 2.95 for upward check surface / downward equivalent surface
   // 1.05 for upward equivalent surface / downward check surface
-  RealVec surface(int p, real_t* c, real_t alpha, int level, bool is_mapping){
+  // c is now the center of node
+  RealVec surface(int p, real_t* c, real_t alpha, int level, bool is_mapping) {
     size_t n = 6*(p-1)*(p-1) + 2;
     RealVec coord(n*3);
     coord[0] = -1.0;
@@ -44,19 +45,17 @@ namespace exafmm_t {
     real_t r = is_mapping ? 0.5 : R0;
     r *= powf(0.5, level);
     real_t b = alpha * r;
-    real_t br = b - r;
     for(size_t i=0; i<n; i++){
-      coord[i*3+0] = (coord[i*3+0]+1.0)*b + c[0]- br;
-      coord[i*3+1] = (coord[i*3+1]+1.0)*b + c[1]- br;
-      coord[i*3+2] = (coord[i*3+2]+1.0)*b + c[2]- br;
+      coord[i*3+0] = (coord[i*3+0]+1.0)*b + c[0] - b;
+      coord[i*3+1] = (coord[i*3+1]+1.0)*b + c[1] - b;
+      coord[i*3+2] = (coord[i*3+2]+1.0)*b + c[2] - b;
     }
     return coord;
   }
 
-  RealVec convolution_grid(real_t* c, int level){
-    real_t r = R0 * powf(0.5, level-1);
-    real_t a = r * 1.05;
-    real_t coord[3] = {c[0], c[1], c[2]};
+  RealVec convolution_grid(real_t* c, int level) {
+    real_t d = 2 * R0 * powf(0.5, level);  // diameter
+    real_t a = d * 1.05;  // diameter of upward equivalent/downward check box
     int n1 = P * 2;
     int n2 = n1 * n1;
     int n3 = n1 * n1 * n1;
@@ -64,9 +63,9 @@ namespace exafmm_t {
     for(int i=0; i<n1; i++) {
       for(int j=0; j<n1; j++) {
         for(int k=0; k<n1; k++) {
-          grid[(i+n1*j+n2*k)*3+0] = (i-P)*a/(P-1) + coord[0];
-          grid[(i+n1*j+n2*k)*3+1] = (j-P)*a/(P-1) + coord[1];
-          grid[(i+n1*j+n2*k)*3+2] = (k-P)*a/(P-1) + coord[2];
+          grid[(i+n1*j+n2*k)*3+0] = (i-P)*a/(P-1) + c[0];
+          grid[(i+n1*j+n2*k)*3+1] = (j-P)*a/(P-1) + c[1];
+          grid[(i+n1*j+n2*k)*3+2] = (k-P)*a/(P-1) + c[2];
         }
       }
     }
