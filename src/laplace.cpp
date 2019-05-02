@@ -167,9 +167,9 @@ namespace exafmm_t {
       // calculate upward check potential induced by sources' charges
       RealVec checkCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
-        checkCoord[3*k+0] = up_check_surf[level][3*k+0] + leaf->xmin[0] + leaf->r;
-        checkCoord[3*k+1] = up_check_surf[level][3*k+1] + leaf->xmin[1] + leaf->r;
-        checkCoord[3*k+2] = up_check_surf[level][3*k+2] + leaf->xmin[2] + leaf->r;
+        checkCoord[3*k+0] = up_check_surf[level][3*k+0] + leaf->x[0];
+        checkCoord[3*k+1] = up_check_surf[level][3*k+1] + leaf->x[1];
+        checkCoord[3*k+2] = up_check_surf[level][3*k+2] + leaf->x[2];
       }
       potential_P2P(leaf->src_coord, leaf->src_value, checkCoord, leaf->up_equiv);
       // convert upward check potential to upward equivalent charge
@@ -248,9 +248,9 @@ namespace exafmm_t {
       // calculate targets' potential & gradient induced by downward equivalent charge
       RealVec equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
-        equivCoord[3*k+0] = dn_equiv_surf[level][3*k+0] + leaf->xmin[0] + leaf->r;
-        equivCoord[3*k+1] = dn_equiv_surf[level][3*k+1] + leaf->xmin[1] + leaf->r;
-        equivCoord[3*k+2] = dn_equiv_surf[level][3*k+2] + leaf->xmin[2] + leaf->r;
+        equivCoord[3*k+0] = dn_equiv_surf[level][3*k+0] + leaf->x[0];
+        equivCoord[3*k+1] = dn_equiv_surf[level][3*k+1] + leaf->x[1];
+        equivCoord[3*k+2] = dn_equiv_surf[level][3*k+2] + leaf->x[2];
       }
       gradient_P2P(equivCoord, leaf->dn_equiv, leaf->trg_coord, leaf->trg_value);
     }
@@ -275,9 +275,9 @@ namespace exafmm_t {
         int level = target->level;
         // target node's check coord = relative check coord + node's origin
         for(int k=0; k<NSURF; k++) {
-          trg_check_coord[3*k+0] = dn_check_surf[level][3*k+0] + target->xmin[0] + target->r;
-          trg_check_coord[3*k+1] = dn_check_surf[level][3*k+1] + target->xmin[1] + target->r;
-          trg_check_coord[3*k+2] = dn_check_surf[level][3*k+2] + target->xmin[2] + target->r;
+          trg_check_coord[3*k+0] = dn_check_surf[level][3*k+0] + target->x[0];
+          trg_check_coord[3*k+1] = dn_check_surf[level][3*k+1] + target->x[1];
+          trg_check_coord[3*k+2] = dn_check_surf[level][3*k+2] + target->x[2];
         }
         potential_P2P(source->src_coord, source->src_value, trg_check_coord, target->dn_equiv);
       }
@@ -303,9 +303,9 @@ namespace exafmm_t {
         int level = source->level;
         // source node's equiv coord = relative equiv coord + node's origin
         for(int k=0; k<NSURF; k++) {
-          sourceEquivCoord[3*k+0] = up_equiv_surf[level][3*k+0] + source->xmin[0] + source->r;
-          sourceEquivCoord[3*k+1] = up_equiv_surf[level][3*k+1] + source->xmin[1] + source->r;
-          sourceEquivCoord[3*k+2] = up_equiv_surf[level][3*k+2] + source->xmin[2] + source->r;
+          sourceEquivCoord[3*k+0] = up_equiv_surf[level][3*k+0] + source->x[0];
+          sourceEquivCoord[3*k+1] = up_equiv_surf[level][3*k+1] + source->x[1];
+          sourceEquivCoord[3*k+2] = up_equiv_surf[level][3*k+2] + source->x[2];
         }
         gradient_P2P(sourceEquivCoord, source->up_equiv, target->trg_coord, target->trg_value);
       }

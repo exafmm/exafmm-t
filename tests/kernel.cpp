@@ -13,7 +13,7 @@ namespace exafmm_t {
   int P;
   int NSURF;
   int MAXLEVEL;
-  vec3 XMIN0;
+  vec3 X0;
   real_t R0;
 #if HELMHOLTZ
   real_t WAVEK;
@@ -30,10 +30,10 @@ void set_children(Node* parent, Node* first_child) {
     child->octant = octant;
     child->parent = parent;
     child->level = parent->level + 1;
+    child->x = parent->x;
     child->r = parent->r / 2;
-    child->xmin = parent->xmin;
     for(int d=0; d<3; d++) {
-      child->xmin[d] += parent->r * ((octant & 1 << d) >> d);
+      child->x[d] += child->r * (((octant & 1 << d) >> d) * 2 - 1);
     }
     parent->children.push_back(child);
   }
@@ -44,7 +44,7 @@ int main() {
   P = 8;
   NSURF = 6*(P-1)*(P-1) + 2;
   MAXLEVEL = 3;
-  XMIN0 = 0.;
+  X0 = 4.;
   R0 = 4.;
 #if HELMHOLTZ
   WAVEK = 10;
@@ -72,7 +72,7 @@ int main() {
   // set root node
   Node* root = &nodes[0];
   root->parent = nullptr;
-  root->xmin = XMIN0;
+  root->x = X0;
   root->r = R0;
   root->level = 0;
 

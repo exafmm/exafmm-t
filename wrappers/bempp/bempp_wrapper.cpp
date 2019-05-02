@@ -16,7 +16,7 @@ namespace exafmm_t {
   int P;
   int NSURF;
   int MAXLEVEL;
-  vec3 XMIN0;
+  vec3 X0;
   real_t R0;
 #if HELMHOLTZ
   real_t WAVEK;
@@ -64,9 +64,9 @@ namespace exafmm_t {
     Bodies targets = array_to_bodies(trg_count, trg_coord);
 
     start("Build Tree");
-    get_bounds(sources, targets, XMIN0, R0);
+    get_bounds(sources, targets, X0, R0);
     NodePtrs nonleafs;
-    NODES = build_tree(sources, targets, XMIN0, R0, LEAFS, nonleafs);
+    NODES = build_tree(sources, targets, X0, R0, LEAFS, nonleafs);
     stop("Build Tree");
 
     init_rel_coord();
@@ -141,9 +141,9 @@ namespace exafmm_t {
 
   extern "C" void print_tree() {
     print_divider("Tree");
-    print("Root Center x", XMIN0[0] + R0);
-    print("Root Center y", XMIN0[1] + R0);
-    print("Root Center z", XMIN0[2] + R0);
+    print("Root Center x", X0[0]);
+    print("Root Center y", X0[1]);
+    print("Root Center z", X0[2]);
     print("Root Radius R", R0);
     print("Tree Depth", MAXLEVEL);
     print("Leaf Nodes", LEAFS.size());

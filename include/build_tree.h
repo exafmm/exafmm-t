@@ -7,7 +7,7 @@
 
 namespace exafmm_t {
   // Get bounding box of sources and targets
-  void get_bounds(const Bodies& sources, const Bodies& targets, vec3& Xmin0, real_t& r0) {
+  void get_bounds(const Bodies& sources, const Bodies& targets, vec3& x0, real_t& r0) {
     vec3 Xmin = sources[0].X;
     vec3 Xmax = sources[0].X;
     for (size_t b=0; b<sources.size(); ++b) {
@@ -18,10 +18,9 @@ namespace exafmm_t {
       Xmin = min(targets[b].X, Xmin);
       Xmax = max(targets[b].X, Xmax);
     }
-    vec3 X0 = (Xmax + Xmin) / 2;
+    x0 = (Xmax + Xmin) / 2;
     r0 = fmax(max(X0-Xmin), max(Xmax-X0));
     r0 *= 1.00001;
-    Xmin0 = X0 - r0;
   } 
 
   // Sort bodies in a node according to their octants
@@ -31,7 +30,7 @@ namespace exafmm_t {
                    int begin, int end, std::vector<int>& size, std::vector<int>& offsets) {
     // Count number of bodies in each octant
     size.resize(8, 0);
-    vec3 X = node->xmin + node->r;  // the center of the node
+    vec3 X = node->x;  // the center of the node
     for (int i=begin; i<end; i++) {
       vec3& x = bodies[i].X;
       int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
@@ -74,7 +73,7 @@ namespace exafmm_t {
     node->up_equiv.resize(NSURF, 0.);
     node->dn_equiv.resize(NSURF, 0.);
 #endif
-    ivec3 iX = get3DIndex(node->xmin+node->r, node->level);
+    ivec3 iX = get3DIndex(node->x, node->level);
     node->key = getKey(iX, node->level);
 
     //! If node is a leaf
@@ -140,11 +139,11 @@ namespace exafmm_t {
     node->children.resize(8, nullptr);
     for (int c=0; c<8; c++) {
       node->children[c] = &child[c];
-      child[c].xmin = node->xmin;
-      for (int d=0; d<3; d++) {
-        child[c].xmin[d] += node->r * ((c & 1 << d) >> d);
-      }
+      child[c].x = node->x;
       child[c].r = node->r / 2;
+      for (int d=0; d<3; d++) {
+        child[c].x[d] += child[c].r * (((c & 1 << d) >> d) * 2 - 1);
+      }
       child[c].parent = node;
       child[c].octant = c;
       child[c].level = node->level + 1;
@@ -154,14 +153,14 @@ namespace exafmm_t {
     }
   }
 
-  Nodes build_tree(Bodies& sources, Bodies& targets, vec3 Xmin0, real_t r0, NodePtrs& leafs,
+  Nodes build_tree(Bodies& sources, Bodies& targets, vec3 x0, real_t r0, NodePtrs& leafs,
                    NodePtrs& nonleafs, const Args& args, const Keys& leafkeys=Keys()) {
     Bodies sources_buffer = sources;
     Bodies targets_buffer = targets;
     Nodes nodes(1);
     nodes[0].parent = nullptr;
     nodes[0].octant = 0;
-    nodes[0].xmin = Xmin0;
+    nodes[0].x = x0;
     nodes[0].r = r0;
     nodes[0].level = 0;
     nodes.reserve((sources.size()+targets.size()) * (32/args.ncrit+1));
@@ -271,7 +270,7 @@ namespace exafmm_t {
     return leafkeys;
   }
 
-  void balance_tree(Nodes& nodes, Bodies& sources, Bodies& targets, vec3 Xmin0, real_t r0, NodePtrs& leafs, NodePtrs& nonleafs, const Args& args) {
+  void balance_tree(Nodes& nodes, Bodies& sources, Bodies& targets, vec3 x0, real_t r0, NodePtrs& leafs, NodePtrs& nonleafs, const Args& args) {
     std::unordered_map<uint64_t, size_t> key2id;
     Keys keys = breadth_first_traversal(&nodes[0], key2id);
     Keys balanced_keys = balance_tree(keys, key2id, nodes);
@@ -279,7 +278,7 @@ namespace exafmm_t {
     nodes.clear();
     leafs.clear();
     nonleafs.clear();
-    nodes = build_tree(sources, targets, Xmin0, r0, leafs, nonleafs, args, leaf_keys);
+    nodes = build_tree(sources, targets, x0, r0, leafs, nonleafs, args, leaf_keys);
     MAXLEVEL = keys.size() - 1;
   }
 }

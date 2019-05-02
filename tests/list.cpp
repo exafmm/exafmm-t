@@ -11,7 +11,7 @@ namespace exafmm_t {
   int P;
   int NSURF;
   int MAXLEVEL;
-  vec3 XMIN0;
+  vec3 X0;
   real_t R0;
 #if HELMHOLTZ
   real_t WAVEK;
@@ -28,10 +28,10 @@ int main(int argc, char** argv) {
   Bodies sources = init_bodies(args.numBodies, args.distribution, 0, true);
   Bodies targets = init_bodies(args.numBodies, args.distribution, 5, false);
   
-  get_bounds(sources, targets, XMIN0, R0);
+  get_bounds(sources, targets, X0, R0);
   NodePtrs leafs, nonleafs;
-  Nodes nodes = build_tree(sources, targets, XMIN0, R0, leafs, nonleafs, args);
-  balance_tree(nodes, sources, targets, XMIN0, R0, leafs, nonleafs, args);
+  Nodes nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs, args);
+  balance_tree(nodes, sources, targets, X0, R0, leafs, nonleafs, args);
   init_rel_coord();
   set_colleagues(nodes);
   build_list(nodes);
