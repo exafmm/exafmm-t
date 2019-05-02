@@ -98,7 +98,7 @@ namespace exafmm_t {
     bool is_leaf;
     int ntrgs;
     int nsrcs;
-    vec3 x;    // the coordinates of the front-left-bottom corner
+    vec3 x;    // the coordinates of the center of the node
     real_t r;
     uint64_t key;
     int level;
