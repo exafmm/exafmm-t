@@ -46,6 +46,7 @@ namespace exafmm_t {
       switch (arg[0]) {
         case 'c': return "cube";
         case 'p': return "plummer";
+        case 's': return "sphere";
         default:
           fprintf(stderr, "invalid distribution %s\n", arg);
           abort();

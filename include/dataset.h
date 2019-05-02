@@ -19,6 +19,26 @@ namespace exafmm_t {
     return bodies;
   }
 
+  // Generate random distribution on r=0.5 sphere
+  Bodies sphere(int numBodies, int seed) {
+    Bodies bodies(numBodies);
+    srand48(seed);
+    for (int b=0; b<numBodies; b++) {
+      for (int d=0; d<3; d++) {
+        bodies[b].X[d] = drand48() * 2 - 1;
+      }
+      real_t r = std::sqrt(norm(bodies[b].X));
+      bodies[b].X /= 2*r;
+      bodies[b].X += 0.5;
+#if COMPLEX
+      bodies[b].q = complex_t(drand48()-0.5, drand48()-0.5);
+#else
+      bodies[b].q = drand48() - 0.5;
+#endif
+    }
+    return bodies;
+  }
+ 
   // generate plummer distribution in 0 to 1 cube
   Bodies plummer(int numBodies, int seed) {
     Bodies bodies(numBodies);
@@ -92,6 +112,9 @@ namespace exafmm_t {
         break;
       case 'p':
         bodies = plummer(numBodies, seed);
+        break;
+      case 's':
+        bodies = sphere(numBodies, seed);
         break;
       default:
         fprintf(stderr, "Unknown data distribution %s\n", distribution);
