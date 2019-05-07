@@ -49,7 +49,7 @@ void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, 
 
 void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
   // complex_t WAVEK = 0.1 / real_t(2*M_PI);
-  real_t WAVEK = 20*M_PI;
+  real_t WAVEK = 20;
   complex_t I = std::complex<real_t>(0., 1.);
 #pragma omp parallel for
   for(size_t i=0; i<trg_coord.size()/3; ++i) {
@@ -102,7 +102,11 @@ int main(int argc, char **argv) {
   for(size_t i=0; i<3*N; i++) {
     test_coord.push_back(trg_coord[i]);
   }
+#if HELMHOLTZ
+  for(size_t i=0; i<N; i++) {
+#else
   for(size_t i=0; i<4*N; i++) {
+#endif
     test_value.push_back(trg_value[i]);
   }
 
@@ -114,14 +118,15 @@ int main(int argc, char **argv) {
 #endif
   gettimeofday(&toc, NULL);
   gettimeofday(&tic, NULL);
-  gradient_P2P(src_coord, src_value, test_coord, test_value);
+  potential_P2P(src_coord, src_value, test_coord, test_value);
   gettimeofday(&toc, NULL);
   double p_diff = 0, g_diff = 0;
-#pragma omp parallel for
+// #pragma omp parallel for
   for(size_t i = 0; i < N; i++) {
 #if HELMHOLTZ
-    p_diff += test_value[4*i].real() - trg_value[4*i].real();
-    g_diff += test_value[4*i].imag() - trg_value[4*i].imag();
+    p_diff += test_value[i].real() - trg_value[i].real();
+    p_diff += test_value[i].imag() - trg_value[i].imag();
+    // std::cout << test_value[i] << "  ,  " << trg_value[i] << std::endl;
 #else
     p_diff += test_value[4*i] - trg_value[4*i];
     g_diff += test_value[4*i+1] - trg_value[4*i+1];
@@ -130,6 +135,6 @@ int main(int argc, char **argv) {
 #endif
   }
   std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << p_diff/N << std::endl;
-  std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << g_diff/N << std::endl;
+  // std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << g_diff/N << std::endl;
   return 0;
 }
