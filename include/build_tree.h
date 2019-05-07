@@ -91,7 +91,8 @@ namespace exafmm_t {
 #else
       node->trg_value.resize(node->ntrgs*4, 0.);   // initialize target result vector
 #endif
-      leafs.push_back(node);
+      if (node->nsrcs || node->ntrgs)
+        leafs.push_back(node);
       if (direction) {
         for (int i=source_begin; i<source_end; i++) {
           sources_buffer[i].X = sources[i].X;
