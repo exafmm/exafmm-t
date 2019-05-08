@@ -199,11 +199,9 @@ namespace exafmm_t {
 
   void L2P(Nodes &nodes, RealVec &dnward_equiv, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &nodes_coord) {
     real_t c[3] = {0.0};
-    std::vector<RealVec> dnwd_equiv_surf;
-    dnwd_equiv_surf.resize(MAXLEVEL+1);
+    std::vector<real_t> dnwd_equiv_surf((MAXLEVEL+1)*NSURF*3);
     for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
-      dnwd_equiv_surf[depth].resize(NSURF*3);
-      dnwd_equiv_surf[depth] = surface(MULTIPOLE_ORDER,c,2.95,depth);
+      surface(MULTIPOLE_ORDER,c,2.95,depth,depth,dnwd_equiv_surf);
     }
     RealVec equivCoord(leafs_idx.size()*NSURF*3);
     int max = 0;
@@ -214,9 +212,9 @@ namespace exafmm_t {
       int node_end = nodes_pt_src_idx[leaf_idx+1];
       max = (node_end-node_start)>max?(node_end-node_start):max;
       for(int k=0; k<NSURF; k++) {
-        equivCoord[i*NSURF*3 + 3*k+0] = dnwd_equiv_surf[leaf->depth][3*k+0] + leaf->coord[0];
-        equivCoord[i*NSURF*3 + 3*k+1] = dnwd_equiv_surf[leaf->depth][3*k+1] + leaf->coord[1];
-        equivCoord[i*NSURF*3 + 3*k+2] = dnwd_equiv_surf[leaf->depth][3*k+2] + leaf->coord[2];
+        equivCoord[i*NSURF*3 + 3*k+0] = dnwd_equiv_surf[leaf->depth*NSURF*3+3*k+0] + leaf->coord[0];
+        equivCoord[i*NSURF*3 + 3*k+1] = dnwd_equiv_surf[leaf->depth*NSURF*3+3*k+1] + leaf->coord[1];
+        equivCoord[i*NSURF*3 + 3*k+2] = dnwd_equiv_surf[leaf->depth*NSURF*3+3*k+2] + leaf->coord[2];
         dnward_equiv[leaf_idx*NSURF+k] *= pow(0.5, leaf->depth);
       }
     }
@@ -226,11 +224,9 @@ namespace exafmm_t {
   void P2L(Nodes& nodes, RealVec &dnward_equiv, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx,std::vector<real_t> &nodes_coord) {
     Nodes& targets = nodes;
     real_t c[3] = {0.0};
-    std::vector<RealVec> dnwd_check_surf;
-    dnwd_check_surf.resize(MAXLEVEL+1);
+    std::vector<real_t> dnwd_check_surf((MAXLEVEL+1)*NSURF*3);
     for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
-      dnwd_check_surf[depth].resize(NSURF*3);
-      dnwd_check_surf[depth] = surface(MULTIPOLE_ORDER,c,1.05,depth);
+      surface(MULTIPOLE_ORDER,c,1.05,depth,depth,dnwd_check_surf);
     }
     #pragma omp parallel for
     for(int i=0; i<targets.size(); i++) {
@@ -245,9 +241,9 @@ namespace exafmm_t {
         int level = target->depth;
         // target node's check coord = relative check coord + node's origin
         for(int k=0; k<NSURF; k++) {
-          targetCheckCoord[3*k+0] = dnwd_check_surf[level][3*k+0] + target->coord[0];
-          targetCheckCoord[3*k+1] = dnwd_check_surf[level][3*k+1] + target->coord[1];
-          targetCheckCoord[3*k+2] = dnwd_check_surf[level][3*k+2] + target->coord[2];
+          targetCheckCoord[3*k+0] = dnwd_check_surf[level*NSURF*3+3*k+0] + target->coord[0];
+          targetCheckCoord[3*k+1] = dnwd_check_surf[level*NSURF*3+3*k+1] + target->coord[1];
+          targetCheckCoord[3*k+2] = dnwd_check_surf[level*NSURF*3+3*k+2] + target->coord[2];
         }
         potentialP2P(&nodes_coord[node_start*3], 3*(node_end-node_start), &nodes_pt_src[node_start], &targetCheckCoord[0], 3*NSURF, &dnward_equiv[target->idx*NSURF]);
       }
@@ -256,11 +252,9 @@ namespace exafmm_t {
   
   void M2P(Nodes &nodes, std::vector<int>& leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &nodes_coord) {
     real_t c[3] = {0.0};
-    std::vector<RealVec> upwd_equiv_surf;
-    upwd_equiv_surf.resize(MAXLEVEL+1);
+    std::vector<real_t> upwd_equiv_surf((MAXLEVEL+1)*NSURF*3);
     for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
-      upwd_equiv_surf[depth].resize(NSURF*3);
-      upwd_equiv_surf[depth] = surface(MULTIPOLE_ORDER,c,1.05,depth);
+      surface(MULTIPOLE_ORDER,c,1.05,depth,depth,upwd_equiv_surf);
     }
     #pragma omp parallel for
     for(int i=0; i<leafs_idx.size(); i++) {
@@ -275,9 +269,9 @@ namespace exafmm_t {
         int level = source->depth;
         // source node's equiv coord = relative equiv coord + node's origin
         for(int k=0; k<NSURF; k++) {
-          sourceEquivCoord[3*k+0] = upwd_equiv_surf[level][3*k+0] + source->coord[0];
-          sourceEquivCoord[3*k+1] = upwd_equiv_surf[level][3*k+1] + source->coord[1];
-          sourceEquivCoord[3*k+2] = upwd_equiv_surf[level][3*k+2] + source->coord[2];
+          sourceEquivCoord[3*k+0] = upwd_equiv_surf[level*NSURF*3+3*k+0] + source->coord[0];
+          sourceEquivCoord[3*k+1] = upwd_equiv_surf[level*NSURF*3+3*k+1] + source->coord[1];
+          sourceEquivCoord[3*k+2] = upwd_equiv_surf[level*NSURF*3+3*k+2] + source->coord[2];
         }
         gradientP2P(&sourceEquivCoord[0], NSURF*3, &upward_equiv[source->idx*NSURF], &nodes_coord[node_start*3], 3*(node_end-node_end), &nodes_trg[node_start*4]);
       }
@@ -331,7 +325,8 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0, 0, 0};
     for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
-    RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
+    RealVec surf(NSURF*3);
+    surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0,0,surf);
     for(size_t i=0; i<map.size(); i++) {
       // mapping: upward equiv surf -> conv grid
       map[i] = ((size_t)(MULTIPOLE_ORDER-1-surf[i*3]+0.5))
@@ -360,7 +355,8 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
     std::vector<size_t> map2(NSURF);
     real_t c[3]= {0, 0, 0};
     for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
-    RealVec surf = surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0);
+    RealVec surf(NSURF*3);
+    surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0,0,surf);
     for(size_t i=0; i<map2.size(); i++) {
       // mapping: conv grid -> downward check surf
       map2[i] = ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3]))

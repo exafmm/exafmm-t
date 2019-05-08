@@ -19,8 +19,10 @@ namespace exafmm_t {
     int level = 0;
     real_t c[3] = {0, 0, 0};
     // caculate M2M_U and M2M_V
-    RealVec uc_coord = surface(MULTIPOLE_ORDER,c,2.95,level);
-    RealVec ue_coord = surface(MULTIPOLE_ORDER,c,1.05,level);
+    RealVec uc_coord(NSURF*3);
+    RealVec ue_coord(NSURF*3);
+    surface(MULTIPOLE_ORDER,c,2.95,level,0,uc_coord);
+    surface(MULTIPOLE_ORDER,c,1.05,level,0,ue_coord);
     RealVec M_e2c(NSURF*NSURF);
     kernelMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &M_e2c[0]);
     RealVec U(NSURF*NSURF), S(NSURF*NSURF), V(NSURF*NSURF);
@@ -47,7 +49,8 @@ namespace exafmm_t {
   void PrecompM2M() {
     int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
-    RealVec p_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
+    RealVec p_check_surf(NSURF*3);
+    surface(MULTIPOLE_ORDER,parent_coord,2.95,level,0,p_check_surf);
     real_t s = powf(0.5, level+2);
 
     int numRelCoord = rel_coord[M2M_Type].size();
@@ -58,7 +61,8 @@ namespace exafmm_t {
     for(int i=0; i<numRelCoord; i++) {
       ivec3& coord = rel_coord[M2M_Type][i];
       real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-      RealVec c_equiv_surf = surface(MULTIPOLE_ORDER,child_coord,1.05,level+1);
+      RealVec c_equiv_surf(NSURF*3);
+      surface(MULTIPOLE_ORDER,child_coord,1.05,level+1,0,c_equiv_surf);
       RealVec M_e2c(NSURF*NSURF);
       kernelMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_e2c[0]);
       // M2M: child's upward_equiv to parent's check
