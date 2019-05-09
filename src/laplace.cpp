@@ -162,7 +162,7 @@ namespace exafmm_t {
     return coord;
   }
   
-  void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv) {
+  void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv) {
     RealVec checkCoord = surface_test(MULTIPOLE_ORDER,2.95);
     RealVec r(leafs_idx.size());
     RealVec leaf_xyz(3*leafs_idx.size());
@@ -176,7 +176,7 @@ namespace exafmm_t {
       leaf_xyz[3*i+1] = leaf->coord[1];
       leaf_xyz[3*i+2] = leaf->coord[2];
     }
-    P2MGPU(leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, checkCoord, checkCoord.size(), upward_equiv, r, leaf_xyz, ncrit);
+    P2MGPU(leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, checkCoord, checkCoord.size(), upward_equiv, r, leaf_xyz, ncrit);
     #pragma omp parallel for
     for(int i=0; i<leafs_idx.size(); i++) {
       Node* leaf = &nodes[leafs_idx[i]];
@@ -197,7 +197,7 @@ namespace exafmm_t {
     L2LGPU(nodes, dnward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
   }
 
-  void L2P(Nodes &nodes, RealVec &dnward_equiv, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &nodes_coord) {
+  void L2P(Nodes &nodes, RealVec &dnward_equiv, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &bodies_coord) {
     real_t c[3] = {0.0};
     std::vector<real_t> dnwd_equiv_surf((MAXLEVEL+1)*NSURF*3);
     for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
@@ -218,10 +218,10 @@ namespace exafmm_t {
         dnward_equiv[leaf_idx*NSURF+k] *= pow(0.5, leaf->depth);
       }
     }
-    L2PGPU(equivCoord, dnward_equiv, nodes_coord, nodes_trg, leafs_idx, nodes_pt_src_idx, max);
+    L2PGPU(equivCoord, dnward_equiv, bodies_coord, nodes_trg, leafs_idx, nodes_pt_src_idx, max);
   }
     
-  void P2L(Nodes& nodes, RealVec &dnward_equiv, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx,std::vector<real_t> &nodes_coord) {
+  void P2L(Nodes& nodes, RealVec &dnward_equiv, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx,std::vector<real_t> &bodies_coord) {
     Nodes& targets = nodes;
     real_t c[3] = {0.0};
     std::vector<real_t> dnwd_check_surf((MAXLEVEL+1)*NSURF*3);
@@ -245,12 +245,12 @@ namespace exafmm_t {
         int node_start = nodes_pt_src_idx[src_idx];
         int node_end = nodes_pt_src_idx[src_idx+1];
         Node* source = &nodes[src_idx];
-        potentialP2P(&nodes_coord[node_start*3], 3*(node_end-node_start), &nodes_pt_src[node_start], &targetCheckCoord[0], 3*NSURF, &dnward_equiv[target->idx*NSURF]);
+        potentialP2P(&bodies_coord[node_start*3], 3*(node_end-node_start), &nodes_pt_src[node_start], &targetCheckCoord[0], 3*NSURF, &dnward_equiv[target->idx*NSURF]);
       }
     }
   }
   
-  void M2P(Nodes &nodes, std::vector<int>& leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &nodes_coord) {
+  void M2P(Nodes &nodes, std::vector<int>& leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &bodies_coord) {
     real_t c[3] = {0.0};
     std::vector<real_t> upwd_equiv_surf((MAXLEVEL+1)*NSURF*3);
     for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
@@ -273,12 +273,12 @@ namespace exafmm_t {
           sourceEquivCoord[3*k+1] = upwd_equiv_surf[level*NSURF*3+3*k+1] + source->coord[1];
           sourceEquivCoord[3*k+2] = upwd_equiv_surf[level*NSURF*3+3*k+2] + source->coord[2];
         }
-        gradientP2P(&sourceEquivCoord[0], NSURF*3, &upward_equiv[source->idx*NSURF], &nodes_coord[node_start*3], 3*(node_end-node_end), &nodes_trg[node_start*4]);
+        gradientP2P(&sourceEquivCoord[0], NSURF*3, &upward_equiv[source->idx*NSURF], &bodies_coord[node_start*3], 3*(node_end-node_end), &nodes_trg[node_start*4]);
       }
     }
   }
 
-  void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &nodes_coord, std::vector<real_t> &nodes_pt_src, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, int ncrit) {
+  void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, int ncrit) {
     std::vector<int>P2Plists;
     std::vector<int>P2Plists_idx;
     int P2Plists_idx_cnt = 0;
@@ -295,7 +295,7 @@ namespace exafmm_t {
     P2Plists_idx.push_back(P2Plists_idx_cnt);
     Profile::Toc();
     std::vector<real_t> trg_val(4*nodes_pt_src_idx[nodes_pt_src_idx.size()-1]);
-    P2PGPU(leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx,P2Plists, P2Plists_idx, trg_val, leafs_idx.size(), ncrit);
+    P2PGPU(leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx,P2Plists, P2Plists_idx, trg_val, leafs_idx.size(), ncrit);
     int pt_trg_count = 0;
     Profile::Tic("array to vec", true);
     for(int i=0; i<targets_idx.size(); i++) {

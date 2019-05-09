@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   }
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
-  std::vector<real_t> nodes_coord;
+  std::vector<real_t> bodies_coord;
   RealVec upward_equiv(nodes.size()*NSURF);  
   RealVec dnward_equiv(nodes.size()*NSURF);
   std::vector<real_t> nodes_pt_src;
@@ -51,9 +51,9 @@ int main(int argc, char **argv) {
     nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
     if(nodes[i].IsLeaf()) {
       for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
-        nodes_coord.push_back(B->X[0]);
-        nodes_coord.push_back(B->X[1]);
-        nodes_coord.push_back(B->X[2]);
+        bodies_coord.push_back(B->X[0]);
+        bodies_coord.push_back(B->X[1]);
+        bodies_coord.push_back(B->X[2]);
         nodes_pt_src.push_back(B->q);
         nodes_pt_src_idx_cnt ++;
       }
@@ -68,10 +68,10 @@ int main(int argc, char **argv) {
   Profile::Toc();
   setColleagues(nodes);
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
-  upwardPass(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nonleafs_idx, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
-  downwardPass(nodes, leafs_idx, nonleafs_idx, M2Lsources_idx, M2Ltargets_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, dnward_equiv, nodes_trg,  nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
+  upwardPass(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nonleafs_idx, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
+  downwardPass(nodes, leafs_idx, nonleafs_idx, M2Lsources_idx, M2Ltargets_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, dnward_equiv, nodes_trg,  nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
   Profile::Toc();
-  RealVec error = verify(nodes, leafs_idx, nodes_coord, nodes_pt_src, nodes_pt_src_idx, nodes_trg);
+  RealVec error = verify(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, nodes_trg);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs_idx.size() << std::endl;
   std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< nodes[leafs_idx.back()].depth << std::endl;
   std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;
