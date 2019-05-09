@@ -86,10 +86,7 @@ namespace exafmm_t {
     int numBodies;
     Node * fchild;
     Body * body;
-    vec3 X;
-    real_t R;
     uint64_t key;
-
     size_t idx;
     size_t node_id;
     int depth;

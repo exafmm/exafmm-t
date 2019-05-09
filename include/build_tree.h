@@ -11,8 +11,7 @@ namespace exafmm_t {
     if(direction) node->body = buffer + begin;
     node->numBodies = end - begin;
     node->numChilds = 0;
-    node->X = X;
-    node->R = R;
+    for(int d=0; d<3; d++) node->coord[d] = X[d]-R; 
     //! Count number of bodies in each octant
     int size[8] = {0,0,0,0,0,0,0,0};
     vec3 x;

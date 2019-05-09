@@ -232,19 +232,19 @@ namespace exafmm_t {
     for(int i=0; i<targets.size(); i++) {
       Node* target = &targets[i];
       std::vector<int> sources_idx = target->P2Llist_idx;
+      RealVec targetCheckCoord(NSURF*3);
+      int level = target->depth;
+      // target node's check coord = relative check coord + node's origin
+      for(int k=0; k<NSURF; k++) {
+        targetCheckCoord[3*k+0] = dnwd_check_surf[level*NSURF*3+3*k+0] + target->coord[0];
+        targetCheckCoord[3*k+1] = dnwd_check_surf[level*NSURF*3+3*k+1] + target->coord[1];
+        targetCheckCoord[3*k+2] = dnwd_check_surf[level*NSURF*3+3*k+2] + target->coord[2];
+      }
       for(int j=0; j<sources_idx.size(); j++) {
         int src_idx = sources_idx[j];
         int node_start = nodes_pt_src_idx[src_idx];
         int node_end = nodes_pt_src_idx[src_idx+1];
         Node* source = &nodes[src_idx];
-        RealVec targetCheckCoord(NSURF*3);
-        int level = target->depth;
-        // target node's check coord = relative check coord + node's origin
-        for(int k=0; k<NSURF; k++) {
-          targetCheckCoord[3*k+0] = dnwd_check_surf[level*NSURF*3+3*k+0] + target->coord[0];
-          targetCheckCoord[3*k+1] = dnwd_check_surf[level*NSURF*3+3*k+1] + target->coord[1];
-          targetCheckCoord[3*k+2] = dnwd_check_surf[level*NSURF*3+3*k+2] + target->coord[2];
-        }
         potentialP2P(&nodes_coord[node_start*3], 3*(node_end-node_start), &nodes_pt_src[node_start], &targetCheckCoord[0], 3*NSURF, &dnward_equiv[target->idx*NSURF]);
       }
     }

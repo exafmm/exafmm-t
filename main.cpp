@@ -48,9 +48,6 @@ int main(int argc, char **argv) {
   std::vector<int> nodes_pt_src_idx;
   int nodes_pt_src_idx_cnt = 0;
   for(int i=0; i<nodes.size(); i++) {
-    for(int d=0; d<3; d++) {
-      nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
-    }
     nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
     if(nodes[i].IsLeaf()) {
       for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
