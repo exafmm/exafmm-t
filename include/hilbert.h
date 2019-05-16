@@ -41,9 +41,9 @@ namespace exafmm_t {
     return key & 7;
   }
 
-  //! Get Hilbert key from 3-D index
   uint64_t getKey(ivec3 iX, int level, bool offset=true) {
 #if EXAFMM_HILBERT
+  //! Get Hilbert key from 3-D index
     int M = 1 << (level - 1);
     for (int Q=M; Q>1; Q>>=1) {
       int R = Q - 1;
@@ -72,8 +72,8 @@ namespace exafmm_t {
     return i;
   }
 
-  //! Get 3-D index from Hilbert key
   ivec3 get3DIndex(uint64_t i) {
+    //! Get 3-D index from Morton key
     int level = getLevel(i);
     i -= levelOffset(level);
     ivec3 iX = 0;
@@ -83,6 +83,7 @@ namespace exafmm_t {
       iX[0] |= (i & (uint64_t)1 << (3*l + 2)) >> (2*l + 2);
     }
 #if EXAFMM_HILBERT
+    //! Get 3-D index from Hilbert key
     int N = 2 << (level - 1);
     int t = iX[2] >> 1;
     for (int d=2; d>0; d--) iX[d] ^= iX[d-1];
@@ -102,8 +103,8 @@ namespace exafmm_t {
     return iX;
   }
 
-  //! Get 3-D index from Hilbert key without level offset
   ivec3 get3DIndex(uint64_t i, int level) {
+    //! Get 3-D index from Morton key without level offset
     ivec3 iX = 0;
     for (int l=0; l<level; l++) {
       iX[2] |= (i & (uint64_t)1 << 3*l) >> 2*l;
@@ -111,6 +112,7 @@ namespace exafmm_t {
       iX[0] |= (i & (uint64_t)1 << (3*l + 2)) >> (2*l + 2);
     }
 #if EXAFMM_HILBERT
+    //! Get 3-D index from Hilbert key without level offset
     int N = 2 << (level - 1);
     int t = iX[2] >> 1;
     for (int d=2; d>0; d--) iX[d] ^= iX[d-1];
