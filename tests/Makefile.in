@@ -392,8 +392,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/vectorclass \
 # SIMD and other extensions flags
 
 # Compiler warning flags
-AM_CXXFLAGS = -fabi-version=6 -std=c++11 $(OPENMP_CXXFLAGS) \
-	$(SIMD_FLAGS) $(CPUEXT_FLAGS) $(COMPILER_CXXFLAGS)
+AM_CXXFLAGS = -std=c++11 $(OPENMP_CXXFLAGS) $(SIMD_FLAGS) \
+	$(CPUEXT_FLAGS) $(COMPILER_CXXFLAGS)
 AM_LDFLAGS = -lpthread -lm $(OPENMP_CXXFLAGS)
 
 # Single/Double precision
