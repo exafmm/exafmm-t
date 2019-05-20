@@ -48,6 +48,7 @@ AC_DEFUN([AX_COMPILER_FLAGS],[
     # http://stackoverflow.com/questions/3375697/useful-gcc-flags-for-c
     # http://stackoverflow.com/questions/5088460/flags-to-enable-thorough-and-verbose-g-warnings
     AX_APPEND_COMPILE_FLAGS([ dnl
+        -g dnl
         $ax_compiler_flags_test dnl
         "-check all" dnl
         "-debug all" dnl

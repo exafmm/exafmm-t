@@ -787,6 +787,7 @@ with_aix_soname
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+enable_debug
 enable_single
 enable_float
 enable_openmp
@@ -1453,6 +1454,8 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-debug          turn on debugging and warning flags during
+                          compilation
   --enable-single         compile in single precision
   --enable-float          synonym for --enable-single
   --disable-openmp        disable OpenMP
@@ -12590,8 +12593,8 @@ CC=$lt_save_CC
 
 
 # change default compiler flag from -O2 to -O3
-: ${CXXFLAGS="-g -O3"}
-: ${CFLAGS="-g -O3"}
+: ${CXXFLAGS="-O3"}
+: ${CFLAGS="-O3"}
 
 # Checks for programs.
 ac_ext=cpp
@@ -19485,8 +19488,7 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
-
-# Check compiler vendor & warning flags
+# Check compiler vendor
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for C++ compiler vendor" >&5
 $as_echo_n "checking for C++ compiler vendor... " >&6; }
 if ${ax_cv_cxx_compiler_vendor+:} false; then :
@@ -19546,6 +19548,14 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_cxx_compiler_vendor" >&5
 $as_echo "$ax_cv_cxx_compiler_vendor" >&6; }
 
+
+# Whether enable debug mode
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug; enable_debug=yes
+fi
+
+if test "$enable_debug" = "yes"; then
 
 
 
@@ -19639,7 +19649,7 @@ fi
 
 
 
-for flag in          $ax_compiler_flags_test         "-check all"         "-debug all" 	"-diag-disable remark" 	-fno-strict-aliasing 	-fsanitize=address 	-fsanitize=leak 	-fstack-protector 	-ftrapuv 	-ftrapv 	-traceback 		-Wall 	-Warray-bounds         -Wbad-function-cast 		-Wcast-align 	-Wcast-qual 	-Wextra 		-Wformat=2 	-Wformat-nonliteral 	-Wformat-security 	-Winit-self 		-Wmissing-format-attribute 	-Wmissing-include-dirs 	-Wmissing-noreturn         -Wnested-externs 	-Wno-missing-field-initializers 	-Wno-overloaded-virtual         -Wno-unused-local-typedefs 	-Wno-unused-parameter         -Wno-unused-variable 		-Wpointer-arith 	-Wredundant-decls 	-Wreturn-type 	-Wshadow 	-Wsign-compare 	-Wstrict-aliasing 	-Wstrict-overflow=5 	-Wstrict-prototype 		-Wswitch-enum 		-Wuninitialized 	-Wunreachable-code 	-Wunused-but-set-variable 	-Wwrite-strings     ; do
+for flag in          -g         $ax_compiler_flags_test         "-check all"         "-debug all" 	"-diag-disable remark" 	-fno-strict-aliasing 	-fsanitize=address 	-fsanitize=leak 	-fstack-protector 	-ftrapuv 	-ftrapv 	-traceback 		-Wall 	-Warray-bounds         -Wbad-function-cast 		-Wcast-align 	-Wcast-qual 	-Wextra 		-Wformat=2 	-Wformat-nonliteral 	-Wformat-security 	-Winit-self 		-Wmissing-format-attribute 	-Wmissing-include-dirs 	-Wmissing-noreturn         -Wnested-externs 	-Wno-missing-field-initializers 	-Wno-overloaded-virtual         -Wno-unused-local-typedefs 	-Wno-unused-parameter         -Wno-unused-variable 		-Wpointer-arith 	-Wredundant-decls 	-Wreturn-type 	-Wshadow 	-Wsign-compare 	-Wstrict-aliasing 	-Wstrict-overflow=5 	-Wstrict-prototype 		-Wswitch-enum 		-Wuninitialized 	-Wunreachable-code 	-Wunused-but-set-variable 	-Wwrite-strings     ; do
   as_CACHEVAR=`$as_echo "ax_cv_check_cxxflags_$ax_compiler_flags_test_$flag" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C++ compiler accepts $flag" >&5
 $as_echo_n "checking whether C++ compiler accepts $flag... " >&6; }
@@ -19807,6 +19817,7 @@ esac
 
 
 
+fi
 
 # Choose precision
 # Check whether --enable-single was given.
@@ -20106,7 +20117,7 @@ $as_echo "#define HAVE_MPI 1" >>confdefs.h
         :
 fi
 
-   # Extract the first word of "mpirun", so it can be a program name with args.
+  # Extract the first word of "mpirun", so it can be a program name with args.
 set dummy mpirun; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -20155,10 +20166,10 @@ else
 fi
 
 if test "$enable_simd" = "yes"; then
-   if test "$ax_cv_cxx_compiler_vendor" = "intel"; then
-      SIMD_FLAGS="-xHOST"
+  if test "$ax_cv_cxx_compiler_vendor" = "intel"; then
+    SIMD_FLAGS="-xHOST"
 
-   else
+  else
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -21103,7 +21114,7 @@ fi
 
 
 
-   fi
+  fi
 fi
 
 # Checks for libraries.
