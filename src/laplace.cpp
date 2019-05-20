@@ -18,7 +18,7 @@ namespace exafmm_t {
   void potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
     simdvec zero(real_t(0));
     real_t newton_coef = 16;   // comes from Newton's method in simd rsqrt function
-    const real_t COEF = 1.0/(4*M_PI*newton_coef);
+    const real_t COEF = 1.0/(4*PI*newton_coef);
     simdvec coef(COEF);
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
@@ -61,7 +61,7 @@ namespace exafmm_t {
           p += src_value[s] / r;
         }
       }
-      trg_value[t] += p / (4*M_PI);
+      trg_value[t] += p / (4*PI);
     }
   }
 
@@ -69,8 +69,8 @@ namespace exafmm_t {
     simdvec zero(real_t(0));
     real_t newton_coefp = 16;   // comes from Newton's method in simd rsqrt function
     real_t newton_coefg = 16*16*16;
-    const real_t COEFP = 1.0/(4*M_PI*newton_coefp);
-    const real_t COEFG = -1.0/(4*M_PI*newton_coefg);
+    const real_t COEFP = 1.0/(4*PI*newton_coefp);
+    const real_t COEFG = -1.0/(4*PI*newton_coefg);
     simdvec coefp(COEFP);
     simdvec coefg(COEFG);
     int src_cnt = src_coord.size() / 3;
@@ -131,10 +131,10 @@ namespace exafmm_t {
           tz += src_value[s] * (trg_coord[t*3+2] - src_coord[s*3+2])/(r * r * r);
         }
       }
-      trg_value[4*t] += p / (4*M_PI) ;
-      trg_value[4*t+1] -= tx / (4*M_PI);
-      trg_value[4*t+2] -= ty / (4*M_PI);
-      trg_value[4*t+3] -= tz / (4*M_PI);
+      trg_value[4*t] += p / (4*PI) ;
+      trg_value[4*t+1] -= tx / (4*PI);
+      trg_value[4*t+2] -= ty / (4*PI);
+      trg_value[4*t+3] -= tz / (4*PI);
     }
   }
 

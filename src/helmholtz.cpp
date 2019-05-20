@@ -18,7 +18,7 @@ namespace exafmm_t {
   void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
-    const real_t COEF = 1.0/(4*M_PI*newton_scale);
+    const real_t COEF = 1.0/(4*PI*newton_scale);
     simdvec coef(COEF);
     simdvec k(WAVEK/newton_scale);
     int src_cnt = src_coord.size() / 3;
@@ -71,14 +71,14 @@ namespace exafmm_t {
           p += std::exp(I * R * WAVEK) * src_value[s] / R;
         }
       }
-      trg_value[t] += p / (4*M_PI);
+      trg_value[t] += p / (4*PI);
     }
   }
 
   void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
-    const real_t COEF = 1.0/(4*M_PI*newton_scale);   // factor 16 comes from the simd rsqrt function
+    const real_t COEF = 1.0/(4*PI*newton_scale);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
     simdvec k(WAVEK/newton_scale);
     simdvec NEWTON(newton_scale);
@@ -165,10 +165,10 @@ namespace exafmm_t {
             F[d] += coefg * dX[d];
         }
       }
-      trg_value[4*t+0] += p / (4*M_PI);
-      trg_value[4*t+1] += F[0] / (4*M_PI);
-      trg_value[4*t+2] += F[1] / (4*M_PI);
-      trg_value[4*t+3] += F[2] / (4*M_PI);
+      trg_value[4*t+0] += p / (4*PI);
+      trg_value[4*t+1] += F[0] / (4*PI);
+      trg_value[4*t+2] += F[1] / (4*PI);
+      trg_value[4*t+3] += F[2] / (4*PI);
     }
   }
 
@@ -176,8 +176,8 @@ namespace exafmm_t {
   // non-simd P2P
   void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
-    //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
-    real_t WAVEK = 20*M_PI;
+    //complex_t WAVEK = complex_t(1,.1) / real_t(2*PI);
+    real_t WAVEK = 20*PI;
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
@@ -200,14 +200,14 @@ namespace exafmm_t {
           p += pij;
         }
       }
-      trg_value[i] += p / (4*M_PI);
+      trg_value[i] += p / (4*PI);
     }
   }
 
   void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
-    //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
-    real_t WAVEK = 20*M_PI;
+    //complex_t WAVEK = complex_t(1,.1) / real_t(2*PI);
+    real_t WAVEK = 20*PI;
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
@@ -233,10 +233,10 @@ namespace exafmm_t {
           }
         }
       }
-      trg_value[4*i+0] += p / (4*M_PI);
-      trg_value[4*i+1] += F[0] / (4*M_PI);
-      trg_value[4*i+2] += F[1] / (4*M_PI);
-      trg_value[4*i+3] += F[2] / (4*M_PI);
+      trg_value[4*i+0] += p / (4*PI);
+      trg_value[4*i+1] += F[0] / (4*PI);
+      trg_value[4*i+2] += F[1] / (4*PI);
+      trg_value[4*i+3] += F[2] / (4*PI);
     }
   }
 #endif 

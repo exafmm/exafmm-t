@@ -39,16 +39,16 @@ void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, 
         tz += src_value[s] * (trg_coord[t*3+2] - src_coord[s*3+2])/(r * r * r);
       }
     }
-    trg_value[4*t] = p / (4 * M_PI);
-    trg_value[4*t+1] = tx / (-4 * M_PI);
-    trg_value[4*t+2] = ty / (-4 * M_PI);
-    trg_value[4*t+3] = tz / (-4 * M_PI);
+    trg_value[4*t] = p / (4 * PI);
+    trg_value[4*t+1] = tx / (-4 * PI);
+    trg_value[4*t+2] = ty / (-4 * PI);
+    trg_value[4*t+3] = tz / (-4 * PI);
   }
 }
 
 void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-  // complex_t WAVEK = 0.1 / real_t(2*M_PI);
-  real_t WAVEK = 20*M_PI;
+  // complex_t WAVEK = 0.1 / real_t(2*PI);
+  real_t WAVEK = 20*PI;
   complex_t I = std::complex<real_t>(0., 1.);
 #pragma omp parallel for
   for(size_t i=0; i<trg_coord.size()/3; ++i) {
@@ -65,12 +65,12 @@ void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_co
         p += pij;
       }
     }
-    trg_value[i] += p / (4*M_PI); 
+    trg_value[i] += p / (4*PI);
   }
 }
 
 int main(int argc, char **argv) {
-  // WAVEK = complex_t(1, .1) / real_t(2*M_PI);
+  // WAVEK = complex_t(1, .1) / real_t(2*PI);
   Args args(argc, argv);
   struct timeval tic, toc;
   size_t N = args.numBodies;

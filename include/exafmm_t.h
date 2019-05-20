@@ -46,6 +46,7 @@ namespace exafmm_t {
 #define fft_destroy_plan fftw_destroy_plan
 #endif
 
+  const real_t PI = M_PI;
   typedef std::complex<real_t> complex_t;
   typedef vec<3,int> ivec3;                     //!< std::vector of 3 int types
   typedef vec<3,real_t> vec3;                   //!< std::vector of 3 real_t types
