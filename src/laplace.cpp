@@ -240,54 +240,29 @@ namespace exafmm_t {
       sources_max = (sources_idx.size() > sources_max)? sources_idx.size():sources_max;
     }
     nodes_P2Llist_idx_offset.push_back(nodes_P2Llist_idx_offset_cnt);
-    P2LGPU(nodes, dnward_equiv, nodes_pt_src, nodes_pt_src_idx, bodies_coord, nodes_coord, nodes_depth, nodes_idx, dnwd_check_surf, nodes_P2Llist_idx, nodes_P2Llist_idx_offset, sources_max);
-    #pragma omp parallel for
-    for(int i=0; i<targets.size(); i++) {
-      int sources_idx_size = nodes_P2Llist_idx_offset[i+1]-nodes_P2Llist_idx_offset[i];
-      RealVec targetCheckCoord(NSURF*3);
-      int level = nodes_depth[nodes_idx[i]];
-      // target node's check coord = relative check coord + node's origin
-      for(int k=0; k<NSURF; k++) {
-        targetCheckCoord[3*k+0] = dnwd_check_surf[level*NSURF*3+3*k+0] + nodes_coord[nodes_idx[i]+0];
-        targetCheckCoord[3*k+1] = dnwd_check_surf[level*NSURF*3+3*k+1] + nodes_coord[nodes_idx[i]+1];
-        targetCheckCoord[3*k+2] = dnwd_check_surf[level*NSURF*3+3*k+2] + nodes_coord[nodes_idx[i]+2];
-      }
-      for(int j=0; j<sources_idx_size; j++) {
-        int src_idx_start = nodes_P2Llist_idx_offset[i];
-        int src_idx = nodes_P2Llist_idx[src_idx_start+j];
-        int node_start = nodes_pt_src_idx[src_idx];
-        int node_end = nodes_pt_src_idx[src_idx+1];
-        potentialP2P(&bodies_coord[node_start*3], 3*(node_end-node_start), &nodes_pt_src[node_start], &targetCheckCoord[0], 3*NSURF, &dnward_equiv[nodes_idx[i]*NSURF]);
-      }
-    }
+    if(sources_max > 0) P2LGPU(nodes, dnward_equiv, nodes_pt_src, nodes_pt_src_idx, bodies_coord, nodes_coord, nodes_depth, nodes_idx, dnwd_check_surf, nodes_P2Llist_idx, nodes_P2Llist_idx_offset, sources_max);
   }
   
-  void M2P(Nodes &nodes, std::vector<int>& leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &bodies_coord) {
+  void M2P(Nodes &nodes, std::vector<int>& leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &bodies_coord, std::vector<int> &nodes_depth, std::vector<real_t> &nodes_coord) {
     real_t c[3] = {0.0};
     std::vector<real_t> upwd_equiv_surf((MAXLEVEL+1)*NSURF*3);
     for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
       surface(MULTIPOLE_ORDER,c,1.05,depth,depth,upwd_equiv_surf);
     }
-    #pragma omp parallel for
+    std::vector<int> leafs_M2Plist_idx;
+    std::vector<int> leafs_M2Plist_idx_offset;
+    int leafs_M2Plist_idx_offset_cnt = 0;
+    int sources_max = 0;
     for(int i=0; i<leafs_idx.size(); i++) {
-      int leaf_idx = leafs_idx[i];
-      int node_start = nodes_pt_src_idx[leaf_idx];
-      int node_end = nodes_pt_src_idx[leaf_idx+1];
-      Node* target = &nodes[leaf_idx];
+      Node* target = &nodes[leafs_idx[i]];
       std::vector<int> sources_idx= target->M2Plist_idx;
-      for(int j=0; j<sources_idx.size(); j++) {
-        Node* source = &nodes[sources_idx[j]];
-        RealVec sourceEquivCoord(NSURF*3);
-        int level = source->depth;
-        // source node's equiv coord = relative equiv coord + node's origin
-        for(int k=0; k<NSURF; k++) {
-          sourceEquivCoord[3*k+0] = upwd_equiv_surf[level*NSURF*3+3*k+0] + source->coord[0];
-          sourceEquivCoord[3*k+1] = upwd_equiv_surf[level*NSURF*3+3*k+1] + source->coord[1];
-          sourceEquivCoord[3*k+2] = upwd_equiv_surf[level*NSURF*3+3*k+2] + source->coord[2];
-        }
-        gradientP2P(&sourceEquivCoord[0], NSURF*3, &upward_equiv[source->idx*NSURF], &bodies_coord[node_start*3], 3*(node_end-node_end), &nodes_trg[node_start*4]);
-      }
+      leafs_M2Plist_idx.insert(leafs_M2Plist_idx.end(), sources_idx.begin(), sources_idx.end());
+      leafs_M2Plist_idx_offset.push_back(leafs_M2Plist_idx_offset_cnt);
+      leafs_M2Plist_idx_offset_cnt += sources_idx.size();
+      sources_max = (sources_idx.size() > sources_max)? sources_idx.size():sources_max;
     }
+    leafs_M2Plist_idx_offset.push_back(leafs_M2Plist_idx_offset_cnt);
+    if (sources_max > 0) M2PGPU(nodes, leafs_idx, nodes_pt_src_idx, leafs_M2Plist_idx_offset, leafs_M2Plist_idx, nodes_depth, upwd_equiv_surf, nodes_coord, upward_equiv, bodies_coord, nodes_trg, sources_max);
   }
 
   void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, int ncrit) {

@@ -211,6 +211,67 @@ namespace exafmm_t {
       d_dnward_equiv[d_nodes_idx[target_idx]*NSURF+i] += tv;
     }
   }
+  
+  __global__
+  void M2P_kernel(int *d_leafs_idx, int *d_nodes_pt_src_idx, int *d_leafs_M2Plist_idx_offset, int *d_leafs_M2Plist_idx, int *d_nodes_depth, real_t *d_nodes_coord, real_t *d_upwd_equiv_surf, real_t *d_upward_equiv, real_t *d_bodies_coord, real_t *d_nodes_trg, int NSURF) {
+    int leaf_idx = d_leafs_idx[blockIdx.x];
+    int node_start = d_nodes_pt_src_idx[leaf_idx];
+    int node_end = d_nodes_pt_src_idx[leaf_idx+1];
+    int sources_idx_size = d_leafs_M2Plist_idx_offset[blockIdx.x+1]-d_leafs_M2Plist_idx_offset[blockIdx.x];
+    int src_idx_start = d_leafs_M2Plist_idx_offset[blockIdx.x];
+    if(threadIdx.x < sources_idx_size) {
+      int source_idx = d_leafs_M2Plist_idx[src_idx_start + threadIdx.x];
+      int level = d_nodes_depth[source_idx];
+      real_t *sourceEquivCoord = new real_t[NSURF*3];
+      for(int k=0; k<NSURF; k++) {
+        sourceEquivCoord[3*k+0] = d_upwd_equiv_surf[level*NSURF*3+3*k+0] + d_nodes_coord[source_idx + 0];
+        sourceEquivCoord[3*k+1] = d_upwd_equiv_surf[level*NSURF*3+3*k+1] + d_nodes_coord[source_idx +1];
+        sourceEquivCoord[3*k+2] = d_upwd_equiv_surf[level*NSURF*3+3*k+2] + d_nodes_coord[source_idx +2];
+      }
+      real_t *trg_coord = &d_bodies_coord[node_start*3];
+      real_t *src_coord = &sourceEquivCoord[0];
+      real_t *src_value = &d_upward_equiv[source_idx*NSURF];
+      real_t *trg_value = &d_nodes_trg[node_start*4];
+      const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
+      const real_t COEFG = -1.0/(4*2*2*6*M_PI);
+      int src_cnt = NSURF;
+      int trg_cnt = (node_end-node_end);
+      for(int i=0; i<trg_cnt; i++) {
+        real_t tx = trg_coord[3*i+0];
+        real_t ty = trg_coord[3*i+1];
+        real_t tz = trg_coord[3*i+2];
+        real_t tv0=0;
+        real_t tv1=0;
+        real_t tv2=0;
+        real_t tv3=0;
+        for(int j=0; j<src_cnt; j++) {
+          real_t sx = src_coord[3*j+0] - tx;
+          real_t sy = src_coord[3*j+1] - ty;
+          real_t sz = src_coord[3*j+2] - tz;
+          real_t r2 = sx*sx + sy*sy + sz*sz;
+          real_t sv = src_value[j];
+          if (r2 != 0) {
+	    real_t invR = 1.0/sqrt(r2);
+	    real_t invR3 = invR*invR*invR;
+	    tv0 += invR*sv;
+	    sv *= invR3;
+	    tv1 += sv*sx;
+            tv2 += sv*sy;
+            tv3 += sv*sz;
+          }
+        }
+        tv0 *= COEFP;
+        tv1 *= COEFG;
+        tv2 *= COEFG;
+        tv3 *= COEFG;
+        trg_value[4*i+0] += tv0;
+        trg_value[4*i+1] += tv1;
+        trg_value[4*i+2] += tv2;
+        trg_value[4*i+3] += tv3;
+      }
+      free(sourceEquivCoord);
+    }
+  }
 
   void cuda_init_drivers() {
     cudaFree(0);
@@ -445,7 +506,9 @@ void M2MGPU(RealVec &upward_equiv, std::vector<std::vector<int>> &nodes_by_level
   
   std::vector<real_t> M2LGPU(std::vector<int> &M2Ltargets_idx, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, AlignedVec &up_equiv, int M2Lsources_idx_size) {
     cufftComplex *d_up_equiv_fft = FFT_UpEquiv_GPU(M2Lsources_idx_size, up_equiv);
+    Profile::Tic("general",true);
     cufftComplex *d_dw_equiv_fft = HadmardGPU(M2Ltargets_idx, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, d_up_equiv_fft);
+    Profile::Toc();
     return FFT_Check2Equiv_GPU(d_dw_equiv_fft, M2Ltargets_idx.size());
   }
 
@@ -650,8 +713,8 @@ void M2MGPU(RealVec &upward_equiv, std::vector<std::vector<int>> &nodes_by_level
     cudaMemcpy(d_dnward_equiv, &dnward_equiv[0], sizeof(real_t)*dnward_equiv.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_idx, &nodes_idx[0], sizeof(int)*nodes_idx.size(), cudaMemcpyHostToDevice);
     
-    if (THREADS > 0) P2L_kernel<<<BLOCKS, THREADS, NSURF*3*sizeof(real_t)>>>(d_dnwd_check_surf, d_nodes_P2Llist_idx, d_nodes_P2Llist_idx_offset, d_nodes_coord, d_nodes_depth, d_nodes_pt_src_idx, d_bodies_coord, d_nodes_pt_src, d_dnward_equiv, d_nodes_idx, NSURF);
-    
+    P2L_kernel<<<BLOCKS, THREADS, NSURF*3*sizeof(real_t)>>>(d_dnwd_check_surf, d_nodes_P2Llist_idx, d_nodes_P2Llist_idx_offset, d_nodes_coord, d_nodes_depth, d_nodes_pt_src_idx, d_bodies_coord, d_nodes_pt_src, d_dnward_equiv, d_nodes_idx, NSURF);
+    cudaMemcpy(&dnward_equiv[0], d_dnward_equiv, sizeof(real_t)*dnward_equiv.size(), cudaMemcpyDeviceToHost);    
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
     cudaFree(d_dnwd_check_surf);
@@ -665,6 +728,49 @@ void M2MGPU(RealVec &upward_equiv, std::vector<std::vector<int>> &nodes_by_level
     cudaFree(d_dnward_equiv);
     cudaFree(d_nodes_idx);
   }
+  
+  void M2PGPU(Nodes &nodes, std::vector<int>& leafs_idx, std::vector<int> &nodes_pt_src_idx, std::vector<int> &leafs_M2Plist_idx_offset, std::vector<int> &leafs_M2Plist_idx, std::vector<int> &nodes_depth, std::vector<real_t> &upwd_equiv_surf, std::vector<real_t> &nodes_coord, std::vector<real_t> &upward_equiv, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_trg, int sources_max) {
+    int THREADS = sources_max;
+    int BLOCKS = leafs_idx.size();
 
+    int *d_leafs_idx, *d_nodes_pt_src_idx, *d_leafs_M2Plist_idx_offset, *d_leafs_M2Plist_idx, *d_nodes_depth;
+    real_t *d_nodes_coord, *d_upwd_equiv_surf, *d_upward_equiv, *d_bodies_coord, *d_nodes_trg;
+    
+    cudaMalloc(&d_leafs_idx, sizeof(int)*leafs_idx.size());
+    cudaMalloc(&d_nodes_pt_src_idx, sizeof(int)*nodes_pt_src_idx.size());
+    cudaMalloc(&d_leafs_M2Plist_idx_offset, sizeof(int)*leafs_M2Plist_idx_offset.size());
+    cudaMalloc(&d_leafs_M2Plist_idx, sizeof(int)*leafs_M2Plist_idx.size());
+    cudaMalloc(&d_nodes_depth, sizeof(int)*nodes_depth.size());
+    cudaMalloc(&d_nodes_coord, sizeof(real_t)*nodes_coord.size());
+    cudaMalloc(&d_upwd_equiv_surf, sizeof(real_t)*upwd_equiv_surf.size());
+    cudaMalloc(&d_upward_equiv, sizeof(real_t)*upward_equiv.size());
+    cudaMalloc(&d_bodies_coord, sizeof(real_t)*bodies_coord.size());
+    cudaMalloc(&d_nodes_trg, sizeof(real_t)*nodes_trg.size());
+
+    cudaMemcpy(d_leafs_idx, &leafs_idx[0], sizeof(int)*leafs_idx.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_nodes_pt_src_idx, &nodes_pt_src_idx[0], sizeof(int)*nodes_pt_src_idx.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_leafs_M2Plist_idx_offset, &leafs_M2Plist_idx_offset[0], sizeof(int)*leafs_M2Plist_idx_offset.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_leafs_M2Plist_idx, &leafs_M2Plist_idx[0], sizeof(int)*leafs_M2Plist_idx.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_nodes_depth, &nodes_depth[0], sizeof(int)*nodes_depth.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_nodes_coord, &nodes_coord[0], sizeof(real_t)*nodes_coord.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_upwd_equiv_surf, &upwd_equiv_surf[0], sizeof(real_t)*upwd_equiv_surf.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_upward_equiv, &upward_equiv[0], sizeof(real_t)*upward_equiv.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_bodies_coord, &bodies_coord[0], sizeof(real_t)*bodies_coord.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_nodes_trg, &nodes_trg[0], sizeof(real_t)*nodes_trg.size(), cudaMemcpyHostToDevice);
+    
+    M2P_kernel<<<BLOCKS, 1>>>(d_leafs_idx, d_nodes_pt_src_idx, d_leafs_M2Plist_idx_offset, d_leafs_M2Plist_idx, d_nodes_depth, d_nodes_coord, d_upwd_equiv_surf, d_upward_equiv, d_bodies_coord, d_nodes_trg, NSURF);
+
+    cudaFree(d_leafs_idx);
+    cudaFree(d_nodes_pt_src_idx);
+    cudaFree(d_leafs_M2Plist_idx_offset);
+    cudaFree(d_leafs_M2Plist_idx);
+    cudaFree(d_nodes_depth);
+    cudaFree(d_nodes_coord);
+    cudaFree(d_upwd_equiv_surf);
+    cudaFree(d_upward_equiv);
+    cudaFree(d_bodies_coord);
+    cudaFree(d_nodes_trg);
+
+  }
 }
 

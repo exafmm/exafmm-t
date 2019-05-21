@@ -41,7 +41,7 @@ namespace exafmm_t {
 
   void P2L(Nodes& nodes, RealVec &dnward_equiv, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx,std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_coord, std::vector<int> &nodes_depth, std::vector<int> &nodes_idx);
 
-  void M2P(Nodes &nodes, std::vector<int> &leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &bodies_coord);
+  void M2P(Nodes &nodes, std::vector<int> &leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &bodies_coord, std::vector<int> &nodes_depth, std::vector<real_t> &nodes_coord);
   
   void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, int ncrit);
 

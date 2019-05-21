@@ -18,7 +18,7 @@ namespace exafmm_t {
     P2L(nodes, dnward_equiv, nodes_pt_src, nodes_pt_src_idx, bodies_coord, nodes_coord, nodes_depth, nodes_idx);
     Profile::Toc();
     Profile::Tic("M2P", false, 5);
-    M2P(nodes, leafs_idx, upward_equiv, nodes_trg, nodes_pt_src_idx, bodies_coord);
+    M2P(nodes, leafs_idx, upward_equiv, nodes_trg, nodes_pt_src_idx, bodies_coord, nodes_depth, nodes_coord);
     Profile::Toc();
     Profile::Tic("P2P", false, 5);
     P2P(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_trg, nodes_pt_src_idx, ncrit);
