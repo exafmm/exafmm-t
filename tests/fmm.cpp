@@ -27,12 +27,12 @@ namespace exafmm_t {
 using namespace exafmm_t;
 
 int main(int argc, char **argv) {
-#if HELMHOLTZ
-  WAVEK = 20;
-#endif
   Args args(argc, argv);
 #if HAVE_OPENMP
   omp_set_num_threads(args.threads);
+#endif
+#if HELMHOLTZ
+  WAVEK = args.k;
 #endif
   size_t N = args.numBodies;
   P = args.P;
@@ -83,6 +83,8 @@ int main(int argc, char **argv) {
   print("Root Radius R", R0);
   print("Tree Depth", MAXLEVEL);
   print("Leaf Nodes", leafs.size());
-
+#if HELMHOLTZ
+  print("Helmholtz kD", 2*R0*WAVEK);
+#endif
   return 0;
 }

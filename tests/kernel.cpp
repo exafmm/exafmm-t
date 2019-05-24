@@ -39,15 +39,19 @@ void set_children(Node* parent, Node* first_child) {
   }
 }
 
-int main() {
+int main(int argc, char **argv) {
+  Args args(argc, argv);
+#if HAVE_OPENMP
+  omp_set_num_threads(args.threads);
+#endif
   // set global variables
-  P = 8;
+  P = args.P;
   NSURF = 6*(P-1)*(P-1) + 2;
   MAXLEVEL = 3;
   X0 = 4.;
   R0 = 4.;
 #if HELMHOLTZ
-  WAVEK = 10;
+  WAVEK = args.k;
 #endif
   // precomputation
   init_rel_coord();

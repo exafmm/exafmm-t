@@ -14,6 +14,7 @@ namespace exafmm_t {
     {"threads",      required_argument, 0, 'T'},
     {"distribution", required_argument, 0, 'd'},
     {"maxlevel",     required_argument, 0, 'l'},
+    {"wavenumber",   required_argument, 0, 'k'},
     {0, 0, 0, 0}
   };
 
@@ -24,6 +25,7 @@ namespace exafmm_t {
     int P;
     int threads;
     int maxlevel;
+    double k;
     const char * distribution;
 
   private:
@@ -36,14 +38,16 @@ namespace exafmm_t {
 	      " --numBodies (-n)              : Number of bodies (%d)\n"
 	      " --P (-P)                      : Order of expansion (%d)\n"
 	      " --threads (-T)                : Number of threads (%d)\n"
-              " --maxlevel (-l)               : Max level of tree (%d) (only applies to non-adaptive tree)\n",
+              " --maxlevel (-l)               : Max level of tree (%d) (only applies to non-adaptive tree)\n"
+              " --wavenumber (-k)             : Wavenumber of Helmholtz kernel (%f)\n",
 	      name,
 	      ncrit,
               distribution,
 	      numBodies,
 	      P,
 	      threads,
-              maxlevel);
+              maxlevel,
+              k);
     }
 
     const char * parseDistribution(const char * arg) {
@@ -65,10 +69,11 @@ namespace exafmm_t {
       P(4),
       threads(16),
       maxlevel(5),
-      distribution("cube") {
+      distribution("cube"),
+      k(20) {
       while (1) {
 	int option_index;
-	int c = getopt_long(argc, argv, "c:d:n:P:T:l:", long_options, &option_index);
+	int c = getopt_long(argc, argv, "c:d:n:P:T:l:k:", long_options, &option_index);
 	if (c == -1) break;
 	switch (c) {
 	case 'c':
@@ -89,6 +94,9 @@ namespace exafmm_t {
         case 'l':
           maxlevel = atoi(optarg);
           break;
+        case 'k':
+          k = atof(optarg);
+          break;
 	default:
 	  usage(argv[0]);
 	  exit(0);
@@ -108,7 +116,9 @@ namespace exafmm_t {
                 << std::setw(stringLength)
                 << "maxlevel" << " : " << maxlevel << std::endl
                 << std::setw(stringLength)
-                << "threads" << " : " << threads << std::endl;
+                << "threads" << " : " << threads << std::endl
+                << std::setw(stringLength)
+                << "wavenumber" << " : " << k << std::endl;
     }
   };
 }
