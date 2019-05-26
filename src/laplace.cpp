@@ -161,35 +161,43 @@ namespace exafmm_t {
     }
     return coord;
   }
-  
-  void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv, std::vector<real_t> &nodes_coord) {
-    RealVec checkCoord = surface_test(MULTIPOLE_ORDER,2.95);
-    RealVec r(leafs_idx.size());
-    RealVec leaf_xyz(3*leafs_idx.size());
-    //#pragma omp parallel for
-    for(int i=0; i<leafs_idx.size(); i++) {
-      Node* leaf = &nodes[leafs_idx[i]];
-      int level = leaf->depth;
-      real_t scal = powf(0.5, level);    // scaling factor of UC2UE precomputation matrix source charge -> check surface potential
-      r[i] = 0.5*scal;
-      leaf_xyz[3*i+0] = nodes_coord[leaf->idx*3];
-      leaf_xyz[3*i+1] = nodes_coord[leaf->idx*3+1];
-      leaf_xyz[3*i+2] = nodes_coord[leaf->idx*3+2];
-    }
-    P2MGPU(leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, checkCoord, checkCoord.size(), upward_equiv, r, leaf_xyz, ncrit);
-    #pragma omp parallel for
-    for(int i=0; i<leafs_idx.size(); i++) {
-      Node* leaf = &nodes[leafs_idx[i]];
-      int level = leaf->depth;
-      real_t scal = powf(0.5, level);
-      
-      for(int k=0; k<NSURF; k++) {
-        upward_equiv[leafs_idx[i]*NSURF+k] = upward_equiv[leafs_idx[i]*NSURF+k]*scal;
+
+  void potentialP2Px(real_t *src_coord, int src_coord_size, real_t *src_value, real_t *trg_coord, int trg_coord_size, real_t *trg_value, real_t scal) {
+    const real_t COEF = 1.0/(2*4*M_PI);
+    int src_cnt = src_coord_size / 3;
+    int trg_cnt = trg_coord_size / 3;
+    for(int t=0; t<trg_cnt; t++) {
+      real_t tx = trg_coord[3*t+0];
+      real_t ty = trg_coord[3*t+1];
+      real_t tz = trg_coord[3*t+2];
+      real_t tv = 0;
+      for(int s=0; s<src_cnt; s++) {
+        real_t sx = src_coord[3*s+0]-tx;
+        real_t sy = src_coord[3*s+1]-ty;
+        real_t sz = src_coord[3*s+2]-tz;
+        real_t sv = src_value[s];
+        real_t r2 = sx*sx + sy*sy + sz*sz;;
+        if (r2 != 0) {
+          real_t invR = 1.0/sqrt(r2);
+          tv += invR * sv;
+        }
       }
+      tv *= COEF;
+      trg_value[t] += tv*scal;
     }
   }
+  
+  void P2M(Nodes &nodes, std::vector<int> &leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv, std::vector<real_t> &nodes_coord, std::vector<int> &nodes_depth) {
+    real_t c[3] = {0.0};
+    std::vector<real_t> upwd_check_surf((MAXLEVEL+1)*NSURF*3);
+    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
+      surface(MULTIPOLE_ORDER,c,2.95,depth, depth, upwd_check_surf);
+    }
+    RealVec upward_equiv_gpu(upward_equiv.size());
+    P2MGPU(upwd_check_surf, leafs_idx, nodes_depth, nodes_coord, bodies_coord, nodes_pt_src_idx, upward_equiv, nodes_pt_src);
+  }
 
-  void M2M(Nodes &nodes, RealVec &upward_equiv, std::vector<int> &nonleafs_idx, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx) {
+  void M2M(Nodes &nodes, RealVec &upward_equiv, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx) {
     M2MGPU(upward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
   }
   

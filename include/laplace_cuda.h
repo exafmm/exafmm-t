@@ -9,8 +9,8 @@
 
 namespace exafmm_t {
   void cuda_init_drivers();
-  
-  void P2MGPU(std::vector<int> &leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &checkCoord, int trg_cnt, std::vector<real_t> &upward_equiv, std::vector<real_t> &r, std::vector<real_t> &leaf_xyz, int ncrit);
+ 
+   void P2MGPU(std::vector<real_t> &upwd_check_surf, std::vector<int> &leafs_idx, std::vector<int> &nodes_depth, std::vector<real_t> &nodes_coord, std::vector<real_t> &bodies_coord, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &upward_equiv, std::vector<real_t> &nodes_pt_src);
 
   void M2MGPU(RealVec &upward_equiv, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx);
 

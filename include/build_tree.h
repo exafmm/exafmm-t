@@ -4,7 +4,7 @@
 
 namespace exafmm_t {
   //! Build nodes of tree adaptively using a top-down approach based on recursion
-  void buildTree(Body * bodies, Body * buffer, int begin, int end, Node * node, Nodes & nodes, const vec3 & X, real_t R, std::vector<int> &leafs_idx, std::vector<int> &nonleafs_idx, Args & args, int level=0, bool direction=false) {
+  void buildTree(Body * bodies, Body * buffer, int begin, int end, Node * node, Nodes & nodes, const vec3 & X, real_t R, std::vector<int> &leafs_idx, Args & args, int level=0, bool direction=false) {
     node->depth = level;         // depth
     //! Create a tree node
     node->body = bodies + begin;
@@ -42,7 +42,6 @@ namespace exafmm_t {
       }
       return;
     }
-    nonleafs_idx.push_back(node->idx);
     //! Sort bodies by octant
     for (int i=0; i<8; i++) counter[i] = offsets[i];
     for (int i=begin; i<end; i++) {
@@ -72,12 +71,12 @@ namespace exafmm_t {
         child[c].idx = child_start_idx + i;
         node->child[i] = &child[c];
         node->child_idx.push_back(child[c].idx);
-        buildTree(buffer, bodies, offsets[i], offsets[i] + size[i], &child[c++], nodes, Xchild, Rchild, leafs_idx, nonleafs_idx, args, level+1, !direction);
+        buildTree(buffer, bodies, offsets[i], offsets[i] + size[i], &child[c++], nodes, Xchild, Rchild, leafs_idx, args, level+1, !direction);
       }
     }
   }
 
-  Nodes buildTree(Bodies & bodies, std::vector<int> &leafs_idx, std::vector<int> &nonleafs_idx, Args & args) {
+  Nodes buildTree(Bodies & bodies, std::vector<int> &leafs_idx, Args & args) {
     real_t R0 = 0.5;
     vec3 X0(0.5);
     Bodies buffer = bodies;
@@ -85,7 +84,7 @@ namespace exafmm_t {
     nodes[0].parent = NULL;
     nodes[0].octant = 0;
     nodes.reserve(bodies.size()*(32/args.ncrit+1));
-    buildTree(&bodies[0], &buffer[0], 0, bodies.size(), &nodes[0], nodes, X0, R0, leafs_idx, nonleafs_idx, args);
+    buildTree(&bodies[0], &buffer[0], 0, bodies.size(), &nodes[0], nodes, X0, R0, leafs_idx, args);
     return nodes;
   }
 }
