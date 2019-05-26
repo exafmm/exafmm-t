@@ -222,7 +222,7 @@ namespace exafmm_t {
     int n3 = n1 * n1 * n1;
     size_t fft_size = n3 * 2 * NCHILD * NCHILD;
     size_t file_size = (2*REL_COORD[M2M_Type].size()+4) * NSURF * NSURF * (MAXLEVEL+1) * sizeof(complex_t)
-                     +  REL_COORD[M2L_Type].size() * fft_size * MAXLEVEL * sizeof(real_t) + 1;    // +1 denotes R0
+                     +  REL_COORD[M2L_Type].size() * fft_size * MAXLEVEL * sizeof(real_t) + 2 * sizeof(real_t);    // 2 denotes R0 and WAVEK
     if (file.good()) {     // if file exists
       file.seekg(0, file.end);
       if (size_t(file.tellg()) == file_size) {   // if file size is correct
@@ -231,6 +231,14 @@ namespace exafmm_t {
         real_t R0_;
         file.read(reinterpret_cast<char*>(&R0_), sizeof(real_t));
         if (R0 != R0_) {
+          std::cout << R0 << " " << R0_ << std::endl;
+          return false;
+        }
+        // check whether WAVEK matches
+        real_t wavek_;
+        file.read(reinterpret_cast<char*>(&wavek_), sizeof(real_t));
+        if (WAVEK != wavek_) {
+          std::cout << WAVEK << " " << wavek_ << std::endl;
           return false;
         }
         size_t size = NSURF * NSURF;
@@ -267,8 +275,10 @@ namespace exafmm_t {
   void save_matrix() {
     std::remove(FILE_NAME.c_str());
     std::ofstream file(FILE_NAME, std::ofstream::binary);
-    // R0
+    // root radius R0
     file.write(reinterpret_cast<char*>(&R0), sizeof(real_t));
+    // wavenumber WAVEK
+    file.write(reinterpret_cast<char*>(&WAVEK), sizeof(real_t));
     size_t size = NSURF*NSURF;
     for(int level = 0; level <= MAXLEVEL; level++) {
       // save UC2E, DC2E precompute data
