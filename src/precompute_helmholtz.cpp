@@ -6,18 +6,30 @@ namespace exafmm_t {
   std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
   std::vector<std::vector<RealVec>> matrix_M2L_Helper;
   std::vector<std::vector<AlignedVec>> matrix_M2L;
+  std::vector<std::vector<int>> parent2child;
   std::string FILE_NAME;
   bool IS_PRECOMPUTED = true;  // whether matrices are precomputed
 
-  // complex gemm by blas lib
-  void gemm(int m, int n, int k, complex_t* A, complex_t* B, complex_t* C) {
-    char transA = 'N', transB = 'N';
-    complex_t alpha(1., 0.), beta(0.,0.);
-#if FLOAT
-    cgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
-#else
-    zgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
-#endif
+  // Map indices of M2L_Type to indices of M2L_Helper_Type
+  void index_mapping(std::vector<std::vector<int>>& parent2child) {
+    int num_coords = REL_COORD[M2L_Type].size();   // number of relative coords for M2L_Type
+    parent2child.resize(num_coords, std::vector<int>(NCHILD*NCHILD));
+#pragma omp parallel for
+    for(int i=0; i<num_coords; ++i) {
+      for(int j1=0; j1<NCHILD; ++j1) {
+        for(int j2=0; j2<NCHILD; ++j2) {
+          ivec3& parent_rel_coord = REL_COORD[M2L_Type][i];
+          ivec3  child_rel_coord;
+          child_rel_coord[0] = parent_rel_coord[0]*2 - (j1/1)%2 + (j2/1)%2;
+          child_rel_coord[1] = parent_rel_coord[1]*2 - (j1/2)%2 + (j2/2)%2;
+          child_rel_coord[2] = parent_rel_coord[2]*2 - (j1/4)%2 + (j2/4)%2;
+          int coord_hash = hash(child_rel_coord);
+          int child_rel_idx = HASH_LUT[M2L_Helper_Type][coord_hash];
+          int j = j2*NCHILD + j1;
+          parent2child[i][j] = child_rel_idx;
+        }
+      }
+    }
   }
 
   void initialize_matrix() {
@@ -42,6 +54,18 @@ namespace exafmm_t {
     for(int level = 0; level < MAXLEVEL; level++) {
       matrix_M2L[level].resize(REL_COORD[M2L_Type].size(), AlignedVec(fft_size));  // N3 by (2*NCHILD*NCHILD) matrix
     }
+    index_mapping(parent2child);
+  }
+
+  // complex gemm by blas lib
+  void gemm(int m, int n, int k, complex_t* A, complex_t* B, complex_t* C) {
+    char transA = 'N', transB = 'N';
+    complex_t alpha(1., 0.), beta(0.,0.);
+#if FLOAT
+    cgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#else
+    zgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+#endif
   }
 
   //! lapack svd with row major data: A = U*S*VT, A is m by n
@@ -181,29 +205,12 @@ namespace exafmm_t {
   void precompute_M2L() {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
-    int numParentRelCoord = REL_COORD[M2L_Type].size();
-    // parent rel, child rel -> m2l_helper_idx
-    std::vector<std::vector<int>> index_mapping(numParentRelCoord, std::vector<int>(NCHILD*NCHILD));
-    for(int i=0; i<numParentRelCoord; ++i) {
-      for(int j1=0; j1<NCHILD; ++j1) {
-        for(int j2=0; j2<NCHILD; ++j2) {
-          ivec3& parent_rel_coord = REL_COORD[M2L_Type][i];
-          ivec3  child_rel_coord;
-          child_rel_coord[0] = parent_rel_coord[0]*2 - (j1/1)%2 + (j2/1)%2;
-          child_rel_coord[1] = parent_rel_coord[1]*2 - (j1/2)%2 + (j2/2)%2;
-          child_rel_coord[2] = parent_rel_coord[2]*2 - (j1/4)%2 + (j2/4)%2;
-          int coord_hash = hash(child_rel_coord);
-          int child_rel_idx = HASH_LUT[M2L_Helper_Type][coord_hash];
-          int j = j2*NCHILD + j1;
-          index_mapping[i][j] = child_rel_idx;
-        }
-      }
-    }
+    int num_coords = REL_COORD[M2L_Type].size();
     // copy from matrix_M2L_Helper to matrix_M2L
     for(int l=0; l<MAXLEVEL; ++l) {
-      for(int i=0; i<numParentRelCoord; ++i) {
+      for(int i=0; i<num_coords; ++i) {
         for(int j=0; j<NCHILD*NCHILD; j++) {       // loop over child's relative positions
-          int child_rel_idx = index_mapping[i][j];
+          int child_rel_idx = parent2child[i][j];
           if (child_rel_idx != -1) {
             for(int k=0; k<n3; k++) {                      // loop over frequencies
               int new_idx = k*(2*NCHILD*NCHILD) + 2*j;
