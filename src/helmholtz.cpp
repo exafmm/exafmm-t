@@ -489,15 +489,14 @@ namespace exafmm_t {
   }
 
   void hadamard_product(std::vector<size_t>& interaction_count_offset, std::vector<size_t>& interaction_offset_f,
-                       AlignedVec& fft_in, AlignedVec& fft_out, int level) {
+                       AlignedVec& fft_in, AlignedVec& fft_out, std::vector<AlignedVec>& matrix_M2L) {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     size_t fftsize = 2 * NCHILD * n3;
     AlignedVec zero_vec0(fftsize, 0.);
     AlignedVec zero_vec1(fftsize, 0.);
 
-    // int level = 0;
-    size_t mat_cnt = matrix_M2L[level].size();
+    size_t mat_cnt = matrix_M2L.size();
     size_t blk1_cnt = interaction_count_offset.size()/mat_cnt;
     int BLOCK_SIZE = CACHE_SIZE * 2 / sizeof(real_t);
     std::vector<real_t*> IN_(BLOCK_SIZE*blk1_cnt*mat_cnt);
@@ -526,7 +525,7 @@ namespace exafmm_t {
           size_t interac_cnt  = interaction_count_offset1-interaction_count_offset0;
           real_t** IN = &IN_[BLOCK_SIZE*interac_blk1];
           real_t** OUT= &OUT_[BLOCK_SIZE*interac_blk1];
-          real_t* M = &matrix_M2L[level][mat_indx][k*2*NCHILD*NCHILD]; // k-th freq's (row) offset in matrix_M2L[mat_indx]
+          real_t* M = &matrix_M2L[mat_indx][k*2*NCHILD*NCHILD]; // k-th freq's (row) offset in matrix_M2L
           for(size_t j=0; j<interac_cnt; j+=2) {
             real_t* M_   = M;
             real_t* IN0  = IN [j+0] + k*NCHILD*2;   // go to k-th freq chunk
@@ -632,30 +631,53 @@ namespace exafmm_t {
   void M2L(Nodes& nodes) {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
-    size_t numNodes = nodes.size();
-    ComplexVec all_up_equiv(numNodes*NSURF);
-    ComplexVec all_dn_equiv(numNodes*NSURF);
+    int fft_size = 2 * 8 * n3;
+    int num_nodes = nodes.size();
+    int num_coords = REL_COORD[M2L_Type].size();   // number of relative coords for M2L_Type
+    ComplexVec all_up_equiv(num_nodes*NSURF);
+    ComplexVec all_dn_equiv(num_nodes*NSURF);
+    std::vector<AlignedVec> matrix_M2L(num_coords, AlignedVec(fft_size*NCHILD, 0));
+
+    // setup ifstream of M2L precomputation matrix
+    std::string fname = "helmholtz";   // precomputation matrix file name
+    fname += "_" + std::string(sizeof(real_t)==4 ? "f":"d") + "_" + "p" + std::to_string(P) + "_" + "l" + std::to_string(MAXLEVEL);
+    fname += ".dat";
+    std::ifstream ifile(fname, std::ifstream::binary);
+    ifile.seekg(0, ifile.end);
+    size_t fsize = ifile.tellg();   // file size in bytes
+    size_t msize = NCHILD * NCHILD * n3 * 2 * sizeof(real_t);   // size in bytes for each M2L matrix
+    ifile.seekg(fsize - MAXLEVEL*num_coords*msize, ifile.beg);   // go to the start of M2L section
+    
+    // collect all upward equivalent charges
     #pragma omp parallel for collapse(2)
-    for(size_t i=0; i<numNodes; i++) {
-      for(int j=0; j<NSURF; j++) {
+    for(int i=0; i<num_nodes; ++i) {
+      for(int j=0; j<NSURF; ++j) {
         all_up_equiv[i*NSURF+j] = nodes[i].up_equiv[j];
         all_dn_equiv[i*NSURF+j] = nodes[i].dn_equiv[j];
       }
     }
-    size_t fftsize = 2 * 8 * n3;
-    for(int l=0; l<MAXLEVEL; l++) {
-      AlignedVec fft_in(M2Ldata[l].fft_offset.size()*fftsize, 0.);
-      AlignedVec fft_out(M2Ldata[l].ifft_offset.size()*fftsize, 0.);
+    // FFT-accelerate M2L
+    for(int l=0; l<MAXLEVEL; ++l) {
+      // load M2L matrix for current level
+      for(int i=0; i<num_coords; ++i) {
+        ifile.read(reinterpret_cast<char*>(matrix_M2L[i].data()), msize);
+      }
+      AlignedVec fft_in(M2Ldata[l].fft_offset.size()*fft_size, 0.);
+      AlignedVec fft_out(M2Ldata[l].ifft_offset.size()*fft_size, 0.);
       fft_up_equiv(M2Ldata[l].fft_offset, all_up_equiv, fft_in);
-      hadamard_product(M2Ldata[l].interaction_count_offset, M2Ldata[l].interaction_offset_f, fft_in, fft_out, l);
+      hadamard_product(M2Ldata[l].interaction_count_offset, 
+                       M2Ldata[l].interaction_offset_f, 
+                       fft_in, fft_out, matrix_M2L);
       ifft_dn_check(M2Ldata[l].ifft_offset, fft_out, all_dn_equiv);
     }
+    // update all downward check potentials
     #pragma omp parallel for collapse(2)
-    for(size_t i=0; i<numNodes; i++) {
-      for(int j=0; j<NSURF; j++) {
-        nodes[i].up_equiv[j] = all_up_equiv[i*NSURF+j];
+    for(int i=0; i<num_nodes; ++i) {
+      for(int j=0; j<NSURF; ++j) {
+        // nodes[i].up_equiv[j] = all_up_equiv[i*NSURF+j];
         nodes[i].dn_equiv[j] = all_dn_equiv[i*NSURF+j];
       }
     }
+    ifile.close();   // close ifstream
   }
 }//end namespace

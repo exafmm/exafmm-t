@@ -151,7 +151,6 @@ namespace exafmm_t {
   extern std::vector<ComplexVec> matrix_UC2E_U, matrix_UC2E_V;
   extern std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
   extern std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
-  extern std::vector<std::vector<AlignedVec>> matrix_M2L;
 #else
   extern RealVec matrix_UC2E_U, matrix_UC2E_V;
   extern RealVec matrix_DC2E_U, matrix_DC2E_V;
