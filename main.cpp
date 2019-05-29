@@ -5,8 +5,6 @@
 #include "laplace.h"
 #include "precompute.h"
 #include "traverse.h"
-#include "profile.h"
-
 using namespace exafmm_t;
 RealVec plummer(int);
 RealVec nonuniform(int);
@@ -75,8 +73,11 @@ int main(int argc, char **argv) {
   Precompute();
   Profile::Toc();
   setColleagues(nodes);
+  Profile::Tic("buildList", true);
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
-  upwardPass(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, nodes_depth);
+  Profile::Toc();
+  fmmStepsGPU(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, M2Lsources_idx, M2Ltargets_idx, dnward_equiv, nodes_trg, nodes_depth, nodes_idx);
+
   downwardPass(nodes, leafs_idx, M2Lsources_idx, M2Ltargets_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, dnward_equiv, nodes_trg,  nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, nodes_depth, nodes_idx);
   Profile::Toc();
   RealVec error = verify(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, nodes_trg);

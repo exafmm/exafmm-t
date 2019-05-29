@@ -63,13 +63,15 @@ namespace exafmm_t {
         int c_hash = hash(rel_coord);
         if (isleaf) {
           int idx1 = hash_lut[P2P0_Type][c_hash];
-          if (idx1>=0)
+          if (idx1>=0) {
             n->P2Plist_idx.push_back(pc->idx);
+          }
         }
         int idx2 = hash_lut[P2L_Type][c_hash];
         if (idx2>=0) {
-          if (isleaf && n->numBodies<=NSURF)
+          if (isleaf && n->numBodies<=NSURF) {
             n->P2Plist_idx.push_back(pc->idx);
+          }
           else
             n->P2Llist_idx.push_back(pc->idx);
         }
@@ -129,8 +131,7 @@ namespace exafmm_t {
   }
   
   // Build M2L list
-  void buildListM2L(Node* n, std::set<int> &sources_idx, std::set<int> &targets_idx)
-  {
+  void buildListM2L(Node* n, std::set<int> &sources_idx, std::set<int> &targets_idx) {
     if (!n->parent) return;
     Node* p = n->parent;
     int octant = n->octant;
@@ -184,7 +185,7 @@ namespace exafmm_t {
     M2Lsources_idx.assign(sources_idx.begin(), sources_idx.end());
     M2Ltargets_idx.assign(targets_idx.begin(), targets_idx.end());
   }
-  
+
   void setColleagues(Node* node) {
     Node *parent, *colleague, *child;
     for (int i=0; i<27; ++i) node->colleague[i] = NULL;
