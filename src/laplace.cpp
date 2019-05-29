@@ -224,34 +224,6 @@ namespace exafmm_t {
     L2PGPU(equivCoord, dnward_equiv, bodies_coord, nodes_trg, leafs_idx, nodes_pt_src_idx, max);
   }
   
-  void M2P(Nodes &nodes, std::vector<int>& leafs_idx, RealVec &upward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &bodies_coord, std::vector<int> &nodes_depth, std::vector<real_t> &nodes_coord) {
-    real_t c[3] = {0.0};
-    std::vector<real_t> upwd_equiv_surf((MAXLEVEL+1)*NSURF*3);
-    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
-      surface(MULTIPOLE_ORDER,c,1.05,depth,depth,upwd_equiv_surf);
-    }
-    int sources_max = 0;
-    for(int i=0; i<leafs_idx.size(); i++) {
-      Node* target = &nodes[leafs_idx[i]];
-      std::vector<int> sources_idx= target->M2Plist_idx;
-      sources_max = (sources_idx.size() > sources_max)? sources_idx.size():sources_max;
-    }
-    if(sources_max>0) {
-      std::vector<int> leafs_M2Plist_idx;
-      std::vector<int> leafs_M2Plist_idx_offset;
-      int leafs_M2Plist_idx_offset_cnt = 0;
-      for(int i=0; i<leafs_idx.size(); i++) {
-         Node* target = &nodes[leafs_idx[i]];
-        std::vector<int> sources_idx= target->M2Plist_idx;
-        leafs_M2Plist_idx.insert(leafs_M2Plist_idx.end(), sources_idx.begin(), sources_idx.end());
-        leafs_M2Plist_idx_offset.push_back(leafs_M2Plist_idx_offset_cnt);
-        leafs_M2Plist_idx_offset_cnt += sources_idx.size();
-      }
-      leafs_M2Plist_idx_offset.push_back(leafs_M2Plist_idx_offset_cnt);
-      M2PGPU(nodes, leafs_idx, nodes_pt_src_idx, leafs_M2Plist_idx_offset, leafs_M2Plist_idx, nodes_depth, upwd_equiv_surf, nodes_coord, upward_equiv, bodies_coord, nodes_trg, sources_max);
-    }
-  }
-
   void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, int ncrit) {
     std::vector<int>P2Plist_idx;
     std::vector<int>P2Plist_offset;

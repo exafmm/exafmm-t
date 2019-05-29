@@ -24,8 +24,6 @@ namespace exafmm_t {
 
 
   void L2LGPU(Nodes &nodes, RealVec &dnward_equiv, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx);
-
-  void M2PGPU(Nodes &nodes, std::vector<int>& leafs_idx, std::vector<int> &nodes_pt_src_idx, std::vector<int> &leafs_M2Plist_idx_offset, std::vector<int> &leafs_M2Plist_idx, std::vector<int> &nodes_depth, std::vector<real_t> &upwd_equiv_surf, std::vector<real_t> &nodes_coord, std::vector<real_t> &upward_equiv, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_trg, int sources_max);
 }
 
 #endif
