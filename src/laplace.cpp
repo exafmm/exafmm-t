@@ -127,66 +127,6 @@ namespace exafmm_t {
     }
   }
   
-  RealVec surface_test(int p, real_t alpha){
-    size_t n_=(6*(p-1)*(p-1)+2);
-    RealVec coord(n_*3);
-    coord[0]=coord[1]=coord[2]=-1.0;
-    size_t cnt=1;
-    for(int i=0;i<p-1;i++)
-      for(int j=0;j<p-1;j++){
-        coord[cnt*3  ]=-1.0;
-        coord[cnt*3+1]=(2.0*(i+1)-p+1)/(p-1);
-        coord[cnt*3+2]=(2.0*j-p+1)/(p-1);
-        cnt++;
-      }
-    for(int i=0;i<p-1;i++)
-      for(int j=0;j<p-1;j++){
-        coord[cnt*3  ]=(2.0*i-p+1)/(p-1);
-        coord[cnt*3+1]=-1.0;
-        coord[cnt*3+2]=(2.0*(j+1)-p+1)/(p-1);
-        cnt++;
-      }
-    for(int i=0;i<p-1;i++)
-      for(int j=0;j<p-1;j++){
-        coord[cnt*3  ]=(2.0*(i+1)-p+1)/(p-1);
-        coord[cnt*3+1]=(2.0*j-p+1)/(p-1);
-        coord[cnt*3+2]=-1.0;
-        cnt++;
-      }
-    for(size_t i=0;i<(n_/2)*3;i++) coord[cnt*3+i]=-coord[i];
-    for(size_t i=0;i<n_;i++){
-      coord[i*3+0]= ((coord[i*3+0]+1)*alpha-alpha+1);
-      coord[i*3+1]= ((coord[i*3+1]+1)*alpha-alpha+1);
-      coord[i*3+2]= ((coord[i*3+2]+1)*alpha-alpha+1);
-    }
-    return coord;
-  }
-
-  void potentialP2Px(real_t *src_coord, int src_coord_size, real_t *src_value, real_t *trg_coord, int trg_coord_size, real_t *trg_value, real_t scal) {
-    const real_t COEF = 1.0/(2*4*M_PI);
-    int src_cnt = src_coord_size / 3;
-    int trg_cnt = trg_coord_size / 3;
-    for(int t=0; t<trg_cnt; t++) {
-      real_t tx = trg_coord[3*t+0];
-      real_t ty = trg_coord[3*t+1];
-      real_t tz = trg_coord[3*t+2];
-      real_t tv = 0;
-      for(int s=0; s<src_cnt; s++) {
-        real_t sx = src_coord[3*s+0]-tx;
-        real_t sy = src_coord[3*s+1]-ty;
-        real_t sz = src_coord[3*s+2]-tz;
-        real_t sv = src_value[s];
-        real_t r2 = sx*sx + sy*sy + sz*sz;;
-        if (r2 != 0) {
-          real_t invR = 1.0/sqrt(r2);
-          tv += invR * sv;
-        }
-      }
-      tv *= COEF;
-      trg_value[t] += tv*scal;
-    }
-  }
-  
   void L2L(Nodes &nodes, RealVec &dnward_equiv, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx) {
     L2LGPU(nodes, dnward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
   }
@@ -240,18 +180,7 @@ namespace exafmm_t {
     }
     P2Plist_offset.push_back(P2Plists_idx_cnt);
     Profile::Toc();
-    std::vector<real_t> trg_val(4*nodes_pt_src_idx[nodes_pt_src_idx.size()-1]);
-    P2PGPU(leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx,P2Plist_idx, P2Plist_offset, trg_val, leafs_idx.size(), ncrit);
-    int pt_trg_count = 0;
-    Profile::Tic("array to vec", true);
-    for(int i=0; i<targets_idx.size(); i++) {
-      Node* target = &nodes[targets_idx[i]];
-      int trg_size = 4*(nodes_pt_src_idx[target->idx+1]-nodes_pt_src_idx[target->idx]);
-      for(int j=0;j< trg_size;j++) {
-        nodes_trg[nodes_pt_src_idx[target->idx]*4+j] = trg_val[pt_trg_count++];
-      }
-    }
-    Profile::Toc();
+    P2PGPU(leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx,P2Plist_idx, P2Plist_offset, nodes_trg, leafs_idx.size(), ncrit);
   }
 
   void hadamardProduct(real_t *kernel, real_t *equiv, real_t *check, int n3_) {
