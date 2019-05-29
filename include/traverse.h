@@ -5,17 +5,11 @@
 
 namespace exafmm_t {
   void downwardPass(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv, RealVec &dnward_equiv, std::vector<real_t> &nodes_trg, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx, std::vector<real_t> &nodes_coord, std::vector<int> &nodes_depth, std::vector<int> &nodes_idx) {
-    Profile::Tic("P2P", false, 5);
-    P2P(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_trg, nodes_pt_src_idx, ncrit);
-    Profile::Toc();
     Profile::Tic("M2L", false, 5);
     M2L(nodes, M2Lsources_idx, M2Ltargets_idx, upward_equiv, dnward_equiv);
     Profile::Toc();
     Profile::Tic("L2L", false, 5);
-    //#pragma omp parallel
-    //#pragma omp single nowait
     L2L(nodes, dnward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
-    //L2L(&nodes[0], dnward_equiv);
     Profile::Toc();
     Profile::Tic("L2P", false, 5);
     L2P(nodes, dnward_equiv, leafs_idx, nodes_trg, nodes_pt_src_idx, bodies_coord, nodes_coord);

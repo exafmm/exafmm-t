@@ -164,25 +164,6 @@ namespace exafmm_t {
     L2PGPU(equivCoord, dnward_equiv, bodies_coord, nodes_trg, leafs_idx, nodes_pt_src_idx, max);
   }
   
-  void P2P(Nodes &nodes, std::vector<int> leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, int ncrit) {
-    std::vector<int>P2Plist_idx;
-    std::vector<int>P2Plist_offset;
-    int P2Plists_idx_cnt = 0;
-    
-    Profile::Tic("vec to array", true);
-    std::vector<int> targets_idx = leafs_idx;
-    for(int i=0; i<targets_idx.size(); i++) {
-      Node* target = &nodes[targets_idx[i]];
-      std::vector<int> sources_idx = target->P2Plist_idx;
-      P2Plist_idx.insert(P2Plist_idx.end(), sources_idx.begin(), sources_idx.end());
-      P2Plist_offset.push_back(P2Plists_idx_cnt);
-      P2Plists_idx_cnt += sources_idx.size();    
-    }
-    P2Plist_offset.push_back(P2Plists_idx_cnt);
-    Profile::Toc();
-    P2PGPU(leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx,P2Plist_idx, P2Plist_offset, nodes_trg, leafs_idx.size(), ncrit);
-  }
-
   void hadamardProduct(real_t *kernel, real_t *equiv, real_t *check, int n3_) {
     for(int k=0; k<n3_; ++k) {
       int real = 2*k+0;
@@ -190,7 +171,7 @@ namespace exafmm_t {
       check[real] += kernel[real]*equiv[real] - kernel[imag]*equiv[imag];
       check[imag] += kernel[real]*equiv[imag] + kernel[imag]*equiv[real];
     }
-}
+  }
 
 void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_equiv, RealVec &upward_equiv) {
     // define constants

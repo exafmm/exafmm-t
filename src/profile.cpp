@@ -112,13 +112,9 @@ std::vector<long long> Profile::max_m_log;
         double t_avg=t_sum/np;
         //double f_avg=f_sum/np;
         if(!rank) {
-#if 1
-          if(n_log[i] == "P2M" || n_log[i] == "M2M" || n_log[i] == "P2L"
-             || n_log[i] == "M2P" || n_log[i] == "P2P" || n_log[i] == "M2L"
-             || n_log[i] == "L2L" || n_log[i] == "L2P" || n_log[i] == "Precomputation"
-             || n_log[i] == "Total" || n_log[i] == "vec to array" || n_log[i] == "host to device" || n_log[i] == "gpu kernel" || n_log[i] == "device to host" || n_log[i] == "array to vec" || n_log[i] == "FFT_UpEquiv" || n_log[i] == "hadamard" || n_log[i] == "FFT_Check2Equiv" || n_log[i] == "general" || n_log[i] == "buildList")
+        #if 1
+          if(n_log[i] == "P2M" || n_log[i] == "M2M" || n_log[i] == "P2L" || n_log[i] == "M2P" || n_log[i] == "P2P" || n_log[i] == "M2L" || n_log[i] == "L2L" || n_log[i] == "L2P" || n_log[i] == "Precomputation" || n_log[i] == "Total" || n_log[i] == "memcopying" || n_log[i] == "FFT_UpEquiv" || n_log[i] == "hadamard" || n_log[i] == "FFT_Check2Equiv" || n_log[i] == "general" || n_log[i] == "buildList")
 
-//|| n_log[i] == "SVD" || n_log[i] == "FFT_UpEquiv" || n_log[i] == "M2LHadamard" || n_log[i] == "FFT_Check2Equiv")
 #endif
             std::cout << std::setw(20) << std::left << n_log[i] << " : " << std::setprecision(7)
                       << t_avg << std::endl;

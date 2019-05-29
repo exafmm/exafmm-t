@@ -369,39 +369,36 @@ namespace exafmm_t {
     cudaFree(d_mat_M2M);
   }
 
-  void P2PGPU(std::vector<int> &leafs_idx, std::vector<real_t> bodies_coord, std::vector<real_t> nodes_pt_src, std::vector<int> nodes_pt_src_idx, std::vector<int> P2Plists, std::vector<int> P2Plists_idx, std::vector<real_t> &nodes_trg, int leafs_size, int ncrit) {
-    int BLOCKS = leafs_size;
+  void P2PGPU(Nodes &nodes, std::vector<int> &leafs_idx, int *d_leafs_idx, real_t *d_bodies_coord, real_t *d_nodes_pt_src, int *d_nodes_pt_src_idx, real_t *d_nodes_trg, int ncrit) {
+    std::vector<int>P2Plist_idx;
+    std::vector<int>P2Plist_offset;
+    int P2Plists_idx_cnt = 0;
+
+    std::vector<int> targets_idx = leafs_idx;
+    for(int i=0; i<targets_idx.size(); i++) {
+      Node* target = &nodes[targets_idx[i]];
+      std::vector<int> sources_idx = target->P2Plist_idx;
+      P2Plist_idx.insert(P2Plist_idx.end(), sources_idx.begin(), sources_idx.end());
+      P2Plist_offset.push_back(P2Plists_idx_cnt);
+      P2Plists_idx_cnt += sources_idx.size();
+    }
+    P2Plist_offset.push_back(P2Plists_idx_cnt);
+
+    int BLOCKS = leafs_idx.size();
     int THREADS = ncrit;
 
-    int *d_nodes_pt_src_idx, *d_P2Plists, *d_P2Plists_idx, *d_leafs_idx;
-    real_t *d_bodies_coord, *d_nodes_pt_src, *d_nodes_trg;
+    int *d_P2Plists, *d_P2Plists_idx;
     
-    cudaMalloc(&d_leafs_idx, sizeof(int)*leafs_idx.size());
-    cudaMalloc(&d_nodes_pt_src_idx, sizeof(int)*nodes_pt_src_idx.size());
-    cudaMalloc(&d_P2Plists, sizeof(int)*P2Plists.size());
-    cudaMalloc(&d_P2Plists_idx, sizeof(int)*P2Plists_idx.size());
-    cudaMalloc(&d_bodies_coord, sizeof(real_t)*bodies_coord.size());
-    cudaMalloc(&d_nodes_pt_src, sizeof(real_t)*nodes_pt_src.size());
-    cudaMalloc(&d_nodes_trg, sizeof(real_t)*nodes_trg.size());
+    cudaMalloc(&d_P2Plists, sizeof(int)*P2Plist_idx.size());
+    cudaMalloc(&d_P2Plists_idx, sizeof(int)*P2Plist_offset.size());
     
-    cudaMemcpy(d_nodes_trg, &nodes_trg[0], sizeof(real_t)*nodes_trg.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_leafs_idx, &leafs_idx[0], sizeof(int)*leafs_idx.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_nodes_pt_src_idx, &nodes_pt_src_idx[0], sizeof(int)*nodes_pt_src_idx.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_P2Plists, &P2Plists[0], sizeof(int)*P2Plists.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_P2Plists_idx, &P2Plists_idx[0], sizeof(int)*P2Plists_idx.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_bodies_coord, &bodies_coord[0], sizeof(real_t)*bodies_coord.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_nodes_pt_src, &nodes_pt_src[0], sizeof(real_t)*nodes_pt_src.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_P2Plists, &P2Plist_idx[0], sizeof(int)*P2Plist_idx.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_P2Plists_idx, &P2Plist_offset[0], sizeof(int)*P2Plist_offset.size(), cudaMemcpyHostToDevice);
     P2P_kernel<<<BLOCKS, THREADS>>>(d_leafs_idx, d_nodes_pt_src_idx, d_P2Plists, d_P2Plists_idx, d_bodies_coord, d_nodes_pt_src, d_nodes_trg);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
-    cudaMemcpy(&nodes_trg[0], d_nodes_trg, sizeof(real_t)*nodes_trg.size(), cudaMemcpyDeviceToHost);
-    cudaFree(d_leafs_idx);
-    cudaFree(d_bodies_coord);
-    cudaFree(d_nodes_pt_src);
     cudaFree(d_P2Plists_idx);
     cudaFree(d_P2Plists);
-    cudaFree(d_nodes_pt_src_idx);
-    cudaFree(d_nodes_trg);
   }
 
   cufftComplex *FFT_UpEquiv_GPU(int M2Lsources_idx_size, AlignedVec &up_equiv) {
@@ -760,7 +757,8 @@ namespace exafmm_t {
     cublasCreate(&handle);
     int *d_nodes_pt_src_idx, *d_leafs_idx, *d_nodes_depth, *d_M2Lsources_idx, *d_M2Ltargets_idx, *d_nodes_idx;
     real_t *d_bodies_coord, *d_upward_equiv, *d_M2M_V, *d_M2M_U, *d_nodes_coord, *d_nodes_pt_src, *d_dnward_equiv, *d_upwd_check_surf, *d_nodes_trg, *d_dnwd_check_surf;
-    
+    Profile::Tic("memcopying",true);
+    cudaMalloc(&d_nodes_trg, sizeof(real_t)*nodes_trg.size());
     cudaMalloc(&d_dnwd_check_surf, sizeof(real_t)*dnwd_check_surf.size());
     cudaMalloc(&d_nodes_idx, sizeof(int)*nodes_idx.size());
     cudaMalloc(&d_nodes_depth, sizeof(int)*nodes_depth.size());
@@ -776,6 +774,7 @@ namespace exafmm_t {
     cudaMalloc(&d_upwd_check_surf, sizeof(real_t)*upwd_check_surf.size());
     cudaMalloc(&d_dnward_equiv, sizeof(real_t)*dnward_equiv.size());
     
+    cudaMemcpy(d_nodes_trg, &nodes_trg[0], sizeof(real_t)*nodes_trg.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_dnwd_check_surf, &dnwd_check_surf[0], sizeof(int)*dnwd_check_surf.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_idx, &nodes_idx[0], sizeof(int)*nodes_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_depth, &nodes_depth[0], sizeof(int)*nodes_depth.size(), cudaMemcpyHostToDevice);
@@ -790,7 +789,7 @@ namespace exafmm_t {
     cudaMemcpy(d_nodes_coord, &nodes_coord[0], sizeof(real_t)*nodes_coord.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_pt_src, &nodes_pt_src[0], sizeof(real_t)*nodes_pt_src.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_upwd_check_surf, &upwd_check_surf[0], sizeof(real_t)*upwd_check_surf.size(), cudaMemcpyHostToDevice);
-    
+    Profile::Toc();
     Profile::Tic("P2M", false, 5);
     P2MGPU(d_upwd_check_surf, d_leafs_idx, d_nodes_depth, d_nodes_coord, d_bodies_coord, d_nodes_pt_src_idx, d_upward_equiv, d_nodes_pt_src, d_M2M_V, d_M2M_U, leafs_idx, handle, leafs_idx.size(), NSURF);
     Profile::Toc();
@@ -807,8 +806,14 @@ namespace exafmm_t {
     M2PGPU(nodes, leafs_idx, d_leafs_idx, d_upward_equiv, d_nodes_trg, d_nodes_pt_src_idx, d_bodies_coord, d_nodes_depth, d_nodes_coord, d_dnwd_check_surf, leafs_idx.size());
     Profile::Toc();
     
+    Profile::Tic("P2P", false, 5);
+    P2PGPU(nodes, leafs_idx, d_leafs_idx, d_bodies_coord, d_nodes_pt_src, d_nodes_pt_src_idx, d_nodes_trg, ncrit);
+    Profile::Toc();
+
     cudaMemcpy(&upward_equiv[0], d_upward_equiv, sizeof(real_t)*upward_equiv.size(), cudaMemcpyDeviceToHost);
     cudaMemcpy(&dnward_equiv[0], d_dnward_equiv, sizeof(real_t)*dnward_equiv.size(), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&nodes_trg[0], d_nodes_trg, sizeof(real_t)*nodes_trg.size(), cudaMemcpyDeviceToHost);
+
     cudaFree(d_leafs_idx);
     cudaFree(d_M2M_U);
     cudaFree(d_M2M_V);
@@ -821,6 +826,7 @@ namespace exafmm_t {
     cudaFree(d_dnward_equiv);
     cudaFree(d_nodes_idx);
     cudaFree(d_dnwd_check_surf);
+    cudaFree(d_nodes_trg);
   }
 }
 
