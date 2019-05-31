@@ -279,8 +279,11 @@ namespace exafmm_t {
   }
 
   void cuda_init_drivers() {
+    cufftHandle init_plan;
+    cufftPlan1d(&init_plan, 1, CUFFT_R2C,1);
     cudaFree(0);
-}
+  }
+
   void P2MGPU(real_t *d_upwd_check_surf, int *d_leafs_idx, int *d_nodes_depth, real_t *d_nodes_coord, real_t *d_bodies_coord, int *d_nodes_pt_src_idx, real_t *d_upward_equiv, real_t* d_nodes_pt_src, real_t *d_M2M_V, real_t *d_M2M_U, std::vector<int> &leafs_idx, cublasHandle_t &handle, int BLOCKS, int THREADS) {
     real_t *d_buffer;
     cudaMalloc(&d_buffer, sizeof(real_t)*BLOCKS*NSURF);
@@ -469,9 +472,7 @@ namespace exafmm_t {
   
   std::vector<real_t> M2LGPU(std::vector<int> &M2Ltargets_idx, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, AlignedVec &up_equiv, int M2Lsources_idx_size) {
     cufftComplex *d_up_equiv_fft = FFT_UpEquiv_GPU(M2Lsources_idx_size, up_equiv);
-    Profile::Tic("general",true);
     cufftComplex *d_dw_equiv_fft = HadmardGPU(M2Ltargets_idx, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, d_up_equiv_fft);
-    Profile::Toc();
     return FFT_Check2Equiv_GPU(d_dw_equiv_fft, M2Ltargets_idx.size());
   }
 
@@ -744,6 +745,7 @@ namespace exafmm_t {
   }
   
   void fmmStepsGPU(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx, std::vector<real_t> &nodes_coord, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, RealVec &dnward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_depth, std::vector<int> &nodes_idx) {
+    Profile::Tic("totalgpu", true);
     real_t c[3] = {0.0};
     std::vector<real_t> upwd_check_surf((MAXLEVEL+1)*NSURF*3);
     for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
@@ -827,6 +829,7 @@ namespace exafmm_t {
     cudaFree(d_nodes_idx);
     cudaFree(d_dnwd_check_surf);
     cudaFree(d_nodes_trg);
+    Profile::Toc();
   }
 }
 
