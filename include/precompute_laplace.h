@@ -24,15 +24,15 @@ namespace exafmm_t {
 
   RealVec transpose(RealVec& vec, int m, int n);
 
+  std::vector<std::vector<int>> map_matrix_index();
+
   void initialize_matrix();
 
   void precompute_check2equiv();
 
   void precompute_M2M();
 
-  void precompute_M2Lhelper();
-
-  void precompute_M2L();
+  void precompute_M2L(std::vector<std::vector<int>>& parent2child);
 
   bool load_matrix();
 
