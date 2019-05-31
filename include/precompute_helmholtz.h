@@ -26,8 +26,6 @@ namespace exafmm_t {
 
   ComplexVec conjugate_transpose(ComplexVec& vec, int m, int n);
 
-  std::vector<std::vector<int>> map_matrix_index();
-
   void initialize_matrix();
 
   void precompute_check2equiv();

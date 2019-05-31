@@ -24,8 +24,6 @@ namespace exafmm_t {
 
   RealVec transpose(RealVec& vec, int m, int n);
 
-  std::vector<std::vector<int>> map_matrix_index();
-
   void initialize_matrix();
 
   void precompute_check2equiv();

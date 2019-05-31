@@ -7,29 +7,6 @@ namespace exafmm_t {
   std::string FILE_NAME;
   bool IS_PRECOMPUTED = true;  // whether matrices are precomputed
 
-  // Map indices of M2L_Type to indices of M2L_Helper_Type
-  std::vector<std::vector<int>> map_matrix_index() {
-    int num_coords = REL_COORD[M2L_Type].size();   // number of relative coords for M2L_Type
-    std::vector<std::vector<int>> parent2child(num_coords, std::vector<int>(NCHILD*NCHILD));
-#pragma omp parallel for
-    for(int i=0; i<num_coords; ++i) {
-      for(int j1=0; j1<NCHILD; ++j1) {
-        for(int j2=0; j2<NCHILD; ++j2) {
-          ivec3& parent_rel_coord = REL_COORD[M2L_Type][i];
-          ivec3  child_rel_coord;
-          child_rel_coord[0] = parent_rel_coord[0]*2 - (j1/1)%2 + (j2/1)%2;
-          child_rel_coord[1] = parent_rel_coord[1]*2 - (j1/2)%2 + (j2/2)%2;
-          child_rel_coord[2] = parent_rel_coord[2]*2 - (j1/4)%2 + (j2/4)%2;
-          int coord_hash = hash(child_rel_coord);
-          int child_rel_idx = HASH_LUT[M2L_Helper_Type][coord_hash];
-          int j = j2*NCHILD + j1;
-          parent2child[i][j] = child_rel_idx;
-        }
-      }
-    }
-    return parent2child;
-  }
-
   void initialize_matrix() {
     matrix_UC2E_V.resize(MAXLEVEL+1);
     matrix_UC2E_U.resize(MAXLEVEL+1);
