@@ -40,7 +40,7 @@ namespace exafmm_t {
   void M2L_setup(std::vector<Node*>& nonleafs);
 
   void hadamard_product(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
-                       AlignedVec& fft_in, AlignedVec& fft_out, int level);
+                       AlignedVec& fft_in, AlignedVec& fft_out, std::vector<AlignedVec>& matrix_M2L);
 
   void fft_up_equiv(std::vector<size_t>& fft_vec, ComplexVec& all_up_equiv, AlignedVec& fft_in);
 

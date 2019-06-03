@@ -30,9 +30,7 @@ namespace exafmm_t {
 
   void precompute_M2M();
 
-  void precompute_M2Lhelper();
-
-  void precompute_M2L();
+  void precompute_M2L(std::vector<std::vector<int>>& parent2child);
 
   bool load_matrix();
 
