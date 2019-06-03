@@ -7,6 +7,7 @@
 #include "precompute_laplace.h"
 #endif
 #include "exafmm_t.h"
+#include "timer.h"
 
 namespace exafmm_t {
   int P;
@@ -21,6 +22,35 @@ namespace exafmm_t {
 
 using namespace exafmm_t;
 
+#if HELMHOLTZ
+void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
+  complex_t I = std::complex<real_t>(0., 1.);
+#pragma omp parallel for
+  for(size_t i=0; i<trg_coord.size()/3; ++i) {
+    complex_t p = 0;
+    cvec3 F = complex_t(0,0);
+    real_t * tX = &trg_coord[3*i];
+    for(size_t j=0; j<src_value.size(); ++j) {
+      vec3 dX;
+      real_t * sX = &src_coord[3*j];
+      for(int d=0; d<3; ++d) dX[d] = tX[d] - sX[d];
+      real_t R2 = norm(dX);
+      if (R2 != 0) {
+        real_t R = std::sqrt(R2);
+        complex_t pij = std::exp(I * WAVEK * R) * src_value[j] / R;
+        p += pij;
+        for(int d=0; d<3; ++d) {
+          F[d] += (1/R2 - WAVEK*I/R) * pij * dX[d];
+        }
+      }
+    }
+    trg_value[4*i+0] += p / (4*PI);
+    trg_value[4*i+1] += F[0] / (4*PI);
+    trg_value[4*i+2] += F[1] / (4*PI);
+    trg_value[4*i+3] += F[2] / (4*PI);
+  }
+}
+#else
 void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
   int trg_cnt = trg_coord.size()/3;
 #pragma omp parallel for
@@ -45,90 +75,57 @@ void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, 
     trg_value[4*t+3] = tz / (-4 * PI);
   }
 }
-
-void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-  // complex_t WAVEK = 0.1 / real_t(2*PI);
-  real_t WAVEK = 20*PI;
-  complex_t I = std::complex<real_t>(0., 1.);
-#pragma omp parallel for
-  for(size_t i=0; i<trg_coord.size()/3; ++i) {
-    complex_t p = 0;
-    real_t * tX = &trg_coord[3*i];
-    for(size_t j=0; j<src_value.size(); ++j) {
-      vec3 dX;
-      real_t * sX = &src_coord[3*j];
-      for(int d=0; d<3; ++d) dX[d] = tX[d] - sX[d];
-      real_t R2 = norm(dX);
-      if (R2 != 0) {
-        real_t R = std::sqrt(R2);
-        complex_t pij = std::exp(I * WAVEK * R) * src_value[j] / R;
-        p += pij;
-      }
-    }
-    trg_value[i] += p / (4*PI);
-  }
-}
+#endif
 
 int main(int argc, char **argv) {
-  // WAVEK = complex_t(1, .1) / real_t(2*PI);
   Args args(argc, argv);
   struct timeval tic, toc;
   size_t N = args.numBodies;
   srand48(0);
-  RealVec src_coord, trg_coord, test_coord;
-#if HELMHOLTZ
-  WAVEK = 20;
-  ComplexVec src_value, trg_value, test_value;
-  for(size_t i=0; i<N; i++){
-    src_value.push_back(std::complex<real_t>(drand48()-0.5, drand48()-0.5));
-    trg_value.push_back(std::complex<real_t>(0, 0));
-  } 
-#else
-  RealVec src_value, trg_value, test_value;
-  for(size_t i=0; i<N; i++){
-    src_value.push_back(drand48()-0.5);
-    trg_value.push_back(0);
-    trg_value.push_back(0);
-    trg_value.push_back(0);
-    trg_value.push_back(0);
-  } 
-#endif
-  std::cout << std::setw(20) << std::left << "Number of bodies" << " : " << std::scientific << N << std::endl;
-  for(size_t i=0; i<3*N; i++) {
+  // initialize coordinates
+  RealVec src_coord, trg_coord;
+  for(size_t i=0; i<3*N; ++i) {
     src_coord.push_back(drand48());
     trg_coord.push_back(drand48());
   }
-  for(size_t i=0; i<3*N; i++) {
-    test_coord.push_back(trg_coord[i]);
-  }
-  for(size_t i=0; i<4*N; i++) {
-    test_value.push_back(trg_value[i]);
-  }
+  // initialize charges and potentials
+#if HELMHOLTZ
+  WAVEK = 20;
+  ComplexVec src_value, trg_value(4*N, complex_t(0,0)), test_value(4*N, complex_t(0,0));
+  for(size_t i=0; i<N; ++i){
+    src_value.push_back(complex_t(drand48()-0.5, drand48()-0.5));
+  } 
+#else
+  RealVec src_value, trg_value(4*N, 0), test_value(4*N, 0);
+  for(size_t i=0; i<N; i++){
+    src_value.push_back(drand48()-0.5);
+  } 
+#endif
 
-  gettimeofday(&tic, NULL);
+  start("non-SIMD P2P");
 #if HELMHOLTZ
   helmholtz_kernel(src_coord, src_value, trg_coord, trg_value);
 #else
   laplace_kernel(src_coord, src_value, trg_coord, trg_value);
 #endif
-  gettimeofday(&toc, NULL);
-  gettimeofday(&tic, NULL);
-  gradient_P2P(src_coord, src_value, test_coord, test_value);
-  gettimeofday(&toc, NULL);
-  double p_diff = 0, g_diff = 0;
+  stop("non-SIMD P2P");
+
+  start("SIMD P2P");
+  gradient_P2P(src_coord, src_value, trg_coord, test_value);
+  stop("SIMD P2P");
+
+  // calculate error
+  double p_diff = 0, p_norm = 0, F_diff = 0, F_norm = 0;
 #pragma omp parallel for
-  for(size_t i = 0; i < N; i++) {
-#if HELMHOLTZ
-    p_diff += test_value[4*i].real() - trg_value[4*i].real();
-    g_diff += test_value[4*i].imag() - trg_value[4*i].imag();
-#else
-    p_diff += test_value[4*i] - trg_value[4*i];
-    g_diff += test_value[4*i+1] - trg_value[4*i+1];
-    g_diff += test_value[4*i+2] - trg_value[4*i+2];
-    g_diff += test_value[4*i+3] - trg_value[4*i+3];
-#endif
+  for(size_t i=0; i<N; ++i) {
+    p_norm += std::norm(trg_value[4*i]);
+    p_diff += std::norm(trg_value[4*i]-test_value[4*i]);
+    for(int d=1; d<4; ++d) {
+      F_norm += std::norm(trg_value[4*i+d]);
+      F_diff += std::norm(trg_value[4*i+d]-test_value[4*i+d]);
+    }
   }
-  std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << p_diff/N << std::endl;
-  std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << g_diff/N << std::endl;
+  print("Potential Error", sqrt(p_diff/p_norm));
+  print("Gradient Error", sqrt(F_diff/F_norm));
   return 0;
 }
