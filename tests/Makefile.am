@@ -40,3 +40,5 @@ fmm_laplace_LDADD = $(LIBS_LDADD)
 fmm_helmholtz_SOURCES = fmm.cpp $(HELMHOLTZ_SRCS)
 fmm_helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
 fmm_helmholtz_LDADD = $(LIBS_LDADD)
+
+TESTS = $(bin_PROGRAMS)

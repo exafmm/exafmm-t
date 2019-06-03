@@ -1,4 +1,3 @@
-#include <sys/time.h>
 #if HELMHOLTZ
 #include "helmholtz.h"
 #include "precompute_helmholtz.h"
@@ -78,9 +77,7 @@ void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, 
 #endif
 
 int main(int argc, char **argv) {
-  Args args(argc, argv);
-  struct timeval tic, toc;
-  size_t N = args.numBodies;
+  size_t N = 20000;
   srand48(0);
   // initialize coordinates
   RealVec src_coord, trg_coord;
