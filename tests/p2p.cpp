@@ -110,9 +110,9 @@ int main(int argc, char **argv) {
 #endif
   stop("non-SIMD P2P");
 
-  start("SIMD P2P");
+  start("SIMD P2P Time");
   gradient_P2P(src_coord, src_value, trg_coord, test_value);
-  stop("SIMD P2P");
+  stop("SIMD P2P Time");
 
   // calculate error
   double p_diff = 0, p_norm = 0, F_diff = 0, F_norm = 0;
@@ -125,7 +125,12 @@ int main(int argc, char **argv) {
       F_diff += std::norm(trg_value[4*i+d]-test_value[4*i+d]);
     }
   }
-  print("Potential Error", sqrt(p_diff/p_norm));
-  print("Gradient Error", sqrt(F_diff/F_norm));
+  double p_err = sqrt(p_diff/p_norm);
+  double F_err = sqrt(F_diff/F_norm);
+  print("Potential Error", p_err);
+  print("Gradient Error", F_err);
+  double threshold = (sizeof(real_t)==4) ? 1e-6 : 1e-12;
+  assert(p_err < threshold);
+  assert(F_err < threshold);
   return 0;
 }
