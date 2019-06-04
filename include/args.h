@@ -9,24 +9,24 @@
 namespace exafmm_t {
   static struct option long_options[] = {
     {"ncrit",        required_argument, 0, 'c'},
+    {"distribution", required_argument, 0, 'd'},
+    {"wavenumber",   required_argument, 0, 'k'},
+    {"maxlevel",     required_argument, 0, 'l'},
     {"numBodies",    required_argument, 0, 'n'},
     {"P",            required_argument, 0, 'P'},
     {"threads",      required_argument, 0, 'T'},
-    {"distribution", required_argument, 0, 'd'},
-    {"maxlevel",     required_argument, 0, 'l'},
-    {"wavenumber",   required_argument, 0, 'k'},
     {0, 0, 0, 0}
   };
 
   class Args {
   public:
     int ncrit;
+    const char * distribution;
+    double k;
+    int maxlevel;
     int numBodies;
     int P;
     int threads;
-    int maxlevel;
-    double k;
-    const char * distribution;
 
   private:
     void usage(char * name) {
@@ -34,20 +34,20 @@ namespace exafmm_t {
 	      "Usage: %s [options]\n"
 	      "Long option (short option)     : Description (Default value)\n"
 	      " --ncrit (-c)                  : Number of bodies per leaf node (%d)\n"
-              " --distribution (-d) [c/s/p]   : cube, sphere, plummer (%s)\n"
+          " --distribution (-d) [c/s/p]   : cube, sphere, plummer (%s)\n"
+          " --wavenumber (-k)             : Wavenumber of Helmholtz kernel (%f)\n"
+          " --maxlevel (-l)               : Max level of tree (%d) (only applies to non-adaptive tree)\n"
 	      " --numBodies (-n)              : Number of bodies (%d)\n"
 	      " --P (-P)                      : Order of expansion (%d)\n"
-	      " --threads (-T)                : Number of threads (%d)\n"
-              " --maxlevel (-l)               : Max level of tree (%d) (only applies to non-adaptive tree)\n"
-              " --wavenumber (-k)             : Wavenumber of Helmholtz kernel (%f)\n",
+	      " --threads (-T)                : Number of threads (%d)\n",
 	      name,
 	      ncrit,
-              distribution,
+          distribution,
+          k,
+          maxlevel,
 	      numBodies,
 	      P,
-	      threads,
-              maxlevel,
-              k);
+	      threads);
     }
 
     const char * parseDistribution(const char * arg) {
@@ -65,42 +65,42 @@ namespace exafmm_t {
   public:
     Args(int argc=0, char ** argv=nullptr) :
       ncrit(64),
+      distribution("cube"),
+      k(20),
+      maxlevel(5),
       numBodies(1000000),
       P(4),
-      threads(16),
-      maxlevel(5),
-      distribution("cube"),
-      k(20) {
+      threads(16) {
       while (1) {
-	int option_index;
-	int c = getopt_long(argc, argv, "c:d:n:P:T:l:k:", long_options, &option_index);
-	if (c == -1) break;
-	switch (c) {
-	case 'c':
-	  ncrit = atoi(optarg);
-	  break;
-        case 'd':
-          distribution = parseDistribution(optarg);
-          break;
-	case 'n':
-	  numBodies = atoi(optarg);
-	  break;
-	case 'P':
-	  P = atoi(optarg);
-	  break;
-	case 'T':
-	  threads = atoi(optarg);
-	  break;
-        case 'l':
-          maxlevel = atoi(optarg);
-          break;
-        case 'k':
-          k = atof(optarg);
-          break;
-	default:
-	  usage(argv[0]);
-	  exit(0);
-	}
+        int option_index;
+        int c = getopt_long(argc, argv, "c:d:k:l:n:P:T:", long_options, &option_index);
+        if (c == -1) break;
+        switch (c) {
+          case 'c':
+            ncrit = atoi(optarg);
+            break;
+          case 'd':
+            distribution = parseDistribution(optarg);
+            break;
+          case 'k':
+            k = atof(optarg);
+            break;
+          case 'l':
+            maxlevel = atoi(optarg);
+            break;
+          case 'n':
+            numBodies = atoi(optarg);
+            break;
+          case 'P':
+            P = atoi(optarg);
+            break;
+          case 'T':
+            threads = atoi(optarg);
+            break;
+          default:
+            usage(argv[0]);
+            exit(0);
+        }
       }
     }
 

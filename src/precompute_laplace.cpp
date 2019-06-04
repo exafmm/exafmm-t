@@ -134,7 +134,7 @@ namespace exafmm_t {
     RealVec trg_coord(3,0);
     // compute DFT of potentials at convolution grids
 #pragma omp parallel for
-    for(int i=0; i<REL_COORD[M2L_Helper_Type].size(); ++i) {
+    for(size_t i=0; i<REL_COORD[M2L_Helper_Type].size(); ++i) {
       real_t coord[3];
       for(int d=0; d<3; d++) {
         coord[d] = REL_COORD[M2L_Helper_Type][i][d] * R0 / 0.5;
@@ -147,7 +147,7 @@ namespace exafmm_t {
     }
     // convert M2L_Helper to M2L, reorder to improve data locality
 #pragma omp parallel for
-    for(int i=0; i<REL_COORD[M2L_Type].size(); ++i) {
+    for(size_t i=0; i<REL_COORD[M2L_Type].size(); ++i) {
       for(int j=0; j<NCHILD*NCHILD; j++) {   // loop over child's relative positions
         int child_rel_idx = parent2child[i][j];
         if (child_rel_idx != -1) {
