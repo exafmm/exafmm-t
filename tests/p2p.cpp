@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
   double F_err = sqrt(F_diff/F_norm);
   print("Potential Error", p_err);
   print("Gradient Error", F_err);
-  double threshold = (sizeof(real_t)==4) ? 1e-6 : 1e-12;
+  double threshold = (sizeof(real_t)==4) ? 1e-5 : 1e-10;
   assert(p_err < threshold);
   assert(F_err < threshold);
   return 0;
