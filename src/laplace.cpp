@@ -172,36 +172,7 @@ namespace exafmm_t {
       check[imag] += kernel[real]*equiv[imag] + kernel[imag]*equiv[real];
     }
   }
-
-void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_equiv, RealVec &upward_equiv) {
-    // define constants
-    int n1 = MULTIPOLE_ORDER * 2;
-    int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
-    std::vector<size_t> map(NSURF);
-    real_t c[3]= {0, 0, 0};
-    for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
-    RealVec surf(NSURF*3);
-    surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0,0,surf);
-    for(size_t i=0; i<map.size(); i++) {
-      // mapping: upward equiv surf -> conv grid
-      map[i] = ((size_t)(MULTIPOLE_ORDER-1-surf[i*3]+0.5))
-             + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+1]+0.5)) * n1
-             + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+2]+0.5)) * n1 * n1;
-    }
-    // create dft plan for upward equiv
-    int dim[3] = {n1, n1, n1};
-    // evaluate dft of upward equivalent of sources
-     #pragma omp parallel for
-    for(int i=0; i<M2Lsources_idx.size(); ++i) {
-      // upward equiv on convolution grid
-      Node *source = &nodes[M2Lsources_idx[i]];
-      for(int j=0; j<NSURF; ++j) {
-        int conv_id = map[j];
-        up_equiv[i*n3+conv_id] = upward_equiv[source->idx*NSURF+j];
-      }
-    }
-  }
+  
   void FFT_Check2Equiv(Nodes& nodes, std::vector<int> &M2Ltargets_idx, std::vector<real_t> dnCheck, RealVec &dnward_equiv) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
@@ -257,8 +228,7 @@ void FFT_UpEquiv(Nodes& nodes, std::vector<int> &M2Lsources_idx, AlignedVec& up_
       }
     }
     M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
-    FFT_UpEquiv(nodes, M2Lsources_idx, up_equiv, upward_equiv);
-    std::vector<real_t> dnCheck = M2LGPU(M2Ltargets_idx, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, up_equiv, M2Lsources_idx.size());
+    std::vector<real_t> dnCheck = M2LGPU(M2Ltargets_idx, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, M2Lsources_idx, upward_equiv);
     FFT_Check2Equiv(nodes, M2Ltargets_idx, dnCheck, dnward_equiv);
   }
 

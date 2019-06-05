@@ -158,7 +158,15 @@ namespace exafmm_t {
       d_nodes_trg[first_trg_val_idx+4*threadIdx.x+3] += tv3;
     }
   }
-   
+  
+  __global__
+  void FFT_UpEquiv_kernel(int *d_M2Lsources_idx, int *d_map, real_t *d_up_equiv, real_t *d_upward_equiv, int n3) {
+    int i = blockIdx.x;
+    int j = threadIdx.x;
+    int conv_id = d_map[j];
+    d_up_equiv[i*n3+conv_id] = d_upward_equiv[d_M2Lsources_idx[i]*blockDim.x+j];
+  }
+
   __global__
   void hadmard_kernel(int *d_M2Ltargets_idx, cufftComplex *d_up_equiv_fft, cufftComplex *d_dw_equiv_fft, int *d_M2LRelPos_start_idx, int *d_index_in_up_equiv_fft, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int n3_, int BLOCKS) {
     int i = blockIdx.x;
@@ -403,21 +411,43 @@ namespace exafmm_t {
     cudaFree(d_P2Plists_idx);
     cudaFree(d_P2Plists);
   }
-
-  cufftComplex *FFT_UpEquiv_GPU(int M2Lsources_idx_size, AlignedVec &up_equiv) {
+  
+  cufftComplex *FFT_UpEquiv_GPU(std::vector<int> &M2Lsources_idx, real_t *d_upward_equiv, int upward_equiv_size) {
     int n1 = MULTIPOLE_ORDER * 2;
+    int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     int dims[] = {n1,n1,n1};
-    cufftHandle plan_up_equiv;
-    cufftPlanMany(&plan_up_equiv, 3, dims, NULL, 1, 0, NULL, 1, 0, CUFFT_R2C, M2Lsources_idx_size); // first call to cufft will always take time so this is why ill leave it out from the timing
-    cufftComplex *d_up_equiv_fft;
+    std::vector<int> map(NSURF);
+    real_t c[3]= {0, 0, 0};
+    for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
+    RealVec surf(NSURF*3);
+    surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0,0,surf);
+    for(size_t i=0; i<map.size(); i++) {
+      // mapping: upward equiv surf -> conv grid
+      map[i] = ((size_t)(MULTIPOLE_ORDER-1-surf[i*3]+0.5))
+             + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+1]+0.5)) * n1
+             + ((size_t)(MULTIPOLE_ORDER-1-surf[i*3+2]+0.5)) * n1 * n1;
+    }
     real_t *d_up_equiv;
-    cudaMalloc(&d_up_equiv, sizeof(real_t)*up_equiv.size());
-    cudaMalloc(&d_up_equiv_fft, sizeof(cufftComplex)*M2Lsources_idx_size*n3_);
-    cudaMemcpy(d_up_equiv, &up_equiv[0], sizeof(real_t)*up_equiv.size(), cudaMemcpyHostToDevice);
+    int *d_map;
+    int* d_M2Lsources_idx;
+    cudaMalloc(&d_up_equiv, sizeof(real_t)*M2Lsources_idx.size()*n3);
+    cudaMalloc(&d_map, sizeof(int)*map.size());
+    cudaMalloc(&d_M2Lsources_idx, sizeof(int)*M2Lsources_idx.size());
+
+    cudaMemcpy(d_map, &map[0], sizeof(int)*map.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_M2Lsources_idx, &M2Lsources_idx[0], sizeof(int)*M2Lsources_idx.size(), cudaMemcpyHostToDevice);
+
+    FFT_UpEquiv_kernel<<<M2Lsources_idx.size(), NSURF>>>(d_M2Lsources_idx, d_map, d_up_equiv, d_upward_equiv, n3);
+
+    cufftHandle plan_up_equiv;
+    cufftPlanMany(&plan_up_equiv, 3, dims, NULL, 1, 0, NULL, 1, 0, CUFFT_R2C, M2Lsources_idx.size());
+    cufftComplex *d_up_equiv_fft;
+    cudaMalloc(&d_up_equiv_fft, sizeof(cufftComplex)*M2Lsources_idx.size()*n3_);
     cufftExecR2C(plan_up_equiv, &d_up_equiv[0], &d_up_equiv_fft[0]);
     cufftDestroy(plan_up_equiv);
     cudaFree(d_up_equiv);
+    cudaFree(d_map);
     return &d_up_equiv_fft[0];
   }
 
@@ -470,12 +500,20 @@ namespace exafmm_t {
     return &d_dw_equiv_fft[0];
   }
   
-  std::vector<real_t> M2LGPU(std::vector<int> &M2Ltargets_idx, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, AlignedVec &up_equiv, int M2Lsources_idx_size) {
-    cufftComplex *d_up_equiv_fft = FFT_UpEquiv_GPU(M2Lsources_idx_size, up_equiv);
+  std::vector<real_t> M2LGPU(std::vector<int> &M2Ltargets_idx, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, std::vector<int> &M2Lsources_idx, std::vector<real_t> &upward_equiv) {
+    int n1 = MULTIPOLE_ORDER * 2;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
+    real_t *d_upward_equiv;
+    cudaMalloc(&d_upward_equiv, sizeof(real_t)*upward_equiv.size());
+    cudaMemcpy(d_upward_equiv, &upward_equiv[0], sizeof(real_t)*upward_equiv.size(), cudaMemcpyHostToDevice);
+    Profile::Tic("general",true);
+    cufftComplex *d_up_equiv_fft = FFT_UpEquiv_GPU(M2Lsources_idx, d_upward_equiv, upward_equiv.size());
+    Profile::Toc();
     cufftComplex *d_dw_equiv_fft = HadmardGPU(M2Ltargets_idx, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, d_up_equiv_fft);
+    cudaFree(d_upward_equiv);
     return FFT_Check2Equiv_GPU(d_dw_equiv_fft, M2Ltargets_idx.size());
   }
-
+    
   void L2PGPU(RealVec &equivCoord, RealVec &dnward_equiv, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_trg, std::vector<int> &leafs_idx, std::vector<int> &nodes_pt_src_idx, int THREADS) {
     cublasHandle_t handle;
     cublasCreate(&handle);
