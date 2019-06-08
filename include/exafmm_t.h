@@ -101,8 +101,6 @@ namespace exafmm_t {
     std::vector<int> P2Plist_idx;
     std::vector<int> M2Llist_idx;
     std::vector<int> M2LRelPos;
-    AlignedVec up_equiv_fft;  // upward_equiv in frequency domain
-    int index_in_up_equiv_fft;
     bool IsLeaf() {
       return numChilds == 0;
     }

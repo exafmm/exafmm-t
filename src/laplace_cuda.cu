@@ -13,7 +13,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 namespace exafmm_t {
-
+  
   __global__
   void P2M_kernel(int *d_leafs_idx, int *d_nodes_pt_src_idx, real_t *d_bodies_coord, real_t *d_upward_equiv, int *d_nodes_depth, real_t *d_upwd_check_surf, real_t *d_nodes_coord, real_t *d_nodes_pt_src) {
     int t=threadIdx.x;
@@ -168,20 +168,28 @@ namespace exafmm_t {
   }
 
   __global__
-  void hadmard_kernel(int *d_M2Ltargets_idx, cufftComplex *d_up_equiv_fft, cufftComplex *d_dw_equiv_fft, int *d_M2LRelPos_start_idx, int *d_index_in_up_equiv_fft, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int n3_, int BLOCKS) {
+  void hadmard_kernel(int *d_M2Ltargets_idx, cufftComplex *d_up_equiv_fft, cufftComplex *d_dw_equiv_fft, int *d_M2LRelPos_offset, int *d_index_in_up_equiv_fft, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int n3_, int BLOCKS, int *d_M2Llist_idx_offset, int *d_M2Llist_idx) {
     int i = blockIdx.x;
     int k = threadIdx.x;
-    int M2LRelPos_size = d_M2LRelPos_start_idx[i+1]-d_M2LRelPos_start_idx[i];
-    for(int j=0; j <M2LRelPos_size; j++) {
-      int relPosidx = d_M2LRelPoss[d_M2LRelPos_start_idx[i]+j];
+    extern __shared__ cufftComplex check[];
+    check[k].x = 0;
+    check[k].y = 0;
+    __syncthreads();
+
+    int d_M2Llist_idx_offset_start = d_M2Llist_idx_offset[i];
+    int M2Llist_size = d_M2Llist_idx_offset[i+1]-d_M2Llist_idx_offset_start;
+    int M2LRelPos_offset = d_M2LRelPos_offset[i];
+    for(int j=0; j <M2Llist_size; j++) {
+      int relPosidx = d_M2LRelPoss[M2LRelPos_offset+j];
       real_t *kernel = &d_mat_M2L_Helper[relPosidx*2*n3_];
-      cufftComplex *equiv = &d_up_equiv_fft[d_index_in_up_equiv_fft[d_M2LRelPos_start_idx[i]+j]*n3_];
-      cufftComplex *check = &d_dw_equiv_fft[i*n3_];
+      cufftComplex *equiv = &d_up_equiv_fft[d_index_in_up_equiv_fft[d_M2Llist_idx[d_M2Llist_idx_offset_start+j]]*n3_];
       int real = 2*k+0;
       int imag = 2*k+1;
       check[k].x += kernel[real]*equiv[k].x - kernel[imag]*equiv[k].y;
       check[k].y += kernel[real]*equiv[k].y + kernel[imag]*equiv[k].x;
     }
+      d_dw_equiv_fft[i*n3_+k].x += check[k].x;
+      d_dw_equiv_fft[i*n3_+k].y += check[k].y;
   }
 
   __global__
@@ -469,30 +477,38 @@ namespace exafmm_t {
     return dnCheck;
   }
 
-  cufftComplex *HadmardGPU(std::vector<int> &M2Ltargets_idx, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, cufftComplex *d_up_equiv_fft) {
+  cufftComplex *HadmardGPU(std::vector<int> &M2Ltargets_idx, std::vector<int> &M2LRelPos_offset, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, cufftComplex *d_up_equiv_fft, std::vector<int> &M2Llist_idx_offset, std::vector<int> &M2Llist_idx, int max) {
     int BLOCKS = M2Ltargets_idx.size();
     int THREADS = n3_;
 
-    int *d_M2Ltargets_idx, *d_M2LRelPos_start_idx, *d_index_in_up_equiv_fft, *d_M2LRelPoss;
+    int *d_M2Ltargets_idx, *d_M2LRelPos_offset, *d_index_in_up_equiv_fft, *d_M2LRelPoss, *d_M2Llist_idx_offset, *d_M2Llist_idx;
     real_t *d_mat_M2L_Helper;
     cufftComplex *d_dw_equiv_fft;
     cudaMalloc(&d_M2Ltargets_idx, sizeof(int)*M2Ltargets_idx.size());
-    cudaMalloc(&d_M2LRelPos_start_idx, sizeof(int)*M2LRelPos_start_idx.size());
+    cudaMalloc(&d_M2LRelPos_offset, sizeof(int)*M2LRelPos_offset.size());
     cudaMalloc(&d_index_in_up_equiv_fft, sizeof(int)*index_in_up_equiv_fft.size());
     cudaMalloc(&d_M2LRelPoss, sizeof(int)*M2LRelPoss.size());
     cudaMalloc(&d_dw_equiv_fft, sizeof(cufftComplex)*M2Ltargets_idx.size()*n3_);
     cudaMalloc(&d_mat_M2L_Helper, sizeof(real_t)*mat_M2L_Helper.size());
+    cudaMalloc(&d_M2Llist_idx_offset, sizeof(int)*M2Llist_idx_offset.size());
+    cudaMalloc(&d_M2Llist_idx, sizeof(int)*M2Llist_idx.size());
 
     cudaMemcpy(d_M2Ltargets_idx, &M2Ltargets_idx[0], sizeof(int)*M2Ltargets_idx.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_M2LRelPos_start_idx, &M2LRelPos_start_idx[0], sizeof(int)*M2LRelPos_start_idx.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_M2LRelPos_offset, &M2LRelPos_offset[0], sizeof(int)*M2LRelPos_offset.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_index_in_up_equiv_fft, &index_in_up_equiv_fft[0], sizeof(int)*index_in_up_equiv_fft.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_M2LRelPoss, &M2LRelPoss[0], sizeof(int)*M2LRelPoss.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_mat_M2L_Helper, &mat_M2L_Helper[0], sizeof(real_t)*mat_M2L_Helper.size(), cudaMemcpyHostToDevice);    
-    hadmard_kernel<<<BLOCKS, THREADS>>>(d_M2Ltargets_idx, d_up_equiv_fft, d_dw_equiv_fft, d_M2LRelPos_start_idx, d_index_in_up_equiv_fft, d_M2LRelPoss, d_mat_M2L_Helper, n3_, BLOCKS);
+    cudaMemcpy(d_mat_M2L_Helper, &mat_M2L_Helper[0], sizeof(real_t)*mat_M2L_Helper.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_M2Llist_idx_offset, &M2Llist_idx_offset[0], sizeof(int)*M2Llist_idx_offset.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_M2Llist_idx, &M2Llist_idx[0], sizeof(int)*M2Llist_idx.size(), cudaMemcpyHostToDevice);
+    Profile::Tic("general",true);
+    hadmard_kernel<<<BLOCKS, THREADS, sizeof(cufftComplex)*n3_>>>(d_M2Ltargets_idx, d_up_equiv_fft, d_dw_equiv_fft, d_M2LRelPos_offset, d_index_in_up_equiv_fft, d_M2LRelPoss, d_mat_M2L_Helper, n3_, BLOCKS, d_M2Llist_idx_offset, d_M2Llist_idx);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
+    Profile::Toc();
+    cudaFree(d_M2Llist_idx_offset);
+    cudaFree(d_M2Llist_idx);
     cudaFree(d_M2Ltargets_idx);
-    cudaFree(d_M2LRelPos_start_idx);
+    cudaFree(d_M2LRelPos_offset);
     cudaFree(d_index_in_up_equiv_fft);
     cudaFree(d_M2LRelPoss);
     cudaFree(d_up_equiv_fft);
@@ -500,16 +516,14 @@ namespace exafmm_t {
     return &d_dw_equiv_fft[0];
   }
   
-  std::vector<real_t> M2LGPU(std::vector<int> &M2Ltargets_idx, std::vector<int> &M2LRelPos_start_idx, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, std::vector<int> &M2Lsources_idx, std::vector<real_t> &upward_equiv) {
+  std::vector<real_t> M2LGPU(std::vector<int> &M2Ltargets_idx, std::vector<int> &M2LRelPos_offset, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, std::vector<int> &M2Lsources_idx, std::vector<real_t> &upward_equiv, std::vector<int> &M2Llist_idx_offset, std::vector<int> &M2Llist_idx, int max) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     real_t *d_upward_equiv;
     cudaMalloc(&d_upward_equiv, sizeof(real_t)*upward_equiv.size());
     cudaMemcpy(d_upward_equiv, &upward_equiv[0], sizeof(real_t)*upward_equiv.size(), cudaMemcpyHostToDevice);
-    Profile::Tic("general",true);
     cufftComplex *d_up_equiv_fft = FFT_UpEquiv_GPU(M2Lsources_idx, d_upward_equiv, upward_equiv.size());
-    Profile::Toc();
-    cufftComplex *d_dw_equiv_fft = HadmardGPU(M2Ltargets_idx, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, d_up_equiv_fft);
+    cufftComplex *d_dw_equiv_fft = HadmardGPU(M2Ltargets_idx, M2LRelPos_offset, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, d_up_equiv_fft, M2Llist_idx_offset, M2Llist_idx, max);
     cudaFree(d_upward_equiv);
     return FFT_Check2Equiv_GPU(d_dw_equiv_fft, M2Ltargets_idx.size());
   }

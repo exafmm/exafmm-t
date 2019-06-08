@@ -164,15 +164,6 @@ namespace exafmm_t {
     L2PGPU(equivCoord, dnward_equiv, bodies_coord, nodes_trg, leafs_idx, nodes_pt_src_idx, max);
   }
   
-  void hadamardProduct(real_t *kernel, real_t *equiv, real_t *check, int n3_) {
-    for(int k=0; k<n3_; ++k) {
-      int real = 2*k+0;
-      int imag = 2*k+1;
-      check[real] += kernel[real]*equiv[real] - kernel[imag]*equiv[imag];
-      check[imag] += kernel[real]*equiv[imag] + kernel[imag]*equiv[real];
-    }
-  }
-  
   void FFT_Check2Equiv(Nodes& nodes, std::vector<int> &M2Ltargets_idx, std::vector<real_t> dnCheck, RealVec &dnward_equiv) {
     // define constants
     int n1 = MULTIPOLE_ORDER * 2;
@@ -201,6 +192,15 @@ namespace exafmm_t {
       }
     }
   }
+ 
+  void hadamardProduct(real_t *kernel, real_t *equiv, AlignedVec& check, int n3_) {
+    for(int k=0; k<2*n3_; ++k) {
+      if(k%2==0)
+        check[k] += kernel[k]*equiv[k]-kernel[k+1]*equiv[k+1];
+      else
+        check[k] += kernel[k-1]*equiv[k] + kernel[k]*equiv[k-1];
+    }
+  }
 
   void M2L(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, RealVec &upward_equiv, RealVec &dnward_equiv) {
     // define constants
@@ -208,29 +208,34 @@ namespace exafmm_t {
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     AlignedVec up_equiv(M2Lsources_idx.size()*n3);
-    std::vector<int> index_in_up_equiv_fft;
-    std::vector<int> M2LRelPos_start_idx;
+    std::vector<int> index_in_up_equiv_fft(nodes.size());
+    std::vector<int> M2LRelPos_offset;
     std::vector<int> M2LRelPoss;
-    int M2LRelPos_start_idx_cnt = 0;
+    int M2LRelPos_offset_cnt = 0;
     #pragma omp parallel for
-    for(int i=0; i<M2Lsources_idx.size(); ++i) {
-      Node *node = &nodes[M2Lsources_idx[i]];
-      node->index_in_up_equiv_fft = i;
-    }
+    for(int i=0; i<M2Lsources_idx.size(); ++i)
+      index_in_up_equiv_fft[M2Lsources_idx[i]] = i;
+
+    std::vector<int> M2Llist_idx;
+    std::vector<int> M2Llist_idx_offset;
+    int M2Llist_idx_cnt = 0;
+    int max = 0;
     for (int i=0;i<M2Ltargets_idx.size(); i++) {
       Node* target = &nodes[M2Ltargets_idx[i]];
-      M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
+      M2LRelPos_offset.push_back(M2LRelPos_offset_cnt);
+      M2Llist_idx.insert(M2Llist_idx.end(), target->M2Llist_idx.begin(), target->M2Llist_idx.end());
+      M2Llist_idx_offset.push_back(M2Llist_idx_cnt);
+      M2Llist_idx_cnt += target->M2Llist_idx.size();
+      max = (target->M2Llist_idx.size() > max) ? target->M2Llist_idx.size():max;
       for(int j=0; j<target->M2Llist_idx.size(); j++) {
         Node* source = &nodes[target->M2Llist_idx[j]];
-        index_in_up_equiv_fft.push_back(source->index_in_up_equiv_fft);
         M2LRelPoss.push_back(target->M2LRelPos[j]);
-        M2LRelPos_start_idx_cnt ++;
+        M2LRelPos_offset_cnt ++;
       }
     }
-    M2LRelPos_start_idx.push_back(M2LRelPos_start_idx_cnt);
-    std::vector<real_t> dnCheck = M2LGPU(M2Ltargets_idx, M2LRelPos_start_idx, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, M2Lsources_idx, upward_equiv);
+    M2Llist_idx_offset.push_back(M2Llist_idx_cnt);
+    M2LRelPos_offset.push_back(M2LRelPos_offset_cnt);
+    std::vector<real_t> dnCheck = M2LGPU(M2Ltargets_idx, M2LRelPos_offset, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, M2Lsources_idx, upward_equiv, M2Llist_idx_offset, M2Llist_idx, max);
     FFT_Check2Equiv(nodes, M2Ltargets_idx, dnCheck, dnward_equiv);
   }
-
-
 }//end namespace
