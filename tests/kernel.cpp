@@ -13,7 +13,7 @@ namespace exafmm_t {
   int P;
   int NSURF;
   int MAXLEVEL;
-  vec3 XMIN0;
+  vec3 X0;
   real_t R0;
 #if HELMHOLTZ
   real_t WAVEK;
@@ -21,7 +21,6 @@ namespace exafmm_t {
 }
 
 using namespace exafmm_t;
-using namespace std;
 
 // Helper function to build the tree needed in kernel test
 void set_children(Node* parent, Node* first_child) {
@@ -31,32 +30,36 @@ void set_children(Node* parent, Node* first_child) {
     child->octant = octant;
     child->parent = parent;
     child->level = parent->level + 1;
+    child->x = parent->x;
     child->r = parent->r / 2;
-    child->xmin = parent->xmin;
     for(int d=0; d<3; d++) {
-      child->xmin[d] += parent->r * ((octant & 1 << d) >> d);
+      child->x[d] += child->r * (((octant & 1 << d) >> d) * 2 - 1);
     }
     parent->children.push_back(child);
   }
 }
 
-int main() {
+int main(int argc, char **argv) {
+  Args args(argc, argv);
+#if HAVE_OPENMP
+  omp_set_num_threads(args.threads);
+#endif
   // set global variables
-  P = 8;
+  P = args.P;
   NSURF = 6*(P-1)*(P-1) + 2;
   MAXLEVEL = 3;
-  XMIN0 = 0.;
+  X0 = 4.;
   R0 = 4.;
 #if HELMHOLTZ
-  WAVEK = 10;
+  WAVEK = args.k;
 #endif
   // precomputation
   init_rel_coord();
   precompute();
 
   // create tree
-  vector<int> nnodes = {1, 8, 8*2, 8*2};  // number of nodes at each level
-  Nodes nodes(accumulate(nnodes.begin(), nnodes.end(), 0));
+  std::vector<int> nnodes = {1, 8, 8*2, 8*2};  // number of nodes at each level
+  Nodes nodes(std::accumulate(nnodes.begin(), nnodes.end(), 0));
   // initialize nodes
   for(size_t i=0; i<nodes.size(); ++i) {
     Node& node = nodes[i];
@@ -73,7 +76,7 @@ int main() {
   // set root node
   Node* root = &nodes[0];
   root->parent = nullptr;
-  root->xmin = XMIN0;
+  root->x = X0;
   root->r = R0;
   root->level = 0;
 
@@ -147,13 +150,13 @@ int main() {
   RealVec& trg_value = target->trg_value;
 #endif
   real_t p_diff = 0, p_norm = 0, p_error = 0;
-  p_diff = norm(trg_value[0]-trg_value_direct[0]);
-  p_norm = norm(trg_value_direct[0]);
+  p_diff = std::norm(trg_value[0]-trg_value_direct[0]);
+  p_norm = std::norm(trg_value_direct[0]);
   p_error = sqrt(p_diff/p_norm);
   real_t F_diff = 0, F_norm = 0, F_error = 0;
   for(int d=1; d<4; ++d) {
-    F_diff += norm(trg_value[d]-trg_value_direct[d]);
-    F_norm += norm(trg_value_direct[d]);
+    F_diff += std::norm(trg_value[d]-trg_value_direct[d]);
+    F_norm += std::norm(trg_value_direct[d]);
   }
   F_error = sqrt(F_diff/F_norm);
   print("Potential Error", p_error);

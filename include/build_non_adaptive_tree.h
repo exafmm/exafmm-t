@@ -3,10 +3,9 @@
 #include "exafmm_t.h"
 #include "hilbert.h"
 
-using namespace std;
 namespace exafmm_t {
   // Get bounding box of sources and targets
-  void get_bounds(const Bodies& sources, const Bodies& targets, vec3& Xmin0, real_t& r0) {
+  void get_bounds(const Bodies& sources, const Bodies& targets, vec3& x0, real_t& r0) {
     vec3 Xmin = sources[0].X;
     vec3 Xmax = sources[0].X;
     for (size_t b=0; b<sources.size(); ++b) {
@@ -17,10 +16,9 @@ namespace exafmm_t {
       Xmin = min(targets[b].X, Xmin);
       Xmax = max(targets[b].X, Xmax);
     }
-    vec3 X0 = (Xmax + Xmin) / 2;
+    x0 = (Xmax + Xmin) / 2;
     r0 = fmax(max(X0-Xmin), max(Xmax-X0));
     r0 *= 1.00001;
-    Xmin0 = X0 - r0;
   }
 
   // Sort a segment of bodies in a node according to their octants
@@ -29,7 +27,7 @@ namespace exafmm_t {
   // end: the end index of the segment
   // size: the vector of the number of bodies in each octant
   // offsets: the vector of the begin index of the sorted bodies in each octant
-  void sort_bodies(Node* const node, Body* const bodies, int begin, int end, vector<int>& size, vector<int>& offsets) {
+  void sort_bodies(Node* const node, Body* const bodies, int begin, int end, std::vector<int>& size, std::vector<int>& offsets) {
     if (end == begin) {
       size.resize(8, 0);
       offsets.resize(8, begin);
@@ -37,7 +35,7 @@ namespace exafmm_t {
     }
     // Count number of bodies in each octant
     size.resize(8, 0);
-    vec3 X = node->xmin + node->r;  // the center of the node
+    vec3 X = node->x;  // the center of the node
     for (int i=begin; i<end; i++) {
       vec3& x = bodies[i].X;
       int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
@@ -45,7 +43,7 @@ namespace exafmm_t {
     }
     // Exclusive scan to get offsets
     offsets.resize(8);
-    vector<int> counter(8);
+    std::vector<int> counter(8);
     int offset = begin;
     for (int i=0; i<8; i++) {
       offsets[i] = offset;
@@ -89,7 +87,7 @@ namespace exafmm_t {
     node->up_equiv.resize(NSURF, 0.);
     node->dn_equiv.resize(NSURF, 0.);
 #endif
-    ivec3 iX = get3DIndex(node->xmin+node->r, node->level);
+    ivec3 iX = get3DIndex(node->x, node->level);
     node->key = getKey(iX, node->level);
 
     // for the ghost (empty) nodes which are not at leaf level
@@ -130,8 +128,8 @@ namespace exafmm_t {
       return;
     }
     // Sort bodies and save in buffer
-    vector<int> source_size, source_offsets;
-    vector<int> target_size, target_offsets;
+    std::vector<int> source_size, source_offsets;
+    std::vector<int> target_size, target_offsets;
     sort_bodies(node, sources, source_begin, source_end, source_size, source_offsets);
     sort_bodies(node, targets, target_begin, target_end, target_size, target_offsets);
     //! Loop over children and recurse
@@ -144,11 +142,11 @@ namespace exafmm_t {
     node->children.resize(8, nullptr);
     for (int c=0; c<8; c++) {
       node->children[c] = &child[c];
-      child[c].xmin = node->xmin;
-      for (int d=0; d<3; d++) {
-        child[c].xmin[d] += node->r * ((c & 1 << d) >> d);
-      }
+      child[c].x = node->x;
       child[c].r = node->r / 2;
+      for (int d=0; d<3; d++) {
+        child[c].x[d] += child[c].r * (((c & 1 << d) >> d) * 2 - 1);
+      }
       child[c].parent = node;
       child[c].octant = c;
       child[c].level = node->level + 1;
@@ -164,12 +162,12 @@ namespace exafmm_t {
     }
   }
 
-  Nodes build_tree(Bodies& sources, Bodies& targets, vec3 Xmin0,
+  Nodes build_tree(Bodies& sources, Bodies& targets, vec3 x0,
                    real_t r0, NodePtrs& leafs, NodePtrs& nonleafs) {
     Nodes nodes(1);
     nodes[0].parent = nullptr;
     nodes[0].octant = 0;
-    nodes[0].xmin = Xmin0;
+    nodes[0].x = x0;
     nodes[0].r = r0;
     nodes[0].level = 0;
     nodes.reserve((pow(8,MAXLEVEL+1)-1) / 7);  // reserve for 8^(level+1)/7 nodes

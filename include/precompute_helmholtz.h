@@ -32,13 +32,11 @@ namespace exafmm_t {
 
   void precompute_M2M();
 
-  void precompute_M2Lhelper();
-
-  void precompute_M2L();
+  void precompute_M2L(std::ofstream& file, std::vector<std::vector<int>>& parent2child);
 
   bool load_matrix();
 
-  void save_matrix();
+  void save_matrix(std::ofstream& file);
 
   void precompute();
 }//end namespace

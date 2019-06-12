@@ -41,8 +41,8 @@ namespace exafmm_t {
       real_t R = 1.0 / sqrt( (pow(X1, -2.0 / 3.0) - 1.0) );
       if (R < 100) {
         real_t Z = (1.0 - 2.0 * X2) * R;
-        real_t X = sqrt(R * R - Z * Z) * std::cos(2.0 * M_PI * X3);
-        real_t Y = sqrt(R * R - Z * Z) * std::sin(2.0 * M_PI * X3);
+        real_t X = sqrt(R * R - Z * Z) * std::cos(2.0 * PI * X3);
+        real_t Y = sqrt(R * R - Z * Z) * std::sin(2.0 * PI * X3);
         bodies[i].X[0] = X;
         bodies[i].X[1] = Y;
         bodies[i].X[2] = Z;

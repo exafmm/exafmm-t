@@ -46,6 +46,7 @@ namespace exafmm_t {
 #define fft_destroy_plan fftw_destroy_plan
 #endif
 
+  const real_t PI = M_PI;
   typedef std::complex<real_t> complex_t;
   typedef vec<3,int> ivec3;                     //!< std::vector of 3 int types
   typedef vec<3,real_t> vec3;                   //!< std::vector of 3 real_t types
@@ -98,7 +99,7 @@ namespace exafmm_t {
     bool is_leaf;
     int ntrgs;
     int nsrcs;
-    vec3 xmin;    // the coordinates of the front-left-bottom corner
+    vec3 x;    // the coordinates of the center of the node
     real_t r;
     uint64_t key;
     int level;
@@ -150,7 +151,6 @@ namespace exafmm_t {
   extern std::vector<ComplexVec> matrix_UC2E_U, matrix_UC2E_V;
   extern std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
   extern std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
-  extern std::vector<std::vector<AlignedVec>> matrix_M2L;
 #else
   extern RealVec matrix_UC2E_U, matrix_UC2E_V;
   extern RealVec matrix_DC2E_U, matrix_DC2E_V;
@@ -161,7 +161,7 @@ namespace exafmm_t {
   extern int P;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates
   extern int MAXLEVEL;  // max depth of tree
-  extern vec3 XMIN0;    // coordinates of root
+  extern vec3 X0;    // root's center
   extern real_t R0;     // radius of root
 #if HELMHOLTZ
   extern real_t WAVEK;     // wave number of Helmholtz kernel

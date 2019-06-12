@@ -18,7 +18,7 @@ namespace exafmm_t {
   void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
-    const real_t COEF = 1.0/(4*M_PI*newton_scale);
+    const real_t COEF = 1.0/(4*PI*newton_scale);
     simdvec coef(COEF);
     simdvec k(WAVEK/newton_scale);
     int src_cnt = src_coord.size() / 3;
@@ -71,14 +71,14 @@ namespace exafmm_t {
           p += std::exp(I * R * WAVEK) * src_value[s] / R;
         }
       }
-      trg_value[t] += p / (4*M_PI);
+      trg_value[t] += p / (4*PI);
     }
   }
 
   void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     simdvec zero((real_t)0);
     real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
-    const real_t COEF = 1.0/(4*M_PI*newton_scale);   // factor 16 comes from the simd rsqrt function
+    const real_t COEF = 1.0/(4*PI*newton_scale);   // factor 16 comes from the simd rsqrt function
     simdvec coef(COEF);
     simdvec k(WAVEK/newton_scale);
     simdvec NEWTON(newton_scale);
@@ -165,10 +165,10 @@ namespace exafmm_t {
             F[d] += coefg * dX[d];
         }
       }
-      trg_value[4*t+0] += p / (4*M_PI);
-      trg_value[4*t+1] += F[0] / (4*M_PI);
-      trg_value[4*t+2] += F[1] / (4*M_PI);
-      trg_value[4*t+3] += F[2] / (4*M_PI);
+      trg_value[4*t+0] += p / (4*PI);
+      trg_value[4*t+1] += F[0] / (4*PI);
+      trg_value[4*t+2] += F[1] / (4*PI);
+      trg_value[4*t+3] += F[2] / (4*PI);
     }
   }
 
@@ -176,8 +176,8 @@ namespace exafmm_t {
   // non-simd P2P
   void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
-    //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
-    real_t WAVEK = 20*M_PI;
+    //complex_t WAVEK = complex_t(1,.1) / real_t(2*PI);
+    real_t WAVEK = 20*PI;
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
@@ -200,14 +200,14 @@ namespace exafmm_t {
           p += pij;
         }
       }
-      trg_value[i] += p / (4*M_PI);
+      trg_value[i] += p / (4*PI);
     }
   }
 
   void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
     complex_t I(0, 1);
-    //complex_t WAVEK = complex_t(1,.1) / real_t(2*M_PI);
-    real_t WAVEK = 20*M_PI;
+    //complex_t WAVEK = complex_t(1,.1) / real_t(2*PI);
+    real_t WAVEK = 20*PI;
     int src_cnt = src_coord.size() / 3;
     int trg_cnt = trg_coord.size() / 3;
     for (int i=0; i<trg_cnt; i++) {
@@ -233,10 +233,10 @@ namespace exafmm_t {
           }
         }
       }
-      trg_value[4*i+0] += p / (4*M_PI);
-      trg_value[4*i+1] += F[0] / (4*M_PI);
-      trg_value[4*i+2] += F[1] / (4*M_PI);
-      trg_value[4*i+3] += F[2] / (4*M_PI);
+      trg_value[4*i+0] += p / (4*PI);
+      trg_value[4*i+1] += F[0] / (4*PI);
+      trg_value[4*i+2] += F[1] / (4*PI);
+      trg_value[4*i+3] += F[2] / (4*PI);
     }
   }
 #endif 
@@ -254,7 +254,7 @@ namespace exafmm_t {
   }
 
   void P2M(NodePtrs& leafs) {
-    real_t c[3] = {0.0};
+    real_t c[3] = {0, 0, 0};
     std::vector<RealVec> up_check_surf;
     up_check_surf.resize(MAXLEVEL+1);
     for(int level=0; level<=MAXLEVEL; level++) {
@@ -267,9 +267,9 @@ namespace exafmm_t {
       int level = leaf->level;
       RealVec checkCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
-        checkCoord[3*k+0] = up_check_surf[level][3*k+0] + leaf->xmin[0];
-        checkCoord[3*k+1] = up_check_surf[level][3*k+1] + leaf->xmin[1];
-        checkCoord[3*k+2] = up_check_surf[level][3*k+2] + leaf->xmin[2];
+        checkCoord[3*k+0] = up_check_surf[level][3*k+0] + leaf->x[0];
+        checkCoord[3*k+1] = up_check_surf[level][3*k+1] + leaf->x[1];
+        checkCoord[3*k+2] = up_check_surf[level][3*k+2] + leaf->x[2];
       }
       potential_P2P(leaf->src_coord, leaf->src_value, checkCoord, leaf->up_equiv);
       ComplexVec buffer(NSURF);
@@ -323,7 +323,7 @@ namespace exafmm_t {
   } 
 
   void L2P(NodePtrs& leafs) {
-    real_t c[3] = {0.0};
+    real_t c[3] = {0, 0, 0};
     std::vector<RealVec> dn_equiv_surf;
     dn_equiv_surf.resize(MAXLEVEL+1);
     for(int level = 0; level <= MAXLEVEL; level++) {
@@ -344,9 +344,9 @@ namespace exafmm_t {
       // equivalent surface charge -> target potential
       RealVec equivCoord(NSURF*3);
       for(int k=0; k<NSURF; k++) {
-        equivCoord[3*k+0] = dn_equiv_surf[level][3*k+0] + leaf->xmin[0];
-        equivCoord[3*k+1] = dn_equiv_surf[level][3*k+1] + leaf->xmin[1];
-        equivCoord[3*k+2] = dn_equiv_surf[level][3*k+2] + leaf->xmin[2];
+        equivCoord[3*k+0] = dn_equiv_surf[level][3*k+0] + leaf->x[0];
+        equivCoord[3*k+1] = dn_equiv_surf[level][3*k+1] + leaf->x[1];
+        equivCoord[3*k+2] = dn_equiv_surf[level][3*k+2] + leaf->x[2];
       }
       gradient_P2P(equivCoord, leaf->dn_equiv, leaf->trg_coord, leaf->trg_value);
     }
@@ -371,9 +371,9 @@ namespace exafmm_t {
         int level = target->level;
         // target node's check coord = relative check coord + node's origin
         for(int k=0; k<NSURF; k++) {
-          trg_check_coord[3*k+0] = dn_check_surf[level][3*k+0] + target->xmin[0];
-          trg_check_coord[3*k+1] = dn_check_surf[level][3*k+1] + target->xmin[1];
-          trg_check_coord[3*k+2] = dn_check_surf[level][3*k+2] + target->xmin[2];
+          trg_check_coord[3*k+0] = dn_check_surf[level][3*k+0] + target->x[0];
+          trg_check_coord[3*k+1] = dn_check_surf[level][3*k+1] + target->x[1];
+          trg_check_coord[3*k+2] = dn_check_surf[level][3*k+2] + target->x[2];
         }
         potential_P2P(source->src_coord, source->src_value, trg_check_coord, target->dn_equiv);
       }
@@ -399,9 +399,9 @@ namespace exafmm_t {
         int level = source->level;
         // source node's equiv coord = relative equiv coord + node's origin
         for(int k=0; k<NSURF; k++) {
-          sourceEquivCoord[3*k+0] = up_equiv_surf[level][3*k+0] + source->xmin[0];
-          sourceEquivCoord[3*k+1] = up_equiv_surf[level][3*k+1] + source->xmin[1];
-          sourceEquivCoord[3*k+2] = up_equiv_surf[level][3*k+2] + source->xmin[2];
+          sourceEquivCoord[3*k+0] = up_equiv_surf[level][3*k+0] + source->x[0];
+          sourceEquivCoord[3*k+1] = up_equiv_surf[level][3*k+1] + source->x[1];
+          sourceEquivCoord[3*k+2] = up_equiv_surf[level][3*k+2] + source->x[2];
         }
         gradient_P2P(sourceEquivCoord, source->up_equiv, target->trg_coord, target->trg_value);
       }
@@ -489,15 +489,14 @@ namespace exafmm_t {
   }
 
   void hadamard_product(std::vector<size_t>& interaction_count_offset, std::vector<size_t>& interaction_offset_f,
-                       AlignedVec& fft_in, AlignedVec& fft_out, int level) {
+                       AlignedVec& fft_in, AlignedVec& fft_out, std::vector<AlignedVec>& matrix_M2L) {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     size_t fftsize = 2 * NCHILD * n3;
     AlignedVec zero_vec0(fftsize, 0.);
     AlignedVec zero_vec1(fftsize, 0.);
 
-    // int level = 0;
-    size_t mat_cnt = matrix_M2L[level].size();
+    size_t mat_cnt = matrix_M2L.size();
     size_t blk1_cnt = interaction_count_offset.size()/mat_cnt;
     int BLOCK_SIZE = CACHE_SIZE * 2 / sizeof(real_t);
     std::vector<real_t*> IN_(BLOCK_SIZE*blk1_cnt*mat_cnt);
@@ -526,7 +525,7 @@ namespace exafmm_t {
           size_t interac_cnt  = interaction_count_offset1-interaction_count_offset0;
           real_t** IN = &IN_[BLOCK_SIZE*interac_blk1];
           real_t** OUT= &OUT_[BLOCK_SIZE*interac_blk1];
-          real_t* M = &matrix_M2L[level][mat_indx][k*2*NCHILD*NCHILD]; // k-th freq's (row) offset in matrix_M2L[mat_indx]
+          real_t* M = &matrix_M2L[mat_indx][k*2*NCHILD*NCHILD]; // k-th freq's (row) offset in matrix_M2L
           for(size_t j=0; j<interac_cnt; j+=2) {
             real_t* M_   = M;
             real_t* IN0  = IN [j+0] + k*NCHILD*2;   // go to k-th freq chunk
@@ -544,7 +543,7 @@ namespace exafmm_t {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     std::vector<size_t> map(NSURF);
-    real_t c[3]= {0, 0, 0};
+    real_t c[3]= {0.5, 0.5, 0.5};
     for(int d=0; d<3; d++) c[d] += 0.5*(P-2);
     RealVec surf = surface(P, c, (real_t)(P-1), 0, true);
     for(size_t i=0; i<map.size(); i++) {
@@ -590,7 +589,7 @@ namespace exafmm_t {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
     std::vector<size_t> map(NSURF);
-    real_t c[3]= {0, 0, 0};
+    real_t c[3]= {0.5, 0.5, 0.5};
     for(int d=0; d<3; d++) c[d] += 0.5*(P-2);
     RealVec surf = surface(P, c, (real_t)(P-1), 0, true);
     for(size_t i=0; i<map.size(); i++) {
@@ -632,30 +631,53 @@ namespace exafmm_t {
   void M2L(Nodes& nodes) {
     int n1 = P * 2;
     int n3 = n1 * n1 * n1;
-    size_t numNodes = nodes.size();
-    ComplexVec all_up_equiv(numNodes*NSURF);
-    ComplexVec all_dn_equiv(numNodes*NSURF);
+    int fft_size = 2 * 8 * n3;
+    int num_nodes = nodes.size();
+    int num_coords = REL_COORD[M2L_Type].size();   // number of relative coords for M2L_Type
+    ComplexVec all_up_equiv(num_nodes*NSURF);
+    ComplexVec all_dn_equiv(num_nodes*NSURF);
+    std::vector<AlignedVec> matrix_M2L(num_coords, AlignedVec(fft_size*NCHILD, 0));
+
+    // setup ifstream of M2L precomputation matrix
+    std::string fname = "helmholtz";   // precomputation matrix file name
+    fname += "_" + std::string(sizeof(real_t)==4 ? "f":"d") + "_" + "p" + std::to_string(P) + "_" + "l" + std::to_string(MAXLEVEL);
+    fname += ".dat";
+    std::ifstream ifile(fname, std::ifstream::binary);
+    ifile.seekg(0, ifile.end);
+    size_t fsize = ifile.tellg();   // file size in bytes
+    size_t msize = NCHILD * NCHILD * n3 * 2 * sizeof(real_t);   // size in bytes for each M2L matrix
+    ifile.seekg(fsize - MAXLEVEL*num_coords*msize, ifile.beg);   // go to the start of M2L section
+    
+    // collect all upward equivalent charges
     #pragma omp parallel for collapse(2)
-    for(size_t i=0; i<numNodes; i++) {
-      for(int j=0; j<NSURF; j++) {
+    for(int i=0; i<num_nodes; ++i) {
+      for(int j=0; j<NSURF; ++j) {
         all_up_equiv[i*NSURF+j] = nodes[i].up_equiv[j];
         all_dn_equiv[i*NSURF+j] = nodes[i].dn_equiv[j];
       }
     }
-    size_t fftsize = 2 * 8 * n3;
-    for(int l=0; l<MAXLEVEL; l++) {
-      AlignedVec fft_in(M2Ldata[l].fft_offset.size()*fftsize, 0.);
-      AlignedVec fft_out(M2Ldata[l].ifft_offset.size()*fftsize, 0.);
+    // FFT-accelerate M2L
+    for(int l=0; l<MAXLEVEL; ++l) {
+      // load M2L matrix for current level
+      for(int i=0; i<num_coords; ++i) {
+        ifile.read(reinterpret_cast<char*>(matrix_M2L[i].data()), msize);
+      }
+      AlignedVec fft_in(M2Ldata[l].fft_offset.size()*fft_size, 0.);
+      AlignedVec fft_out(M2Ldata[l].ifft_offset.size()*fft_size, 0.);
       fft_up_equiv(M2Ldata[l].fft_offset, all_up_equiv, fft_in);
-      hadamard_product(M2Ldata[l].interaction_count_offset, M2Ldata[l].interaction_offset_f, fft_in, fft_out, l);
+      hadamard_product(M2Ldata[l].interaction_count_offset, 
+                       M2Ldata[l].interaction_offset_f, 
+                       fft_in, fft_out, matrix_M2L);
       ifft_dn_check(M2Ldata[l].ifft_offset, fft_out, all_dn_equiv);
     }
+    // update all downward check potentials
     #pragma omp parallel for collapse(2)
-    for(size_t i=0; i<numNodes; i++) {
-      for(int j=0; j<NSURF; j++) {
-        nodes[i].up_equiv[j] = all_up_equiv[i*NSURF+j];
+    for(int i=0; i<num_nodes; ++i) {
+      for(int j=0; j<NSURF; ++j) {
+        // nodes[i].up_equiv[j] = all_up_equiv[i*NSURF+j];
         nodes[i].dn_equiv[j] = all_dn_equiv[i*NSURF+j];
       }
     }
+    ifile.close();   // close ifstream
   }
 }//end namespace
