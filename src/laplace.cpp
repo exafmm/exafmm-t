@@ -127,10 +127,6 @@ namespace exafmm_t {
     }
   }
   
-  void L2L(Nodes &nodes, RealVec &dnward_equiv, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx) {
-    L2LGPU(nodes, dnward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx);
-  }
-
   /*void L2P(Nodes &nodes, RealVec &dnward_equiv, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_coord) {
     real_t c[3] = {0.0};
     std::vector<real_t> dnwd_equiv_surf((MAXLEVEL+1)*NSURF*3);
@@ -162,34 +158,5 @@ namespace exafmm_t {
       }
     }
     L2PGPU(equivCoord, dnward_equiv, bodies_coord, nodes_trg, leafs_idx, nodes_pt_src_idx, max);
-  }
-  
-  void FFT_Check2Equiv(Nodes& nodes, std::vector<int> &M2Ltargets_idx, std::vector<real_t> dnCheck, RealVec &dnward_equiv) {
-    // define constants
-    int n1 = MULTIPOLE_ORDER * 2;
-    int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
-    // calculate mapping
-    std::vector<size_t> map2(NSURF);
-    real_t c[3]= {0, 0, 0};
-    for(int d=0; d<3; d++) c[d] += 0.5*(MULTIPOLE_ORDER-2);
-    RealVec surf(NSURF*3);
-    surface(MULTIPOLE_ORDER, c, (real_t)(MULTIPOLE_ORDER-1), 0,0,surf);
-    for(size_t i=0; i<map2.size(); i++) {
-      // mapping: conv grid -> downward check surf
-      map2[i] = ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3]))
-              + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+1])) * n1
-              + ((size_t)(MULTIPOLE_ORDER*2-0.5-surf[i*3+2])) * n1 * n1;
-    }
-    
-    #pragma omp parallel for
-    for(int i=0; i<M2Ltargets_idx.size(); ++i) {
-      Node* target = &nodes[M2Ltargets_idx[i]];
-      real_t scale = powf(2, target->depth);
-      for(int j=0; j<NSURF; ++j) {
-        int conv_id = map2[j];
-        dnward_equiv[target->idx*NSURF+j] += dnCheck[i*n3+conv_id] * scale;
-      }
-    }
   }
 }//end namespace

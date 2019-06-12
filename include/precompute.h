@@ -89,6 +89,7 @@ namespace exafmm_t {
     // evaluate DFTs of potentials at convolution grids
     int numRelCoord = rel_coord[M2L_Helper_Type].size();
     mat_M2L_Helper.resize(numRelCoord*2*n3_);
+    std::vector<real_t> mat_M2L_Helper_t(numRelCoord*2*n3_, 0);
     #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
       real_t coord[3];
@@ -103,6 +104,12 @@ namespace exafmm_t {
       // scaling
       for(int k=0; k<2*n3_; ++k) {
         mat_M2L_Helper[i*2*n3_ + k] /= n3;
+      }
+    }
+
+    for(int k=0; k<2*n3_; ++k) {
+      for(int i=0; i<numRelCoord; i++) {
+        mat_M2L_Helper_t[k*numRelCoord + i] = mat_M2L_Helper[i*2*n3_ + k];
       }
     }
     fft_destroy_plan(plan);
