@@ -667,12 +667,29 @@ namespace exafmm_t {
       return vec(_mm512_div_ps(one.data,_mm512_sqrt_ps(v.data)));
 #endif
     }
+#ifdef __INTEL_COMPILER
     friend vec sin(const vec & v) {
       return vec(_mm512_sin_ps(v.data));
     }
     friend vec cos(const vec & v) {
       return vec(_mm512_cos_ps(v.data));
     }
+#else
+    friend vec sin(const vec & v) {
+      vec temp = _mm512_setr_ps(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]),
+                                std::sin(v[4]), std::sin(v[5]), std::sin(v[6]), std::sin(v[7]),
+                                std::sin(v[8]), std::sin(v[9]), std::sin(v[10]), std::sin(v[11]),
+                                std::sin(v[12]), std::sin(v[13]), std::sin(v[14]), std::sin(v[15]));
+      return temp;
+    }
+    friend vec cos(const vec & v) {
+      vec temp = _mm512_setr_ps(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]),
+                                std::cos(v[4]), std::cos(v[5]), std::cos(v[6]), std::cos(v[7]),
+                                std::cos(v[8]), std::cos(v[9]), std::cos(v[10]), std::cos(v[11]),
+                                std::cos(v[12]), std::cos(v[13]), std::cos(v[14]), std::cos(v[15]));
+      return temp;
+    }
+#endif
   };
 
   template<>
@@ -787,12 +804,25 @@ namespace exafmm_t {
       return vec(_mm512_div_pd(one.data,_mm512_sqrt_pd(v.data)));
 #endif
     }
+#ifdef __INTEL_COMPILER
     friend vec sin(const vec & v) {
       return vec(_mm512_sin_pd(v.data));
     }
     friend vec cos(const vec & v) {
       return vec(_mm512_cos_pd(v.data));
     }
+#else
+    friend vec sin(const vec & v) {
+      vec temp = _mm512_setr_pd(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]),
+                                std::sin(v[4]), std::sin(v[5]), std::sin(v[6]), std::sin(v[7]));
+      return temp;
+    }
+    friend vec cos(const vec & v) {
+      vec temp = _mm512_setr_pd(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]),
+                                std::cos(v[4]), std::cos(v[5]), std::cos(v[6]), std::cos(v[7]));
+      return temp;
+    }
+#endif
   };
 #endif
 

@@ -2,71 +2,6 @@
 #define intrinsics_h
 
 namespace exafmm_t {
-#if !defined(__SSE3__) && !defined(__AVX__) && !defined(__AVX512F__)
-  inline void matmult_8x8x2(real_t*& M_, real_t*& IN0, real_t*& IN1, real_t*& OUT0, real_t*& OUT1){
-    // Generic code.
-    real_t out_reg000, out_reg001, out_reg010, out_reg011;
-    real_t out_reg100, out_reg101, out_reg110, out_reg111;
-    real_t  in_reg000,  in_reg001,  in_reg010,  in_reg011;
-    real_t  in_reg100,  in_reg101,  in_reg110,  in_reg111;
-    real_t   m_reg000,   m_reg001,   m_reg010,   m_reg011;
-    real_t   m_reg100,   m_reg101,   m_reg110,   m_reg111;
-    //#pragma unroll
-    for(int i1=0;i1<8;i1+=2){
-      real_t* IN0_=IN0;
-      real_t* IN1_=IN1;
-
-      out_reg000=OUT0[ 0]; out_reg001=OUT0[ 1];
-      out_reg010=OUT0[ 2]; out_reg011=OUT0[ 3];
-      out_reg100=OUT1[ 0]; out_reg101=OUT1[ 1];
-      out_reg110=OUT1[ 2]; out_reg111=OUT1[ 3];
-      //#pragma unroll
-      for(int i2=0;i2<8;i2+=2){
-        m_reg000=M_[ 0]; m_reg001=M_[ 1];
-        m_reg010=M_[ 2]; m_reg011=M_[ 3];
-        m_reg100=M_[16]; m_reg101=M_[17];
-        m_reg110=M_[18]; m_reg111=M_[19];
-
-        in_reg000=IN0_[0]; in_reg001=IN0_[1];
-        in_reg010=IN0_[2]; in_reg011=IN0_[3];
-        in_reg100=IN1_[0]; in_reg101=IN1_[1];
-        in_reg110=IN1_[2]; in_reg111=IN1_[3];
-
-        out_reg000 += m_reg000*in_reg000 - m_reg001*in_reg001;
-        out_reg001 += m_reg000*in_reg001 + m_reg001*in_reg000;
-        out_reg010 += m_reg010*in_reg000 - m_reg011*in_reg001;
-        out_reg011 += m_reg010*in_reg001 + m_reg011*in_reg000;
-
-        out_reg000 += m_reg100*in_reg010 - m_reg101*in_reg011;
-        out_reg001 += m_reg100*in_reg011 + m_reg101*in_reg010;
-        out_reg010 += m_reg110*in_reg010 - m_reg111*in_reg011;
-        out_reg011 += m_reg110*in_reg011 + m_reg111*in_reg010;
-
-        out_reg100 += m_reg000*in_reg100 - m_reg001*in_reg101;
-        out_reg101 += m_reg000*in_reg101 + m_reg001*in_reg100;
-        out_reg110 += m_reg010*in_reg100 - m_reg011*in_reg101;
-        out_reg111 += m_reg010*in_reg101 + m_reg011*in_reg100;
-
-        out_reg100 += m_reg100*in_reg110 - m_reg101*in_reg111;
-        out_reg101 += m_reg100*in_reg111 + m_reg101*in_reg110;
-        out_reg110 += m_reg110*in_reg110 - m_reg111*in_reg111;
-        out_reg111 += m_reg110*in_reg111 + m_reg111*in_reg110;
-
-        M_+=32; // Jump to (column+2).
-        IN0_+=4;
-        IN1_+=4;
-      }
-      OUT0[ 0]=out_reg000; OUT0[ 1]=out_reg001;
-      OUT0[ 2]=out_reg010; OUT0[ 3]=out_reg011;
-      OUT1[ 0]=out_reg100; OUT1[ 1]=out_reg101;
-      OUT1[ 2]=out_reg110; OUT1[ 3]=out_reg111;
-      M_+=4-64*2; // Jump back to first column (row+2).
-      OUT0+=4;
-      OUT1+=4;
-    }
-  }
-#endif
-
 #ifdef __AVX512F__
   inline void matmult_8x8x2(double*& M_, double*& IN0, double*& IN1, double*& OUT0, double*& OUT1){
     double* in0_ = IN0;
@@ -142,9 +77,7 @@ namespace exafmm_t {
     _mm512_store_pd(OUT1, out10);
     _mm512_store_pd(OUT1+8, out11);
   }
-#endif
-
-#ifdef __AVX__
+#elif __AVX__
   inline void matmult_8x8x2(double*& M_, double*& IN0, double*& IN1, double*& OUT0, double*& OUT1){
     __m256d out00,out01,out10,out11;
     __m256d out20,out21,out30,out31;
@@ -240,9 +173,7 @@ namespace exafmm_t {
     _mm256_store_pd(OUT0+12,out30);
     _mm256_store_pd(OUT1+12,out31);
   }
-#endif
-
-#ifdef __SSE3__
+#elif __SSE3__
   inline void matmult_8x8x2(float*& M_, float*& IN0, float*& IN1, float*& OUT0, float*& OUT1){
     __m128 out00,out01,out10,out11;
     __m128 out20,out21,out30,out31;
@@ -336,6 +267,69 @@ namespace exafmm_t {
     _mm_store_ps(OUT1+8,out21);
     _mm_store_ps(OUT0+12,out30);
     _mm_store_ps(OUT1+12,out31);
+  }
+#else
+  inline void matmult_8x8x2(real_t*& M_, real_t*& IN0, real_t*& IN1, real_t*& OUT0, real_t*& OUT1){
+    // Generic code.
+    real_t out_reg000, out_reg001, out_reg010, out_reg011;
+    real_t out_reg100, out_reg101, out_reg110, out_reg111;
+    real_t  in_reg000,  in_reg001,  in_reg010,  in_reg011;
+    real_t  in_reg100,  in_reg101,  in_reg110,  in_reg111;
+    real_t   m_reg000,   m_reg001,   m_reg010,   m_reg011;
+    real_t   m_reg100,   m_reg101,   m_reg110,   m_reg111;
+    //#pragma unroll
+    for(int i1=0;i1<8;i1+=2){
+      real_t* IN0_=IN0;
+      real_t* IN1_=IN1;
+
+      out_reg000=OUT0[ 0]; out_reg001=OUT0[ 1];
+      out_reg010=OUT0[ 2]; out_reg011=OUT0[ 3];
+      out_reg100=OUT1[ 0]; out_reg101=OUT1[ 1];
+      out_reg110=OUT1[ 2]; out_reg111=OUT1[ 3];
+      //#pragma unroll
+      for(int i2=0;i2<8;i2+=2){
+        m_reg000=M_[ 0]; m_reg001=M_[ 1];
+        m_reg010=M_[ 2]; m_reg011=M_[ 3];
+        m_reg100=M_[16]; m_reg101=M_[17];
+        m_reg110=M_[18]; m_reg111=M_[19];
+
+        in_reg000=IN0_[0]; in_reg001=IN0_[1];
+        in_reg010=IN0_[2]; in_reg011=IN0_[3];
+        in_reg100=IN1_[0]; in_reg101=IN1_[1];
+        in_reg110=IN1_[2]; in_reg111=IN1_[3];
+
+        out_reg000 += m_reg000*in_reg000 - m_reg001*in_reg001;
+        out_reg001 += m_reg000*in_reg001 + m_reg001*in_reg000;
+        out_reg010 += m_reg010*in_reg000 - m_reg011*in_reg001;
+        out_reg011 += m_reg010*in_reg001 + m_reg011*in_reg000;
+
+        out_reg000 += m_reg100*in_reg010 - m_reg101*in_reg011;
+        out_reg001 += m_reg100*in_reg011 + m_reg101*in_reg010;
+        out_reg010 += m_reg110*in_reg010 - m_reg111*in_reg011;
+        out_reg011 += m_reg110*in_reg011 + m_reg111*in_reg010;
+
+        out_reg100 += m_reg000*in_reg100 - m_reg001*in_reg101;
+        out_reg101 += m_reg000*in_reg101 + m_reg001*in_reg100;
+        out_reg110 += m_reg010*in_reg100 - m_reg011*in_reg101;
+        out_reg111 += m_reg010*in_reg101 + m_reg011*in_reg100;
+
+        out_reg100 += m_reg100*in_reg110 - m_reg101*in_reg111;
+        out_reg101 += m_reg100*in_reg111 + m_reg101*in_reg110;
+        out_reg110 += m_reg110*in_reg110 - m_reg111*in_reg111;
+        out_reg111 += m_reg110*in_reg111 + m_reg111*in_reg110;
+
+        M_+=32; // Jump to (column+2).
+        IN0_+=4;
+        IN1_+=4;
+      }
+      OUT0[ 0]=out_reg000; OUT0[ 1]=out_reg001;
+      OUT0[ 2]=out_reg010; OUT0[ 3]=out_reg011;
+      OUT1[ 0]=out_reg100; OUT1[ 1]=out_reg101;
+      OUT1[ 2]=out_reg110; OUT1[ 3]=out_reg111;
+      M_+=4-64*2; // Jump back to first column (row+2).
+      OUT0+=4;
+      OUT1+=4;
+    }
   }
 #endif
 }
