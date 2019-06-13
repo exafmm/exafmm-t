@@ -77,8 +77,6 @@ int main(int argc, char **argv) {
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
   Profile::Toc();
   fmmStepsGPU(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, M2Lsources_idx, M2Ltargets_idx, dnward_equiv, nodes_trg, nodes_depth, nodes_idx);
-
-  downwardPass(nodes, leafs_idx, M2Lsources_idx, M2Ltargets_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, dnward_equiv, nodes_trg,  nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, nodes_depth, nodes_idx);
   Profile::Toc();
   RealVec error = verify(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, nodes_trg);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs_idx.size() << std::endl;

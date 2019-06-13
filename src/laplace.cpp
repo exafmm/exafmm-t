@@ -126,37 +126,4 @@ namespace exafmm_t {
       std::copy(trg_value.begin(), trg_value.end(), &k_out[i*trg_cnt]);
     }
   }
-  
-  /*void L2P(Nodes &nodes, RealVec &dnward_equiv, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_coord) {
-    real_t c[3] = {0.0};
-    std::vector<real_t> dnwd_equiv_surf((MAXLEVEL+1)*NSURF*3);
-    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
-      surface(MULTIPOLE_ORDER,c,2.95,depth,depth,dnwd_equiv_surf);
-    }
-    L2PGPU(dnwd_equiv_surf, dnward_equiv, bodies_coord, nodes_trg, leafs_idx, nodes_pt_src_idx);
-  }*/
-
-  void L2P(Nodes &nodes, RealVec &dnward_equiv, std::vector<int> &leafs_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_pt_src_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_coord) {
-    real_t c[3] = {0.0};
-    std::vector<real_t> dnwd_equiv_surf((MAXLEVEL+1)*NSURF*3);
-    for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
-      surface(MULTIPOLE_ORDER,c,2.95,depth,depth,dnwd_equiv_surf);
-    }
-    RealVec equivCoord(leafs_idx.size()*NSURF*3);
-    int max = 0;
-    for(int i=0;i<leafs_idx.size(); i++) {
-      Node* leaf = &nodes[leafs_idx[i]];
-      int leaf_idx = leafs_idx[i];
-      int node_start = nodes_pt_src_idx[leaf_idx];
-      int node_end = nodes_pt_src_idx[leaf_idx+1];
-      max = (node_end-node_start)>max?(node_end-node_start):max;
-      for(int k=0; k<NSURF; k++) {
-        equivCoord[i*NSURF*3 + 3*k+0] = dnwd_equiv_surf[leaf->depth*NSURF*3+3*k+0] + nodes_coord[leaf->idx*3];
-        equivCoord[i*NSURF*3 + 3*k+1] = dnwd_equiv_surf[leaf->depth*NSURF*3+3*k+1] + nodes_coord[leaf->idx*3+1];
-        equivCoord[i*NSURF*3 + 3*k+2] = dnwd_equiv_surf[leaf->depth*NSURF*3+3*k+2] + nodes_coord[leaf->idx*3+2];
-        dnward_equiv[leaf_idx*NSURF+k] *= pow(0.5, leaf->depth);
-      }
-    }
-    L2PGPU(equivCoord, dnward_equiv, bodies_coord, nodes_trg, leafs_idx, nodes_pt_src_idx, max);
-  }
 }//end namespace
