@@ -778,17 +778,14 @@ namespace exafmm_t {
     cudaMalloc(&d_upwd_check_surf, sizeof(real_t)*upwd_check_surf.size());
     cudaMalloc(&d_dnward_equiv, sizeof(real_t)*dnward_equiv.size());
     
-    cudaMemcpy(d_nodes_trg, &nodes_trg[0], sizeof(real_t)*nodes_trg.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_dnwd_check_surf, &dnwd_check_surf[0], sizeof(int)*dnwd_check_surf.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_idx, &nodes_idx[0], sizeof(int)*nodes_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_depth, &nodes_depth[0], sizeof(int)*nodes_depth.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_dnward_equiv, &dnward_equiv[0], sizeof(real_t)*dnward_equiv.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_leafs_idx, &leafs_idx[0], sizeof(int)*leafs_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_M2M_U, &M2M_U[0], sizeof(real_t)*M2M_U.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_M2M_V, &M2M_V[0], sizeof(real_t)*M2M_V.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_pt_src_idx, &nodes_pt_src_idx[0], sizeof(int)*nodes_pt_src_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_bodies_coord, &bodies_coord[0], sizeof(real_t)*bodies_coord.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_upward_equiv, &upward_equiv[0], sizeof(real_t)*upward_equiv.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_coord, &nodes_coord[0], sizeof(real_t)*nodes_coord.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_pt_src, &nodes_pt_src[0], sizeof(real_t)*nodes_pt_src.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_upwd_check_surf, &upwd_check_surf[0], sizeof(real_t)*upwd_check_surf.size(), cudaMemcpyHostToDevice);

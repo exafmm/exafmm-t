@@ -1,8 +1,8 @@
 .SUFFIXES: .cpp .cu
 CXX = mpiicpc
-CXXFLAGS = -lfftw3 -lfftw3f -Wfatal-errors -g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -debug all -traceback -I./include
+CXXFLAGS = -lfftw3 -lfftw3f -Wfatal-errors -g -O3 -fabi-version=6 -std=c++11 -fopenmp -debug all -traceback -I./include
 NVCC = nvcc
-NVCCFLAGS = -use_fast_math -dc -arch=sm_60 -Xcompiler "-g -O3 -mavx -fabi-version=6 -std=c++11 -fopenmp -I./include"
+NVCCFLAGS = -use_fast_math -dc -arch=sm_60 -Xcompiler "-g -O3 -fabi-version=6 -std=c++11 -fopenmp -I./include"
 LDFLAGS = -lcufft -lcublas -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -lcudart -lcudadevrt
 OBJ = main.o src/geometry.o src/laplace.o src/laplace_cuda.o src/profile.o link.o
 LIB_PATHS = -L/mnt/nfs/packages/x86_64/cuda/cuda-10.1/lib64
