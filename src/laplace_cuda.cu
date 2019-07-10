@@ -747,7 +747,7 @@ namespace exafmm_t {
     }
   }
   
-  void fmmStepsGPU(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, RealVec &upward_equiv, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx, std::vector<real_t> &nodes_coord, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, RealVec &dnward_equiv, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_depth, std::vector<int> &nodes_idx) {
+  void fmmStepsGPU(Nodes& nodes, std::vector<int> &leafs_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src, std::vector<int> &nodes_pt_src_idx, int ncrit, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx, std::vector<real_t> &nodes_coord, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<real_t> &nodes_trg, std::vector<int> &nodes_depth, std::vector<int> &nodes_idx) {
     Profile::Tic("totalgpu", true);
     real_t c[3] = {0.0};
     std::vector<real_t> upwd_check_surf((MAXLEVEL+1)*NSURF*3);
@@ -769,14 +769,14 @@ namespace exafmm_t {
     cudaMalloc(&d_nodes_depth, sizeof(int)*nodes_depth.size());
     cudaMalloc(&d_nodes_pt_src_idx, sizeof(int)*nodes_pt_src_idx.size());
     cudaMalloc(&d_bodies_coord, sizeof(real_t)*bodies_coord.size());
-    cudaMalloc(&d_upward_equiv, sizeof(real_t)*upward_equiv.size());
+    cudaMalloc(&d_upward_equiv, sizeof(real_t)*nodes.size()*NSURF);
     cudaMalloc(&d_M2M_V, sizeof(real_t)*M2M_V.size());
     cudaMalloc(&d_M2M_U, sizeof(real_t)*M2M_U.size());
     cudaMalloc(&d_leafs_idx, sizeof(int)*leafs_idx.size());
     cudaMalloc(&d_nodes_coord, sizeof(real_t)*nodes_coord.size());
     cudaMalloc(&d_nodes_pt_src, sizeof(real_t)*nodes_pt_src.size());
     cudaMalloc(&d_upwd_check_surf, sizeof(real_t)*upwd_check_surf.size());
-    cudaMalloc(&d_dnward_equiv, sizeof(real_t)*dnward_equiv.size());
+    cudaMalloc(&d_dnward_equiv, sizeof(real_t)*nodes.size()*NSURF);
     
     cudaMemcpy(d_dnwd_check_surf, &dnwd_check_surf[0], sizeof(int)*dnwd_check_surf.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_idx, &nodes_idx[0], sizeof(int)*nodes_idx.size(), cudaMemcpyHostToDevice);
@@ -811,18 +811,18 @@ namespace exafmm_t {
     Profile::Toc();
     
     Profile::Tic("M2L", false, 5);
-    M2LGPU(nodes, M2Lsources_idx, M2Ltargets_idx, d_upward_equiv, upward_equiv.size(), d_dnward_equiv, dnward_equiv.size(), d_nodes_depth);
+    M2LGPU(nodes, M2Lsources_idx, M2Ltargets_idx, d_upward_equiv, nodes.size()*NSURF, d_dnward_equiv, nodes.size()*NSURF, d_nodes_depth);
     Profile::Toc();
 
     Profile::Tic("L2L", false, 5);
-    L2LGPU(nodes, d_dnward_equiv, dnward_equiv.size(), nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, handle);
+    L2LGPU(nodes, d_dnward_equiv, nodes.size()*NSURF, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, handle);
     Profile::Toc();
     
     Profile::Tic("L2P", false, 5);
     L2PGPU(nodes, d_dnward_equiv, leafs_idx, d_leafs_idx, leafs_idx.size(), d_nodes_trg, d_nodes_pt_src_idx, d_bodies_coord, d_nodes_coord, d_nodes_depth, d_upwd_check_surf, handle);
     Profile::Toc();
     cudaMemcpy(&nodes_trg[0], d_nodes_trg, sizeof(real_t)*nodes_trg.size(), cudaMemcpyDeviceToHost);
-
+    
     cudaFree(d_leafs_idx);
     cudaFree(d_M2M_U);
     cudaFree(d_M2M_V);

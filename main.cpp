@@ -42,8 +42,6 @@ int main(int argc, char **argv) {
   // fill in pt_coord, pt_src, correct coord for compatibility
   // remove this later
   std::vector<real_t> bodies_coord;
-  RealVec upward_equiv(nodes.size()*NSURF);  
-  RealVec dnward_equiv(nodes.size()*NSURF);
   std::vector<real_t> nodes_pt_src;
   std::vector<int> nodes_pt_src_idx;
   int nodes_pt_src_idx_cnt = 0;
@@ -76,7 +74,7 @@ int main(int argc, char **argv) {
   Profile::Tic("buildList", true);
   buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
   Profile::Toc();
-  fmmStepsGPU(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, upward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, M2Lsources_idx, M2Ltargets_idx, dnward_equiv, nodes_trg, nodes_depth, nodes_idx);
+  fmmStepsGPU(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, M2Lsources_idx, M2Ltargets_idx, nodes_trg, nodes_depth, nodes_idx);
   Profile::Toc();
   RealVec error = verify(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, nodes_trg);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs_idx.size() << std::endl;

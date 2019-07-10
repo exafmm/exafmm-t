@@ -7,4 +7,5 @@
 module load intel
 module load cuda
 
+make all TYPE=FLOAT
 make p4
