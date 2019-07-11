@@ -354,7 +354,6 @@ namespace exafmm_t {
     cudaFree(d_M2M_V_p);
     cudaFree(d_buffer_p);
     cudaFree(d_M2M_U_p);
-    cudaFree(d_upwd_check_surf);
     free(M2M_V_p);
     free(upward_equiv_p);
     free(buffer_p);
@@ -777,7 +776,7 @@ namespace exafmm_t {
     cudaMalloc(&d_nodes_pt_src, sizeof(real_t)*nodes_pt_src.size());
     cudaMalloc(&d_upwd_check_surf, sizeof(real_t)*upwd_check_surf.size());
     cudaMalloc(&d_dnward_equiv, sizeof(real_t)*nodes.size()*NSURF);
-    
+
     cudaMemcpy(d_dnwd_check_surf, &dnwd_check_surf[0], sizeof(int)*dnwd_check_surf.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_idx, &nodes_idx[0], sizeof(int)*nodes_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_nodes_depth, &nodes_depth[0], sizeof(int)*nodes_depth.size(), cudaMemcpyHostToDevice);
@@ -822,7 +821,7 @@ namespace exafmm_t {
     L2PGPU(nodes, d_dnward_equiv, leafs_idx, d_leafs_idx, leafs_idx.size(), d_nodes_trg, d_nodes_pt_src_idx, d_bodies_coord, d_nodes_coord, d_nodes_depth, d_upwd_check_surf, handle);
     Profile::Toc();
     cudaMemcpy(&nodes_trg[0], d_nodes_trg, sizeof(real_t)*nodes_trg.size(), cudaMemcpyDeviceToHost);
-    
+   
     cudaFree(d_leafs_idx);
     cudaFree(d_M2M_U);
     cudaFree(d_M2M_V);
