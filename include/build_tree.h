@@ -200,7 +200,13 @@ namespace exafmm_t {
     return nodes;
   }
 
-  // Given root, generate a level-order Morton keys
+  /**
+   * @brief Generate the set of Morton keys of nodes at each level using a breadth-first traversal
+   * 
+   * @param root Root node pointer
+   * @param key2id A map from Morton key to node index
+   * @return Vector of the set of Morton keys of nodes at each level (before balancing)
+   */
   Keys breadth_first_traversal(Node* const root, std::unordered_map<uint64_t, size_t>& key2id) {
     assert(root);
     Keys keys;
@@ -229,6 +235,14 @@ namespace exafmm_t {
     return keys;
   }
 
+  /**
+   * @brief Generate the set of Morton keys of nodes at each level after 2:1 balancing
+   * 
+   * @param keys Vector of the set of Morton keys of nodes at each level (before balancing)
+   * @param key2id A map from Morton key to node index
+   * @param nodes Vector of nodes that represents the tree
+   * @return Vector of the set of Morton keys of nodes at each level after 2:1 balancing
+   */
   Keys balance_tree(const Keys& keys, const std::unordered_map<uint64_t, size_t>& key2id, const Nodes& nodes) {
     int nlevels = keys.size();
     int maxlevel = nlevels - 1;
@@ -283,6 +297,12 @@ namespace exafmm_t {
     return bkeys;
   }
 
+  /**
+   * @brief Find leaf keys at each level
+   * 
+   * @param keys Vector of the set of Morton keys of nodes at each level after 2:1 balancing
+   * @return Vector of leaf keys at each level
+   */
   Keys find_leaf_keys(const Keys& keys) {
     std::set<uint64_t>::iterator it;
     Keys leafkeys(keys.size());
@@ -300,6 +320,18 @@ namespace exafmm_t {
     return leafkeys;
   }
 
+  /**
+   * @brief 
+   * 
+   * @param nodes Vector of nodes that represents the tree (after 2:1 balancing)
+   * @param sources Vector of sources
+   * @param targets Vector of targets
+   * @param x0 Coordinates of the center of the root
+   * @param r0 Radius of root node
+   * @param leafs Vector of pointers of leaf nodes
+   * @param nonleafs Vector of pointers of non-leaf nodes
+   * @param args Args that contains tree information
+   */
   void balance_tree(Nodes& nodes, Bodies& sources, Bodies& targets, vec3 x0, real_t r0, NodePtrs& leafs, NodePtrs& nonleafs, const Args& args) {
     std::unordered_map<uint64_t, size_t> key2id;
     Keys keys = breadth_first_traversal(&nodes[0], key2id);
