@@ -22,6 +22,8 @@ Welcome to exafmm-t's documentation!
    :maxdepth: 2
 
    api/build_tree
+   api/build_list
+   api/hilbert
 
 Indices and tables
 ==================

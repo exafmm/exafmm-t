@@ -6,12 +6,22 @@
 #define EXAFMM_HILBERT 0 //! Set this to 1 for Hilbert
 
 namespace exafmm_t {
-  //! Levelwise offset of Hilbert key
+  /**
+   * @brief Calculate levelwise offset of Hilbert key.
+   * 
+   * @param level Level.
+   * @return uint64_t Level offset.
+   */
   inline uint64_t levelOffset(int level) {
     return (((uint64_t)1 << 3 * level) - 1) / 7;
   }
 
-  //! Get level from Hilbert key
+  /**
+   * @brief Get level from a Hilbert key.
+   * 
+   * @param i Hilbert key.
+   * @return int Level.
+   */
   int getLevel(uint64_t i) {
     int level = -1;
     uint64_t offset = 0;
@@ -22,26 +32,50 @@ namespace exafmm_t {
     return level;
   }
 
-  //! Get parent's Hilbert key
+  /**
+   * @brief Get parent's Hilbert key with level offset.
+   * 
+   * @param i Hilbert key of a node with level offset.
+   * @return uint64_t Parent's Hilbert key.
+   */
   uint64_t getParent(uint64_t i) {
     int level = getLevel(i);
     return (i - levelOffset(level)) / 8 + levelOffset(level-1);
   }
 
-  //! Get first child's Hilbert key
+  /**
+   * @brief Get first child's Hilbert key with level offset.
+   * 
+   * @param i Hilbert key of a node with level offset.
+   * @return uint64_t First child's Hilbert key.
+   */
   uint64_t getChild(uint64_t i) {
     int level = getLevel(i);
     return (i - levelOffset(level)) * 8 + levelOffset(level+1);
   }
-
-  //! Determine which octant the key belongs to
+  
+  /**
+   * @brief Determine which octant the key belongs to.
+   * 
+   * @param key Hilbert key.
+   * @param offset Whether the key contains level offset, default to true.
+   * @return int Octant.
+   */
+  //! 
   int getOctant(uint64_t key, bool offset=true) {
     int level = getLevel(key);
     if (offset) key -= levelOffset(level);
     return key & 7;
   }
 
-  //! Get Hilbert key from 3-D index
+  /**
+   * @brief Get Hilbert key from 3D index of a node.
+   * 
+   * @param iX 3D index of a node, an integer triplet.
+   * @param level Level of the node.
+   * @param offset Whether to add level offset to the key, default to true.
+   * @return uint64_t Hilbert key.
+   */
   uint64_t getKey(ivec3 iX, int level, bool offset=true) {
 #if EXAFMM_HILBERT
     int M = 1 << (level - 1);
@@ -72,7 +106,12 @@ namespace exafmm_t {
     return i;
   }
 
-  //! Get 3-D index from Hilbert key
+  /**
+   * @brief Get 3D index from a Hilbert key with level offset.
+   * 
+   * @param i Hilbert key with level offset.
+   * @return ivec3 3D index, an integer triplet.
+   */
   ivec3 get3DIndex(uint64_t i) {
     int level = getLevel(i);
     i -= levelOffset(level);
@@ -102,7 +141,13 @@ namespace exafmm_t {
     return iX;
   }
 
-  //! Get 3-D index from Hilbert key without level offset
+  /**
+   * @brief Get 3D index from a Hilbert key without level offset.
+   * 
+   * @param i Hilbert key without level offset.
+   * @param level Level.
+   * @return ivec3 3D index, an integer triplet.
+   */
   ivec3 get3DIndex(uint64_t i, int level) {
     ivec3 iX = 0;
     for (int l=0; l<level; l++) {
@@ -130,7 +175,13 @@ namespace exafmm_t {
     return iX;
   }
 
-  //! Get 3-D index from coordinates
+  /**
+   * @brief Given bounding box and level, get 3D index from 3D coordinates.
+   * 
+   * @param X 3D coordinates.
+   * @param level Level.
+   * @return ivec3 3D index, an integer triplet.
+   */
   ivec3 get3DIndex(vec3 X, int level) {
     vec3 Xmin = X0 - R0;
     real_t dx = 2 * R0 / (1 << level);
@@ -141,7 +192,13 @@ namespace exafmm_t {
     return iX;
   }
 
-  //! Get coordinates from 3-D index
+  /**
+   * @brief Given bounding box and level, get 3D coordinates from 3D index.
+   * 
+   * @param iX 3D index, an integer triplet.
+   * @param level Level.
+   * @return vec3 3D coordinates.
+   */
   vec3 getCoordinates(ivec3 iX, int level) {
     vec3 Xmin = X0 - R0;
     real_t dx = 2 * R0 / (1 << level);

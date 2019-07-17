@@ -3,6 +3,13 @@
 #include "exafmm_t.h"
 
 namespace exafmm_t {
+  /**
+   * @brief Generate uniform distribution in a cube from 0 to 1.
+   * 
+   * @param numBodies Number of bodies.
+   * @param seed Seed of pseudorandom number generator.
+   * @return Bodies Vector of bodies.
+   */
   Bodies cube(int numBodies, int seed) {
     Bodies bodies(numBodies);
     srand48(seed);
@@ -14,7 +21,13 @@ namespace exafmm_t {
     return bodies;
   }
 
-  // Generate random distribution on r=1 sphere
+  /**
+   * @brief Generate uniform distribution in a sphere with a radius of 1.
+   * 
+   * @param numBodies Number of bodies.
+   * @param seed Seed of pseudorandom number generator.
+   * @return Bodies Vector of bodies.
+   */
   Bodies sphere(int numBodies, int seed) {
     Bodies bodies(numBodies);
     srand48(seed);
@@ -28,7 +41,13 @@ namespace exafmm_t {
     return bodies;
   }
 
-  // generate plummer distribution in 0 to 1 cube
+  /**
+   * @brief Generate plummer distribution in a cube from 0 to 1.
+   * 
+   * @param numBodies Number of bodies.
+   * @param seed Seed of pseudorandom number generator.
+   * @return Bodies Vector of bodies.
+   */
   Bodies plummer(int numBodies, int seed) {
     Bodies bodies(numBodies);
     srand48(seed);
@@ -60,29 +79,16 @@ namespace exafmm_t {
     }
     return bodies;
   }
-
-  Bodies nonuniform(int numBodies, int seed) {
-    srand48(seed);
-    Bodies bodies(numBodies);
-    for (int i=0; i<numBodies; i++) {
-      if (i < 0.1*numBodies) {
-        for (int d=0; d<3; d++) {
-          bodies[i].X[d] = drand48()*0.5;
-        }
-      }
-      else if (i < 0.2*numBodies) {
-        for (int d=0; d<3; d++) {
-          bodies[i].X[d] = 0.5 + drand48()*0.5;
-        }
-      } else {
-        for (int d=0; d<3; d++) {
-          bodies[i].X[d] = drand48();
-        }
-      }
-    }
-    return bodies;
-  }
-
+  
+  /**
+   * @brief Generate targets and sources with various distributions.
+   * 
+   * @param numBodies Number of bodies.
+   * @param distribution Type of distribution: 'c' for cube, 's' for sphere, 'p' for plummer.
+   * @param seed Seed of pseudorandom number generator.
+   * @param is_source Whether to generate sources or targets, default to true.
+   * @return Bodies Vector of bodies.
+   */
   Bodies init_bodies(int numBodies, const char * distribution, int seed, bool is_source=true) {
     Bodies bodies;
     switch (distribution[0]) {

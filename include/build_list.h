@@ -4,7 +4,12 @@
 #include "geometry.h"
 
 namespace exafmm_t {
-  // Build interaction lists of P2P0_Type and P2L_Type
+  /**
+   * @brief Given the pointer of a node n, loop over the colleagues of n's parent to
+   * build n's P2L_list and P2P_list.
+   * 
+   * @param n Node pointer.
+   */
   void build_list_parent_level(Node* n) {
     if (!n->parent) return;
     ivec3 rel_coord;
@@ -33,7 +38,12 @@ namespace exafmm_t {
     }
   }
 
-  // Build interaction lists of P2P1_Type and M2L_Type
+  /**
+   * @brief Given the pointer of a node n, loop over the colleagues of n to
+   * build n's M2L_list and P2P_list.
+   * 
+   * @param n Node pointer.
+   */
   void build_list_current_level(Node* n) {
     ivec3 rel_coord;
     bool isleaf = n->is_leaf;
@@ -55,7 +65,12 @@ namespace exafmm_t {
     }
   }
   
-  // Build interaction lists of P2P2_Type and M2P_Type
+  /**
+   * @brief Given the pointer of a node n, loop over the children of n's colleagues to
+   * build n's M2P_list and P2P_list.
+   * 
+   * @param n Node pointer.
+   */
   void build_list_child_level(Node* n) {
     if (!n->is_leaf) return;
     ivec3 rel_coord;
@@ -87,7 +102,11 @@ namespace exafmm_t {
     }
   }
 
-  // Build interaction lists for all nodes 
+  /**
+   * @brief Build interaction lists of each node in a tree.
+   * 
+   * @param nodes Vector of nodes that represents an octree.
+   */
   void build_list(Nodes& nodes) {
     #pragma omp parallel for
     for(size_t i=0; i<nodes.size(); i++) {
@@ -103,7 +122,12 @@ namespace exafmm_t {
 #endif
     }
   }
-  
+
+  /**
+   * @brief Set the colleagues of a node and its descendants recursively using a preorder traversal.
+   * 
+   * @param node Node pointer.
+   */
   void set_colleagues(Node* node) {
     Node *parent, *colleague, *child;
     node->colleagues.resize(27, nullptr);
@@ -143,6 +167,11 @@ namespace exafmm_t {
     }
   }
 
+  /**
+   * @brief Set the colleagues of each node in a tree.
+   * 
+   * @param nodes Vector of nodes that represents an octree.
+   */
   void set_colleagues(Nodes& nodes) {
     set_colleagues(&nodes[0]);
   }
