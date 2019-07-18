@@ -21,6 +21,8 @@ Welcome to exafmm-t's documentation!
    :caption: API REFERENCE
    :maxdepth: 2
 
+   api/typedefs
+   api/classes
    api/build_tree
    api/build_list
    api/hilbert
