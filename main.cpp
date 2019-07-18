@@ -20,58 +20,26 @@ int main(int argc, char **argv) {
   RealVec src_coord, src_value;
 
   Profile::Tic("Total", true);
-  std::vector<int> leafs_idx;
-  std::vector<int> childs_idx;
-  std::vector<int> nodes_depth;
-  std::vector<int> nodes_idx;
   Bodies bodies = cube(args.numBodies, 0);
-  std::vector<real_t> nodes_coord;
+  std::vector<int> leafs_idx;
   Nodes nodes = buildTree(bodies, leafs_idx, args);
   MAXLEVEL = 0;
   for(size_t i=0; i<leafs_idx.size(); i++) {
     MAXLEVEL = std::max(MAXLEVEL, nodes[leafs_idx[i]].depth);
   }
-  std::vector<std::vector<int>> nodes_by_level_idx(MAXLEVEL);
-  std::vector<std::vector<int>> parent_by_level_idx(MAXLEVEL);
-  std::vector<std::vector<int>> octant_by_level_idx(MAXLEVEL);
-  for(int i=1;i<nodes.size();i++){
-    nodes_by_level_idx[nodes[i].depth-1].push_back(nodes[i].idx);
-    parent_by_level_idx[nodes[i].depth-1].push_back(nodes[i].parent->idx);
-    octant_by_level_idx[nodes[i].depth-1].push_back(nodes[i].octant);
-  }
-  // fill in pt_coord, pt_src, correct coord for compatibility
-  // remove this later
-  std::vector<real_t> bodies_coord;
-  std::vector<real_t> nodes_pt_src;
-  for(int i=0; i<nodes.size(); i++) {
-    nodes_depth.push_back(nodes[i].depth);
-    nodes_idx.push_back(nodes[i].idx);
-    for(int d=0; d<3; d++) {
-      nodes_coord.push_back(nodes[i].coord[d]);
-    }
-
-    if(nodes[i].IsLeaf()) {
-      for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
-        bodies_coord.push_back(B->X[0]);
-        bodies_coord.push_back(B->X[1]);
-        bodies_coord.push_back(B->X[2]);
-        nodes_pt_src.push_back(B->q);
-      }
-    }
-  }
-  std::vector<int> M2Lsources_idx, M2Ltargets_idx;
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();
   Profile::Toc();
   setColleagues(nodes);
-  std::vector<int> nodes_pt_src_idx;
-  std::vector<int> nodes_pt_src_idx_test;
+  std::vector<int> nodes_pt_src_idx, nodes_depth(nodes.size()), nodes_idx(nodes.size()), M2Lsources_idx, M2Ltargets_idx;
+  std::vector<real_t> nodes_coord(nodes.size()*3), bodies_coord, nodes_pt_src;
+  std::vector<std::vector<int>> nodes_by_level_idx(MAXLEVEL), parent_by_level_idx(MAXLEVEL), octant_by_level_idx(MAXLEVEL);
   Profile::Tic("buildList", true);
-  buildList(nodes, M2Lsources_idx, M2Ltargets_idx, leafs_idx, nodes_pt_src_idx, nodes_pt_src_idx_test);
+  buildList(nodes, M2Lsources_idx, M2Ltargets_idx, leafs_idx, nodes_pt_src_idx, nodes_depth, nodes_idx, nodes_coord, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, bodies_coord, nodes_pt_src);
   std::vector<real_t> nodes_trg(nodes_pt_src.size()*4, 0.);
   Profile::Toc();
-  fmmStepsGPU(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, nodes_pt_src_idx_test, args.ncrit, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, M2Lsources_idx, M2Ltargets_idx, nodes_trg, nodes_depth, nodes_idx);
+  fmmStepsGPU(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, M2Lsources_idx, M2Ltargets_idx, nodes_trg, nodes_depth, nodes_idx);
   Profile::Toc();
   RealVec error = verify(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, nodes_trg);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs_idx.size() << std::endl;

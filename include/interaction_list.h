@@ -161,7 +161,7 @@ namespace exafmm_t {
   }
 
   // Build interaction lists for all nodes 
-  void buildList(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<int> &leafs_idx, std::vector<int> &nodes_pt_src_idx, std::vector<int> &nodes_pt_src_idx_test) {
+  void buildList(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<int> &leafs_idx, std::vector<int> &nodes_pt_src_idx, std::vector<int> &nodes_depth, std::vector<int> &nodes_idx, std::vector<real_t> &nodes_coord, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src) {
     std::set<int> sources_idx;
     std::set<int> targets_idx;
     #pragma omp parallel
@@ -175,6 +175,11 @@ namespace exafmm_t {
         buildListCurrentLevel(node);
         buildListChildLevel(node);
         buildListM2L(node, sources_idx_, targets_idx_);
+        nodes_depth[i] = node->depth;
+        nodes_idx[i] = node->idx;
+        nodes_coord[i*3+0] = node->coord[0];
+        nodes_coord[i*3+1] = node->coord[1];
+        nodes_coord[i*3+2] = node->coord[2];
       }
       #pragma omp critical
       {
@@ -184,25 +189,25 @@ namespace exafmm_t {
     }
     M2Lsources_idx.assign(sources_idx.begin(), sources_idx.end());
     M2Ltargets_idx.assign(targets_idx.begin(), targets_idx.end());
+   
     int nodes_pt_src_idx_cnt = 0;
-    for(int i=0; i<nodes.size(); i++) {
+    for(int i=0;i<leafs_idx.size();i++) {
       nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
-      if(nodes[i].IsLeaf()) {
-        for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
-          nodes_pt_src_idx_cnt ++;
-        }
+      for(Body* B=nodes[leafs_idx[i]].body; B<nodes[leafs_idx[i]].body+nodes[leafs_idx[i]].numBodies; B++) {
+        bodies_coord.push_back(B->X[0]);
+        bodies_coord.push_back(B->X[1]);
+        bodies_coord.push_back(B->X[2]);
+        nodes_pt_src.push_back(B->q);
+        nodes_pt_src_idx_cnt ++;
       }
     }
     nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
-    
-    int nodes_pt_src_idx_cnt_test = 0;
-    for(int i=0;i<leafs_idx.size();i++) {
-      nodes_pt_src_idx_test.push_back(nodes_pt_src_idx_cnt_test);
-      for(Body* B=nodes[leafs_idx[i]].body; B<nodes[leafs_idx[i]].body+nodes[leafs_idx[i]].numBodies; B++) {
-        nodes_pt_src_idx_cnt_test ++;
-      }
+
+    for(int i=1;i<nodes.size();i++){
+      nodes_by_level_idx[nodes[i].depth-1].push_back(nodes[i].idx);
+      parent_by_level_idx[nodes[i].depth-1].push_back(nodes[i].parent->idx);
+      octant_by_level_idx[nodes[i].depth-1].push_back(nodes[i].octant);
     }
-    nodes_pt_src_idx_test.push_back(nodes_pt_src_idx_cnt_test);
   }
 
   void setColleagues(Node* node) {
