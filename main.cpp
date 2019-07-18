@@ -43,8 +43,6 @@ int main(int argc, char **argv) {
   // remove this later
   std::vector<real_t> bodies_coord;
   std::vector<real_t> nodes_pt_src;
-  std::vector<int> nodes_pt_src_idx;
-  int nodes_pt_src_idx_cnt = 0;
   for(int i=0; i<nodes.size(); i++) {
     nodes_depth.push_back(nodes[i].depth);
     nodes_idx.push_back(nodes[i].idx);
@@ -52,29 +50,28 @@ int main(int argc, char **argv) {
       nodes_coord.push_back(nodes[i].coord[d]);
     }
 
-    nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
     if(nodes[i].IsLeaf()) {
       for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
         bodies_coord.push_back(B->X[0]);
         bodies_coord.push_back(B->X[1]);
         bodies_coord.push_back(B->X[2]);
         nodes_pt_src.push_back(B->q);
-        nodes_pt_src_idx_cnt ++;
       }
     }
   }
-  nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
-  std::vector<real_t> nodes_trg(nodes_pt_src.size()*4, 0.);
   std::vector<int> M2Lsources_idx, M2Ltargets_idx;
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();
   Profile::Toc();
   setColleagues(nodes);
+  std::vector<int> nodes_pt_src_idx;
+  std::vector<int> nodes_pt_src_idx_test;
   Profile::Tic("buildList", true);
-  buildList(nodes, M2Lsources_idx, M2Ltargets_idx);
+  buildList(nodes, M2Lsources_idx, M2Ltargets_idx, leafs_idx, nodes_pt_src_idx, nodes_pt_src_idx_test);
+  std::vector<real_t> nodes_trg(nodes_pt_src.size()*4, 0.);
   Profile::Toc();
-  fmmStepsGPU(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, M2Lsources_idx, M2Ltargets_idx, nodes_trg, nodes_depth, nodes_idx);
+  fmmStepsGPU(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, nodes_pt_src_idx_test, args.ncrit, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, M2Lsources_idx, M2Ltargets_idx, nodes_trg, nodes_depth, nodes_idx);
   Profile::Toc();
   RealVec error = verify(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, nodes_trg);
   std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs_idx.size() << std::endl;

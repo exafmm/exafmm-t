@@ -34,6 +34,7 @@ namespace exafmm_t {
     if (end - begin <= args.ncrit) {
       node->numChilds = 0;
       leafs_idx.push_back(node->idx);
+      node->idx_leafs = leafs_idx.size()-1;
       if (direction) {
         for (int i=begin; i<end; i++) {
           buffer[i].X = bodies[i].X;

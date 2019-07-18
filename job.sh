@@ -5,7 +5,7 @@
 
 . /etc/profile.d/modules.sh
 module load intel
-module load cuda
+module load cuda/cuda-10.0
 
 make all TYPE=FLOAT
 make p4

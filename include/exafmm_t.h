@@ -91,6 +91,7 @@ namespace exafmm_t {
     size_t node_id;
     int depth;
     int octant;
+    int idx_leafs;
     real_t coord[3];
     Node* parent;
     std::vector<Node*> child;
