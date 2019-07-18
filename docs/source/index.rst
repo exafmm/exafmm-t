@@ -23,6 +23,7 @@ Welcome to exafmm-t's documentation!
 
    api/typedefs
    api/classes
+   api/global
    api/build_tree
    api/build_list
    api/hilbert
