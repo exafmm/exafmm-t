@@ -1,7 +1,7 @@
 #ifndef interaction_list
 #define interaction_list
 #include "exafmm_t.h"
-
+#include <sys/time.h>
 namespace exafmm_t {
   std::vector<std::vector<ivec3>> rel_coord;
   std::vector<std::vector<int>> hash_lut;     // coord_hash -> index in rel_coord
@@ -189,7 +189,6 @@ namespace exafmm_t {
     }
     M2Lsources_idx.assign(sources_idx.begin(), sources_idx.end());
     M2Ltargets_idx.assign(targets_idx.begin(), targets_idx.end());
-   
     int nodes_pt_src_idx_cnt = 0;
     for(int i=0;i<leafs_idx.size();i++) {
       nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
@@ -202,7 +201,6 @@ namespace exafmm_t {
       }
     }
     nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
-
     for(int i=1;i<nodes.size();i++){
       nodes_by_level_idx[nodes[i].depth-1].push_back(nodes[i].idx);
       parent_by_level_idx[nodes[i].depth-1].push_back(nodes[i].parent->idx);

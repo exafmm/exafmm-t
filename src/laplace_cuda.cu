@@ -408,7 +408,6 @@ namespace exafmm_t {
     std::vector<int>P2Plist_idx;
     std::vector<int>P2Plist_offset;
     int P2Plists_idx_cnt = 0;
-
     std::vector<int> targets_idx = leafs_idx;
     for(int i=0; i<targets_idx.size(); i++) {
       Node* target = &nodes[targets_idx[i]];
@@ -418,7 +417,6 @@ namespace exafmm_t {
       P2Plists_idx_cnt += sources_idx.size();
     }
     P2Plist_offset.push_back(P2Plists_idx_cnt);
-
     int BLOCKS = leafs_idx.size();
     int THREADS = ncrit;
 
@@ -526,11 +524,9 @@ namespace exafmm_t {
     cudaMemcpy(d_mat_M2L_Helper, &mat_M2L_Helper[0], sizeof(real_t)*mat_M2L_Helper.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_M2Llist_idx_offset, &M2Llist_idx_offset[0], sizeof(int)*M2Llist_idx_offset.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_M2Llist_idx, &M2Llist_idx[0], sizeof(int)*M2Llist_idx.size(), cudaMemcpyHostToDevice);
-    Profile::Tic("general",true);
     hadmard_kernel<<<BLOCKS, THREADS>>>(d_M2Ltargets_idx, d_up_equiv_fft, d_dw_equiv_fft, d_M2LRelPos_offset, d_index_in_up_equiv_fft, d_M2LRelPoss, d_mat_M2L_Helper, n3_, BLOCKS, d_M2Llist_idx_offset, d_M2Llist_idx);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
-    Profile::Toc();
     cudaFree(d_M2Llist_idx_offset);
     cudaFree(d_M2Llist_idx);
     cudaFree(d_M2LRelPos_offset);
@@ -557,18 +553,17 @@ namespace exafmm_t {
     int M2Llist_idx_cnt = 0;
     for (int i=0;i<M2Ltargets_idx.size(); i++) {
       Node* target = &nodes[M2Ltargets_idx[i]];
-      M2LRelPos_offset.push_back(M2LRelPos_offset_cnt);
       M2Llist_idx.insert(M2Llist_idx.end(), target->M2Llist_idx.begin(), target->M2Llist_idx.end());
       M2Llist_idx_offset.push_back(M2Llist_idx_cnt);
       M2Llist_idx_cnt += target->M2Llist_idx.size();
-      for(int j=0; j<target->M2Llist_idx.size(); j++) {
-        Node* source = &nodes[target->M2Llist_idx[j]];
-        M2LRelPoss.push_back(target->M2LRelPos[j]);
-        M2LRelPos_offset_cnt ++;
-      }
+      
+      M2LRelPoss.insert(M2LRelPoss.end(), target->M2LRelPos.begin(), target->M2LRelPos.end());
+      M2LRelPos_offset.push_back(M2LRelPos_offset_cnt);
+      M2LRelPos_offset_cnt += target->M2LRelPos.size();
     }
     M2Llist_idx_offset.push_back(M2Llist_idx_cnt);
     M2LRelPos_offset.push_back(M2LRelPos_offset_cnt);
+    
     int *d_M2Ltargets_idx;
     cudaMalloc(&d_M2Ltargets_idx, sizeof(int)*M2Ltargets_idx.size());
     cudaMemcpy(d_M2Ltargets_idx, &M2Ltargets_idx[0], sizeof(int)*M2Ltargets_idx.size(), cudaMemcpyHostToDevice);
