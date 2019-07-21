@@ -4,7 +4,7 @@
 #include "build_tree.h"
 #include "dataset.h"
 #include "geometry.h"
-#include "print.h"
+#include "timer.h"
 #include "test.h"
 
 namespace exafmm_t {

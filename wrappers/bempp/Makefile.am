@@ -1,6 +1,6 @@
 include ../../Makefile.am.include
 
-COMMON_SRCS = ../../src/geometry.cpp
+COMMON_SRCS = ../../src/geometry.cpp ../../src/timer.cpp
 LAPLACE_SRCS = ../../src/precompute_laplace.cpp ../../src/laplace.cpp $(COMMON_SRCS)
 HELMHOLTZ_SRCS = ../../src/precompute_helmholtz.cpp ../../src/helmholtz.cpp $(COMMON_SRCS)
 

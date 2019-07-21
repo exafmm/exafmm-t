@@ -1,17 +1,21 @@
-#ifndef print_h
-#define print_h
-#include <iomanip>
-#include <iostream>
-#include <string>
-#include <unistd.h>
-#include <vector>
+#include "timer.h"
 
 namespace exafmm_t {
-  bool VERBOSE = true;                          //!< Print to screen
-  static const int stringLength = 20;           //!< Length of formatted string
-  static const int decimal = 7;                 //!< Decimal precision
-  static const int wait = 100;                  //!< Waiting time between output of different ranks
-  static const int dividerLength = stringLength + decimal + 9;  // length of output section divider
+  timeval time;
+  std::map<std::string,timeval> timer;
+
+  void start(std::string event) {
+    gettimeofday(&time, NULL);
+    timer[event] = time;
+  }
+
+  double stop(std::string event) {
+    gettimeofday(&time, NULL);
+    double eventTime = time.tv_sec - timer[event].tv_sec +
+      (time.tv_usec - timer[event].tv_usec) * 1e-6;
+    print(event, eventTime);
+    return eventTime;
+  }
 
   void print(std::string s) {
     // if (!VERBOSE | (MPIRANK != 0)) return;
@@ -19,17 +23,6 @@ namespace exafmm_t {
     std::cout << "--- " << std::setw(stringLength) << std::left
               << std::setfill('-') << s << std::setw(decimal+1) << "-"
               << std::setfill(' ') << std::endl;
-  }
-
-  template<typename T>
-  void print(std::string s, T v, bool fixed=true) {
-    // if (!VERBOSE | (MPIRANK != 0)) return;
-    std::cout << std::setw(stringLength) << std::left << s << " : ";
-    if(fixed)
-      std::cout << std::setprecision(decimal) << std::fixed << std::scientific;
-    else
-      std::cout << std::setprecision(1) << std::scientific;
-    std::cout << v << std::endl;
   }
 
   void print_divider(std::string s) {
@@ -100,4 +93,3 @@ namespace exafmm_t {
     // }
   // }
 }
-#endif

@@ -7,7 +7,7 @@
 #include "precompute_laplace.h"
 #endif
 #include "exafmm_t.h"
-#include "print.h"
+#include "timer.h"
 
 namespace exafmm_t {
   int P;

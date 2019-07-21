@@ -1,24 +1,33 @@
 #ifndef timer_h
 #define timer_h
+#include <iomanip>
+#include <iostream>
 #include <map>
-#include "print.h"
+#include <string>
 #include <sys/time.h>
+#include <unistd.h>
 
 namespace exafmm_t {
-  timeval time;
-  std::map<std::string,timeval> timer;
+  static const int stringLength = 20;           //!< Length of formatted string
+  static const int decimal = 7;                 //!< Decimal precision
+  static const int wait = 100;                  //!< Waiting time between output of different ranks
+  static const int dividerLength = stringLength + decimal + 9;  // length of output section divider
+  extern timeval time;
+  extern std::map<std::string,timeval> timer;
 
-  void start(std::string event) {
-    gettimeofday(&time, NULL);
-    timer[event] = time;
-  }
+  void start(std::string event);
+  double stop(std::string event);
+  void print(std::string s);
+  void print_divider(std::string s);
 
-  double stop(std::string event) {
-    gettimeofday(&time, NULL);
-    double eventTime = time.tv_sec - timer[event].tv_sec +
-      (time.tv_usec - timer[event].tv_usec) * 1e-6;
-    print(event, eventTime);
-    return eventTime;
+  template<typename T>
+  void print(std::string s, T v, bool fixed=true) {
+    std::cout << std::setw(stringLength) << std::left << s << " : ";
+    if(fixed)
+      std::cout << std::setprecision(decimal) << std::fixed << std::scientific;
+    else
+      std::cout << std::setprecision(1) << std::scientific;
+    std::cout << v << std::endl;
   }
 }
 #endif
