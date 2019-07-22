@@ -1,4 +1,5 @@
 #include "laplace.h"
+#include "timer.h"
 
 namespace exafmm_t {
   M2LData M2Ldata;
@@ -533,9 +534,18 @@ namespace exafmm_t {
   void M2L(Nodes& nodes) {
     int n1 = P * 2;
     int n3_ = n1 * n1 * (n1/2 + 1);
+    size_t fftsize = 2 * 8 * n3_;
     size_t numNodes = nodes.size();
-    RealVec all_up_equiv(numNodes*NSURF);
-    RealVec all_dn_equiv(numNodes*NSURF);
+
+    // allocate memory
+    RealVec all_up_equiv, all_dn_equiv;
+    all_up_equiv.reserve(numNodes*NSURF);   // use reserve() to avoid the overhead of calling constructor
+    all_dn_equiv.reserve(numNodes*NSURF);   // use pointer instead of iterator to access elements 
+    AlignedVec fft_in, fft_out;
+    fft_in.reserve(M2Ldata.fft_offset.size()*fftsize);
+    fft_out.reserve(M2Ldata.ifft_offset.size()*fftsize);
+
+    // gather all upward equivalent charges
     #pragma omp parallel for collapse(2)
     for(size_t i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
@@ -543,18 +553,15 @@ namespace exafmm_t {
         all_dn_equiv[i*NSURF+j] = nodes[i].dn_equiv[j];
       }
     }
-    size_t fftsize = 2 * 8 * n3_;
-    AlignedVec fft_in(M2Ldata.fft_offset.size()*fftsize, 0.);
-    AlignedVec fft_out(M2Ldata.ifft_offset.size()*fftsize, 0.);
 
     fft_up_equiv(M2Ldata.fft_offset, all_up_equiv, fft_in);
     hadamard_product(M2Ldata.interaction_count_offset, M2Ldata.interaction_offset_f, fft_in, fft_out);
     ifft_dn_check(M2Ldata.ifft_offset, M2Ldata.ifft_scale, fft_out, all_dn_equiv);
 
+    // scatter all downward check potentials
     #pragma omp parallel for collapse(2)
     for(size_t i=0; i<numNodes; i++) {
       for(int j=0; j<NSURF; j++) {
-        nodes[i].up_equiv[j] = all_up_equiv[i*NSURF+j];
         nodes[i].dn_equiv[j] = all_dn_equiv[i*NSURF+j];
       }
     }
