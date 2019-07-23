@@ -1,3 +1,4 @@
+#include <cstring>
 #include "helmholtz.h"
 
 namespace exafmm_t {
@@ -502,6 +503,12 @@ namespace exafmm_t {
     std::vector<real_t*> IN_(BLOCK_SIZE*blk1_cnt*mat_cnt);
     std::vector<real_t*> OUT_(BLOCK_SIZE*blk1_cnt*mat_cnt);
 
+    // initialize fft_out with zero
+    #pragma omp parallel for
+    for(size_t i=0; i<fft_out.capacity()/fftsize; ++i) {
+      std::memset(fft_out.data()+i*fftsize, 0, fftsize*sizeof(real_t));
+    }
+    
     #pragma omp parallel for
     for(size_t interac_blk1=0; interac_blk1<blk1_cnt*mat_cnt; interac_blk1++) {
       size_t interaction_count_offset0 = (interac_blk1==0?0:interaction_count_offset[interac_blk1-1]);
@@ -634,8 +641,10 @@ namespace exafmm_t {
     int fft_size = 2 * 8 * n3;
     int num_nodes = nodes.size();
     int num_coords = REL_COORD[M2L_Type].size();   // number of relative coords for M2L_Type
-    ComplexVec all_up_equiv(num_nodes*NSURF);
-    ComplexVec all_dn_equiv(num_nodes*NSURF);
+
+    ComplexVec all_up_equiv, all_dn_equiv;
+    all_up_equiv.reserve(num_nodes*NSURF);
+    all_dn_equiv.reserve(num_nodes*NSURF);
     std::vector<AlignedVec> matrix_M2L(num_coords, AlignedVec(fft_size*NCHILD, 0));
 
     // setup ifstream of M2L precomputation matrix
@@ -662,8 +671,9 @@ namespace exafmm_t {
       for(int i=0; i<num_coords; ++i) {
         ifile.read(reinterpret_cast<char*>(matrix_M2L[i].data()), msize);
       }
-      AlignedVec fft_in(M2Ldata[l].fft_offset.size()*fft_size, 0.);
-      AlignedVec fft_out(M2Ldata[l].ifft_offset.size()*fft_size, 0.);
+      AlignedVec fft_in, fft_out;
+      fft_in.reserve(M2Ldata[l].fft_offset.size()*fft_size);
+      fft_out.reserve(M2Ldata[l].ifft_offset.size()*fft_size);
       fft_up_equiv(M2Ldata[l].fft_offset, all_up_equiv, fft_in);
       hadamard_product(M2Ldata[l].interaction_count_offset, 
                        M2Ldata[l].interaction_offset_f, 

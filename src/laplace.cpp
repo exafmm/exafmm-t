@@ -1,3 +1,4 @@
+#include <cstring>
 #include "laplace.h"
 #include "timer.h"
 
@@ -402,6 +403,12 @@ namespace exafmm_t {
     std::vector<real_t*> IN_(BLOCK_SIZE*blk1_cnt*mat_cnt);
     std::vector<real_t*> OUT_(BLOCK_SIZE*blk1_cnt*mat_cnt);
 
+    // initialize fft_out with zero
+    #pragma omp parallel for
+    for(size_t i=0; i<fft_out.capacity()/fftsize; ++i) {
+      std::memset(fft_out.data()+i*fftsize, 0, fftsize*sizeof(real_t));
+    }
+
     #pragma omp parallel for
     for(size_t interac_blk1=0; interac_blk1<blk1_cnt*mat_cnt; interac_blk1++) {
       size_t interaction_count_offset0 = (interac_blk1==0?0:interaction_count_offset[interac_blk1-1]);
@@ -470,10 +477,10 @@ namespace exafmm_t {
       // the node_idx's chunk of fft_out has a size of 2*N3_*NCHILD
       // since it's larger than what we need,  we can use fft_out as fftw_in buffer here
       real_t* up_equiv_f = &fft_in[fftsize*node_idx]; // offset ptr of node_idx in fft_in vector, size=fftsize
+      std::memset(up_equiv_f, 0, fftsize*sizeof(real_t));  // initialize fft_in to 0
       for(int k=0; k<NSURF; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<(int)NCHILD; j0++)
-          // up_equiv_f[idx+j0*n3] = up_equiv[j0*NSURF+k] * fft_scal[node_idx];
           up_equiv_f[idx+j0*n3] = up_equiv[j0*NSURF+k];
       }
       fft_execute_dft_r2c(m2l_list_fftplan, up_equiv_f, (fft_complex*)&buffer[0]);
