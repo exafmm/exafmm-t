@@ -77,15 +77,9 @@ namespace exafmm_t {
   //! Structure of bodies
   struct Body {
     vec3 X;                                     //!< Position
-#if COMPLEX
-    complex_t q;                                   //!< Charge
-    complex_t p;                                   //!< Potential
-    cvec3 F;                                     //!< Force
-#else
     real_t q;                                   //!< Charge
     real_t p;                                   //!< Potential
     vec3 F;                                     //!< Force
-#endif
   };
   typedef std::vector<Body> Bodies;             //!< Vector of bodies
 

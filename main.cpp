@@ -1,13 +1,8 @@
 #include "build_tree.h"
 #include "dataset.h"
 #include "interaction_list.h"
-#if COMPLEX
-#include "laplace_c.h"
-#include "precompute_c.h"
-#else
 #include "laplace.h"
 #include "precompute.h"
-#endif
 #include "traverse.h"
 
 using namespace exafmm_t;

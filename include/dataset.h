@@ -10,11 +10,7 @@ namespace exafmm_t {
       for (int d=0; d<3; d++) {
         bodies[b].X[d] = drand48();
       }
-#if COMPLEX
-      bodies[b].q = complex_t(drand48()-0.5, drand48()-0.5);
-#else
       bodies[b].q = drand48() - 0.5;
-#endif
     }
     return bodies;
   }
@@ -30,11 +26,7 @@ namespace exafmm_t {
       real_t r = std::sqrt(norm(bodies[b].X));
       bodies[b].X /= 2*r;
       bodies[b].X += 0.5;
-#if COMPLEX
-      bodies[b].q = complex_t(drand48()-0.5, drand48()-0.5);
-#else
       bodies[b].q = drand48() - 0.5;
-#endif
     }
     return bodies;
   }

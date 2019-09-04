@@ -49,11 +49,7 @@ namespace exafmm_t {
 #pragma omp parallel for
     for(size_t i=0; i<targets2.size(); i++) {
       Node *target = &targets2[i];
-#if COMPLEX
-      std::fill(target->pt_trg.begin(), target->pt_trg.end(), complex_t(0.,0.));
-#else
       std::fill(target->pt_trg.begin(), target->pt_trg.end(), 0.);
-#endif
       for(size_t j=0; j<leafs.size(); j++) {
         gradientP2P(leafs[j]->pt_coord, leafs[j]->pt_src, target->pt_coord, target->pt_trg);
       }
@@ -61,21 +57,11 @@ namespace exafmm_t {
     real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm = 0;
     for(size_t i=0; i<targets.size(); i++) {
       if (targets2[i].numBodies != 0) {  // if current leaf is not empty
-#if COMPLEX
-        p_norm += std::norm(targets2[i].pt_trg[0]);
-        p_diff += std::norm(targets2[i].pt_trg[0] - targets[i].pt_trg[0]);
-#else
         p_norm += targets2[i].pt_trg[0] * targets2[i].pt_trg[0];
         p_diff += (targets2[i].pt_trg[0] - targets[i].pt_trg[0]) * (targets2[i].pt_trg[0] - targets[i].pt_trg[0]);
-#endif
         for(int d=1; d<4; d++) {
-#if COMPLEX
-          g_diff += std::norm(targets2[i].pt_trg[d] - targets[i].pt_trg[d]);
-          g_norm += std::norm(targets2[i].pt_trg[d]);
-#else
           g_diff += (targets2[i].pt_trg[d] - targets[i].pt_trg[d]) * (targets2[i].pt_trg[d] - targets[i].pt_trg[d]);
           g_norm += targets2[i].pt_trg[d] * targets2[i].pt_trg[d];
-#endif
         }
       }
     }
