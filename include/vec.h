@@ -1,7 +1,9 @@
 #ifndef vec_h
 #define vec_h
 #include <ostream>
-
+#ifdef __CUDACC__
+#include "unroll.h"
+#endif
 #if __MIC__ | __AVX512F__
 const int SIMD_BYTES = 64;
 #elif __AVX__
@@ -483,18 +485,7 @@ namespace exafmm_t {
       for (int i=0; i<N; i++) temp[i] = v[i] > w[i] ? v[i] : w[i];
       return temp;
     }
-    __host__ __device__ __forceinline__
-    friend T min(const vec & v) {
-      T temp = v[0];
-      for (int i=1; i<N; i++) temp = temp < v[i] ? temp : v[i];
-      return temp;
-    }
-    __host__ __device__ __forceinline__
-    friend T max(const vec & v) {
-      T temp = v[0];
-      for (int i=1; i<N; i++) temp = temp > v[i] ? temp : v[i];
-      return temp;
-    }
+
     __device__ __forceinline__
     friend vec abs(const vec & v) {
       vec temp;
@@ -908,10 +899,8 @@ namespace exafmm_t {
     friend vec rsqrt(const vec & v) {
 #if EXAFMM_RSQRT_APPROX
       vec three = 3.0f;
-      vec twelve = 12.0f;
       vec temp = vec(_mm256_rsqrt_ps(v.data));
       temp *= (three - temp * temp * v);
-      temp *= (twelve - temp * temp * v);
       return temp;
 #else
       vec one = 1;
@@ -1306,3 +1295,4 @@ namespace exafmm_t {
 
 }
 #endif
+

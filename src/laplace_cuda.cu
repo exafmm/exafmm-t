@@ -12,7 +12,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
-namespace exafmm_t {
+/*namespace exafmm_t {
   
   __global__
   void P2M_kernel(int *d_leafs_idx, int *d_nodes_pt_src_idx, real_t *d_bodies_coord, real_t *d_upward_equiv, int *d_nodes_depth, real_t *d_upwd_check_surf, real_t *d_nodes_coord, real_t *d_nodes_pt_src) {
@@ -836,6 +836,6 @@ namespace exafmm_t {
     cudaFree(d_upwd_check_surf);
     Profile::Toc();
   }
-}
+}*/
 
 
