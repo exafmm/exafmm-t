@@ -7,11 +7,11 @@
 namespace exafmm_t {
   RealVec M2M_U, M2M_V;
   RealVec L2L_U, L2L_V;
-  std::vector<RealVec> mat_M2L_Helper;
-  std::vector<RealVec> mat_M2M;
-  std::vector<RealVec> mat_L2L;
+  RealVec mat_M2L_Helper;
+  RealVec mat_M2M;
+  RealVec mat_L2L;
 
-  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
+  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C, real_t beta);
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
   RealVec transpose(RealVec& vec, int m, int n);
 
@@ -19,8 +19,10 @@ namespace exafmm_t {
     int level = 0;
     real_t c[3] = {0, 0, 0};
     // caculate M2M_U and M2M_V
-    RealVec uc_coord = surface(MULTIPOLE_ORDER,c,2.95,level);
-    RealVec ue_coord = surface(MULTIPOLE_ORDER,c,1.05,level);
+    RealVec uc_coord(NSURF*3);
+    RealVec ue_coord(NSURF*3);
+    surface(MULTIPOLE_ORDER,c,2.95,level,0,uc_coord);
+    surface(MULTIPOLE_ORDER,c,1.05,level,0,ue_coord);
     RealVec M_e2c(NSURF*NSURF);
     kernelMatrix(&ue_coord[0], NSURF, &uc_coord[0], NSURF, &M_e2c[0]);
     RealVec U(NSURF*NSURF), S(NSURF*NSURF), V(NSURF*NSURF);
@@ -47,29 +49,29 @@ namespace exafmm_t {
   void PrecompM2M() {
     int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
-    RealVec p_check_surf = surface(MULTIPOLE_ORDER,parent_coord,2.95,level);
+    RealVec p_check_surf(NSURF*3);
+    surface(MULTIPOLE_ORDER,parent_coord,2.95,level,0,p_check_surf);
     real_t s = powf(0.5, level+2);
 
     int numRelCoord = rel_coord[M2M_Type].size();
-    mat_M2M.resize(numRelCoord);
-    mat_L2L.resize(numRelCoord);
+    mat_M2M.resize(numRelCoord*NSURF*NSURF);
+    mat_L2L.resize(numRelCoord*NSURF*NSURF);
 #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
       ivec3& coord = rel_coord[M2M_Type][i];
       real_t child_coord[3] = {(coord[0]+1)*s, (coord[1]+1)*s, (coord[2]+1)*s};
-      RealVec c_equiv_surf = surface(MULTIPOLE_ORDER,child_coord,1.05,level+1);
+      RealVec c_equiv_surf(NSURF*3);
+      surface(MULTIPOLE_ORDER,child_coord,1.05,level+1,0,c_equiv_surf);
       RealVec M_e2c(NSURF*NSURF);
       kernelMatrix(&c_equiv_surf[0], NSURF, &p_check_surf[0], NSURF, &M_e2c[0]);
       // M2M: child's upward_equiv to parent's check
       RealVec buffer(NSURF*NSURF);
-      mat_M2M[i].resize(NSURF*NSURF);
       gemm(NSURF, NSURF, NSURF, &M_e2c[0], &M2M_V[0], &buffer[0]);
-      gemm(NSURF, NSURF, NSURF, &buffer[0], &M2M_U[0], &(mat_M2M[i][0]));
+      gemm(NSURF, NSURF, NSURF, &buffer[0], &M2M_U[0], &(mat_M2M[i*NSURF*NSURF]));
       // L2L: parent's dnward_equiv to child's check, reuse surface coordinates
       M_e2c = transpose(M_e2c, NSURF, NSURF);
-      mat_L2L[i].resize(NSURF*NSURF);
       gemm(NSURF, NSURF, NSURF, &L2L_U[0], &M_e2c[0], &buffer[0]);
-      gemm(NSURF, NSURF, NSURF, &L2L_V[0], &buffer[0], &(mat_L2L[i][0]));
+      gemm(NSURF, NSURF, NSURF, &L2L_V[0], &buffer[0], &(mat_L2L[i*NSURF*NSURF]));
     }
   }
 
@@ -85,7 +87,7 @@ namespace exafmm_t {
                     (fft_complex*)(&fftw_out[0]), NULL, 1, n3_, FFTW_ESTIMATE);
     // evaluate DFTs of potentials at convolution grids
     int numRelCoord = rel_coord[M2L_Helper_Type].size();
-    mat_M2L_Helper.resize(numRelCoord);
+    mat_M2L_Helper.resize(numRelCoord*2*n3_);
     #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
       real_t coord[3];
@@ -96,11 +98,10 @@ namespace exafmm_t {
       RealVec r_trg(3, 0.0);
       RealVec conv_poten(n3);
       kernelMatrix(&conv_coord[0], n3, &r_trg[0], 1, &conv_poten[0]);
-      mat_M2L_Helper[i].resize(2*n3_);
-      fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i][0]));
+      fft_execute_dft_r2c(plan, &conv_poten[0], (fft_complex*)(&mat_M2L_Helper[i*2*n3_]));
       // scaling
       for(int k=0; k<2*n3_; ++k) {
-        mat_M2L_Helper[i][k] /= n3;
+        mat_M2L_Helper[i*2*n3_ + k] /= n3;
       }
     }
     fft_destroy_plan(plan);

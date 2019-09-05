@@ -1,6 +1,7 @@
 #include "build_tree.h"
 #include "dataset.h"
 #include "interaction_list.h"
+#include "laplace_cuda.h"
 #include "laplace.h"
 #include "precompute.h"
 #include "traverse.h"
@@ -13,12 +14,14 @@ int main(int argc, char **argv) {
   size_t N = args.numBodies;
   MULTIPOLE_ORDER = args.P;
   NSURF = 6*(MULTIPOLE_ORDER-1)*(MULTIPOLE_ORDER-1) + 2;
+  cuda_init_drivers();
+  RealVec src_coord, src_value;
   Profile::Enable(true);
 
   Profile::Tic("Total", true);
   Bodies bodies = initBodies(args.numBodies, args.distribution, 0);
-  std::vector<Node*> leafs, nonleafs;
-  Nodes nodes = buildTree(bodies, leafs, nonleafs, args);
+  std::vector<int> leafs_idx;
+  Nodes nodes = buildTree(bodies, leafs_idx, args);
 
   // balanced tree
   std::unordered_map<uint64_t, size_t> key2id;
@@ -26,38 +29,25 @@ int main(int argc, char **argv) {
   Keys bkeys = balanceTree(keys, key2id, nodes);
   Keys leafkeys = findLeafKeys(bkeys);
   nodes.clear();
-  leafs.clear();
-  nonleafs.clear();
-  nodes = buildTree(bodies, leafs, nonleafs, args, leafkeys);
+  leafs_idx.clear();
+  nodes = buildTree(bodies, leafs_idx, args, leafkeys);
   MAXLEVEL = keys.size() - 1;
-
-  // fill in pt_coord, pt_src, correct coord for compatibility
-  // remove this later
-  for(int i=0; i<nodes.size(); i++) {
-    for(int d=0; d<3; d++) {
-      nodes[i].coord[d] = nodes[i].X[d] - nodes[i].R;
-    }
-    if(nodes[i].IsLeaf()) {
-      for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
-        nodes[i].pt_coord.push_back(B->X[0]);
-        nodes[i].pt_coord.push_back(B->X[1]);
-        nodes[i].pt_coord.push_back(B->X[2]);
-        nodes[i].pt_src.push_back(B->q);
-      }
-    }
-  }
   initRelCoord();    // initialize relative coords
   Profile::Tic("Precomputation", true);
   Precompute();
   Profile::Toc();
   setColleagues(nodes);
-  std::vector<Node*> M2Lsources, M2Ltargets;
-  buildList(nodes, M2Lsources, M2Ltargets);
-  upwardPass(nodes, leafs);
-  downwardPass(nodes, leafs, M2Lsources, M2Ltargets);
+  std::vector<int> nodes_pt_src_idx, nodes_depth(nodes.size()), nodes_idx(nodes.size()), M2Lsources_idx, M2Ltargets_idx;
+  std::vector<real_t> nodes_coord(nodes.size()*3), bodies_coord, nodes_pt_src;
+  std::vector<std::vector<int>> nodes_by_level_idx(MAXLEVEL), parent_by_level_idx(MAXLEVEL), octant_by_level_idx(MAXLEVEL);
+  Profile::Tic("buildList", true);
+  buildList(nodes, M2Lsources_idx, M2Ltargets_idx, leafs_idx, nodes_pt_src_idx, nodes_depth, nodes_idx, nodes_coord, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, bodies_coord, nodes_pt_src);
+  std::vector<real_t> nodes_trg(nodes_pt_src.size()*4, 0.); 
   Profile::Toc();
-  RealVec error = verify(leafs);
-  std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs.size() << std::endl;
+  fmmStepsGPU(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, args.ncrit, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, nodes_coord, M2Lsources_idx, M2Ltargets_idx, nodes_trg, nodes_depth, nodes_idx);
+  Profile::Toc();
+  RealVec error = verify(nodes, leafs_idx, bodies_coord, nodes_pt_src, nodes_pt_src_idx, nodes_trg);
+  std::cout << std::setw(20) << std::left << "Leaf Nodes" << " : "<< leafs_idx.size() << std::endl;
   std::cout << std::setw(20) << std::left << "Tree Depth" << " : "<< MAXLEVEL << std::endl;
   std::cout << std::setw(20) << std::left << "Potn Error" << " : " << std::scientific << error[0] << std::endl;
   std::cout << std::setw(20) << std::left << "Grad Error" << " : " << std::scientific << error[1] << std::endl;

@@ -18,35 +18,17 @@ extern "C" {
 }
 
 namespace exafmm_t {
-  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
+  void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C, real_t beta=0.0);
 
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
 
   RealVec transpose(RealVec& vec, int m, int n);
 
-  void potentialP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
+  void potentialP2P(real_t *src_coord, int src_coord_size, real_t *src_value, real_t *trg_coord, int trg_coord_size, real_t *trg_value);
 
-  void gradientP2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
+  void gradientP2P(real_t *src_coord, int src_coord_size, real_t *src_value, real_t *trg_coord, int trg_coord_size, real_t *trg_value);
 
   void kernelMatrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
-
-  void P2M(std::vector<Node*>& leafs);
-
-  void M2M(Node* node);
-
-  void L2L(Node* node);
-
-  void L2P(std::vector<Node*>& leafs);
-
-  void P2L(Nodes& nodes);
-
-  void M2P(std::vector<Node*>& leafs);
-
-  void P2P(std::vector<Node*>& leafs);
-
-  void hadamardProduct(RealVec& kernel, AlignedVec& equiv, AlignedVec& check);
-
-  void M2L(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets);
-
 }//end namespace
 #endif
+

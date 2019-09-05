@@ -64,14 +64,14 @@ namespace exafmm_t {
         if (isleaf) {
           int idx1 = hash_lut[P2P0_Type][c_hash];
           if (idx1>=0)
-            n->P2Plist.push_back(pc);
+            n->P2Plist_idx.push_back(pc->idx_leafs);
         }
         int idx2 = hash_lut[P2L_Type][c_hash];
         if (idx2>=0) {
           if (isleaf && n->numBodies<=NSURF)
-            n->P2Plist.push_back(pc);
+            n->P2Plist_idx.push_back(pc->idx_leafs);
           else
-            n->P2Llist.push_back(pc);
+            n->P2Llist_idx.push_back(pc->idx);
         }
       }
     }
@@ -90,7 +90,7 @@ namespace exafmm_t {
         int c_hash = hash(rel_coord);
         if (col->IsLeaf() && isleaf) {
           int idx1 = hash_lut[P2P1_Type][c_hash];
-          if (idx1>=0) n->P2Plist.push_back(col);
+          if (idx1>=0) n->P2Plist_idx.push_back(col->idx_leafs);
         }
       }
     }
@@ -114,15 +114,15 @@ namespace exafmm_t {
             int idx2 = hash_lut[M2P_Type][c_hash];
             if (idx1>=0) {
               assert(col->child[j]->IsLeaf()); //2:1 balanced
-              n->P2Plist.push_back(cc);
+              n->P2Plist_idx.push_back(cc->idx_leafs);
             }
             // since we currently don't save bodies' information in nonleaf nodes
             // M2P can only be switched to P2P when source is leaf
             if (idx2>=0) {
               if (cc->IsLeaf() && cc->numBodies<=NSURF)
-                n->P2Plist.push_back(cc);
+                n->P2Plist_idx.push_back(cc->idx_leafs);
               else
-                n->M2Plist.push_back(cc);
+                n->M2Plist_idx.push_back(cc->idx);
             }
           }
         }
@@ -131,7 +131,7 @@ namespace exafmm_t {
   }
 
   // Build M2L list
-  void buildListM2L(Node* n, std::set<Node*>& sources, std::set<Node*>& targets) {
+  void buildListM2L(Node* n, std::set<int> &sources_idx, std::set<int> &targets_idx) {
     if (!n->parent) return;
     Node* p = n->parent;
     int octant = n->octant;
@@ -148,42 +148,65 @@ namespace exafmm_t {
             int c_hash = hash(rel_coord);
             int idx = hash_lut[M2L_Helper_Type][c_hash];
             if (idx>=0) {
-              n->M2Llist.push_back(pcc);
+              n->M2Llist_idx.push_back(pcc->idx);
               n->M2LRelPos.push_back(idx);
-              sources.insert(pcc);
+              sources_idx.insert(pcc->idx);
             }
           }
         }
       }
     }
-    if (n->M2Llist.size()>0)
-      targets.insert(n);
+    if (n->M2Llist_idx.size()>0)
+      targets_idx.insert(n->idx);
   }
 
   // Build interaction lists for all nodes 
-  void buildList(Nodes& nodes, std::vector<Node*>& M2Lsources, std::vector<Node*>& M2Ltargets) {
-    std::set<Node*> sources;
-    std::set<Node*> targets;
+  void buildList(Nodes& nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, std::vector<int> &leafs_idx, std::vector<int> &nodes_pt_src_idx, std::vector<int> &nodes_depth, std::vector<int> &nodes_idx, std::vector<real_t> &nodes_coord, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx, std::vector<real_t> &bodies_coord, std::vector<real_t> &nodes_pt_src) {
+    std::set<int> sources_idx;
+    std::set<int> targets_idx;
 #pragma omp parallel
 {
-    std::set<Node*> sources_;  // thread private
-    std::set<Node*> targets_;
+    std::set<int> sources_idx_;  // thread private
+    std::set<int> targets_idx_;
     #pragma omp for nowait 
     for(size_t i=0; i<nodes.size(); i++) {
       Node* node = &nodes[i];
       buildListParentLevel(node);
       buildListCurrentLevel(node);
       buildListChildLevel(node);
-      buildListM2L(node, sources_, targets_);
+      buildListM2L(node, sources_idx_, targets_idx_);
+      nodes_depth[i] = node->depth;
+      nodes_idx[i] = node->idx;
+      nodes_coord[i*3+0] = node->coord[0];
+      nodes_coord[i*3+1] = node->coord[1];  
+      nodes_coord[i*3+2] = node->coord[2];
     }
     #pragma omp critical
   {
-    sources.insert(sources_.begin(), sources_.end());
-    targets.insert(targets_.begin(), targets_.end());
+    sources_idx.insert(sources_idx_.begin(), sources_idx_.end());
+    targets_idx.insert(targets_idx_.begin(), targets_idx_.end());
   }
 }
-    M2Lsources.assign(sources.begin(), sources.end());
-    M2Ltargets.assign(targets.begin(), targets.end());
+    M2Lsources_idx.assign(sources_idx.begin(), sources_idx.end());
+    M2Ltargets_idx.assign(targets_idx.begin(), targets_idx.end());
+    int nodes_pt_src_idx_cnt = 0;
+    for(int i=0;i<leafs_idx.size();i++) {
+      nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
+      for(Body* B=nodes[leafs_idx[i]].body; B<nodes[leafs_idx[i]].body+nodes[leafs_idx[i]].numBodies; B++) {
+        bodies_coord.push_back(B->X[0]);
+        bodies_coord.push_back(B->X[1]);
+        bodies_coord.push_back(B->X[2]);
+        nodes_pt_src.push_back(B->q);
+        nodes_pt_src_idx_cnt ++;
+      }
+    }
+    nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
+
+    for(int i=1;i<nodes.size();i++){
+      nodes_by_level_idx[nodes[i].depth-1].push_back(nodes[i].idx);
+      parent_by_level_idx[nodes[i].depth-1].push_back(nodes[i].parent->idx);
+      octant_by_level_idx[nodes[i].depth-1].push_back(nodes[i].octant);
+    }
   }
   
   void setColleagues(Node* node) {

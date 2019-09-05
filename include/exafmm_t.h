@@ -89,37 +89,21 @@ namespace exafmm_t {
     int numBodies;
     Node * fchild;
     Body * body;
-    vec3 X;
-    real_t R;
     uint64_t key;
-
     size_t idx;
     size_t node_id;
     int depth;
     int octant;
+    int idx_leafs;
     real_t coord[3];
     Node* parent;
     std::vector<Node*> child;
     Node* colleague[27];
-    std::vector<Node*> P2Llist;
-    std::vector<Node*> M2Plist;
-    std::vector<Node*> P2Plist;
-    std::vector<Node*> M2Llist;
+    std::vector<int> P2Llist_idx;
+    std::vector<int> M2Plist_idx;
+    std::vector<int> P2Plist_idx;
+    std::vector<int> M2Llist_idx;
     std::vector<int> M2LRelPos;
-    RealVec pt_coord;
-    AlignedVec upEquiv;  // upward_equiv in frequency domain
-#if COMPLEX
-    ComplexVec pt_src;  // src's charge
-    ComplexVec pt_trg;  // trg's potential
-    ComplexVec upward_equiv; // M
-    ComplexVec dnward_equiv; // L
-#else
-    RealVec pt_src;  // src's charge
-    RealVec pt_trg;  // trg's potential
-    RealVec upward_equiv; // M
-    RealVec dnward_equiv; // L
-#endif
-
     bool IsLeaf() {
       return numChilds == 0;
     }
@@ -130,23 +114,14 @@ namespace exafmm_t {
   };
   typedef std::vector<Node> Nodes;              //!< Vector of nodes
   typedef std::vector<std::set<uint64_t>> Keys; //!< Vector of Morton keys of each level
-
-  struct M2LData {
-    std::vector<size_t> fft_vec;   // source's first child's upward_equiv's displacement
-    std::vector<size_t> ifft_vec;  // target's first child's dnward_equiv's displacement
-    RealVec fft_scl;
-    RealVec ifft_scl;
-    std::vector<size_t> interac_vec;
-    std::vector<size_t> interac_dsp;
-  };
-
   // Relative coordinates and interaction lists
   extern std::vector<std::vector<ivec3>> rel_coord;
 
   // Precomputation matrices
   extern RealVec M2M_U, M2M_V;
   extern RealVec L2L_U, L2L_V;
-  extern std::vector<RealVec> mat_M2M, mat_L2L, mat_M2L_Helper;
+  extern RealVec mat_M2L_Helper;
+  extern RealVec mat_M2M, mat_L2L;
 
   extern int MULTIPOLE_ORDER;   // order of multipole expansion
   extern int NSURF;     // number of surface coordinates

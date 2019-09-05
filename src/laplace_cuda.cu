@@ -12,7 +12,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
-/*namespace exafmm_t {
+namespace exafmm_t {
   
   __global__
   void P2M_kernel(int *d_leafs_idx, int *d_nodes_pt_src_idx, real_t *d_bodies_coord, real_t *d_upward_equiv, int *d_nodes_depth, real_t *d_upwd_check_surf, real_t *d_nodes_coord, real_t *d_nodes_pt_src) {
@@ -790,7 +790,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     Profile::Tic("P2M", false, 5);
     P2MGPU(d_upwd_check_surf, d_leafs_idx, d_nodes_depth, d_nodes_coord, d_bodies_coord, d_nodes_pt_src_idx, d_upward_equiv, d_nodes_pt_src, d_M2M_V, d_M2M_U, leafs_idx, handle, leafs_idx.size(), NSURF);
     Profile::Toc();
-   
     Profile::Tic("M2M", false, 5);
     M2MGPU(d_upward_equiv, nodes_by_level_idx, parent_by_level_idx, octant_by_level_idx, handle);
     Profile::Toc();
@@ -819,7 +818,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     L2PGPU(nodes, d_dnward_equiv, leafs_idx, d_leafs_idx, leafs_idx.size(), d_nodes_trg, d_nodes_pt_src_idx, d_bodies_coord, d_nodes_coord, d_nodes_depth, d_upwd_check_surf, handle);
     Profile::Toc();
     cudaMemcpy(&nodes_trg[0], d_nodes_trg, sizeof(real_t)*nodes_trg.size(), cudaMemcpyDeviceToHost);
-   
+     
     cudaFree(d_leafs_idx);
     cudaFree(d_M2M_U);
     cudaFree(d_M2M_V);
@@ -836,6 +835,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     cudaFree(d_upwd_check_surf);
     Profile::Toc();
   }
-}*/
+}
 
 
