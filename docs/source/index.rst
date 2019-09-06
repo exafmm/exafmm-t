@@ -7,10 +7,6 @@ Welcome to exafmm-t's documentation!
 ====================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-.. toctree::
    :caption: INTRO
    :maxdepth: 2
 
@@ -27,10 +23,3 @@ Welcome to exafmm-t's documentation!
    api/build_tree
    api/build_list
    api/hilbert
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
