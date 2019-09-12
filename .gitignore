@@ -11,7 +11,12 @@ config.status
 config.log
 .deps
 .dirstamp
-
 Makefile
+
+# compiled objects
 *.o
 *.a
+
+# doxygen & sphinx
+docs/xml/
+docs/build/
