@@ -1,5 +1,11 @@
 [![Build Status](https://travis-ci.com/exafmm/exafmm-t.svg?branch=master)](https://travis-ci.com/exafmm/exafmm-t)
 
+## Documentation
+
+* [Installation](docs/source/compile.rst)
+
+---
+
 #### exafmm-t
 History: 2017/12/11 - Now  
 Branch: gpu, vanilla-m2l  
