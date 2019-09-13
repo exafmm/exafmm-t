@@ -8,6 +8,10 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 
 AM_INIT_AUTOMAKE([foreign subdir-objects -Wall -Werror])
+
+# Disable rebuild rules by default to avoid timestamping problem
+AM_MAINTAINER_MODE
+
 AM_PROG_AR
 LT_INIT
 
