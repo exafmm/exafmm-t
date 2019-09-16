@@ -55,4 +55,4 @@ endif()
 
 pybind11_add_module(exafmm_laplace python/exafmm_laplace.cpp ${LAPLACE_SOURCES})
 #target_link_libraries (exafmm_laplace PUBLIC "${BLAS_LIBRARIES} ${FFTW_LIBRARIES}")
-target_link_libraries (exafmm_laplace PUBLIC "-llapack -lopenblas -lfftw3")
+target_link_libraries (exafmm_laplace PUBLIC "-lopenblas -llapack -lfftw3")
