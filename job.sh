@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -p titanv
+#SBATCH -p pascal
 #SBATCH --nodes 1
 #SBATCH -J elket
 
@@ -7,6 +7,6 @@
 module load intel
 module load cuda/cuda-10.0
 
-make all TYPE=FLOAT
+make all TYPE=DOUBLE
 make p4
 

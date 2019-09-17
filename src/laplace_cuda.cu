@@ -13,8 +13,39 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 namespace exafmm_t {
-  
-  __global__
+#if FLOAT
+  typedef cufftReal cufftReal_t;
+  typedef cufftComplex cufftComplex_t;
+#else
+  typedef cufftDoubleReal cufftReal_t;
+  typedef cufftDoubleComplex cufftComplex_t;
+#endif
+
+  void cublas_gemm_batched(cublasHandle_t &handle, int m, int n, int k, real_t **A, real_t **B, real_t **C, real_t alpha, real_t beta, int batch) {
+#if FLOAT
+    cublasSgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha, (const float**)A, m, (const float**)B, m, &beta, C, k, batch);
+#else
+    cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha, (const double**)A, m, (const double**)B, m, &beta, C, k, batch);
+#endif
+  }
+
+  void cufft_exec_r2c(cufftHandle &plan, real_t *idata, cufftComplex_t *odata) {
+#if FLOAT
+    cufftExecR2C(plan, &idata[0], &odata[0]);
+#else
+    cufftExecD2Z(plan, &idata[0], &odata[0]);
+#endif
+  }
+
+  void cufft_exec_c2r(cufftHandle &plan, cufftComplex_t *idata, real_t *odata) {
+    #if FLOAT
+      cufftExecC2R(plan, &idata[0], &odata[0]);
+    #else
+      cufftExecZ2D(plan, &idata[0], &odata[0]);
+    #endif
+  }
+
+__global__
   void P2M_kernel(int *d_leafs_idx, int *d_nodes_pt_src_idx, real_t *d_bodies_coord, real_t *d_upward_equiv, int *d_nodes_depth, real_t *d_upwd_check_surf, real_t *d_nodes_coord, real_t *d_nodes_pt_src) {
     int t=threadIdx.x;
     int NSURF = blockDim.x;
@@ -174,10 +205,10 @@ namespace exafmm_t {
   }
 
   __global__
-  void hadmard_kernel(int *d_M2Ltargets_idx, cufftComplex *d_up_equiv_fft, cufftComplex *d_dw_equiv_fft, int *d_M2LRelPos_offset, int *d_index_in_up_equiv_fft, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int n3_, int BLOCKS, int *d_M2Llist_idx_offset, int *d_M2Llist_idx) {
+  void hadmard_kernel(int *d_M2Ltargets_idx, cufftComplex_t *d_up_equiv_fft, cufftComplex_t *d_dw_equiv_fft, int *d_M2LRelPos_offset, int *d_index_in_up_equiv_fft, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int n3_, int BLOCKS, int *d_M2Llist_idx_offset, int *d_M2Llist_idx) {
     int i = blockIdx.x;
     int k = threadIdx.x;
-    cufftComplex check;
+    cufftComplex_t check;
     check.x = 0;
     check.y = 0;
 
@@ -187,7 +218,7 @@ namespace exafmm_t {
     for(int j=0; j <M2Llist_size; j++) {
       int relPosidx = d_M2LRelPoss[M2LRelPos_offset+j];
       real_t *kernel = &d_mat_M2L_Helper[relPosidx*2*n3_];
-      cufftComplex *equiv = &d_up_equiv_fft[d_index_in_up_equiv_fft[d_M2Llist_idx[d_M2Llist_idx_offset_start+j]]*n3_];
+      cufftComplex_t *equiv = &d_up_equiv_fft[d_index_in_up_equiv_fft[d_M2Llist_idx[d_M2Llist_idx_offset_start+j]]*n3_];
       int real = 2*k+0;
       int imag = 2*k+1;
       check.x += kernel[real]*equiv[k].x - kernel[imag]*equiv[k].y;
@@ -346,8 +377,8 @@ namespace exafmm_t {
     cudaMemcpy(d_upward_equiv_p, upward_equiv_p, sizeof(real_t*)*BLOCKS, cudaMemcpyHostToDevice);
     cudaMemcpy(d_buffer_p, buffer_p, sizeof(real_t*)*BLOCKS, cudaMemcpyHostToDevice);
     cudaMemcpy(d_M2M_U_p, M2M_U_p, sizeof(real_t*)*BLOCKS, cudaMemcpyHostToDevice);
-    cublasSgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, NSURF, 1, NSURF, &alpha, (const float**)d_M2M_V_p, NSURF, (const float**)d_upward_equiv_p, NSURF, &beta, d_buffer_p, NSURF, BLOCKS);
-    cublasSgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, NSURF, 1, NSURF, &alpha, (const float**)d_M2M_U_p, NSURF, (const float**)d_buffer_p, NSURF, &beta, d_upward_equiv_p, NSURF, BLOCKS);
+    cublas_gemm_batched(handle, NSURF, 1, NSURF, d_M2M_V_p, d_upward_equiv_p, d_buffer_p, alpha, beta, BLOCKS);
+    cublas_gemm_batched(handle, NSURF, 1, NSURF, d_M2M_U_p, d_buffer_p, d_upward_equiv_p, alpha, beta, BLOCKS); 
 
     cudaFree(d_M2M_V_p);
     cudaFree(d_buffer_p);
@@ -368,7 +399,7 @@ namespace exafmm_t {
     for(int i=nodes_by_level_idx.size()-1;i>=0;i--) {
       real_t *d_buffer;
       
-      float **dnward_equiv_p = 0, **mat_M2M_p = 0, **result_p = 0;
+      real_t **dnward_equiv_p = 0, **mat_M2M_p = 0, **result_p = 0;
       dnward_equiv_p = (real_t**)malloc(nodes_by_level_idx[i].size() * sizeof(real_t*));
       mat_M2M_p = (real_t**)malloc(nodes_by_level_idx[i].size() * sizeof(real_t*));
       result_p = (real_t**)malloc(nodes_by_level_idx[i].size() * sizeof(real_t*));
@@ -387,7 +418,7 @@ namespace exafmm_t {
       cudaMemcpy(d_mat_M2M_p, mat_M2M_p, sizeof(real_t*)*nodes_by_level_idx[i].size(), cudaMemcpyHostToDevice);
       cudaMemcpy(d_dnward_equiv_p, dnward_equiv_p, sizeof(real_t*)*nodes_by_level_idx[i].size(), cudaMemcpyHostToDevice);
       real_t alpha=1.0, beta=0.0;
-      cublasSgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, NSURF, 1, NSURF, &alpha, (const float**)d_mat_M2M_p, NSURF, (const float**)d_dnward_equiv_p, NSURF, &beta, d_result_p, NSURF, nodes_by_level_idx[i].size());
+      cublas_gemm_batched(handle, NSURF, 1, NSURF, d_mat_M2M_p, d_dnward_equiv_p, d_result_p, alpha, beta, nodes_by_level_idx[i].size());
       int *d_parent_by_level_idx;
       cudaMalloc(&d_parent_by_level_idx, parent_by_level_idx[i].size() * sizeof(int));
       cudaMemcpy(d_parent_by_level_idx, &parent_by_level_idx[i][0], sizeof(int)*parent_by_level_idx[i].size(), cudaMemcpyHostToDevice);
@@ -436,7 +467,7 @@ namespace exafmm_t {
     cudaFree(d_P2Plists);
   }
   
-  cufftComplex *FFT_UpEquiv_GPU(std::vector<int> &M2Lsources_idx, real_t *d_upward_equiv, int upward_equiv_size) {
+  cufftComplex_t *FFT_UpEquiv_GPU(std::vector<int> &M2Lsources_idx, real_t *d_upward_equiv, int upward_equiv_size) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
@@ -466,16 +497,16 @@ namespace exafmm_t {
 
     cufftHandle plan_up_equiv;
     cufftPlanMany(&plan_up_equiv, 3, dims, NULL, 1, 0, NULL, 1, 0, CUFFT_R2C, M2Lsources_idx.size());
-    cufftComplex *d_up_equiv_fft;
-    cudaMalloc(&d_up_equiv_fft, sizeof(cufftComplex)*M2Lsources_idx.size()*n3_);
-    cufftExecR2C(plan_up_equiv, &d_up_equiv[0], &d_up_equiv_fft[0]);
+    cufftComplex_t *d_up_equiv_fft;
+    cudaMalloc(&d_up_equiv_fft, sizeof(cufftComplex_t)*M2Lsources_idx.size()*n3_);
+    cufft_exec_r2c(plan_up_equiv, &d_up_equiv[0], &d_up_equiv_fft[0]);
     cufftDestroy(plan_up_equiv);
     cudaFree(d_up_equiv);
     cudaFree(d_map);
     return &d_up_equiv_fft[0];
   }
 
-  void FFT_Check2Equiv_GPU(Nodes &nodes, cufftComplex *d_dw_equiv_fft, real_t *d_dnward_equiv, int dnward_equiv_size, int *d_M2Ltargets_idx, int M2Ltargets_idx_size, int *d_nodes_depth) {
+  void FFT_Check2Equiv_GPU(Nodes &nodes, cufftComplex_t *d_dw_equiv_fft, real_t *d_dnward_equiv, int dnward_equiv_size, int *d_M2Ltargets_idx, int M2Ltargets_idx_size, int *d_nodes_depth) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int dims[] = {n1,n1,n1};
@@ -484,7 +515,7 @@ namespace exafmm_t {
     cudaMalloc(&d_dnCheck, sizeof(real_t)*M2Ltargets_idx_size*n3);
     cufftHandle plan_check_equiv;
     cufftPlanMany(&plan_check_equiv, 3, dims, NULL, 1, 0, NULL, 1, 0, CUFFT_C2R, M2Ltargets_idx_size);
-    cufftExecC2R(plan_check_equiv, &d_dw_equiv_fft[0], &d_dnCheck[0]);
+    cufft_exec_c2r(plan_check_equiv, &d_dw_equiv_fft[0], &d_dnCheck[0]);
     cufftDestroy(plan_check_equiv);
     cudaFree(d_dw_equiv_fft);
     std::vector<int> map2(NSURF);
@@ -506,16 +537,16 @@ namespace exafmm_t {
     cudaFree(d_map);
   }
 
-  cufftComplex *HadmardGPU(int *d_M2Ltargets_idx, int M2Ltargets_idx_size, std::vector<int> &M2LRelPos_offset, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, cufftComplex *d_up_equiv_fft, std::vector<int> &M2Llist_idx_offset, std::vector<int> &M2Llist_idx) {
+  cufftComplex_t *HadmardGPU(int *d_M2Ltargets_idx, int M2Ltargets_idx_size, std::vector<int> &M2LRelPos_offset, std::vector<int> &index_in_up_equiv_fft, std::vector<int> &M2LRelPoss, RealVec mat_M2L_Helper, int n3_, cufftComplex_t *d_up_equiv_fft, std::vector<int> &M2Llist_idx_offset, std::vector<int> &M2Llist_idx) {
     int BLOCKS = M2Ltargets_idx_size;
     int THREADS = n3_;
     int *d_M2LRelPos_offset, *d_index_in_up_equiv_fft, *d_M2LRelPoss, *d_M2Llist_idx_offset, *d_M2Llist_idx;
     real_t *d_mat_M2L_Helper;
-    cufftComplex *d_dw_equiv_fft;
+    cufftComplex_t *d_dw_equiv_fft;
     cudaMalloc(&d_M2LRelPos_offset, sizeof(int)*M2LRelPos_offset.size());
     cudaMalloc(&d_index_in_up_equiv_fft, sizeof(int)*index_in_up_equiv_fft.size());
     cudaMalloc(&d_M2LRelPoss, sizeof(int)*M2LRelPoss.size());
-    cudaMalloc(&d_dw_equiv_fft, sizeof(cufftComplex)*M2Ltargets_idx_size*n3_);
+    cudaMalloc(&d_dw_equiv_fft, sizeof(cufftComplex_t)*M2Ltargets_idx_size*n3_);
     cudaMalloc(&d_mat_M2L_Helper, sizeof(real_t)*mat_M2L_Helper.size());
     cudaMalloc(&d_M2Llist_idx_offset, sizeof(int)*M2Llist_idx_offset.size());
     cudaMalloc(&d_M2Llist_idx, sizeof(int)*M2Llist_idx.size());
@@ -572,8 +603,8 @@ namespace exafmm_t {
     int *d_M2Ltargets_idx;
     cudaMalloc(&d_M2Ltargets_idx, sizeof(int)*M2Ltargets_idx.size());
     cudaMemcpy(d_M2Ltargets_idx, &M2Ltargets_idx[0], sizeof(int)*M2Ltargets_idx.size(), cudaMemcpyHostToDevice);
-    cufftComplex *d_up_equiv_fft = FFT_UpEquiv_GPU(M2Lsources_idx, d_upward_equiv, upward_equiv_size);
-    cufftComplex *d_dw_equiv_fft = HadmardGPU(d_M2Ltargets_idx, M2Ltargets_idx.size(), M2LRelPos_offset, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, d_up_equiv_fft, M2Llist_idx_offset, M2Llist_idx);
+    cufftComplex_t *d_up_equiv_fft = FFT_UpEquiv_GPU(M2Lsources_idx, d_upward_equiv, upward_equiv_size);
+    cufftComplex_t *d_dw_equiv_fft = HadmardGPU(d_M2Ltargets_idx, M2Ltargets_idx.size(), M2LRelPos_offset, index_in_up_equiv_fft, M2LRelPoss, mat_M2L_Helper, n3_, d_up_equiv_fft, M2Llist_idx_offset, M2Llist_idx);
     FFT_Check2Equiv_GPU(nodes, d_dw_equiv_fft, d_dnward_equiv, dnward_equiv_size, d_M2Ltargets_idx, M2Ltargets_idx.size(), d_nodes_depth);
     cudaFree(d_M2Ltargets_idx);
   }
@@ -611,8 +642,8 @@ namespace exafmm_t {
     cudaMemcpy(d_L2L_V_p, L2L_V_p, sizeof(real_t*)*leafs_idx_size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_L2L_U_p, L2L_U_p, sizeof(real_t*)*leafs_idx_size, cudaMemcpyHostToDevice);
 
-    cublasSgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, NSURF, 1, NSURF, &alpha, (const float**)d_L2L_V_p, NSURF, (const float**)d_dnward_equiv_p, NSURF, &beta, d_buffer_p, NSURF, leafs_idx.size());
-    cublasSgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, NSURF, 1, NSURF, &alpha, (const float**)d_L2L_U_p, NSURF, (const float**)d_buffer_p, NSURF, &beta, d_dnward_equiv_p, NSURF, leafs_idx_size);
+    cublas_gemm_batched(handle, NSURF, 1, NSURF, d_L2L_V_p, d_dnward_equiv_p, d_buffer_p, alpha, beta, leafs_idx.size());
+    cublas_gemm_batched(handle, NSURF, 1, NSURF, d_L2L_U_p, d_buffer_p, d_dnward_equiv_p, alpha, beta, leafs_idx.size());
     int BLOCKS = leafs_idx_size;
     L2P_kernel<<<BLOCKS, NSURF, sizeof(real_t)*NSURF*4>>>(NSURF, d_dnward_equiv, d_bodies_coord, d_nodes_trg, d_leafs_idx, d_nodes_pt_src_idx, d_nodes_coord, d_nodes_depth, d_dnwd_equiv_surf);
     free(dnward_equiv_p);
@@ -635,7 +666,7 @@ namespace exafmm_t {
     cudaMemcpy(d_mat_L2L, &mat_L2L[0], sizeof(real_t)*mat_L2L.size(), cudaMemcpyHostToDevice);
     
     for(int i=0; i<nodes_by_level_idx.size(); i++) {
-      float **dnward_equiv_p=0, **mat_L2L_p=0, **result_p=0;
+      real_t **dnward_equiv_p=0, **mat_L2L_p=0, **result_p=0;
       dnward_equiv_p = (real_t**)malloc(nodes_by_level_idx[i].size() * sizeof(real_t*));
       mat_L2L_p = (real_t**)malloc(nodes_by_level_idx[i].size() * sizeof(real_t*));
       result_p = (real_t**)malloc(nodes_by_level_idx[i].size() * sizeof(real_t*
@@ -658,7 +689,8 @@ namespace exafmm_t {
       cudaMemcpy(d_result_p, result_p, sizeof(real_t*)*nodes_by_level_idx[i].size(), cudaMemcpyHostToDevice);
       
       real_t alpha=1.0, beta=1.0;
-      cublasSgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, NSURF, 1, NSURF, &alpha, (const float**)d_mat_L2L_p, NSURF, (const float**)d_dnward_equiv_p, NSURF, &beta, d_result_p, NSURF, nodes_by_level_idx[i].size());
+      cublas_gemm_batched(handle, NSURF, 1, NSURF, d_mat_L2L_p, d_dnward_equiv_p, d_result_p, alpha, beta, nodes_by_level_idx[i].size());
+
       free(dnward_equiv_p);
       free(mat_L2L_p);
       free(result_p);
