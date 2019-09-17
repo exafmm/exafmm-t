@@ -12,6 +12,7 @@ config.log
 .deps
 .dirstamp
 Makefile
+build/
 
 # compiled objects
 *.o
