@@ -16,9 +16,13 @@ namespace exafmm_t {
 #if FLOAT
   typedef cufftReal cufftReal_t;
   typedef cufftComplex cufftComplex_t;
+#define cufft_r2c CUFFT_R2C
+#define cufft_c2r CUFFT_C2R
 #else
   typedef cufftDoubleReal cufftReal_t;
   typedef cufftDoubleComplex cufftComplex_t;
+#define cufft_r2c CUFFT_D2Z
+#define cufft_c2r CUFFT_Z2D
 #endif
 
   void cublas_gemm_batched(cublasHandle_t &handle, int m, int n, int k, real_t **A, real_t **B, real_t **C, real_t alpha, real_t beta, int batch) {
@@ -38,12 +42,20 @@ namespace exafmm_t {
   }
 
   void cufft_exec_c2r(cufftHandle &plan, cufftComplex_t *idata, real_t *odata) {
-    #if FLOAT
+#if FLOAT
       cufftExecC2R(plan, &idata[0], &odata[0]);
-    #else
+#else
       cufftExecZ2D(plan, &idata[0], &odata[0]);
-    #endif
+#endif
   }
+  
+  /*void cufft_plan_many(cufftHandle *plan, int rank, int *n, int *inembed, int istride, int idist, int *onembed, int ostride, int odist, cufftType type, int batch){
+#if FLOAT
+    cufftPlanMany(plan, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_R2C, M2Lsources_idx.size());
+
+#else
+#endif
+  }*/
 
 __global__
   void P2M_kernel(int *d_leafs_idx, int *d_nodes_pt_src_idx, real_t *d_bodies_coord, real_t *d_upward_equiv, int *d_nodes_depth, real_t *d_upwd_check_surf, real_t *d_nodes_coord, real_t *d_nodes_pt_src) {
@@ -344,7 +356,7 @@ __global__
 
   void cuda_init_drivers() {
     cufftHandle init_plan;
-    cufftPlan1d(&init_plan, 1, CUFFT_R2C,1);
+    cufftPlan1d(&init_plan, 1, cufft_r2c,1);
     cudaFree(0);
   }
 
@@ -389,7 +401,7 @@ __global__
     free(M2M_U_p);
     cudaFree(d_buffer);
   }
-
+  
   void M2MGPU(real_t *d_upward_equiv, std::vector<std::vector<int>> &nodes_by_level_idx, std::vector<std::vector<int>> &parent_by_level_idx, std::vector<std::vector<int>> &octant_by_level_idx, cublasHandle_t &handle) {
     cublasCreate(&handle);
     real_t *d_mat_M2M;
@@ -423,6 +435,7 @@ __global__
       cudaMalloc(&d_parent_by_level_idx, parent_by_level_idx[i].size() * sizeof(int));
       cudaMemcpy(d_parent_by_level_idx, &parent_by_level_idx[i][0], sizeof(int)*parent_by_level_idx[i].size(), cudaMemcpyHostToDevice);
       M2M_kernel<<<parent_by_level_idx[i].size(), NSURF>>>(d_upward_equiv, d_buffer, d_parent_by_level_idx);
+      
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
       cudaFree(d_buffer);
@@ -466,7 +479,7 @@ __global__
     cudaFree(d_P2Plists_idx);
     cudaFree(d_P2Plists);
   }
-  
+
   cufftComplex_t *FFT_UpEquiv_GPU(std::vector<int> &M2Lsources_idx, real_t *d_upward_equiv, int upward_equiv_size) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
@@ -496,11 +509,12 @@ __global__
     FFT_UpEquiv_kernel<<<M2Lsources_idx.size(), NSURF>>>(d_M2Lsources_idx, d_map, d_up_equiv, d_upward_equiv, n3);
 
     cufftHandle plan_up_equiv;
-    cufftPlanMany(&plan_up_equiv, 3, dims, NULL, 1, 0, NULL, 1, 0, CUFFT_R2C, M2Lsources_idx.size());
+    cufftPlanMany(&plan_up_equiv, 3, dims, NULL, 1, 0, NULL, 1, 0, cufft_r2c, M2Lsources_idx.size());
     cufftComplex_t *d_up_equiv_fft;
     cudaMalloc(&d_up_equiv_fft, sizeof(cufftComplex_t)*M2Lsources_idx.size()*n3_);
     cufft_exec_r2c(plan_up_equiv, &d_up_equiv[0], &d_up_equiv_fft[0]);
     cufftDestroy(plan_up_equiv);
+    
     cudaFree(d_up_equiv);
     cudaFree(d_map);
     return &d_up_equiv_fft[0];
@@ -514,7 +528,7 @@ __global__
     real_t *d_dnCheck;
     cudaMalloc(&d_dnCheck, sizeof(real_t)*M2Ltargets_idx_size*n3);
     cufftHandle plan_check_equiv;
-    cufftPlanMany(&plan_check_equiv, 3, dims, NULL, 1, 0, NULL, 1, 0, CUFFT_C2R, M2Ltargets_idx_size);
+    cufftPlanMany(&plan_check_equiv, 3, dims, NULL, 1, 0, NULL, 1, 0, cufft_c2r, M2Ltargets_idx_size);
     cufft_exec_c2r(plan_check_equiv, &d_dw_equiv_fft[0], &d_dnCheck[0]);
     cufftDestroy(plan_check_equiv);
     cudaFree(d_dw_equiv_fft);
@@ -571,7 +585,7 @@ __global__
     cudaFree(d_mat_M2L_Helper);
     return &d_dw_equiv_fft[0];
   }
-
+  
   void M2LGPU(Nodes &nodes, std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, real_t *d_upward_equiv, int upward_equiv_size, real_t *d_dnward_equiv, int dnward_equiv_size, int *d_nodes_depth) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
