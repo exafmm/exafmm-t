@@ -1,5 +1,6 @@
 #include <pybind11/iostream.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
 #include <pybind11/stl.h>
 #include <iostream>
 #include "exafmm_t.h"
@@ -137,9 +138,19 @@ namespace exafmm_t {
 PYBIND11_MODULE(exafmm_laplace, m) {
   m.doc() = "exafmm's pybind11 module for Laplace kernel";
 
+  py::class_<exafmm_t::vec3>(m, "vec3")
+     .def("__getitem__", [](const exafmm_t::vec3 &x, int i) {  // should check i and throw out of bound error
+         return x[i];
+     }, py::is_operator())
+     .def("__setitem__", [](exafmm_t::vec3 &x, int i, exafmm_t::real_t value) {
+         x[i] = value;
+     }, py::is_operator())
+     .def(py::init<>());
+
   py::class_<exafmm_t::Body>(m, "Body")
      .def_readwrite("q", &exafmm_t::Body::q)
      .def_readwrite("p", &exafmm_t::Body::p)
+     .def_readwrite("X", &exafmm_t::Body::X)
      .def_readwrite("F", &exafmm_t::Body::F)
      .def(py::init<>());
 
