@@ -157,6 +157,7 @@ PYBIND11_MODULE(exafmm_laplace, m) {
   py::class_<exafmm_t::Node>(m, "Node")
      .def_readwrite("key", &exafmm_t::Node::key)
      .def_readwrite("parent", &exafmm_t::Node::parent)
+     .def_readwrite("x", &exafmm_t::Node::x)
      .def_readwrite("r", &exafmm_t::Node::r)
      .def_readwrite("nsrcs", &exafmm_t::Node::nsrcs)
      .def_readwrite("ntrgs", &exafmm_t::Node::ntrgs)
