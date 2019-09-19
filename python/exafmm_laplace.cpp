@@ -31,7 +31,6 @@ namespace exafmm_t {
   Bodies init_targets(int ntrgs) {
     return init_bodies(ntrgs, "cube", 5, false);
   }
- 
 
   void configure(int p, int ncrit) {
     P = p;
@@ -134,11 +133,15 @@ namespace exafmm_t {
   }
 }
 
-
 PYBIND11_MODULE(exafmm_laplace, m) {
   m.doc() = "exafmm's pybind11 module for Laplace kernel";
 
   py::class_<exafmm_t::vec3>(m, "vec3")
+     .def("__str__", [](const exafmm_t::vec3 &x) {
+         return "[" + std::to_string(x[0]) + ", "
+                    + std::to_string(x[1]) + ", "
+                    + std::to_string(x[2]) + "]";
+     })
      .def("__getitem__", [](const exafmm_t::vec3 &x, int i) {  // should check i and throw out of bound error
          return x[i];
      }, py::is_operator())
