@@ -155,9 +155,13 @@ PYBIND11_MODULE(exafmm_laplace, m) {
      .def_readwrite("p", &exafmm_t::Body::p)
      .def_readwrite("X", &exafmm_t::Body::X)
      .def_readwrite("F", &exafmm_t::Body::F)
+     .def_readwrite("ibody", &exafmm_t::Body::ibody)
      .def(py::init<>());
 
   py::class_<exafmm_t::Node>(m, "Node")
+     .def_readwrite("isrcs", &exafmm_t::Node::isrcs)
+     .def_readwrite("itrgs", &exafmm_t::Node::itrgs)
+     .def_readwrite("trg_value", &exafmm_t::Node::trg_value)
      .def_readwrite("key", &exafmm_t::Node::key)
      .def_readwrite("parent", &exafmm_t::Node::parent)
      .def_readwrite("x", &exafmm_t::Node::x)
