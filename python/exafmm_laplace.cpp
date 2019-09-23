@@ -1,4 +1,5 @@
 #include <pybind11/iostream.h>
+#include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
@@ -24,12 +25,50 @@ namespace exafmm_t {
   NodePtrs nonleafs;
   Args args;
 
-  Bodies init_sources(int nsrcs) {
-    return init_bodies(nsrcs, "cube", 0, true);
+  // coords is an n-by-3 np array, charges is an n-element np array
+  Bodies init_sources(py::array_t<real_t> coords, py::array_t<real_t> charges) {
+    // checking dimensions
+    if (coords.ndim() != 2 || charges.ndim() != 1 || coords.shape(1) != 3)
+      throw std::runtime_error("coords should have a shape of (n, 3), charges should have a shape of (n,)");
+    if (coords.shape(0) != charges.shape(0))
+      throw std::runtime_error("Number of coords and charges must match");
+    
+    const ssize_t nsrcs = charges.size();
+    Bodies sources(nsrcs);
+
+    auto coords_ = coords.unchecked<2>();
+    auto charges_ = charges.unchecked<1>();
+
+#pragma omp parallel for
+    for(ssize_t i=0; i<nsrcs; ++i) {
+      sources[i].X[0] = coords_(i, 0);
+      sources[i].X[1] = coords_(i, 1);
+      sources[i].X[2] = coords_(i, 2);
+      sources[i].q = charges_(i);
+    }
+
+    return sources;
   }
 
-  Bodies init_targets(int ntrgs) {
-    return init_bodies(ntrgs, "cube", 5, false);
+  // coords is an n-by-3 np array
+  Bodies init_targets(py::array_t<real_t> coords) {
+    // checking dimensions
+    if (coords.ndim() != 2 || coords.shape(1) != 3)
+      throw std::runtime_error("coords should have a shape of (n, 3)");
+    
+    const ssize_t ntrgs = coords.shape(0);
+    Bodies targets(ntrgs);
+
+    auto coords_ = coords.unchecked<2>();
+
+#pragma omp parallel for
+    for(ssize_t i=0; i<ntrgs; ++i) {
+      targets[i].X[0] = coords_(i, 0);
+      targets[i].X[1] = coords_(i, 1);
+      targets[i].X[2] = coords_(i, 2);
+    }
+
+    return targets;
   }
 
   void configure(int p, int ncrit) {
