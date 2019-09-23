@@ -17,7 +17,11 @@ build/
 # compiled objects
 *.o
 *.a
+*.so
 
 # doxygen & sphinx
 docs/xml/
 docs/build/
+
+# jupyter notebook
+.ipynb_checkpoints/
