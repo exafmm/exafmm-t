@@ -17,6 +17,8 @@ namespace exafmm_t {
   int P;
   int NSURF;
   int MAXLEVEL;
+  int NSRCS;
+  int NTRGS;
   vec3 X0;
   real_t R0;
   real_t WAVEK;
@@ -34,6 +36,7 @@ namespace exafmm_t {
       throw std::runtime_error("Number of coords and charges must match");
     
     const ssize_t nsrcs = charges.size();
+    NSRCS = nsrcs;
     Bodies sources(nsrcs);
 
     auto coords_ = coords.unchecked<2>();
@@ -45,6 +48,7 @@ namespace exafmm_t {
       sources[i].X[1] = coords_(i, 1);
       sources[i].X[2] = coords_(i, 2);
       sources[i].q = charges_(i);
+      sources[i].ibody = i;
     }
 
     return sources;
@@ -57,6 +61,7 @@ namespace exafmm_t {
       throw std::runtime_error("coords should have a shape of (n, 3)");
     
     const ssize_t ntrgs = coords.shape(0);
+    NTRGS = ntrgs;
     Bodies targets(ntrgs);
 
     auto coords_ = coords.unchecked<2>();
@@ -66,6 +71,7 @@ namespace exafmm_t {
       targets[i].X[0] = coords_(i, 0);
       targets[i].X[1] = coords_(i, 1);
       targets[i].X[2] = coords_(i, 2);
+      targets[i].ibody = i;
     }
 
     return targets;
@@ -93,7 +99,7 @@ namespace exafmm_t {
     M2L_setup(nonleafs);
   }
 
-  Nodes evaluate() {
+  py::array_t<real_t> evaluate() {
     // redirect ostream to python ouptut
     py::scoped_ostream_redirect stream(
         std::cout,                                 // std::ostream&
@@ -101,7 +107,20 @@ namespace exafmm_t {
     );
     upward_pass(nodes, leafs);
     downward_pass(nodes, leafs);
-    return nodes;
+    
+    auto potentials = py::array_t<real_t>(NTRGS);
+    py::buffer_info buf = potentials.request();
+    real_t * potential_ = (real_t *) buf.ptr;
+
+//#pragma omp parallel for
+    for (int i=0; i<leafs.size(); ++i) {
+      Node * leaf = leafs[i];
+      std::vector<int> & itrgs = leaf->itrgs;
+      for (int j=0; j<itrgs.size(); ++j) {
+        potential_[itrgs[j]] = leaf->trg_value[4*j+0];
+      }
+    }
+    return potentials;
   }
 
   void check_accuracy() {
