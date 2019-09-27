@@ -112,7 +112,7 @@ namespace exafmm_t {
     py::buffer_info buf = potentials.request();
     real_t * potential_ = (real_t *) buf.ptr;
 
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i=0; i<leafs.size(); ++i) {
       Node * leaf = leafs[i];
       std::vector<int> & itrgs = leaf->itrgs;
@@ -121,6 +121,31 @@ namespace exafmm_t {
       }
     }
     return potentials;
+  }
+
+  void update(py::array_t<real_t> charges) {
+    // update charges of sources
+    auto charges_ = charges.unchecked<1>();
+#pragma omp parallel for
+    for (int i=0; i<leafs.size(); ++i) {
+      Node * leaf = leafs[i];
+      std::vector<int> & isrcs = leaf->isrcs;
+      for (int j=0; j<isrcs.size(); ++j) {
+        leaf->src_value[j] = charges_[isrcs[j]];
+      }
+    }
+  }
+
+  void clear() {
+    // reset target values, equivalent charges and check potentials to zero
+#pragma omp parallel for
+    for (int i=0; i<nodes.size(); ++i) {
+      Node & node = nodes[i];
+      std::fill(node.up_equiv.begin(), node.up_equiv.end(), 0.);
+      std::fill(node.dn_equiv.begin(), node.dn_equiv.end(), 0.);
+      if (node.is_leaf)
+        std::fill(node.trg_value.begin(), node.trg_value.end(), 0.);
+    }
   }
 
   void check_accuracy() {
@@ -239,6 +264,11 @@ PYBIND11_MODULE(exafmm_laplace, m) {
   m.def("precompute", &exafmm_t::precompute, "precompute translation matrices");
   m.def("evaluate", &exafmm_t::evaluate,
         py::return_value_policy::reference, "evaluate potential and force at targets");
+
+  m.def("update", &exafmm_t::update, "update charges of sources");
+  
+  m.def("clear", &exafmm_t::clear, "clear target potentials, equivalent charges and check potentials");
+
   m.def("check_accuracy", &exafmm_t::check_accuracy, "check accuracy");
 
   m.def("exafmm_main", &exafmm_t::exafmm_main, "exafmm's main function");
