@@ -26,8 +26,14 @@ namespace exafmm_t {
   NodePtrs leafs;
   NodePtrs nonleafs;
   Args args;
-
-  // coords is an n-by-3 np array, charges is an n-element np array
+  
+  /**
+   * @brief Initialize sources.
+   *
+   * @param coords Coordinates of sources, an n-by-3 numpy array.
+   * @param charges Charges of sources, an n-element numpy array.
+   * @return Bodies Vector of sources.
+   */
   Bodies init_sources(py::array_t<real_t> coords, py::array_t<real_t> charges) {
     // checking dimensions
     if (coords.ndim() != 2 || charges.ndim() != 1 || coords.shape(1) != 3)
@@ -54,7 +60,12 @@ namespace exafmm_t {
     return sources;
   }
 
-  // coords is an n-by-3 np array
+  /**
+   * @brief Initialize targets.
+   * 
+   * @param coords Coordinates of targets, an n-by-3 numpy array.
+   * @return Bodies Vector of targets.
+   */
   Bodies init_targets(py::array_t<real_t> coords) {
     // checking dimensions
     if (coords.ndim() != 2 || coords.shape(1) != 3)
@@ -77,6 +88,12 @@ namespace exafmm_t {
     return targets;
   }
 
+  /**
+   * @brief Set FMM parameters.
+   * 
+   * @param p Order of expansion.
+   * @param ncrit Max number of bodies allowed per leaf box.
+   */
   void configure(int p, int ncrit) {
     P = p;
     args.P = p;
@@ -86,6 +103,13 @@ namespace exafmm_t {
     init_rel_coord();
   }
 
+  /**
+   * @brief Given sources and targets, return a 2:1 balanced tree as a vector of nodes.
+   * 
+   * @param sources Sources.
+   * @param targets Targets.
+   * @return Nodes Vector of nodes.
+   */
   Nodes build_tree(Bodies& sources, Bodies& targets) {
     get_bounds(sources, targets, X0, R0);
     nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs, args);
@@ -93,12 +117,21 @@ namespace exafmm_t {
     return nodes;
   }
 
+  /**
+   * @brief Create colleagues list, interaction lists and setup M2L kernel.
+   * 
+   */
   void build_list() {
     set_colleagues(nodes);
     build_list(nodes);
     M2L_setup(nonleafs);
   }
 
+  /**
+   * @brief Evaluate the potentials and the gradients of target points.
+   * 
+   * @return A numpy array of the potentials of targets.
+   */
   py::array_t<real_t> evaluate() {
     // redirect ostream to python ouptut
     py::scoped_ostream_redirect stream(
@@ -123,6 +156,11 @@ namespace exafmm_t {
     return potentials;
   }
 
+  /**
+   * @brief Update the charges of sources. (Coordinates do not change)
+   * 
+   * @param charges Charges of sources, a numpy array.
+   */
   void update(py::array_t<real_t> charges) {
     // update charges of sources
     auto charges_ = charges.unchecked<1>();
@@ -136,8 +174,11 @@ namespace exafmm_t {
     }
   }
 
+  /**
+   * @brief Reset target values, equivalent charges and check potentials to 0.
+   * 
+   */
   void clear() {
-    // reset target values, equivalent charges and check potentials to zero
 #pragma omp parallel for
     for (int i=0; i<nodes.size(); ++i) {
       Node & node = nodes[i];
@@ -148,6 +189,10 @@ namespace exafmm_t {
     }
   }
 
+  /**
+   * @brief Check the accuracy of FMM against direct evaluation.
+   * 
+   */
   void check_accuracy() {
     // redirect ostream to python ouptut
     py::scoped_ostream_redirect stream(
@@ -256,12 +301,18 @@ PYBIND11_MODULE(exafmm_laplace, m) {
      .def(py::init<>());
 
   m.def("init_sources", &exafmm_t::init_sources, "initialize sources");
+
   m.def("init_targets", &exafmm_t::init_targets, "initialize targets");
+
   m.def("configure", &exafmm_t::configure, "set fmm parameters: p and ncrit");
+
   m.def("build_tree", py::overload_cast<exafmm_t::Bodies&, exafmm_t::Bodies&>(&exafmm_t::build_tree), 
         py::return_value_policy::reference, "build tree");
+
   m.def("build_list", py::overload_cast<>(&exafmm_t::build_list), "build list");
+
   m.def("precompute", &exafmm_t::precompute, "precompute translation matrices");
+  
   m.def("evaluate", &exafmm_t::evaluate,
         py::return_value_policy::reference, "evaluate potential and force at targets");
 
