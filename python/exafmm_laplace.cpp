@@ -120,11 +120,13 @@ namespace exafmm_t {
   /**
    * @brief Create colleagues list, interaction lists and setup M2L kernel.
    * 
+   * @return Nodes Vector of nodes.
    */
-  void build_list() {
+  Nodes build_list() {
     set_colleagues(nodes);
     build_list(nodes);
     M2L_setup(nonleafs);
+    return nodes;
   }
 
   /**
@@ -292,6 +294,7 @@ PYBIND11_MODULE(exafmm_laplace, m) {
      .def_readwrite("trg_value", &exafmm_t::Node::trg_value)
      .def_readwrite("key", &exafmm_t::Node::key)
      .def_readwrite("parent", &exafmm_t::Node::parent)
+     .def_readwrite("colleagues", &exafmm_t::Node::colleagues)
      .def_readwrite("x", &exafmm_t::Node::x)
      .def_readwrite("r", &exafmm_t::Node::r)
      .def_readwrite("nsrcs", &exafmm_t::Node::nsrcs)
@@ -312,7 +315,7 @@ PYBIND11_MODULE(exafmm_laplace, m) {
   m.def("build_list", py::overload_cast<>(&exafmm_t::build_list), "build list");
 
   m.def("precompute", &exafmm_t::precompute, "precompute translation matrices");
-  
+
   m.def("evaluate", &exafmm_t::evaluate,
         py::return_value_policy::reference, "evaluate potential and force at targets");
 
