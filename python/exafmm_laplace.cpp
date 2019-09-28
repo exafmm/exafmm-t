@@ -6,7 +6,11 @@
 #include <iostream>
 #include "exafmm_t.h"
 #include "dataset.h"
+#if NON_ADAPTIVE
+#include "build_non_adaptive_tree.h"
+#else
 #include "build_tree.h"
+#endif
 #include "build_list.h"
 #include "laplace.h"
 #include "traverse.h"
@@ -93,9 +97,11 @@ namespace exafmm_t {
    * 
    * @param p Order of expansion.
    * @param ncrit Max number of bodies allowed per leaf box.
+   * @param max_level Max level of the non-adaptive tree.
    */
-  void configure(int p, int ncrit) {
+  void configure(int p, int ncrit, int max_level) {
     P = p;
+    MAXLEVEL = max_level;
     args.P = p;
     args.ncrit = ncrit;
     omp_set_num_threads(args.threads);
@@ -112,8 +118,12 @@ namespace exafmm_t {
    */
   Nodes build_tree(Bodies& sources, Bodies& targets) {
     get_bounds(sources, targets, X0, R0);
+#if NON_ADAPTIVE
+    nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs);
+#else
     nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs, args);
     balance_tree(nodes, sources, targets, X0, R0, leafs, nonleafs, args);
+#endif
     return nodes;
   }
 
@@ -228,8 +238,12 @@ namespace exafmm_t {
 
     start("Build Tree");
     get_bounds(sources, targets, X0, R0);
+#if NON_ADAPTIVE
+    nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs);
+#else
     Nodes nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs, args);
     balance_tree(nodes, sources, targets, X0, R0, leafs, nonleafs, args);
+#endif
     stop("Build Tree");
 
     init_rel_coord();
