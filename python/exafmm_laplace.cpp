@@ -130,11 +130,12 @@ namespace exafmm_t {
   /**
    * @brief Create colleagues list, interaction lists and setup M2L kernel.
    * 
+   * @param skip_P2P A flag to switch off P2P (near-field interaction).
    * @return Nodes Vector of nodes.
    */
-  Nodes build_list() {
+  Nodes build_list(bool skip_P2P) {
     set_colleagues(nodes);
-    build_list(nodes);
+    build_list(nodes, skip_P2P);
     M2L_setup(nonleafs);
     return nodes;
   }
@@ -326,7 +327,7 @@ PYBIND11_MODULE(exafmm_laplace, m) {
   m.def("build_tree", py::overload_cast<exafmm_t::Bodies&, exafmm_t::Bodies&>(&exafmm_t::build_tree), 
         py::return_value_policy::reference, "build tree");
 
-  m.def("build_list", py::overload_cast<>(&exafmm_t::build_list), "build list");
+  m.def("build_list", py::overload_cast<bool>(&exafmm_t::build_list), "build list");
 
   m.def("precompute", &exafmm_t::precompute, "precompute translation matrices");
 

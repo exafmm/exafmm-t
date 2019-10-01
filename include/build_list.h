@@ -10,7 +10,7 @@ namespace exafmm_t {
    * 
    * @param n Node pointer.
    */
-  void build_list_parent_level(Node* n) {
+  void build_list_parent_level(Node* n, bool skip_P2P=false) {
     if (!n->parent) return;
     ivec3 rel_coord;
     int octant = n->octant;
@@ -24,7 +24,7 @@ namespace exafmm_t {
         int c_hash = hash(rel_coord);
         if (isleaf) {
           int idx1 = HASH_LUT[P2P0_Type][c_hash];
-          if (idx1>=0)
+          if (idx1>=0 && !skip_P2P)
             n->P2P_list.push_back(pc);
         }
         int idx2 = HASH_LUT[P2L_Type][c_hash];
@@ -44,7 +44,7 @@ namespace exafmm_t {
    * 
    * @param n Node pointer.
    */
-  void build_list_current_level(Node* n) {
+  void build_list_current_level(Node* n, bool skip_P2P=false) {
     ivec3 rel_coord;
     bool isleaf = n->is_leaf;
     for (int i=0; i<27; i++) {
@@ -56,10 +56,12 @@ namespace exafmm_t {
         int c_hash = hash(rel_coord);
         if (col->is_leaf && isleaf) {
           int idx1 = HASH_LUT[P2P1_Type][c_hash];
-          if (idx1>=0) n->P2P_list.push_back(col);
+          if (idx1>=0 && !skip_P2P)
+            n->P2P_list.push_back(col);
         } else if (!col->is_leaf && !isleaf) {
           int idx2 = HASH_LUT[M2L_Type][c_hash];
-          if (idx2>=0) n->M2L_list[idx2] = col;
+          if (idx2>=0)
+            n->M2L_list[idx2] = col;
         }
       }
     }
@@ -71,7 +73,7 @@ namespace exafmm_t {
    * 
    * @param n Node pointer.
    */
-  void build_list_child_level(Node* n) {
+  void build_list_child_level(Node* n, bool skip_P2P=false) {
     if (!n->is_leaf) return;
     ivec3 rel_coord;
     for(int i=0; i<27; i++) {
@@ -85,7 +87,7 @@ namespace exafmm_t {
           int c_hash = hash(rel_coord);
           int idx1 = HASH_LUT[P2P2_Type][c_hash];
           int idx2 = HASH_LUT[M2P_Type][c_hash];
-          if (idx1>=0) {
+          if (idx1>=0 && !skip_P2P) {
             assert(col->children[j]->is_leaf); //2:1 balanced
             n->P2P_list.push_back(cc);
           }
@@ -107,18 +109,18 @@ namespace exafmm_t {
    * 
    * @param nodes Vector of nodes that represents an octree.
    */
-  void build_list(Nodes& nodes) {
+  void build_list(Nodes& nodes, bool skip_P2P=false) {
     #pragma omp parallel for
     for(size_t i=0; i<nodes.size(); i++) {
       Node* node = &nodes[i];
       node->M2L_list.resize(REL_COORD[M2L_Type].size(), nullptr);
-      build_list_parent_level(node);   // P2P0 & P2L
-      build_list_current_level(node);  // P2P1 & M2L
+      build_list_parent_level(node, skip_P2P);   // P2P0 & P2L
+      build_list_current_level(node, skip_P2P);  // P2P1 & M2L
 #if NON_ADAPTIVE
       if (node->ntrgs)
-        build_list_child_level(node);  // P2P2 & M2P
+        build_list_child_level(node, skip_P2P);  // P2P2 & M2P
 #else
-      build_list_child_level(node);    // P2P2 & M2P
+      build_list_child_level(node, skip_P2P);    // P2P2 & M2P
 #endif
     }
   }
