@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -p pascal
+#SBATCH -p teslav
 #SBATCH --nodes 1
 #SBATCH -J elket
 
