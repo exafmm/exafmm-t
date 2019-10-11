@@ -278,10 +278,13 @@ namespace exafmm_t {
   }
 }
 
-PYBIND11_MODULE(exafmm_laplace, m) {
-  m.doc() = "exafmm's pybind11 module for Laplace kernel";
+PYBIND11_MODULE(exafmm, m) {
+  m.doc() = "exafmm's pybind11 module";
 
-  py::class_<exafmm_t::vec3>(m, "vec3")
+  py::module m0 = m.def_submodule("laplace", "A submodule of exafmm's Laplace kernel");
+  m0.doc() = "exafmm's submodule for Laplace kernel.";
+
+  py::class_<exafmm_t::vec3>(m0, "vec3")
      .def("__str__", [](const exafmm_t::vec3 &x) {
          return "[" + std::to_string(x[0]) + ", "
                     + std::to_string(x[1]) + ", "
@@ -295,7 +298,7 @@ PYBIND11_MODULE(exafmm_laplace, m) {
      }, py::is_operator())
      .def(py::init<>());
 
-  py::class_<exafmm_t::Body>(m, "Body")
+  py::class_<exafmm_t::Body>(m0, "Body")
      .def_readwrite("q", &exafmm_t::Body::q)
      .def_readwrite("p", &exafmm_t::Body::p)
      .def_readwrite("X", &exafmm_t::Body::X)
@@ -303,7 +306,7 @@ PYBIND11_MODULE(exafmm_laplace, m) {
      .def_readwrite("ibody", &exafmm_t::Body::ibody)
      .def(py::init<>());
 
-  py::class_<exafmm_t::Node>(m, "Node")
+  py::class_<exafmm_t::Node>(m0, "Node")
      .def_readwrite("isrcs", &exafmm_t::Node::isrcs)
      .def_readwrite("itrgs", &exafmm_t::Node::itrgs)
      .def_readwrite("trg_value", &exafmm_t::Node::trg_value)
@@ -318,27 +321,27 @@ PYBIND11_MODULE(exafmm_laplace, m) {
      .def_readwrite("is_leaf", &exafmm_t::Node::is_leaf)
      .def(py::init<>());
 
-  m.def("init_sources", &exafmm_t::init_sources, "initialize sources");
+  m0.def("init_sources", &exafmm_t::init_sources, "initialize sources");
 
-  m.def("init_targets", &exafmm_t::init_targets, "initialize targets");
+  m0.def("init_targets", &exafmm_t::init_targets, "initialize targets");
 
-  m.def("configure", &exafmm_t::configure, "set fmm parameters: p and ncrit");
+  m0.def("configure", &exafmm_t::configure, "set fmm parameters: p and ncrit");
 
-  m.def("build_tree", py::overload_cast<exafmm_t::Bodies&, exafmm_t::Bodies&>(&exafmm_t::build_tree), 
+  m0.def("build_tree", py::overload_cast<exafmm_t::Bodies&, exafmm_t::Bodies&>(&exafmm_t::build_tree), 
         py::return_value_policy::reference, "build tree");
 
-  m.def("build_list", py::overload_cast<bool>(&exafmm_t::build_list), "build list");
+  m0.def("build_list", py::overload_cast<bool>(&exafmm_t::build_list), "build list");
 
-  m.def("precompute", &exafmm_t::precompute, "precompute translation matrices");
+  m0.def("precompute", &exafmm_t::precompute, "precompute translation matrices");
 
-  m.def("evaluate", &exafmm_t::evaluate,
+  m0.def("evaluate", &exafmm_t::evaluate,
         py::return_value_policy::reference, "evaluate potential and force at targets");
 
-  m.def("update", &exafmm_t::update, "update charges of sources");
+  m0.def("update", &exafmm_t::update, "update charges of sources");
   
-  m.def("clear", &exafmm_t::clear, "clear target potentials, equivalent charges and check potentials");
+  m0.def("clear", &exafmm_t::clear, "clear target potentials, equivalent charges and check potentials");
 
-  m.def("check_accuracy", &exafmm_t::check_accuracy, "check accuracy");
+  m0.def("check_accuracy", &exafmm_t::check_accuracy, "check accuracy");
 
-  m.def("exafmm_main", &exafmm_t::exafmm_main, "exafmm's main function");
+  m0.def("exafmm_main", &exafmm_t::exafmm_main, "exafmm's main function");
 }

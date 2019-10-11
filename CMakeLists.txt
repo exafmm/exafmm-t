@@ -38,7 +38,7 @@ set (LAPLACE_SOURCES
 )
 
 
-add_executable (fmm_laplace tests/fmm.cpp ${LAPLACE_SOURCES})
+# add_executable (fmm_laplace tests/fmm.cpp ${LAPLACE_SOURCES})
 
 
 include_directories (${PROJECT_SOURCE_DIR}/include)
@@ -53,6 +53,6 @@ else ()
   message (FATAL_ERROR "The compiler does not support OpenMP.")
 endif()
 
-pybind11_add_module(exafmm_laplace python/exafmm_laplace.cpp ${LAPLACE_SOURCES})
-#target_link_libraries (exafmm_laplace PUBLIC "${BLAS_LIBRARIES} ${FFTW_LIBRARIES}")
-target_link_libraries (exafmm_laplace PUBLIC "-lopenblas -llapack -lfftw3")
+pybind11_add_module(exafmm python/exafmm.cpp ${LAPLACE_SOURCES})
+#target_link_libraries (exafmm PUBLIC "${BLAS_LIBRARIES} ${FFTW_LIBRARIES}")
+target_link_libraries (exafmm PUBLIC "-lopenblas -llapack -lfftw3")

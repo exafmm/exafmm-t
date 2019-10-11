@@ -21,7 +21,7 @@ You will see a `pybind11` directory in your repo after this step. Next, let's co
 cd pybind11
 mkdir build
 cd build
-ccmake ..
+cmake ..
 make check -j 4
 ```
 
@@ -38,8 +38,8 @@ Finally, configure and compile the python module:
 
 ```shell
 cmake ..
-make exafmm_laplace
+make exafmm
 ```
 
-If you wish to append additional compiler flags, replace the first line with `cmake -E env CXXFLAGS="your_flags" cmake ..`.
-A shared library file `exafmm_laplace.cpython-37m-x86_64-linux-gnu.so` will be created during compilation. 
+If you wish to append additional compiler flags, replace the first line with `cmake -D CMAKE_CXX_FLAGS="your_flags" ..`.
+A shared library file `exafmm.cpython-37m-x86_64-linux-gnu.so` will be created during compilation. 
