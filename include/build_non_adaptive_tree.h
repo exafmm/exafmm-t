@@ -103,7 +103,7 @@ namespace exafmm_t {
     node->up_equiv.resize(NSURF, 0.);
     node->dn_equiv.resize(NSURF, 0.);
 #endif
-    ivec3 iX = get3DIndex(node->x, node->level);
+    ivec3 iX = get3DIndex(node->x, node->level, X0, R0);
     node->key = getKey(iX, node->level);
 
     // for the ghost (empty) nodes which are not at leaf level
