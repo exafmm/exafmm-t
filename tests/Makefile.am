@@ -33,12 +33,17 @@ list_SOURCES = list.cpp $(COMMON_SRCS)
 list_CPPFLAGS = $(AM_CPPFLAGS)
 
 # full fmm tests
-bin_PROGRAMS += fmm_laplace fmm_helmholtz
-fmm_laplace_SOURCES = fmm.cpp $(LAPLACE_SRCS)
+#bin_PROGRAMS += fmm_laplace fmm_helmholtz
+bin_PROGRAMS += fmm_laplace fmm_laplace_non_adaptive
+fmm_laplace_SOURCES = fmm_laplace.cpp $(LAPLACE_SRCS)
 fmm_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 fmm_laplace_LDADD = $(LIBS_LDADD)
-fmm_helmholtz_SOURCES = fmm.cpp $(HELMHOLTZ_SRCS)
-fmm_helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
-fmm_helmholtz_LDADD = $(LIBS_LDADD)
+
+fmm_laplace_non_adaptive_SOURCES = $(fmm_laplace_SOURCES)
+fmm_laplace_non_adaptive_CPPFLAGS = -DNON_ADAPTIVE $(fmm_laplace_CPPFLAGS)
+fmm_laplace_non_adaptive_LDADD = $(fmm_laplace_LDADD)
+#fmm_helmholtz_SOURCES = fmm.cpp $(HELMHOLTZ_SRCS)
+#fmm_helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
+#fmm_helmholtz_LDADD = $(LIBS_LDADD)
 
 TESTS = $(bin_PROGRAMS)
