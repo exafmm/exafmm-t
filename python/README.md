@@ -24,6 +24,7 @@ cd build
 cmake ..
 make check -j 4
 ```
+Use `cmake -DPYTHON_EXECUTABLE:FILEPATH=<path-to-python-executable> ..` instead of `cmake ..` when `cmake` does not detect the right Python version.
 
 The last line will compile and run the tests. Please refer to [pybind11's documentation](https://pybind11.readthedocs.io/en/stable/basics.html) for details.
 Now, we are ready to compile exafmm-t's python module. Let's go back to the root directory of exafmm-t's repo, create a `build` directory for a out-of-source build:
