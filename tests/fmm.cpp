@@ -6,12 +6,8 @@
 #include "build_list.h"
 #include "config.h"
 #include "dataset.h"
-#if HELMHOLTZ
-#include "helmholtz.h"
-#else
+#include "precompute_laplace.h"
 #include "laplace.h"
-#endif
-#include "traverse.h"
 
 namespace exafmm_t {
   int P;
@@ -42,40 +38,42 @@ int main(int argc, char **argv) {
 
   print_divider("Time");
   start("Total");
-  Bodies sources = init_bodies(args.numBodies, args.distribution, 0, true);
-  Bodies targets = init_bodies(args.numBodies, args.distribution, 5, false);
+  Bodies<real_t> sources = init_sources<real_t>(args.numBodies, args.distribution, 0);
+  Bodies<real_t> targets = init_targets<real_t>(args.numBodies, args.distribution, 5);
 
   start("Build Tree");
   get_bounds(sources, targets, X0, R0);
-  NodePtrs leafs, nonleafs;
+  NodePtrs<real_t> leafs, nonleafs;
 #if NON_ADAPTIVE
   MAXLEVEL = args.maxlevel;   // explicitly define the max level when constructing a full tree
-  Nodes nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs);
+  Nodes<real_t> nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs);
 #else
-  Nodes nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs, args);
+  Nodes<real_t> nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs, args);
   balance_tree(nodes, sources, targets, X0, R0, leafs, nonleafs, args);
 #endif
   stop("Build Tree");
 
   init_rel_coord();
+
   start("Precomputation");
-  precompute();
+  laplace::precompute();
   stop("Precomputation");
+
   start("Build Lists");
   set_colleagues(nodes);
   build_list(nodes);
   stop("Build Lists");
-  M2L_setup(nonleafs);
-  upward_pass(nodes, leafs);
-  downward_pass(nodes, leafs);
+
+  laplace::M2L_setup(nonleafs);
+  laplace::upward_pass(nodes, leafs);
+  laplace::downward_pass(nodes, leafs);
   stop("Total");
 
-  RealVec error = verify(leafs);
-  
+  RealVec error = laplace::verify(leafs);
   print_divider("Error");
   print("Potential Error", error[0]);
   print("Gradient Error", error[1]);
-  
+
   print_divider("Tree");
   print("Root Center x", X0[0]);
   print("Root Center y", X0[1]);

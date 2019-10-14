@@ -5,7 +5,7 @@
 #include "exafmm_t.h"
 #include "geometry.h"
 #include "intrinsics.h"
-#include "precompute_laplace.h"
+#include "timer.h"
 
 extern "C" {
   void sgemv_(char* trans, int* m, int* n, float* alpha, float* a, int* lda, float* x,
@@ -15,6 +15,19 @@ extern "C" {
 }
 
 namespace exafmm_t {
+namespace laplace {
+
+  extern RealVec matrix_UC2E_U, matrix_UC2E_V;
+  extern RealVec matrix_DC2E_U, matrix_DC2E_V;
+  extern std::vector<RealVec> matrix_M2M, matrix_L2L;
+  extern std::vector<AlignedVec> matrix_M2L;
+
+  using Body = Body<real_t>;
+  using Bodies = Bodies<real_t>;
+  using Node = Node<real_t>;
+  using Nodes = Nodes<real_t>;
+  using NodePtrs = NodePtrs<real_t>;
+
   void gemv(int m, int n, real_t* A, real_t* x, real_t* y);
 
   void potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
@@ -50,5 +63,11 @@ namespace exafmm_t {
 
   void M2L(Nodes& nodes);
 
-}//end namespace
+  void upward_pass(Nodes& nodes, NodePtrs& leafs);
+
+  void downward_pass(Nodes& nodes, NodePtrs& leafs);
+
+  RealVec verify(NodePtrs& leafs);
+}  // end namespace laplace
+}  // end namespace exafmm_t
 #endif

@@ -1,6 +1,7 @@
 #include "precompute_laplace.h"
 
 namespace exafmm_t {
+namespace laplace {
   RealVec matrix_UC2E_U, matrix_UC2E_V;
   RealVec matrix_DC2E_U, matrix_DC2E_V;
   std::vector<RealVec> matrix_M2M, matrix_L2L;
@@ -254,4 +255,5 @@ namespace exafmm_t {
       save_matrix();
     }
   }
-}//end namespace
+}  // end namespace laplace
+}  // end namespace exafmm_t

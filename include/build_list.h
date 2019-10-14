@@ -10,13 +10,14 @@ namespace exafmm_t {
    * 
    * @param n Node pointer.
    */
-  void build_list_parent_level(Node* n, bool skip_P2P=false) {
+  template <typename T>
+  void build_list_parent_level(Node<T> * n, bool skip_P2P=false) {
     if (!n->parent) return;
     ivec3 rel_coord;
     int octant = n->octant;
     bool isleaf = n->is_leaf;
     for (int i=0; i<27; i++) {
-      Node* pc = n->parent->colleagues[i];
+      Node<T> * pc = n->parent->colleagues[i];
       if (pc && pc->is_leaf) {
         rel_coord[0]=( i %3)*4-4-(octant & 1?2:0)+1;
         rel_coord[1]=((i/3)%3)*4-4-(octant & 2?2:0)+1;
@@ -44,11 +45,12 @@ namespace exafmm_t {
    * 
    * @param n Node pointer.
    */
-  void build_list_current_level(Node* n, bool skip_P2P=false) {
+  template <typename T>
+  void build_list_current_level(Node<T> * n, bool skip_P2P=false) {
     ivec3 rel_coord;
     bool isleaf = n->is_leaf;
     for (int i=0; i<27; i++) {
-      Node* col = n->colleagues[i];
+      Node<T> * col = n->colleagues[i];
       if(col) {
         rel_coord[0]=( i %3)-1;
         rel_coord[1]=((i/3)%3)-1;
@@ -73,14 +75,15 @@ namespace exafmm_t {
    * 
    * @param n Node pointer.
    */
-  void build_list_child_level(Node* n, bool skip_P2P=false) {
+  template <typename T>
+  void build_list_child_level(Node<T> * n, bool skip_P2P=false) {
     if (!n->is_leaf) return;
     ivec3 rel_coord;
     for(int i=0; i<27; i++) {
-      Node* col = n->colleagues[i];
+      Node<T>* col = n->colleagues[i];
       if(col && !col->is_leaf) {
         for(int j=0; j<NCHILD; j++) {
-          Node* cc = col->children[j];
+          Node<T>* cc = col->children[j];
           rel_coord[0]=( i %3)*4-4+(j & 1?2:0)-1;
           rel_coord[1]=((i/3)%3)*4-4+(j & 2?2:0)-1;
           rel_coord[2]=((i/9)%3)*4-4+(j & 4?2:0)-1;
@@ -109,10 +112,11 @@ namespace exafmm_t {
    * 
    * @param nodes Vector of nodes that represents an octree.
    */
-  void build_list(Nodes& nodes, bool skip_P2P=false) {
+  template <typename T>
+  void build_list(Nodes<T> & nodes, bool skip_P2P=false) {
     #pragma omp parallel for
     for(size_t i=0; i<nodes.size(); i++) {
-      Node* node = &nodes[i];
+      Node<T>* node = &nodes[i];
       node->M2L_list.resize(REL_COORD[M2L_Type].size(), nullptr);
       build_list_parent_level(node, skip_P2P);   // P2P0 & P2L
       build_list_current_level(node, skip_P2P);  // P2P1 & M2L
@@ -130,8 +134,9 @@ namespace exafmm_t {
    * 
    * @param node Node pointer.
    */
-  void set_colleagues(Node* node) {
-    Node *parent, *colleague, *child;
+  template <typename T>
+  void set_colleagues(Node<T> * node) {
+    Node<T> *parent, *colleague, *child;
     node->colleagues.resize(27, nullptr);
     if (node->level==0) {     // root node
       node->colleagues[13] = node;
@@ -174,7 +179,8 @@ namespace exafmm_t {
    * 
    * @param nodes Vector of nodes that represents an octree.
    */
-  void set_colleagues(Nodes& nodes) {
+  template <typename T>
+  void set_colleagues(Nodes<T> & nodes) {
     set_colleagues(&nodes[0]);
   }
 }

@@ -18,6 +18,7 @@ extern "C" {
 }
 
 namespace exafmm_t {
+namespace laplace {
   void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
 
   void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
@@ -37,5 +38,6 @@ namespace exafmm_t {
   void save_matrix();
 
   void precompute();
-}//end namespace
+}  // end namespace laplace
+}  // end namespace exafmm_t
 #endif

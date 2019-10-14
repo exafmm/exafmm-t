@@ -10,8 +10,9 @@ namespace exafmm_t {
    * @param seed Seed of pseudorandom number generator.
    * @return Bodies Vector of bodies.
    */
-  Bodies cube(int numBodies, int seed) {
-    Bodies bodies(numBodies);
+  template <typename T>
+  Bodies<T> cube(int numBodies, int seed) {
+    Bodies<T> bodies(numBodies);
     srand48(seed);
     for (int b=0; b<numBodies; b++) {
       for (int d=0; d<3; d++) {
@@ -28,8 +29,9 @@ namespace exafmm_t {
    * @param seed Seed of pseudorandom number generator.
    * @return Bodies Vector of bodies.
    */
-  Bodies sphere(int numBodies, int seed) {
-    Bodies bodies(numBodies);
+  template <typename T>
+  Bodies<T> sphere(int numBodies, int seed) {
+    Bodies<T> bodies(numBodies);
     srand48(seed);
     for (int b=0; b<numBodies; b++) {
       for (int d=0; d<3; d++) {
@@ -48,8 +50,9 @@ namespace exafmm_t {
    * @param seed Seed of pseudorandom number generator.
    * @return Bodies Vector of bodies.
    */
-  Bodies plummer(int numBodies, int seed) {
-    Bodies bodies(numBodies);
+  template <typename T>
+  Bodies<T> plummer(int numBodies, int seed) {
+    Bodies<T> bodies(numBodies);
     srand48(seed);
     int i = 0;
     int Xmax = 0;
@@ -89,29 +92,40 @@ namespace exafmm_t {
    * @param is_source Whether to generate sources or targets, default to true.
    * @return Bodies Vector of bodies.
    */
-  Bodies init_bodies(int numBodies, const char * distribution, int seed, bool is_source=true) {
-    Bodies bodies;
+  template <typename T>
+  Bodies<T> init_targets(int numBodies, const char* distribution, int seed) {
+    Bodies<T> bodies;
     switch (distribution[0]) {
       case 'c':
-        bodies = cube(numBodies, seed);
+        bodies = cube<T>(numBodies, seed);
         break;
       case 'p':
-        bodies = plummer(numBodies, seed);
+        bodies = plummer<T>(numBodies, seed);
         break;
       case 's':
-        bodies = sphere(numBodies, seed);
+        bodies = sphere<T>(numBodies, seed);
         break;
       default:
         fprintf(stderr, "Unknown data distribution %s\n", distribution);
     }
-    if (is_source) {
-      for (int b=0; b<numBodies; ++b) {
-#if COMPLEX
-        bodies[b].q = complex_t(drand48()-0.5, drand48()-0.5);
-#else
-        bodies[b].q = drand48() - 0.5;
-#endif
-      }
+    return bodies;
+  }
+
+  template <typename T>
+  Bodies<T> init_sources(int numBodies, const char* distribution, int seed) {
+    Bodies<T> bodies = init_targets<T>(numBodies, distribution, seed);
+    for (int b=0; b<numBodies; ++b) {
+      bodies[b].q = drand48() - 0.5;
+    }
+    return bodies;
+  }
+
+  // Template specialization for complex type
+  template <>
+  Bodies<complex_t> init_sources(int numBodies, const char* distribution, int seed) {
+    Bodies<complex_t> bodies = init_targets<complex_t>(numBodies, distribution, seed);
+    for (int b=0; b<numBodies; ++b) {
+      bodies[b].q = complex_t(drand48()-0.5, drand48()-0.5);
     }
     return bodies;
   }

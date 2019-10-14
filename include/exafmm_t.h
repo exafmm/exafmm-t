@@ -1,4 +1,3 @@
-/** @file */ 
 #ifndef exafmm_t_h
 #define exafmm_t_h
 #include <algorithm>
@@ -77,24 +76,20 @@ namespace exafmm_t {
   } Mat_Type;
 
   //! Structure of bodies.
+  template <typename T>
   struct Body {
 #if SORT_BACK
     int ibody;                                  //!< Initial body numbering for sorting back
 #endif
     vec3 X;                                     //!< Coordinates
-#if COMPLEX
-    complex_t q;                                //!< Charge
-    complex_t p;                                //!< Potential
-    cvec3 F;                                    //!< Force
-#else
-    real_t q;                                   //!< Charge
-    real_t p;                                   //!< Potential
-    vec3 F;                                     //!< Force
-#endif
+    T q;                                   //!< Charge
+    T p;                                   //!< Potential
+    vec<3,T> F;                            //!< Force
   };
-  typedef std::vector<Body> Bodies;             //!< Vector of bodies
+  template <typename T> using Bodies = std::vector<Body<T>>;              //!< Vector of nodes
 
   //! Structure of nodes.
+  template <typename T>
   struct Node {
     size_t idx;                                 //!< Index in the octree
     size_t idx_M2L;                             //!< Index in global M2L interaction list
@@ -117,24 +112,18 @@ namespace exafmm_t {
     std::vector<int> isrcs;                     //!< Vector of initial source numbering
     std::vector<int> itrgs;                     //!< Vector of initial target numbering
 #endif
-    
     RealVec src_coord;                          //!< Vector of coordinates of sources in the node
     RealVec trg_coord;                          //!< Vector of coordinates of targets in the node
-#if COMPLEX
-    ComplexVec src_value;
-    ComplexVec trg_value;
-    ComplexVec up_equiv;
-    ComplexVec dn_equiv;
-#else
-    RealVec src_value;                          //!< Vector of charges of sources in the node
-    RealVec trg_value;                          //!< Vector of potentials and gradients of targets in the node
-    RealVec up_equiv;                           //!< Upward check potentials / Upward equivalent densities
-    RealVec dn_equiv;                           //!< Downward check potentials / Downward equivalent densites
-#endif
+    std::vector<T> src_value;                   //!< Vector of charges of sources in the node
+    std::vector<T> trg_value;                   //!< Vector of potentials and gradients of targets in the node
+    std::vector<T> up_equiv;                    //!< Upward check potentials / Upward equivalent densities
+    std::vector<T> dn_equiv;                    //!< Downward check potentials / Downward equivalent densites
   };
-  typedef std::vector<Node> Nodes;              //!< Vector of nodes
-  typedef std::vector<Node*> NodePtrs;          //!< Vector of Node pointers
-  typedef std::vector<std::set<uint64_t>> Keys; //!< Vector of Morton keys of each level
+  
+  // alias template
+  template <typename T> using Nodes = std::vector<Node<T>>;              //!< Vector of nodes
+  template <typename T> using NodePtrs = std::vector<Node<T>*>;          //!< Vector of Node pointers
+  using Keys = std::vector<std::set<uint64_t>>; //!< Vector of Morton keys of each level
 
   //! 
   struct M2LData {
@@ -155,6 +144,7 @@ namespace exafmm_t {
   extern std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
   extern std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
 #else
+  /*
   extern RealVec matrix_UC2E_U;       //!< Upward check to upward equivalent precomputation matrix, first component
   extern RealVec matrix_UC2E_V;       //!< Upward check to upward equivalent precomputation matrix, second component
   extern RealVec matrix_DC2E_U;       //!< Downward check to downward equivalent precomputation matrix, first component
@@ -162,6 +152,7 @@ namespace exafmm_t {
   extern std::vector<RealVec> matrix_M2M;     //!< M2M precomputation matrix
   extern std::vector<RealVec> matrix_L2L;     //!< L2L precomputation matrix
   extern std::vector<AlignedVec> matrix_M2L;  //!< M2L precomputation matrix
+  */
 #endif
 
   extern int P;                               //!< Order of multipole expansion (number of points along each edge of the equivalent/check surface)
