@@ -1,6 +1,7 @@
 #include "precompute_helmholtz.h"
 
 namespace exafmm_t {
+namespace helmholtz {
   std::vector<ComplexVec> matrix_UC2E_U, matrix_UC2E_V;
   std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
   std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
@@ -283,4 +284,5 @@ namespace exafmm_t {
       file.close();
     }
   }
-}//end namespace
+}  // end namespace helmholtz
+}  // end namespace exafmm_t

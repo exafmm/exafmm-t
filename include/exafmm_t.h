@@ -138,30 +138,11 @@ namespace exafmm_t {
   extern std::vector<std::vector<ivec3>> REL_COORD;  //!< Vector of possible relative coordinates (inner) of each interaction type (outer)
   extern std::vector<std::vector<int>> HASH_LUT;     //!< Vector of hash Lookup tables (inner) of relative positions for each interaction type (outer)
 
-  // Precomputation matrices
-#if HELMHOLTZ
-  extern std::vector<ComplexVec> matrix_UC2E_U, matrix_UC2E_V;
-  extern std::vector<ComplexVec> matrix_DC2E_U, matrix_DC2E_V;
-  extern std::vector<std::vector<ComplexVec>> matrix_M2M, matrix_L2L;
-#else
-  /*
-  extern RealVec matrix_UC2E_U;       //!< Upward check to upward equivalent precomputation matrix, first component
-  extern RealVec matrix_UC2E_V;       //!< Upward check to upward equivalent precomputation matrix, second component
-  extern RealVec matrix_DC2E_U;       //!< Downward check to downward equivalent precomputation matrix, first component
-  extern RealVec matrix_DC2E_V;       //!< Downward check to downward equivalent precomputation matrix, second component
-  extern std::vector<RealVec> matrix_M2M;     //!< M2M precomputation matrix
-  extern std::vector<RealVec> matrix_L2L;     //!< L2L precomputation matrix
-  extern std::vector<AlignedVec> matrix_M2L;  //!< M2L precomputation matrix
-  */
-#endif
-
   extern int P;                               //!< Order of multipole expansion (number of points along each edge of the equivalent/check surface)
   extern int NSURF;                           //!< Number of points on equivalent/check surface
   extern int MAXLEVEL;                        //!< Max level of the octree
   extern vec3 X0;                             //!< Coordinates of the center of root node
   extern real_t R0;                           //!< Radius of root node
-#if HELMHOLTZ
   extern real_t WAVEK;                        //!< Wavenumber only for Helmholtz kernel
-#endif
 }
 #endif

@@ -18,6 +18,7 @@ extern "C" {
 }
 
 namespace exafmm_t {
+namespace helmholtz {
   void gemm(int m, int n, int k, complex_t* A, complex_t* B, complex_t* C);
 
   void svd(int m, int n, complex_t* A, real_t* S, complex_t* U, complex_t* VT);
@@ -39,5 +40,6 @@ namespace exafmm_t {
   void save_matrix(std::ofstream& file);
 
   void precompute();
-}//end namespace
+}  // end namespace helmholtz
+}  // end namespace exafmm_t
 #endif
