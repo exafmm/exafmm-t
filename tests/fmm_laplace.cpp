@@ -37,15 +37,24 @@ int main(int argc, char **argv) {
   Bodies<real_t> sources = init_sources<real_t>(args.numBodies, args.distribution, 0);
   Bodies<real_t> targets = init_targets<real_t>(args.numBodies, args.distribution, 5);
 
+  FMM laplaceFMM;
+  laplaceFMM.ncrit = args.ncrit;
+  laplaceFMM.p = args.P;
+  laplaceFMM.nsurf = 6*(laplaceFMM.p-1)*(laplaceFMM.p-1) + 2;
+  laplaceFMM.depth = args.maxlevel;
+
   start("Build Tree");
-  get_bounds(sources, targets, X0, R0);
+  get_bounds(sources, targets, laplaceFMM.x0, laplaceFMM.r0);
+  X0 = laplaceFMM.x0;
+  R0 = laplaceFMM.r0;
   NodePtrs<real_t> leafs, nonleafs;
 #if NON_ADAPTIVE
   MAXLEVEL = args.maxlevel;   // explicitly define the max level when constructing a full tree
-  Nodes<real_t> nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs);
+  Nodes<real_t> nodes = build_tree(sources, targets, leafs, nonleafs, laplaceFMM);
 #else
-  Nodes<real_t> nodes = build_tree(sources, targets, X0, R0, leafs, nonleafs, args);
-  balance_tree(nodes, sources, targets, X0, R0, leafs, nonleafs, args);
+  Nodes<real_t> nodes = build_tree(sources, targets, leafs, nonleafs, laplaceFMM);
+  balance_tree(nodes, sources, targets, leafs, nonleafs, laplaceFMM);
+  MAXLEVEL = laplaceFMM.depth;
 #endif
   stop("Build Tree");
 

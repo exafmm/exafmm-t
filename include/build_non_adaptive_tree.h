@@ -25,7 +25,7 @@ namespace exafmm_t {
       Xmax = max(targets[b].X, Xmax);
     }
     x0 = (Xmax + Xmin) / 2;
-    r0 = fmax(max(X0-Xmin), max(Xmax-X0));
+    r0 = fmax(max(x0-Xmin), max(Xmax-x0));
     r0 *= 1.00001;
   } 
 
@@ -91,19 +91,15 @@ namespace exafmm_t {
   template <typename T>
   void build_tree(Body<T>* sources, int source_begin, int source_end,
                   Body<T>* targets, int target_begin, int target_end,
-                  Node<T>* node, Nodes<T>& nodes, NodePtrs<T>& leafs, NodePtrs<T>& nonleafs) {
+                  Node<T>* node, Nodes<T>& nodes,
+                  NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FMM& fmm) {
     //! Create a tree node
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
     node->nsrcs = source_end - source_begin;
     node->ntrgs = target_end - target_begin;
-#if COMPLEX
-    node->up_equiv.resize(NSURF, complex_t(0.,0.));
-    node->dn_equiv.resize(NSURF, complex_t(0.,0.));
-#else
-    node->up_equiv.resize(NSURF, 0.);
-    node->dn_equiv.resize(NSURF, 0.);
-#endif
-    ivec3 iX = get3DIndex(node->x, node->level, X0, R0);
+    node->up_equiv.resize(fmm.nsurf, (T)(0.));
+    node->dn_equiv.resize(fmm.nsurf, (T)(0.));
+    ivec3 iX = get3DIndex(node->x, node->level, fmm.x0, fmm.r0);
     node->key = getKey(iX, node->level);
 
     // for the ghost (empty) nodes which are not at leaf level
@@ -113,13 +109,9 @@ namespace exafmm_t {
     }
 
     //! If node is a leaf
-    if (node->level == MAXLEVEL) {
+    if (node->level == fmm.depth) {
       node->is_leaf = true;
-#if COMPLEX
-      node->trg_value.resize(node->ntrgs*4, complex_t(0.,0.));   // initialize target result vector
-#else
-      node->trg_value.resize(node->ntrgs*4, 0.);   // initialize target result vector
-#endif
+      node->trg_value.resize(node->ntrgs*4, (T)(0.));   // initialize target result vector
       leafs.push_back(node);
       // Copy sources and targets' coords and values to leafs
       Body<T>* first_source = sources + source_begin;
@@ -174,23 +166,23 @@ namespace exafmm_t {
 #endif
       build_tree(sources, source_offsets[c], source_offsets[c] + source_size[c],
                  targets, target_offsets[c], target_offsets[c] + target_size[c],
-                 &child[c], nodes, leafs, nonleafs);
+                 &child[c], nodes, leafs, nonleafs, fmm);
     }
   }
 
   template <typename T>
-  Nodes<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, vec3 x0,
-                      real_t r0, NodePtrs<T>& leafs, NodePtrs<T>& nonleafs) {
+  Nodes<T> build_tree(Bodies<T>& sources, Bodies<T>& targets,
+                      NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FMM& fmm) {
     Nodes<T> nodes(1);
     nodes[0].parent = nullptr;
     nodes[0].octant = 0;
-    nodes[0].x = x0;
-    nodes[0].r = r0;
+    nodes[0].x = fmm.x0;
+    nodes[0].r = fmm.r0;
     nodes[0].level = 0;
-    nodes.reserve((pow(8,MAXLEVEL+1)-1) / 7);  // reserve for 8^(level+1)/7 nodes
+    nodes.reserve((pow(8, fmm.depth+1)-1) / 7);  // reserve for 8^(level+1)/7 nodes
     build_tree(&sources[0], 0, sources.size(),
                &targets[0], 0, targets.size(),
-               &nodes[0], nodes, leafs, nonleafs);
+               &nodes[0], nodes, leafs, nonleafs, fmm);
     return nodes;
   }
 }
