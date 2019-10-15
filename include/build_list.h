@@ -11,7 +11,7 @@ namespace exafmm_t {
    * @param n Node pointer.
    */
   template <typename T>
-  void build_list_parent_level(Node<T> * n, bool skip_P2P=false) {
+  void build_list_parent_level(Node<T>* n, const FMM& fmm, bool skip_P2P=false) {
     if (!n->parent) return;
     ivec3 rel_coord;
     int octant = n->octant;
@@ -30,7 +30,7 @@ namespace exafmm_t {
         }
         int idx2 = HASH_LUT[P2L_Type][c_hash];
         if (idx2>=0) {
-          if (isleaf && n->ntrgs<=NSURF)
+          if (isleaf && n->ntrgs<=fmm.nsurf)
             n->P2P_list.push_back(pc);
           else
             n->P2L_list.push_back(pc);
@@ -46,7 +46,7 @@ namespace exafmm_t {
    * @param n Node pointer.
    */
   template <typename T>
-  void build_list_current_level(Node<T> * n, bool skip_P2P=false) {
+  void build_list_current_level(Node<T>* n, bool skip_P2P=false) {
     ivec3 rel_coord;
     bool isleaf = n->is_leaf;
     for (int i=0; i<27; i++) {
@@ -76,7 +76,7 @@ namespace exafmm_t {
    * @param n Node pointer.
    */
   template <typename T>
-  void build_list_child_level(Node<T> * n, bool skip_P2P=false) {
+  void build_list_child_level(Node<T>* n, const FMM& fmm, bool skip_P2P=false) {
     if (!n->is_leaf) return;
     ivec3 rel_coord;
     for(int i=0; i<27; i++) {
@@ -97,7 +97,7 @@ namespace exafmm_t {
           // since we currently don't save bodies' information in nonleaf nodes
           // M2P can only be switched to P2P when source is leaf
           if (idx2>=0) {
-            if (cc->is_leaf && cc->nsrcs<=NSURF)
+            if (cc->is_leaf && cc->nsrcs<=fmm.nsurf)
               n->P2P_list.push_back(cc);
             else
               n->M2P_list.push_back(cc);
@@ -113,18 +113,18 @@ namespace exafmm_t {
    * @param nodes Vector of nodes that represents an octree.
    */
   template <typename T>
-  void build_list(Nodes<T> & nodes, bool skip_P2P=false) {
+  void build_list(Nodes<T>& nodes, const FMM& fmm, bool skip_P2P=false) {
     #pragma omp parallel for
     for(size_t i=0; i<nodes.size(); i++) {
       Node<T>* node = &nodes[i];
       node->M2L_list.resize(REL_COORD[M2L_Type].size(), nullptr);
-      build_list_parent_level(node, skip_P2P);   // P2P0 & P2L
+      build_list_parent_level(node, fmm, skip_P2P);   // P2P0 & P2L
       build_list_current_level(node, skip_P2P);  // P2P1 & M2L
 #if NON_ADAPTIVE
       if (node->ntrgs)
-        build_list_child_level(node, skip_P2P);  // P2P2 & M2P
+        build_list_child_level(node, fmm, skip_P2P);  // P2P2 & M2P
 #else
-      build_list_child_level(node, skip_P2P);    // P2P2 & M2P
+      build_list_child_level(node, fmm, skip_P2P);    // P2P2 & M2P
 #endif
     }
   }
@@ -135,7 +135,7 @@ namespace exafmm_t {
    * @param node Node pointer.
    */
   template <typename T>
-  void set_colleagues(Node<T> * node) {
+  void set_colleagues(Node<T>* node) {
     Node<T> *parent, *colleague, *child;
     node->colleagues.resize(27, nullptr);
     if (node->level==0) {     // root node
@@ -149,17 +149,19 @@ namespace exafmm_t {
           for(int j=0; j<8; ++j) {  // loop over parent's colleages child
             child = colleague->children[j];
             if(child) {
-              bool flag=true;
-              int a=1, b=1, new_indx=0;
-              for(int k=0; k<3; ++k) {
-                int indx_diff=(((i/b)%3)-1)*2+((j/a)%2)-((l/a)%2);
-                if(-1>indx_diff || indx_diff>1) flag=false;
-                new_indx+=(indx_diff+1)*b;
-                a*=2;
-                b*=3;
+              bool flag = true;
+              int a = 1;
+              int b = 1;
+              int new_idx = 0;
+              for (int k=0; k<3; ++k) {
+                int idx_diff = (((i/b)%3)-1)*2 + ((j/a)%2) - ((l/a)%2);
+                if (-1>idx_diff || idx_diff>1) flag=false;
+                new_idx += (idx_diff+1)*b;
+                a *= 2;
+                b *= 3;
               }
               if(flag)
-                node->colleagues[new_indx] = child;
+                node->colleagues[new_idx] = child;
             }
           }
         }
@@ -180,7 +182,7 @@ namespace exafmm_t {
    * @param nodes Vector of nodes that represents an octree.
    */
   template <typename T>
-  void set_colleagues(Nodes<T> & nodes) {
+  void set_colleagues(Nodes<T>& nodes) {
     set_colleagues(&nodes[0]);
   }
 }

@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 
   start("Build Lists");
   set_colleagues(nodes);
-  build_list(nodes);
+  build_list(nodes, helmholtz_fmm);
   stop("Build Lists");
 
   helmholtz::M2L_setup(nonleafs);
