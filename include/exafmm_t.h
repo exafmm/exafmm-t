@@ -125,7 +125,7 @@ namespace exafmm_t {
   template <typename T> using NodePtrs = std::vector<Node<T>*>;          //!< Vector of Node pointers
   using Keys = std::vector<std::set<uint64_t>>; //!< Vector of Morton keys of each level
 
-  //! 
+  //! M2L setup data 
   struct M2LData {
     std::vector<size_t> fft_offset;   // source's first child's upward_equiv's displacement
     std::vector<size_t> ifft_offset;  // target's first child's dnward_equiv's displacement
@@ -140,19 +140,14 @@ namespace exafmm_t {
     int ncrit;  // max number of bodies per leaf
     int depth;  // depth of the tree
     real_t r0;  // half of the side length of the bounding box
-    vec3 x0;    // 
+    vec3 x0;    // Coordinates of the center of root box
     std::string filename;  // file name of the precomputation matrices
+    M2LData m2ldata;
+    bool is_precomputed;
   };
 
   // Relative coordinates and interaction lists
   extern std::vector<std::vector<ivec3>> REL_COORD;  //!< Vector of possible relative coordinates (inner) of each interaction type (outer)
   extern std::vector<std::vector<int>> HASH_LUT;     //!< Vector of hash Lookup tables (inner) of relative positions for each interaction type (outer)
-
-  extern int P;                               //!< Order of multipole expansion (number of points along each edge of the equivalent/check surface)
-  extern int NSURF;                           //!< Number of points on equivalent/check surface
-  extern int MAXLEVEL;                        //!< Max level of the octree
-  extern vec3 X0;                             //!< Coordinates of the center of root node
-  extern real_t R0;                           //!< Radius of root node
-  extern real_t WAVEK;                        //!< Wavenumber only for Helmholtz kernel
 }
 #endif
