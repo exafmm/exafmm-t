@@ -81,8 +81,8 @@ namespace helmholtz {
     real_t c[3] = {0, 0, 0};
     for(int level = 0; level <= MAXLEVEL; level++) {
       // caculate matrix_UC2E_U and matrix_UC2E_V
-      RealVec up_check_surf = surface(P, c, 2.95, level);
-      RealVec up_equiv_surf = surface(P, c, 1.05, level);
+      RealVec up_check_surf = surface(P, R0, level, c, 2.95);
+      RealVec up_equiv_surf = surface(P, R0, level, c, 1.05);
       ComplexVec matrix_c2e(NSURF*NSURF);
       kernel_matrix(&up_check_surf[0], NSURF, &up_equiv_surf[0], NSURF, &matrix_c2e[0]);
       RealVec S(NSURF*NSURF);
@@ -115,7 +115,7 @@ namespace helmholtz {
   void precompute_M2M() {
     real_t parent_coord[3] = {0, 0, 0};
     for(int level = 0; level <= MAXLEVEL; level++) {
-      RealVec parent_up_check_surf = surface(P, parent_coord, 2.95, level);
+      RealVec parent_up_check_surf = surface(P, R0, level, parent_coord, 2.95);
       real_t s = R0 * powf(0.5, level+1);
       int num_coords = REL_COORD[M2M_Type].size();
 #pragma omp parallel for
@@ -124,7 +124,7 @@ namespace helmholtz {
         real_t child_coord[3] = {parent_coord[0] + coord[0]*s,
                                  parent_coord[1] + coord[1]*s,
                                  parent_coord[2] + coord[2]*s};
-        RealVec child_up_equiv_surf = surface(P, child_coord, 1.05, level+1);
+        RealVec child_up_equiv_surf = surface(P, R0, level+1, child_coord, 1.05);
         ComplexVec matrix_pc2ce(NSURF*NSURF);
         kernel_matrix(&parent_up_check_surf[0], NSURF, &child_up_equiv_surf[0], NSURF, &matrix_pc2ce[0]);
         // M2M: child's upward_equiv to parent's check
@@ -163,7 +163,7 @@ namespace helmholtz {
         for(int d=0; d<3; d++) {
           coord[d] = REL_COORD[M2L_Helper_Type][i][d] * R0 * powf(0.5, l-1);
         }
-        RealVec conv_coord = convolution_grid(coord, l);   // convolution grid
+        RealVec conv_coord = convolution_grid(P, R0, l, coord);   // convolution grid
         ComplexVec conv_p(n3);   // potentials on convolution grid
         kernel_matrix(conv_coord.data(), n3, trg_coord.data(), 1, conv_p.data());
         fft_execute_dft(plan, reinterpret_cast<fft_complex*>(conv_p.data()),

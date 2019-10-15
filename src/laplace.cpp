@@ -159,7 +159,7 @@ namespace laplace {
     up_check_surf.resize(MAXLEVEL+1);
     for(int level = 0; level <= MAXLEVEL; level++) {
       up_check_surf[level].resize(NSURF*3);
-      up_check_surf[level] = surface(P,c,2.95,level);
+      up_check_surf[level] = surface(P, R0, level, c, 2.95);
     }
     #pragma omp parallel for
     for(size_t i=0; i<leafs.size(); i++) {
@@ -232,7 +232,7 @@ namespace laplace {
     dn_equiv_surf.resize(MAXLEVEL+1);
     for(int level = 0; level <= MAXLEVEL; level++) {
       dn_equiv_surf[level].resize(NSURF*3);
-      dn_equiv_surf[level] = surface(P,c,2.95,level);
+      dn_equiv_surf[level] = surface(P, R0, level, c, 2.95);
     }
     #pragma omp parallel for
     for(size_t i=0; i<leafs.size(); i++) {
@@ -265,7 +265,7 @@ namespace laplace {
     dn_check_surf.resize(MAXLEVEL+1);
     for(int level = 0; level <= MAXLEVEL; level++) {
       dn_check_surf[level].resize(NSURF*3);
-      dn_check_surf[level] = surface(P,c,1.05,level);
+      dn_check_surf[level] = surface(P, R0, level, c, 1.05);
     }
     #pragma omp parallel for
     for(size_t i=0; i<targets.size(); i++) {
@@ -293,7 +293,7 @@ namespace laplace {
     up_equiv_surf.resize(MAXLEVEL+1);
     for(int level = 0; level <= MAXLEVEL; level++) {
       up_equiv_surf[level].resize(NSURF*3);
-      up_equiv_surf[level] = surface(P,c,1.05,level);
+      up_equiv_surf[level] = surface(P, R0, level, c, 1.05,level);
     }
     #pragma omp parallel for
     for(size_t i=0; i<targets.size(); i++) {
@@ -454,7 +454,7 @@ namespace laplace {
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0.5, 0.5, 0.5};
     for(int d=0; d<3; d++) c[d] += 0.5*(P-2);
-    RealVec surf = surface(P, c, (real_t)(P-1), 0, true);
+    RealVec surf = surface(P, R0, 0, c, (real_t)(P-1), true);
     for(size_t i=0; i<map.size(); i++) {
       map[i] = ((size_t)(P-1-surf[i*3]+0.5))
              + ((size_t)(P-1-surf[i*3+1]+0.5)) * n1
@@ -502,7 +502,7 @@ namespace laplace {
     std::vector<size_t> map(NSURF);
     real_t c[3]= {0.5, 0.5, 0.5};
     for(int d=0; d<3; d++) c[d] += 0.5*(P-2);
-    RealVec surf = surface(P, c, (real_t)(P-1), 0, true);
+    RealVec surf = surface(P, R0, 0, c, (real_t)(P-1), true);
     for(size_t i=0; i<map.size(); i++) {
       map[i] = ((size_t)(P*2-0.5-surf[i*3]))
              + ((size_t)(P*2-0.5-surf[i*3+1])) * n1

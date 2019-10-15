@@ -68,8 +68,8 @@ namespace laplace {
     int level = 0;
     real_t c[3] = {0, 0, 0};
     // caculate upwardcheck to equiv U and V
-    RealVec up_check_surf = surface(P, c, 2.95, level);
-    RealVec up_equiv_surf = surface(P, c, 1.05, level);
+    RealVec up_check_surf = surface(P, R0, level, c, 2.95);
+    RealVec up_equiv_surf = surface(P, R0, level, c, 1.05);
     RealVec matrix_c2e(NSURF*NSURF);
     kernel_matrix(&up_check_surf[0], NSURF, &up_equiv_surf[0], NSURF, &matrix_c2e[0]);
     RealVec U(NSURF*NSURF), S(NSURF*NSURF), VT(NSURF*NSURF);
@@ -95,7 +95,7 @@ namespace laplace {
     int numRelCoord = REL_COORD[M2M_Type].size();
     int level = 0;
     real_t parent_coord[3] = {0, 0, 0};
-    RealVec parent_up_check_surf = surface(P, parent_coord, 2.95, level);
+    RealVec parent_up_check_surf = surface(P, R0, level, parent_coord, 2.95);
     real_t s = R0 * powf(0.5, level+1);
 #pragma omp parallel for
     for(int i=0; i<numRelCoord; i++) {
@@ -103,7 +103,7 @@ namespace laplace {
       real_t child_coord[3] = {parent_coord[0] + coord[0]*s,
                                parent_coord[1] + coord[1]*s,
                                parent_coord[2] + coord[2]*s};
-      RealVec child_up_equiv_surf = surface(P, child_coord, 1.05, level+1);
+      RealVec child_up_equiv_surf = surface(P, R0, level+1, child_coord, 1.05);
       RealVec matrix_pc2ce(NSURF*NSURF);
       kernel_matrix(&parent_up_check_surf[0], NSURF, &child_up_equiv_surf[0], NSURF, &matrix_pc2ce[0]);
       // M2M
@@ -140,7 +140,7 @@ namespace laplace {
       for(int d=0; d<3; d++) {
         coord[d] = REL_COORD[M2L_Helper_Type][i][d] * R0 / 0.5;
       }
-      RealVec conv_coord = convolution_grid(coord, 0);   // convolution grid
+      RealVec conv_coord = convolution_grid(P, R0, 0, coord);   // convolution grid
       RealVec conv_p(n3);   // potentials on convolution grid
       kernel_matrix(conv_coord.data(), n3, trg_coord.data(), 1, conv_p.data());
       fft_execute_dft_r2c(plan, conv_p.data(), 
