@@ -142,7 +142,6 @@ namespace exafmm_t {
     real_t r0;  // half of the side length of the bounding box
     vec3 x0;    // Coordinates of the center of root box
     std::string filename;  // file name of the precomputation matrices
-    M2LData m2ldata;
     bool is_precomputed;
   };
 

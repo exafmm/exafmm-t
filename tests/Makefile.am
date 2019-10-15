@@ -2,7 +2,7 @@ include $(top_srcdir)/Makefile.am.include
 
 COMMON_SRCS = ../src/geometry.cpp ../src/timer.cpp
 LAPLACE_SRCS = ../src/laplace.cpp $(COMMON_SRCS)
-HELMHOLTZ_SRCS = ../src/precompute_helmholtz.cpp ../src/helmholtz.cpp $(COMMON_SRCS)
+HELMHOLTZ_SRCS = ../src/helmholtz.cpp $(COMMON_SRCS)
 
 # simd p2p tests
 bin_PROGRAMS = p2p_laplace p2p_helmholtz

@@ -35,6 +35,7 @@ namespace exafmm_t {
     std::vector<RealVec> matrix_M2M;
     std::vector<RealVec> matrix_L2L;
     std::vector<AlignedVec> matrix_M2L;
+    M2LData m2ldata;
 
     void gemv(int m, int n, real_t* A, real_t* x, real_t* y);
     void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);

@@ -7,16 +7,6 @@
 #include "config.h"
 #include "dataset.h"
 #include "laplace.h"
-/*
-namespace exafmm_t {
-  int P;
-  int NSURF;
-  int MAXLEVEL;
-  vec3 X0;
-  real_t R0;
-  real_t WAVEK;
-}
-*/
 
 using namespace exafmm_t;
 
@@ -44,12 +34,10 @@ int main(int argc, char **argv) {
   get_bounds(sources, targets, fmm.x0, fmm.r0);
   NodePtrs<real_t> leafs, nonleafs;
 #if NON_ADAPTIVE
-  //MAXLEVEL = args.maxlevel;   // explicitly define the max level when constructing a full tree
   Nodes<real_t> nodes = build_tree(sources, targets, leafs, nonleafs, fmm);
 #else
   Nodes<real_t> nodes = build_tree(sources, targets, leafs, nonleafs, fmm);
   balance_tree(nodes, sources, targets, leafs, nonleafs, fmm);
-  //MAXLEVEL = fmm.depth;
 #endif
   stop("Build Tree");
 
