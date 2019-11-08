@@ -20,10 +20,10 @@ endif()
 add_subdirectory(pybind11)
 
 # check BLAS and LAPACK
-find_package(BLAS)
-find_package(LAPACK)
-find_package(OpenMP)
-find_package(FFTW)
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
+find_package(OpenMP REQUIRED)
+find_package(FFTW REQUIRED)
 
 # targets
 set (COMMON_SOURCES
@@ -31,15 +31,7 @@ set (COMMON_SOURCES
      src/timer.cpp
 )
 
-set (LAPLACE_SOURCES
-     src/precompute_laplace.cpp
-     src/laplace.cpp
-     ${COMMON_SOURCES}
-)
-
-
 # add_executable (fmm_laplace tests/fmm.cpp ${LAPLACE_SOURCES})
-
 
 include_directories (${PROJECT_SOURCE_DIR}/include)
 
@@ -53,6 +45,8 @@ else ()
   message (FATAL_ERROR "The compiler does not support OpenMP.")
 endif()
 
-pybind11_add_module(exafmm python/exafmm.cpp ${LAPLACE_SOURCES})
-#target_link_libraries (exafmm PUBLIC "${BLAS_LIBRARIES} ${FFTW_LIBRARIES}")
-target_link_libraries (exafmm PUBLIC "-lopenblas -llapack -lfftw3")
+pybind11_add_module(exafmm python/exafmm.cpp ${COMMON_SOURCES} src/laplace.cpp src/helmholtz.cpp)
+#target_link_libraries (exafmm PRIVATE ${BLAS_LIBRARIES}
+#                              PRIVATE ${LAPACK_LIBRARIES}
+#                              PRIVATE ${FFTW_LIBRARIES})
+target_link_libraries (exafmm PRIVATE "-lopenblas -lfftw3 -lfftw3f -llapack")
