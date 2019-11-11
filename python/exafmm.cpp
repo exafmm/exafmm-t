@@ -130,6 +130,13 @@ void build_list(Tree<T>& tree, exafmm_t::FMM& fmm, bool skip_P2P) {
   exafmm_t::build_list<T>(tree.nodes, fmm, skip_P2P);
 }
 
+/**
+ * @brief Evaluate potential and gradient at targets.
+ *
+ * @param tree Octree.
+ * @param fmm FMM instance.
+ * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
+ */
 py::array_t<real_t> evaluate(Tree<real_t>& tree, exafmm_t::LaplaceFMM& fmm) {
   // redirect ostream to python ouptut
   py::scoped_ostream_redirect stream(
@@ -139,20 +146,22 @@ py::array_t<real_t> evaluate(Tree<real_t>& tree, exafmm_t::LaplaceFMM& fmm) {
 
   fmm.upward_pass(tree.nodes, tree.leafs);
   fmm.downward_pass(tree.nodes, tree.leafs);
-  
-  auto potentials = py::array_t<real_t>(tree.nodes[0].ntrgs);
-  py::buffer_info buf = potentials.request();
-  real_t* potential_ = (real_t*) buf.ptr;
+
+  auto trg_value = py::array_t<real_t>({tree.nodes[0].ntrgs, 4});
+  auto r = trg_value.mutable_unchecked<2>();  // access function
 
 #pragma omp parallel for
   for (int i=0; i<tree.leafs.size(); ++i) {
     Node<real_t>* leaf = tree.leafs[i];
     std::vector<int> & itrgs = leaf->itrgs;
     for (int j=0; j<itrgs.size(); ++j) {
-      potential_[itrgs[j]] = leaf->trg_value[4*j+0];
+      r(itrgs[j], 0) = leaf->trg_value[4*j+0];
+      r(itrgs[j], 1) = leaf->trg_value[4*j+1];
+      r(itrgs[j], 2) = leaf->trg_value[4*j+2];
+      r(itrgs[j], 3) = leaf->trg_value[4*j+3];
     }
   }
-  return potentials;
+  return trg_value;
 }
 
 py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFMM& fmm) {
@@ -165,19 +174,21 @@ py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFMM&
   fmm.upward_pass(tree.nodes, tree.leafs);
   fmm.downward_pass(tree.nodes, tree.leafs);
   
-  auto potentials = py::array_t<complex_t>(tree.nodes[0].ntrgs);
-  py::buffer_info buf = potentials.request();
-  complex_t* potential_ = (complex_t*) buf.ptr;
+  auto trg_value = py::array_t<complex_t>({tree.nodes[0].ntrgs, 4});
+  auto r = trg_value.mutable_unchecked<2>();  // access function
 
 #pragma omp parallel for
   for (int i=0; i<tree.leafs.size(); ++i) {
     Node<complex_t>* leaf = tree.leafs[i];
     std::vector<int> & itrgs = leaf->itrgs;
     for (int j=0; j<itrgs.size(); ++j) {
-      potential_[itrgs[j]] = leaf->trg_value[4*j+0];
+      r(itrgs[j], 0) = leaf->trg_value[4*j+0];
+      r(itrgs[j], 1) = leaf->trg_value[4*j+1];
+      r(itrgs[j], 2) = leaf->trg_value[4*j+2];
+      r(itrgs[j], 3) = leaf->trg_value[4*j+3];
     }
   }
-  return potentials;
+  return trg_value;
 }
 
 #if 0
