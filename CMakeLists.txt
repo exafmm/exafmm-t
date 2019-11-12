@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.5)
+cmake_minimum_required (VERSION 3.6)
 project (exafmm-t CXX)
 
 # cmake settings
@@ -31,8 +31,6 @@ set (COMMON_SOURCES
      src/timer.cpp
 )
 
-# add_executable (fmm_laplace tests/fmm.cpp ${LAPLACE_SOURCES})
-
 include_directories (${PROJECT_SOURCE_DIR}/include)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx -DSORT_BACK -DNON_ADAPTIVE")
@@ -46,7 +44,6 @@ else ()
 endif()
 
 pybind11_add_module(exafmm python/exafmm.cpp ${COMMON_SOURCES} src/laplace.cpp src/helmholtz.cpp)
-#target_link_libraries (exafmm PRIVATE ${BLAS_LIBRARIES}
-#                              PRIVATE ${LAPACK_LIBRARIES}
-#                              PRIVATE ${FFTW_LIBRARIES})
-target_link_libraries (exafmm PRIVATE "-lopenblas -lfftw3 -lfftw3f -llapack")
+target_link_libraries (exafmm PRIVATE ${BLAS_LIBRARIES}
+                              PRIVATE ${LAPACK_LIBRARIES}
+                              PRIVATE ${FFTW_LIBRARIES})
