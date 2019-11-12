@@ -92,7 +92,9 @@ bin_PROGRAMS = p2p_laplace$(EXEEXT) p2p_helmholtz$(EXEEXT) \
 	kernel_laplace$(EXEEXT) kernel_helmholtz$(EXEEXT) \
 	tree$(EXEEXT) list$(EXEEXT) fmm_laplace$(EXEEXT) \
 	fmm_laplace_non_adaptive$(EXEEXT) fmm_helmholtz$(EXEEXT) \
-	fmm_helmholtz_non_adaptive$(EXEEXT)
+	fmm_helmholtz_non_adaptive$(EXEEXT) \
+	fmm_modified_helmholtz$(EXEEXT) \
+	fmm_modified_helmholtz_non_adaptive$(EXEEXT)
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_append_compile_flags.m4 \
@@ -162,40 +164,62 @@ am_fmm_laplace_non_adaptive_OBJECTS = $(am__objects_10)
 fmm_laplace_non_adaptive_OBJECTS =  \
 	$(am_fmm_laplace_non_adaptive_OBJECTS)
 fmm_laplace_non_adaptive_DEPENDENCIES = $(am__DEPENDENCIES_3)
-am__objects_11 = ../src/kernel_helmholtz-geometry.$(OBJEXT) \
-	../src/kernel_helmholtz-timer.$(OBJEXT)
-am__objects_12 = ../src/kernel_helmholtz-helmholtz.$(OBJEXT) \
+am__objects_11 = ../src/fmm_modified_helmholtz-geometry.$(OBJEXT) \
+	../src/fmm_modified_helmholtz-timer.$(OBJEXT)
+am__objects_12 =  \
+	../src/fmm_modified_helmholtz-modified_helmholtz.$(OBJEXT) \
 	$(am__objects_11)
-am_kernel_helmholtz_OBJECTS = kernel_helmholtz-kernel.$(OBJEXT) \
+am_fmm_modified_helmholtz_OBJECTS =  \
+	fmm_modified_helmholtz-fmm_modified_helmholtz.$(OBJEXT) \
 	$(am__objects_12)
+fmm_modified_helmholtz_OBJECTS = $(am_fmm_modified_helmholtz_OBJECTS)
+fmm_modified_helmholtz_DEPENDENCIES = $(am__DEPENDENCIES_2)
+am__objects_13 =  \
+	../src/fmm_modified_helmholtz_non_adaptive-geometry.$(OBJEXT) \
+	../src/fmm_modified_helmholtz_non_adaptive-timer.$(OBJEXT)
+am__objects_14 = ../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.$(OBJEXT) \
+	$(am__objects_13)
+am__objects_15 = fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.$(OBJEXT) \
+	$(am__objects_14)
+am_fmm_modified_helmholtz_non_adaptive_OBJECTS = $(am__objects_15)
+fmm_modified_helmholtz_non_adaptive_OBJECTS =  \
+	$(am_fmm_modified_helmholtz_non_adaptive_OBJECTS)
+fmm_modified_helmholtz_non_adaptive_DEPENDENCIES =  \
+	$(am__DEPENDENCIES_3)
+am__objects_16 = ../src/kernel_helmholtz-geometry.$(OBJEXT) \
+	../src/kernel_helmholtz-timer.$(OBJEXT)
+am__objects_17 = ../src/kernel_helmholtz-helmholtz.$(OBJEXT) \
+	$(am__objects_16)
+am_kernel_helmholtz_OBJECTS = kernel_helmholtz-kernel.$(OBJEXT) \
+	$(am__objects_17)
 kernel_helmholtz_OBJECTS = $(am_kernel_helmholtz_OBJECTS)
 kernel_helmholtz_DEPENDENCIES = $(am__DEPENDENCIES_2)
-am__objects_13 = ../src/kernel_laplace-geometry.$(OBJEXT) \
+am__objects_18 = ../src/kernel_laplace-geometry.$(OBJEXT) \
 	../src/kernel_laplace-timer.$(OBJEXT)
-am__objects_14 = ../src/kernel_laplace-laplace.$(OBJEXT) \
-	$(am__objects_13)
+am__objects_19 = ../src/kernel_laplace-laplace.$(OBJEXT) \
+	$(am__objects_18)
 am_kernel_laplace_OBJECTS = kernel_laplace-kernel.$(OBJEXT) \
-	$(am__objects_14)
+	$(am__objects_19)
 kernel_laplace_OBJECTS = $(am_kernel_laplace_OBJECTS)
 kernel_laplace_DEPENDENCIES = $(am__DEPENDENCIES_2)
-am__objects_15 = ../src/list-geometry.$(OBJEXT) \
+am__objects_20 = ../src/list-geometry.$(OBJEXT) \
 	../src/list-timer.$(OBJEXT)
-am_list_OBJECTS = list-list.$(OBJEXT) $(am__objects_15)
+am_list_OBJECTS = list-list.$(OBJEXT) $(am__objects_20)
 list_OBJECTS = $(am_list_OBJECTS)
 list_LDADD = $(LDADD)
-am__objects_16 = ../src/p2p_helmholtz-geometry.$(OBJEXT) \
+am__objects_21 = ../src/p2p_helmholtz-geometry.$(OBJEXT) \
 	../src/p2p_helmholtz-timer.$(OBJEXT)
-am__objects_17 = ../src/p2p_helmholtz-helmholtz.$(OBJEXT) \
-	$(am__objects_16)
+am__objects_22 = ../src/p2p_helmholtz-helmholtz.$(OBJEXT) \
+	$(am__objects_21)
 am_p2p_helmholtz_OBJECTS = p2p_helmholtz-p2p.$(OBJEXT) \
-	$(am__objects_17)
+	$(am__objects_22)
 p2p_helmholtz_OBJECTS = $(am_p2p_helmholtz_OBJECTS)
 p2p_helmholtz_DEPENDENCIES = $(am__DEPENDENCIES_2)
-am__objects_18 = ../src/p2p_laplace-geometry.$(OBJEXT) \
+am__objects_23 = ../src/p2p_laplace-geometry.$(OBJEXT) \
 	../src/p2p_laplace-timer.$(OBJEXT)
-am__objects_19 = ../src/p2p_laplace-laplace.$(OBJEXT) \
-	$(am__objects_18)
-am_p2p_laplace_OBJECTS = p2p_laplace-p2p.$(OBJEXT) $(am__objects_19)
+am__objects_24 = ../src/p2p_laplace-laplace.$(OBJEXT) \
+	$(am__objects_23)
+am_p2p_laplace_OBJECTS = p2p_laplace-p2p.$(OBJEXT) $(am__objects_24)
 p2p_laplace_OBJECTS = $(am_p2p_laplace_OBJECTS)
 p2p_laplace_DEPENDENCIES = $(am__DEPENDENCIES_2)
 am_tree_OBJECTS = tree-tree.$(OBJEXT)
@@ -238,12 +262,16 @@ am__v_CXXLD_1 =
 SOURCES = $(fmm_helmholtz_SOURCES) \
 	$(fmm_helmholtz_non_adaptive_SOURCES) $(fmm_laplace_SOURCES) \
 	$(fmm_laplace_non_adaptive_SOURCES) \
+	$(fmm_modified_helmholtz_SOURCES) \
+	$(fmm_modified_helmholtz_non_adaptive_SOURCES) \
 	$(kernel_helmholtz_SOURCES) $(kernel_laplace_SOURCES) \
 	$(list_SOURCES) $(p2p_helmholtz_SOURCES) \
 	$(p2p_laplace_SOURCES) $(tree_SOURCES)
 DIST_SOURCES = $(fmm_helmholtz_SOURCES) \
 	$(fmm_helmholtz_non_adaptive_SOURCES) $(fmm_laplace_SOURCES) \
 	$(fmm_laplace_non_adaptive_SOURCES) \
+	$(fmm_modified_helmholtz_SOURCES) \
+	$(fmm_modified_helmholtz_non_adaptive_SOURCES) \
 	$(kernel_helmholtz_SOURCES) $(kernel_laplace_SOURCES) \
 	$(list_SOURCES) $(p2p_helmholtz_SOURCES) \
 	$(p2p_laplace_SOURCES) $(tree_SOURCES)
@@ -640,6 +668,7 @@ LIBS_LDADD = $(BLAS_LIBS) $(LAPACK_LIBS) $(FFTW_LIBS)
 COMMON_SRCS = ../src/geometry.cpp ../src/timer.cpp
 LAPLACE_SRCS = ../src/laplace.cpp $(COMMON_SRCS)
 HELMHOLTZ_SRCS = ../src/helmholtz.cpp $(COMMON_SRCS)
+MODIFIED_HELMHOLTZ_SRCS = ../src/modified_helmholtz.cpp $(COMMON_SRCS)
 p2p_laplace_SOURCES = p2p.cpp $(LAPLACE_SRCS) 
 p2p_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 p2p_laplace_LDADD = $(LIBS_LDADD)
@@ -668,6 +697,12 @@ fmm_helmholtz_LDADD = $(LIBS_LDADD)
 fmm_helmholtz_non_adaptive_SOURCES = $(fmm_helmholtz_SOURCES)
 fmm_helmholtz_non_adaptive_CPPFLAGS = -DNON_ADAPTIVE $(fmm_helmholtz_CPPFLAGS)
 fmm_helmholtz_non_adaptive_LDADD = $(fmm_helmholtz_LDADD)
+fmm_modified_helmholtz_SOURCES = fmm_modified_helmholtz.cpp $(MODIFIED_HELMHOLTZ_SRCS)
+fmm_modified_helmholtz_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+fmm_modified_helmholtz_LDADD = $(LIBS_LDADD)
+fmm_modified_helmholtz_non_adaptive_SOURCES = $(fmm_modified_helmholtz_SOURCES)
+fmm_modified_helmholtz_non_adaptive_CPPFLAGS = -DNON_ADAPTIVE $(fmm_modified_helmholtz_CPPFLAGS)
+fmm_modified_helmholtz_non_adaptive_LDADD = $(fmm_modified_helmholtz_LDADD)
 TESTS = $(bin_PROGRAMS)
 all: all-am
 
@@ -798,6 +833,26 @@ fmm_laplace$(EXEEXT): $(fmm_laplace_OBJECTS) $(fmm_laplace_DEPENDENCIES) $(EXTRA
 fmm_laplace_non_adaptive$(EXEEXT): $(fmm_laplace_non_adaptive_OBJECTS) $(fmm_laplace_non_adaptive_DEPENDENCIES) $(EXTRA_fmm_laplace_non_adaptive_DEPENDENCIES) 
 	@rm -f fmm_laplace_non_adaptive$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(fmm_laplace_non_adaptive_OBJECTS) $(fmm_laplace_non_adaptive_LDADD) $(LIBS)
+../src/fmm_modified_helmholtz-modified_helmholtz.$(OBJEXT):  \
+	../src/$(am__dirstamp) ../src/$(DEPDIR)/$(am__dirstamp)
+../src/fmm_modified_helmholtz-geometry.$(OBJEXT):  \
+	../src/$(am__dirstamp) ../src/$(DEPDIR)/$(am__dirstamp)
+../src/fmm_modified_helmholtz-timer.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
+
+fmm_modified_helmholtz$(EXEEXT): $(fmm_modified_helmholtz_OBJECTS) $(fmm_modified_helmholtz_DEPENDENCIES) $(EXTRA_fmm_modified_helmholtz_DEPENDENCIES) 
+	@rm -f fmm_modified_helmholtz$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(fmm_modified_helmholtz_OBJECTS) $(fmm_modified_helmholtz_LDADD) $(LIBS)
+../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.$(OBJEXT):  \
+	../src/$(am__dirstamp) ../src/$(DEPDIR)/$(am__dirstamp)
+../src/fmm_modified_helmholtz_non_adaptive-geometry.$(OBJEXT):  \
+	../src/$(am__dirstamp) ../src/$(DEPDIR)/$(am__dirstamp)
+../src/fmm_modified_helmholtz_non_adaptive-timer.$(OBJEXT):  \
+	../src/$(am__dirstamp) ../src/$(DEPDIR)/$(am__dirstamp)
+
+fmm_modified_helmholtz_non_adaptive$(EXEEXT): $(fmm_modified_helmholtz_non_adaptive_OBJECTS) $(fmm_modified_helmholtz_non_adaptive_DEPENDENCIES) $(EXTRA_fmm_modified_helmholtz_non_adaptive_DEPENDENCIES) 
+	@rm -f fmm_modified_helmholtz_non_adaptive$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(fmm_modified_helmholtz_non_adaptive_OBJECTS) $(fmm_modified_helmholtz_non_adaptive_LDADD) $(LIBS)
 ../src/kernel_helmholtz-helmholtz.$(OBJEXT): ../src/$(am__dirstamp) \
 	../src/$(DEPDIR)/$(am__dirstamp)
 ../src/kernel_helmholtz-geometry.$(OBJEXT): ../src/$(am__dirstamp) \
@@ -870,6 +925,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_laplace_non_adaptive-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_laplace_non_adaptive-laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_laplace_non_adaptive-timer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_modified_helmholtz-geometry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_modified_helmholtz-modified_helmholtz.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_modified_helmholtz-timer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-geometry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-timer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_helmholtz-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_helmholtz-helmholtz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_helmholtz-timer.Po@am__quote@
@@ -888,6 +949,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmm_helmholtz_non_adaptive-fmm_helmholtz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmm_laplace-fmm_laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmm_laplace_non_adaptive-fmm_laplace.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmm_modified_helmholtz-fmm_modified_helmholtz.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kernel_helmholtz-kernel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kernel_laplace-kernel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list-list.Po@am__quote@
@@ -1142,6 +1205,118 @@ fmm_laplace_non_adaptive-fmm_laplace.obj: fmm_laplace.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/timer.cpp' object='../src/fmm_laplace_non_adaptive-timer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_laplace_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_laplace_non_adaptive-timer.obj `if test -f '../src/timer.cpp'; then $(CYGPATH_W) '../src/timer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/timer.cpp'; fi`
+
+fmm_modified_helmholtz-fmm_modified_helmholtz.o: fmm_modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fmm_modified_helmholtz-fmm_modified_helmholtz.o -MD -MP -MF $(DEPDIR)/fmm_modified_helmholtz-fmm_modified_helmholtz.Tpo -c -o fmm_modified_helmholtz-fmm_modified_helmholtz.o `test -f 'fmm_modified_helmholtz.cpp' || echo '$(srcdir)/'`fmm_modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fmm_modified_helmholtz-fmm_modified_helmholtz.Tpo $(DEPDIR)/fmm_modified_helmholtz-fmm_modified_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fmm_modified_helmholtz.cpp' object='fmm_modified_helmholtz-fmm_modified_helmholtz.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fmm_modified_helmholtz-fmm_modified_helmholtz.o `test -f 'fmm_modified_helmholtz.cpp' || echo '$(srcdir)/'`fmm_modified_helmholtz.cpp
+
+fmm_modified_helmholtz-fmm_modified_helmholtz.obj: fmm_modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fmm_modified_helmholtz-fmm_modified_helmholtz.obj -MD -MP -MF $(DEPDIR)/fmm_modified_helmholtz-fmm_modified_helmholtz.Tpo -c -o fmm_modified_helmholtz-fmm_modified_helmholtz.obj `if test -f 'fmm_modified_helmholtz.cpp'; then $(CYGPATH_W) 'fmm_modified_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/fmm_modified_helmholtz.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fmm_modified_helmholtz-fmm_modified_helmholtz.Tpo $(DEPDIR)/fmm_modified_helmholtz-fmm_modified_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fmm_modified_helmholtz.cpp' object='fmm_modified_helmholtz-fmm_modified_helmholtz.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fmm_modified_helmholtz-fmm_modified_helmholtz.obj `if test -f 'fmm_modified_helmholtz.cpp'; then $(CYGPATH_W) 'fmm_modified_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/fmm_modified_helmholtz.cpp'; fi`
+
+../src/fmm_modified_helmholtz-modified_helmholtz.o: ../src/modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz-modified_helmholtz.o -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz-modified_helmholtz.Tpo -c -o ../src/fmm_modified_helmholtz-modified_helmholtz.o `test -f '../src/modified_helmholtz.cpp' || echo '$(srcdir)/'`../src/modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz-modified_helmholtz.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz-modified_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/modified_helmholtz.cpp' object='../src/fmm_modified_helmholtz-modified_helmholtz.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz-modified_helmholtz.o `test -f '../src/modified_helmholtz.cpp' || echo '$(srcdir)/'`../src/modified_helmholtz.cpp
+
+../src/fmm_modified_helmholtz-modified_helmholtz.obj: ../src/modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz-modified_helmholtz.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz-modified_helmholtz.Tpo -c -o ../src/fmm_modified_helmholtz-modified_helmholtz.obj `if test -f '../src/modified_helmholtz.cpp'; then $(CYGPATH_W) '../src/modified_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/modified_helmholtz.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz-modified_helmholtz.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz-modified_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/modified_helmholtz.cpp' object='../src/fmm_modified_helmholtz-modified_helmholtz.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz-modified_helmholtz.obj `if test -f '../src/modified_helmholtz.cpp'; then $(CYGPATH_W) '../src/modified_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/modified_helmholtz.cpp'; fi`
+
+../src/fmm_modified_helmholtz-geometry.o: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz-geometry.o -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz-geometry.Tpo -c -o ../src/fmm_modified_helmholtz-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz-geometry.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/fmm_modified_helmholtz-geometry.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+
+../src/fmm_modified_helmholtz-geometry.obj: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz-geometry.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz-geometry.Tpo -c -o ../src/fmm_modified_helmholtz-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz-geometry.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/fmm_modified_helmholtz-geometry.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+
+../src/fmm_modified_helmholtz-timer.o: ../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz-timer.o -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz-timer.Tpo -c -o ../src/fmm_modified_helmholtz-timer.o `test -f '../src/timer.cpp' || echo '$(srcdir)/'`../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz-timer.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz-timer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/timer.cpp' object='../src/fmm_modified_helmholtz-timer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz-timer.o `test -f '../src/timer.cpp' || echo '$(srcdir)/'`../src/timer.cpp
+
+../src/fmm_modified_helmholtz-timer.obj: ../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz-timer.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz-timer.Tpo -c -o ../src/fmm_modified_helmholtz-timer.obj `if test -f '../src/timer.cpp'; then $(CYGPATH_W) '../src/timer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/timer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz-timer.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz-timer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/timer.cpp' object='../src/fmm_modified_helmholtz-timer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz-timer.obj `if test -f '../src/timer.cpp'; then $(CYGPATH_W) '../src/timer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/timer.cpp'; fi`
+
+fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.o: fmm_modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.o -MD -MP -MF $(DEPDIR)/fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.Tpo -c -o fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.o `test -f 'fmm_modified_helmholtz.cpp' || echo '$(srcdir)/'`fmm_modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.Tpo $(DEPDIR)/fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fmm_modified_helmholtz.cpp' object='fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.o `test -f 'fmm_modified_helmholtz.cpp' || echo '$(srcdir)/'`fmm_modified_helmholtz.cpp
+
+fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.obj: fmm_modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.obj -MD -MP -MF $(DEPDIR)/fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.Tpo -c -o fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.obj `if test -f 'fmm_modified_helmholtz.cpp'; then $(CYGPATH_W) 'fmm_modified_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/fmm_modified_helmholtz.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.Tpo $(DEPDIR)/fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fmm_modified_helmholtz.cpp' object='fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o fmm_modified_helmholtz_non_adaptive-fmm_modified_helmholtz.obj `if test -f 'fmm_modified_helmholtz.cpp'; then $(CYGPATH_W) 'fmm_modified_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/fmm_modified_helmholtz.cpp'; fi`
+
+../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.o: ../src/modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.o -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.Tpo -c -o ../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.o `test -f '../src/modified_helmholtz.cpp' || echo '$(srcdir)/'`../src/modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/modified_helmholtz.cpp' object='../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.o `test -f '../src/modified_helmholtz.cpp' || echo '$(srcdir)/'`../src/modified_helmholtz.cpp
+
+../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.obj: ../src/modified_helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.Tpo -c -o ../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.obj `if test -f '../src/modified_helmholtz.cpp'; then $(CYGPATH_W) '../src/modified_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/modified_helmholtz.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/modified_helmholtz.cpp' object='../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz_non_adaptive-modified_helmholtz.obj `if test -f '../src/modified_helmholtz.cpp'; then $(CYGPATH_W) '../src/modified_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/modified_helmholtz.cpp'; fi`
+
+../src/fmm_modified_helmholtz_non_adaptive-geometry.o: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz_non_adaptive-geometry.o -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-geometry.Tpo -c -o ../src/fmm_modified_helmholtz_non_adaptive-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-geometry.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/fmm_modified_helmholtz_non_adaptive-geometry.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz_non_adaptive-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+
+../src/fmm_modified_helmholtz_non_adaptive-geometry.obj: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz_non_adaptive-geometry.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-geometry.Tpo -c -o ../src/fmm_modified_helmholtz_non_adaptive-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-geometry.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/fmm_modified_helmholtz_non_adaptive-geometry.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz_non_adaptive-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+
+../src/fmm_modified_helmholtz_non_adaptive-timer.o: ../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz_non_adaptive-timer.o -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-timer.Tpo -c -o ../src/fmm_modified_helmholtz_non_adaptive-timer.o `test -f '../src/timer.cpp' || echo '$(srcdir)/'`../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-timer.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-timer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/timer.cpp' object='../src/fmm_modified_helmholtz_non_adaptive-timer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz_non_adaptive-timer.o `test -f '../src/timer.cpp' || echo '$(srcdir)/'`../src/timer.cpp
+
+../src/fmm_modified_helmholtz_non_adaptive-timer.obj: ../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/fmm_modified_helmholtz_non_adaptive-timer.obj -MD -MP -MF ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-timer.Tpo -c -o ../src/fmm_modified_helmholtz_non_adaptive-timer.obj `if test -f '../src/timer.cpp'; then $(CYGPATH_W) '../src/timer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/timer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-timer.Tpo ../src/$(DEPDIR)/fmm_modified_helmholtz_non_adaptive-timer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/timer.cpp' object='../src/fmm_modified_helmholtz_non_adaptive-timer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(fmm_modified_helmholtz_non_adaptive_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/fmm_modified_helmholtz_non_adaptive-timer.obj `if test -f '../src/timer.cpp'; then $(CYGPATH_W) '../src/timer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/timer.cpp'; fi`
 
 kernel_helmholtz-kernel.o: kernel.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT kernel_helmholtz-kernel.o -MD -MP -MF $(DEPDIR)/kernel_helmholtz-kernel.Tpo -c -o kernel_helmholtz-kernel.o `test -f 'kernel.cpp' || echo '$(srcdir)/'`kernel.cpp
@@ -1688,6 +1863,20 @@ fmm_helmholtz.log: fmm_helmholtz$(EXEEXT)
 fmm_helmholtz_non_adaptive.log: fmm_helmholtz_non_adaptive$(EXEEXT)
 	@p='fmm_helmholtz_non_adaptive$(EXEEXT)'; \
 	b='fmm_helmholtz_non_adaptive'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+fmm_modified_helmholtz.log: fmm_modified_helmholtz$(EXEEXT)
+	@p='fmm_modified_helmholtz$(EXEEXT)'; \
+	b='fmm_modified_helmholtz'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+fmm_modified_helmholtz_non_adaptive.log: fmm_modified_helmholtz_non_adaptive$(EXEEXT)
+	@p='fmm_modified_helmholtz_non_adaptive$(EXEEXT)'; \
+	b='fmm_modified_helmholtz_non_adaptive'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

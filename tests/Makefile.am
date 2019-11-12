@@ -3,6 +3,7 @@ include $(top_srcdir)/Makefile.am.include
 COMMON_SRCS = ../src/geometry.cpp ../src/timer.cpp
 LAPLACE_SRCS = ../src/laplace.cpp $(COMMON_SRCS)
 HELMHOLTZ_SRCS = ../src/helmholtz.cpp $(COMMON_SRCS)
+MODIFIED_HELMHOLTZ_SRCS = ../src/modified_helmholtz.cpp $(COMMON_SRCS)
 
 # simd p2p tests
 bin_PROGRAMS = p2p_laplace p2p_helmholtz
@@ -50,5 +51,14 @@ fmm_helmholtz_LDADD = $(LIBS_LDADD)
 fmm_helmholtz_non_adaptive_SOURCES = $(fmm_helmholtz_SOURCES)
 fmm_helmholtz_non_adaptive_CPPFLAGS = -DNON_ADAPTIVE $(fmm_helmholtz_CPPFLAGS)
 fmm_helmholtz_non_adaptive_LDADD = $(fmm_helmholtz_LDADD)
+
+bin_PROGRAMS += fmm_modified_helmholtz fmm_modified_helmholtz_non_adaptive
+fmm_modified_helmholtz_SOURCES = fmm_modified_helmholtz.cpp $(MODIFIED_HELMHOLTZ_SRCS)
+fmm_modified_helmholtz_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+fmm_modified_helmholtz_LDADD = $(LIBS_LDADD)
+
+fmm_modified_helmholtz_non_adaptive_SOURCES = $(fmm_modified_helmholtz_SOURCES)
+fmm_modified_helmholtz_non_adaptive_CPPFLAGS = -DNON_ADAPTIVE $(fmm_modified_helmholtz_CPPFLAGS)
+fmm_modified_helmholtz_non_adaptive_LDADD = $(fmm_modified_helmholtz_LDADD)
 
 TESTS = $(bin_PROGRAMS)
