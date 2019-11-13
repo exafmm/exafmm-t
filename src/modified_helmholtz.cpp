@@ -56,4 +56,37 @@ namespace exafmm_t {
     }
     return temp;
   }
+
+  void ModifiedHelmholtzFMM::potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+    int nsrcs = src_coord.size() / 3;
+    int ntrgs = trg_coord.size() / 3;
+    for (int i=0; i<ntrgs; ++i) {
+      vec3 x_trg;
+      for (int d=0; d<3; ++d)
+        x_trg[d] = trg_coord[3*i+d];
+      for (int j=0; j<nsrcs; ++j) {
+        vec3 x_src;
+        for (int d=0; d<3; ++d)
+          x_src[d] = src_coord[3*j+d];
+        vec3 dx = x_src - x_trg;
+        real_t r = std::sqrt(norm(dx));
+        if (r>0)
+          trg_value[i] += std::exp(-wavek*r) / r;
+      }
+      trg_value[i] /= 4*PI;
+    }
+  }
+
+  //! P2P save pairwise contributions to k_out (not aggregate over each target)
+  void ModifiedHelmholtzFMM::kernel_matrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) {
+    RealVec src_value(1, 1.);
+    RealVec trg_coord(r_trg, r_trg+3*trg_cnt);
+    #pragma omp parallel for
+    for(int i=0; i<src_cnt; i++) {
+      RealVec src_coord(r_src+3*i, r_src+3*(i+1));
+      RealVec trg_value(trg_cnt, 0.);
+      potential_P2P(src_coord, src_value, trg_coord, trg_value);
+      std::copy(trg_value.begin(), trg_value.end(), &k_out[i*trg_cnt]);
+    }
+  }
 }  // end namespace exafmm_t

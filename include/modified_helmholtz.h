@@ -43,6 +43,9 @@ namespace exafmm_t {
     void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
     RealVec transpose(RealVec& vec, int m, int n);
 
+    void potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
+
+    void kernel_matrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
   };
 }  // end namespace exafmm_t
 #endif

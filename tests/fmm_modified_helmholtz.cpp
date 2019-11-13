@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
   fmm.nsurf = 6*(fmm.p-1)*(fmm.p-1) + 2;
   fmm.depth = args.maxlevel;
   fmm.wavek = args.k;
-/*
+
   start("Build Tree");
   get_bounds(sources, targets, fmm.x0, fmm.r0);
   NodePtrs<real_t> leafs, nonleafs;
@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
   build_list(nodes, fmm);
   stop("Build Lists");
 
+/*
   start("Precomputation");
   fmm.precompute();
   stop("Precomputation");
