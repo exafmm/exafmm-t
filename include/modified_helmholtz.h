@@ -48,6 +48,20 @@ namespace exafmm_t {
     void gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
 
     void kernel_matrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
+
+    void initialize_matrix();
+
+    void precompute_check2equiv();
+
+    void precompute_M2M();
+
+    void precompute_M2L(std::ofstream& file, std::vector<std::vector<int>>& parent2child);
+
+    bool load_matrix();
+
+    void save_matrix(std::ofstream& file);
+
+    void precompute();
   };
 }  // end namespace exafmm_t
 #endif

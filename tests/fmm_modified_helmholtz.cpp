@@ -49,11 +49,11 @@ int main(int argc, char **argv) {
   build_list(nodes, fmm);
   stop("Build Lists");
 
-/*
   start("Precomputation");
   fmm.precompute();
   stop("Precomputation");
 
+/*
   fmm.M2L_setup(nonleafs);
   fmm.upward_pass(nodes, leafs);
   fmm.downward_pass(nodes, leafs);
