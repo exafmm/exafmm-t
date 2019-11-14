@@ -16,11 +16,11 @@ p2p_helmholtz_LDADD = $(LIBS_LDADD)
 
 # kernel tests
 bin_PROGRAMS += kernel_laplace kernel_helmholtz
-kernel_laplace_SOURCES = kernel.cpp $(LAPLACE_SRCS)
+kernel_laplace_SOURCES = kernel_laplace.cpp $(LAPLACE_SRCS)
 kernel_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 kernel_laplace_LDADD = $(LIBS_LDADD)
-kernel_helmholtz_SOURCES = kernel.cpp $(HELMHOLTZ_SRCS)
-kernel_helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
+kernel_helmholtz_SOURCES = kernel_helmholtz.cpp $(HELMHOLTZ_SRCS)
+kernel_helmholtz_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 kernel_helmholtz_LDADD = $(LIBS_LDADD)
 
 # tree tests
