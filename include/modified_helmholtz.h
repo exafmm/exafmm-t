@@ -62,6 +62,37 @@ namespace exafmm_t {
     void save_matrix(std::ofstream& file);
 
     void precompute();
+    
+    void P2M(NodePtrs_t& leafs);
+
+    void M2M(Node_t* node);
+
+    void L2L(Node_t* node);
+
+    void L2P(NodePtrs_t& leafs);
+
+    void P2L(Nodes_t& nodes);
+
+    void M2P(NodePtrs_t& leafs);
+
+    void P2P(NodePtrs_t& leafs);
+
+    void M2L_setup(NodePtrs_t& nonleafs);
+
+    void hadamard_product(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
+                         AlignedVec& fft_in, AlignedVec& fft_out, std::vector<AlignedVec>& matrix_M2L);
+
+    void fft_up_equiv(std::vector<size_t>& fft_vec, RealVec& all_up_equiv, AlignedVec& fft_in);
+
+    void ifft_dn_check(std::vector<size_t>& ifft_vec, AlignedVec& fft_out, RealVec& all_dn_equiv);
+
+    void M2L(Nodes_t& nodes);
+
+    void upward_pass(Nodes_t& nodes, NodePtrs_t& leafs);
+
+    void downward_pass(Nodes_t& nodes, NodePtrs_t& leafs);
+
+    RealVec verify(NodePtrs_t& leafs);
   };
 }  // end namespace exafmm_t
 #endif
