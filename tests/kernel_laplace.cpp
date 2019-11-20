@@ -112,9 +112,21 @@ int main(int argc, char **argv) {
   nonleafs.push_back(target->parent->parent);
   fmm.M2L_setup(nonleafs);
   fmm.M2L(nodes);
+#if DEBUG
+  std::cout << "lvl 2 target node's downward check potentials" << std::endl;
+  for(int i=0; i<fmm.nsurf; ++i) {
+    std::cout << i << " " << target->parent->dn_equiv[i] << std::endl;
+  }
+#endif
 
   // L2L
   fmm.L2L(root);
+#if DEBUG
+  std::cout << "lvl 3 target node's downward check potentials" << std::endl;
+  for(int i=0; i<fmm.nsurf; ++i) {
+    std::cout << i << " " << target->dn_equiv[i] << std::endl;
+  }
+#endif
 
   // L2P
   leafs.clear();

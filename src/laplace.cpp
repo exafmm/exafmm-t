@@ -606,7 +606,7 @@ namespace exafmm_t {
     std::vector<size_t> interaction_offset_f;
     std::vector<size_t> interaction_count_offset;
     for(size_t i=0; i<nodes_in.size(); i++) {
-     nodes_in[i]->idx_M2L=i;
+     nodes_in[i]->idx_M2L = i;
     }
     size_t n_blk1 = nodes_out.size() * sizeof(real_t) / CACHE_SIZE;
     if(n_blk1==0) n_blk1 = 1;
@@ -777,7 +777,7 @@ namespace exafmm_t {
       for(int k=0; k<nsurf; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<NCHILD; j0++)
-          dn_equiv[nsurf*j0+k]+=buffer1[idx+j0*n3]*ifft_scal[node_idx];
+          dn_equiv[nsurf*j0+k] += buffer1[idx+j0*n3] * ifft_scal[node_idx];
       }
     }
     fft_destroy_plan(m2l_list_ifftplan);
@@ -883,6 +883,7 @@ namespace exafmm_t {
     RealVec rel_error(2);
     rel_error[0] = sqrt(p_diff/p_norm);   // potential error
     rel_error[1] = sqrt(F_diff/F_norm);   // gradient error
+
     return rel_error;
   }
 }  // end namespace exafmm_t
