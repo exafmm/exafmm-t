@@ -55,6 +55,13 @@ int main(int argc, char **argv) {
   fmm.M2L_setup(nonleafs);
   fmm.upward_pass(nodes, leafs);
   fmm.downward_pass(nodes, leafs);
+
+#if DEBUG /* check downward check potential at leaf level*/
+  for (auto dn_check : leafs[0]->dn_equiv) {
+    std::cout << dn_check << std::endl;
+  }
+#endif
+
   stop("Total");
 
   RealVec error = fmm.verify(leafs);

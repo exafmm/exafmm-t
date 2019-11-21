@@ -53,10 +53,16 @@ int main(int argc, char **argv) {
   fmm.precompute();
   stop("Precomputation");
 
-/*
   fmm.M2L_setup(nonleafs);
   fmm.upward_pass(nodes, leafs);
   fmm.downward_pass(nodes, leafs);
+
+#if DEBUG /* check downward check potential at leaf level*/
+  for (auto dn_check : leafs[0]->dn_equiv) {
+    std::cout << dn_check << std::endl;
+  }
+#endif
+
   stop("Total");
 
   RealVec error = fmm.verify(leafs);
@@ -71,7 +77,6 @@ int main(int argc, char **argv) {
   print("Root Radius R", fmm.r0);
   print("Tree Depth", fmm.depth);
   print("Leaf Nodes", leafs.size());
-  print("Helmholtz kD", 2*fmm.r0*fmm.wavek);
-*/
+
   return 0;
 }
