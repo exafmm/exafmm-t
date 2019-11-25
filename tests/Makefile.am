@@ -5,14 +5,16 @@ LAPLACE_SRCS = ../src/laplace.cpp $(COMMON_SRCS)
 HELMHOLTZ_SRCS = ../src/helmholtz.cpp $(COMMON_SRCS)
 MODIFIED_HELMHOLTZ_SRCS = ../src/modified_helmholtz.cpp $(COMMON_SRCS)
 
+bin_PROGRAMS = 
+
 # simd p2p tests
-bin_PROGRAMS = p2p_laplace p2p_helmholtz
-p2p_laplace_SOURCES = p2p.cpp $(LAPLACE_SRCS) 
-p2p_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
-p2p_laplace_LDADD = $(LIBS_LDADD)
-p2p_helmholtz_SOURCES = p2p.cpp $(HELMHOLTZ_SRCS) 
-p2p_helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
-p2p_helmholtz_LDADD = $(LIBS_LDADD)
+#bin_PROGRAMS = p2p_laplace p2p_helmholtz
+#p2p_laplace_SOURCES = p2p.cpp $(LAPLACE_SRCS) 
+#p2p_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+#p2p_laplace_LDADD = $(LIBS_LDADD)
+#p2p_helmholtz_SOURCES = p2p.cpp $(HELMHOLTZ_SRCS) 
+#p2p_helmholtz_CPPFLAGS = -DCOMPLEX -DHELMHOLTZ $(PRECISION) $(AM_CPPFLAGS)
+#p2p_helmholtz_LDADD = $(LIBS_LDADD)
 
 # kernel tests
 bin_PROGRAMS += kernel_laplace kernel_helmholtz kernel_modified_helmholtz

@@ -1,1 +1,1 @@
-SUBDIRS = tests wrappers
+SUBDIRS = tests
