@@ -3,7 +3,7 @@
 AC_PREREQ([2.69])
 AC_INIT([exaFMM-t], [1.0], [twang66@gwu.edu])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile tests/Makefile wrappers/Makefile wrappers/bempp/Makefile])
+AC_CONFIG_FILES([Makefile tests/Makefile])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 
