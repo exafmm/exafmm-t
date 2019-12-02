@@ -8,7 +8,10 @@ namespace exafmm_t {
    * @brief Given the pointer of a node n, loop over the colleagues of n's parent to
    * build n's P2L_list and P2P_list.
    * 
+   * @tparam T Target's value type (real or complex).
    * @param n Node pointer.
+   * @param fmm FMM instance.
+   * @param skip_P2P Whether to skip P2P interactions.
    */
   template <typename T>
   void build_list_parent_level(Node<T>* n, const FMM& fmm, bool skip_P2P=false) {
@@ -43,7 +46,9 @@ namespace exafmm_t {
    * @brief Given the pointer of a node n, loop over the colleagues of n to
    * build n's M2L_list and P2P_list.
    * 
+   * @tparam T Target's value type (real or complex).
    * @param n Node pointer.
+   * @param skip_P2P Whether to skip P2P interactions.
    */
   template <typename T>
   void build_list_current_level(Node<T>* n, bool skip_P2P=false) {
@@ -73,7 +78,10 @@ namespace exafmm_t {
    * @brief Given the pointer of a node n, loop over the children of n's colleagues to
    * build n's M2P_list and P2P_list.
    * 
+   * @tparam T Target's value type (real or complex).
    * @param n Node pointer.
+   * @param fmm FMM instance.
+   * @param skip_P2P Whether to skip P2P interactions.
    */
   template <typename T>
   void build_list_child_level(Node<T>* n, const FMM& fmm, bool skip_P2P=false) {
@@ -110,7 +118,10 @@ namespace exafmm_t {
   /**
    * @brief Build interaction lists of each node in a tree.
    * 
+   * @tparam T Target's value type (real or complex).
    * @param nodes Vector of nodes that represents an octree.
+   * @param fmm FMM instance.
+   * @param skip_P2P Whether to skip P2P interactions.
    */
   template <typename T>
   void build_list(Nodes<T>& nodes, const FMM& fmm, bool skip_P2P=false) {
@@ -132,6 +143,7 @@ namespace exafmm_t {
   /**
    * @brief Set the colleagues of a node and its descendants recursively using a preorder traversal.
    * 
+   * @tparam T Target's value type (real or complex)
    * @param node Node pointer.
    */
   template <typename T>
@@ -179,6 +191,7 @@ namespace exafmm_t {
   /**
    * @brief Set the colleagues of each node in a tree.
    * 
+   * @tparam T Target's value type (real or complex)
    * @param nodes Vector of nodes that represents an octree.
    */
   template <typename T>

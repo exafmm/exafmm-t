@@ -5,12 +5,13 @@
 
 namespace exafmm_t {
   /**
-   * @brief Get bounding box of sources and targets
+   * @brief Get bounding box of sources and targets.
    *
-   * @param sources Vector of sources
-   * @param targets Vector of targets
-   * @param x0 Coordinates of the center of the bounding box
-   * @param r0 Radius of the bounding box
+   * @tparam T Target's value type (real or complex).
+   * @param sources Vector of sources.
+   * @param targets Vector of targets.
+   * @param x0 Coordinates of the center of the bounding box.
+   * @param r0 Radius of the bounding box.
    */
   template <typename T>
   void get_bounds(const Bodies<T>& sources, const Bodies<T>& targets, vec3& x0, real_t& r0) {
@@ -32,6 +33,7 @@ namespace exafmm_t {
   /**
    * @brief Sort a chunk of bodies in a node according to their octants
    *
+   * @tparam T Target's value type (real or complex)
    * @param node The node that bodies are in 
    * @param bodies The bodies to be sorted
    * @param buffer The sorted bodies
@@ -170,6 +172,18 @@ namespace exafmm_t {
     }
   }
 
+  /**
+   * @brief Recursively build the tree and return the tree as a vector of nodes
+   *
+   * @tparam T Target's value type (real or complex)
+   * @param sources Vector of sources
+   * @param targets Vector of targets
+   * @param leafs Vector of pointers of leaf nodes
+   * @param nonleafs Vector of pointers of nonleaf nodes
+   * @param fmm FMM instance 
+   *
+   * @return Vector of nodes that represents the tree
+   */
   template <typename T>
   Nodes<T> build_tree(Bodies<T>& sources, Bodies<T>& targets,
                       NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FMM& fmm) {

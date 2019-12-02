@@ -7,12 +7,13 @@
 
 namespace exafmm_t {
   /**
-   * @brief Get bounding box of sources and targets
+   * @brief Get bounding box of sources and targets.
    *
-   * @param sources Vector of sources
-   * @param targets Vector of targets
-   * @param x0 Coordinates of the center of the bounding box
-   * @param r0 Radius of the bounding box
+   * @tparam T Target's value type (real or complex).
+   * @param sources Vector of sources.
+   * @param targets Vector of targets.
+   * @param x0 Coordinates of the center of the bounding box.
+   * @param r0 Radius of the bounding box.
    */
   template <typename T>
   void get_bounds(const Bodies<T>& sources, const Bodies<T>& targets, vec3& x0, real_t& r0) {
@@ -34,6 +35,7 @@ namespace exafmm_t {
   /**
    * @brief Sort a chunk of bodies in a node according to their octants
    *
+   * @tparam T Target's value type (real or complex)
    * @param node The node that bodies are in 
    * @param bodies The bodies to be sorted
    * @param buffer The sorted bodies
@@ -167,13 +169,12 @@ namespace exafmm_t {
   /**
    * @brief Recursively build the tree and return the tree as a vector of nodes
    *
+   * @tparam T Target's value type (real or complex)
    * @param sources Vector of sources
    * @param targets Vector of targets
-   * @param x0 Coordinates of the center of the bounding box
-   * @param r0 Radius of the bounding box
-   * @param ncrit Max number of bodies per leaf
    * @param leafs Vector of pointers of leaf nodes
    * @param nonleafs Vector of pointers of nonleaf nodes
+   * @param fmm FMM instance
    * @param leafkeys Vector of leaf Hilbert keys of each level, only used during 2:1 tree balancing 
    *
    * @return Vector of nodes that represents the tree
@@ -201,6 +202,7 @@ namespace exafmm_t {
   /**
    * @brief Generate the set of Morton keys of nodes at each level using a breadth-first traversal
    * 
+   * @tparam T Target's value type (real or complex)
    * @param root Root node pointer
    * @param key2id A map from Morton key to node index
    * @return Vector of the set of Morton keys of nodes at each level (before balancing)
@@ -237,6 +239,7 @@ namespace exafmm_t {
   /**
    * @brief Generate the set of Morton keys of nodes at each level after 2:1 balancing
    * 
+   * @tparam K Target's value type (real or complex)
    * @param keys Vector of the set of Morton keys of nodes at each level (before balancing)
    * @param key2id A map from Morton key to node index
    * @param nodes Vector of nodes that represents the tree
@@ -321,16 +324,15 @@ namespace exafmm_t {
   }
 
   /**
-   * @brief 
+   * @brief Rebuild the tree by enforcing 2:1 balance constraint.
    * 
+   * @tparam T Target's value type (real or complex)
    * @param nodes Vector of nodes that represents the tree (after 2:1 balancing)
    * @param sources Vector of sources
    * @param targets Vector of targets
    * @param leafs Vector of pointers of leaf nodes
    * @param nonleafs Vector of pointers of non-leaf nodes
-   * @param x0 Coordinates of the center of the root
-   * @param r0 Radius of root node
-   * @param ncrit Max number of bodies per leaf
+   * @param fmm FMM instance
    */
   template <typename T>
   void balance_tree(Nodes<T>& nodes, Bodies<T>& sources, Bodies<T>& targets,

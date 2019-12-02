@@ -6,6 +6,7 @@ namespace exafmm_t {
   /**
    * @brief Generate uniform distribution in a cube from 0 to 1.
    * 
+   * @tparam T Target's value type (real or complex).
    * @param numBodies Number of bodies.
    * @param seed Seed of pseudorandom number generator.
    * @return Bodies Vector of bodies.
@@ -25,6 +26,7 @@ namespace exafmm_t {
   /**
    * @brief Generate uniform distribution in a sphere with a radius of 1.
    * 
+   * @tparam T Target's value type (real or complex).
    * @param numBodies Number of bodies.
    * @param seed Seed of pseudorandom number generator.
    * @return Bodies Vector of bodies.
@@ -46,6 +48,7 @@ namespace exafmm_t {
   /**
    * @brief Generate plummer distribution in a cube from 0 to 1.
    * 
+   * @tparam T Target's value type (real or complex).
    * @param numBodies Number of bodies.
    * @param seed Seed of pseudorandom number generator.
    * @return Bodies Vector of bodies.
@@ -84,13 +87,13 @@ namespace exafmm_t {
   }
   
   /**
-   * @brief Generate targets and sources with various distributions.
+   * @brief Generate targets with various distributions.
    * 
+   * @tparam T Target's value type (real or complex).
    * @param numBodies Number of bodies.
    * @param distribution Type of distribution: 'c' for cube, 's' for sphere, 'p' for plummer.
    * @param seed Seed of pseudorandom number generator.
-   * @param is_source Whether to generate sources or targets, default to true.
-   * @return Bodies Vector of bodies.
+   * @return Bodies Vector of targets.
    */
   template <typename T>
   Bodies<T> init_targets(int numBodies, const char* distribution, int seed) {
@@ -111,6 +114,15 @@ namespace exafmm_t {
     return bodies;
   }
 
+  /**
+   * @brief Generate sources with various distributions.
+   * 
+   * @tparam T Source's value type (real or complex).
+   * @param numBodies Number of bodies.
+   * @param distribution Type of distribution: 'c' for cube, 's' for sphere, 'p' for plummer.
+   * @param seed Seed of pseudorandom number generator.
+   * @return Bodies Vector of sources.
+   */
   template <typename T>
   Bodies<T> init_sources(int numBodies, const char* distribution, int seed) {
     Bodies<T> bodies = init_targets<T>(numBodies, distribution, seed);
@@ -120,7 +132,7 @@ namespace exafmm_t {
     return bodies;
   }
 
-  // Template specialization for complex type
+  // Template specialization of init_source for complex type
   template <>
   Bodies<complex_t> init_sources(int numBodies, const char* distribution, int seed) {
     Bodies<complex_t> bodies = init_targets<complex_t>(numBodies, distribution, seed);
