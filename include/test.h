@@ -4,6 +4,7 @@
 #include "exafmm_t.h"
 
 namespace exafmm_t {
+  //! A derived FMM class, assuming that all sources have a unit charge. Kernel functions only compute monopoles. This is used for testing tree and list construction.
   class TestFMM : public FMM {
     using Body_t = Body<real_t>;
     using Bodies_t = Bodies<real_t>;
@@ -27,11 +28,7 @@ namespace exafmm_t {
       return rel_coord;
     } 
 
-    /** 
-     * @brief Dummy P2M kernel, by assuming unit charges for all sources, monopole of a leaf equals to number of sources in the leaf
-     *
-     * @param leafs Vector of pointers to leafs
-     */
+    //! Dummy P2M operator.
     void P2M(NodePtrs_t& leafs) {
 #pragma omp parallel for
       for(size_t i=0; i<leafs.size(); ++i) {
@@ -40,6 +37,7 @@ namespace exafmm_t {
       }
     }
 
+    //! Dummy M2M operator.
     void M2M(Node_t* node) {
       if(node->is_leaf) return;
       for(int octant=0; octant<8; ++octant) {  
@@ -56,6 +54,7 @@ namespace exafmm_t {
       }
     }
 
+    //! Dummy M2L operator.
     void M2L(NodePtrs_t& nonleafs) {
 #pragma omp parallel for schedule(dynamic)
       for(size_t i=0; i<nonleafs.size(); ++i) {
@@ -96,6 +95,7 @@ namespace exafmm_t {
       }
     }
 
+    //! Dummy P2L operator.
     void P2L(Nodes_t& nodes) {
 #pragma omp parallel for schedule(dynamic)
       for(size_t i=0; i<nodes.size(); ++i) {
@@ -106,6 +106,7 @@ namespace exafmm_t {
       }
     }
 
+    //! Dummy M2P operator.
     void M2P(NodePtrs_t& leafs) {
 #pragma omp parallel for schedule(dynamic)
       for(size_t i=0; i<leafs.size(); ++i) {
@@ -116,6 +117,7 @@ namespace exafmm_t {
       }
     }
 
+    //! Dummy L2L operator.
     void L2L(Node_t* node) {
       if(node->is_leaf) return;
       for(int octant=0; octant<8; octant++) {
@@ -132,6 +134,7 @@ namespace exafmm_t {
 #pragma omp taskwait
     }
 
+    //! Dummy L2P operator.
     void L2P(NodePtrs_t& leafs) {
 #pragma omp parallel for
       for(size_t i=0; i<leafs.size(); ++i) {
@@ -140,6 +143,7 @@ namespace exafmm_t {
       }
     }
 
+    //! Dummy P2P operator.
     void P2P(NodePtrs_t& leafs) {
 #pragma omp parallel for schedule(dynamic)
       for(size_t i=0; i<leafs.size(); ++i) {

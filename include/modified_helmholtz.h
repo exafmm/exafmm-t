@@ -21,6 +21,7 @@ extern "C" {
 }
 
 namespace exafmm_t {
+  //! A derived FMM class for modified Helmholtz kernel.
   class ModifiedHelmholtzFMM : public FMM {
     using Body_t = Body<real_t>;
     using Bodies_t = Bodies<real_t>;

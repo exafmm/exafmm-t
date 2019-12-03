@@ -21,6 +21,7 @@ extern "C" {
 }
 
 namespace exafmm_t {
+  //! A derived FMM class for Helmholtz kernel.
   class HelmholtzFMM : public FMM {
     using Body_t = Body<complex_t>;
     using Bodies_t = Bodies<complex_t>;
@@ -29,7 +30,7 @@ namespace exafmm_t {
     using NodePtrs_t = NodePtrs<complex_t>;
 
   public:
-    real_t wavek;
+    real_t wavek;   //!< Wave number k.
     std::vector<ComplexVec> matrix_UC2E_U;
     std::vector<ComplexVec> matrix_UC2E_V;
     std::vector<ComplexVec> matrix_DC2E_U;

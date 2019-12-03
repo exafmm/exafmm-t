@@ -75,20 +75,28 @@ namespace exafmm_t {
     Type_Count = 9
   } Mat_Type;
 
-  //! Structure of bodies.
+  /**
+   * @brief Structure of bodies.
+   * 
+   * @tparam T Value type of sources and targets (real or complex).
+   */
   template <typename T>
   struct Body {
 #if SORT_BACK
-    int ibody;                                  //!< Initial body numbering for sorting back
+    int ibody;                             //!< Initial body numbering for sorting back
 #endif
-    vec3 X;                                     //!< Coordinates
+    vec3 X;                                //!< Coordinates
     T q;                                   //!< Charge
     T p;                                   //!< Potential
-    vec<3,T> F;                            //!< Force
+    vec<3,T> F;                            //!< Gradient
   };
-  template <typename T> using Bodies = std::vector<Body<T>>;              //!< Vector of nodes
+  template <typename T> using Bodies = std::vector<Body<T>>;     //!< Vector of nodes
 
-  //! Structure of nodes.
+  /**
+   * @brief Structure of nodes.
+   * 
+   * @tparam Value type of sources and targets (real or complex).
+   */
   template <typename T>
   struct Node {
     size_t idx;                                 //!< Index in the octree
@@ -121,11 +129,11 @@ namespace exafmm_t {
   };
   
   // alias template
-  template <typename T> using Nodes = std::vector<Node<T>>;              //!< Vector of nodes
-  template <typename T> using NodePtrs = std::vector<Node<T>*>;          //!< Vector of Node pointers
-  using Keys = std::vector<std::set<uint64_t>>; //!< Vector of Morton keys of each level
+  template <typename T> using Nodes = std::vector<Node<T>>;        //!< Vector of nodes
+  template <typename T> using NodePtrs = std::vector<Node<T>*>;    //!< Vector of Node pointers
+  using Keys = std::vector<std::set<uint64_t>>;                    //!< Vector of Morton keys of each level
 
-  //! M2L setup data 
+  //! M2L setup data
   struct M2LData {
     std::vector<size_t> fft_offset;   // source's first child's upward_equiv's displacement
     std::vector<size_t> ifft_offset;  // target's first child's dnward_equiv's displacement
@@ -134,15 +142,16 @@ namespace exafmm_t {
     std::vector<size_t> interaction_count_offset;
   };
 
+  //! Base FMM class
   struct FMM {
-    int p;   // order of expansion
-    int nsurf;  // number of surface points
-    int ncrit;  // max number of bodies per leaf
-    int depth;  // depth of the tree
-    real_t r0;  // half of the side length of the bounding box
-    vec3 x0;    // Coordinates of the center of root box
-    std::string filename;  // file name of the precomputation matrices
-    bool is_precomputed;
+    int p;                 //!< Order of expansion
+    int nsurf;             //!< Number of points on equivalent / check surface
+    int ncrit;             //!< Max number of bodies per leaf
+    int depth;             //!< Depth of the tree
+    real_t r0;             //!< Half of the side length of the bounding box
+    vec3 x0;               //!< Coordinates of the center of root box
+    std::string filename;  //!< File name of the precomputation matrices
+    bool is_precomputed;   //!< Whether the matrix file is found
   };
 
   // Relative coordinates and interaction lists
