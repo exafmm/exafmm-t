@@ -14,6 +14,7 @@
 #include "build_list.h"
 #include "laplace.h"
 #include "helmholtz.h"
+#include "modified_helmholtz.h"
 
 namespace py = pybind11;
 using real_t = exafmm_t::real_t;
@@ -191,6 +192,33 @@ py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFMM&
   return trg_value;
 }
 
+py::array_t<real_t> evaluate_m(Tree<real_t>& tree, exafmm_t::ModifiedHelmholtzFMM& fmm) {
+  // redirect ostream to python ouptut
+  py::scoped_ostream_redirect stream(
+      std::cout,                                 // std::ostream&
+      py::module::import("sys").attr("stdout")   // Python output
+  );
+
+  fmm.upward_pass(tree.nodes, tree.leafs);
+  fmm.downward_pass(tree.nodes, tree.leafs);
+
+  auto trg_value = py::array_t<real_t>({tree.nodes[0].ntrgs, 4});
+  auto r = trg_value.mutable_unchecked<2>();  // access function
+
+#pragma omp parallel for
+  for (int i=0; i<tree.leafs.size(); ++i) {
+    Node<real_t>* leaf = tree.leafs[i];
+    std::vector<int> & itrgs = leaf->itrgs;
+    for (int j=0; j<itrgs.size(); ++j) {
+      r(itrgs[j], 0) = leaf->trg_value[4*j+0];
+      r(itrgs[j], 1) = leaf->trg_value[4*j+1];
+      r(itrgs[j], 2) = leaf->trg_value[4*j+2];
+      r(itrgs[j], 3) = leaf->trg_value[4*j+3];
+    }
+  }
+  return trg_value;
+}
+
 #if 0
   /**
    * @brief Update the charges of sources. (Coordinates do not change)
@@ -234,6 +262,9 @@ PYBIND11_MODULE(exafmm, m) {
 
   py::module m1 = m.def_submodule("helmholtz", "A submodule of exafmm's Helmholtz kernel");
   m1.doc() = "exafmm's submodule for Helmholtz kernel";
+  
+  py::module m2 = m.def_submodule("modified helmholtz", "A submodule of exafmm's Modified Helmholtz kernel");
+  m2.doc() = "exafmm's submodule for Modified Helmholtz kernel";
 
   py::class_<exafmm_t::vec3>(m, "vec3")
      .def("__str__", [](const exafmm_t::vec3 &x) {
@@ -331,20 +362,60 @@ PYBIND11_MODULE(exafmm, m) {
      .def_readwrite("wavek", &exafmm_t::HelmholtzFMM::wavek)
      .def(py::init<>());
 
+  py::class_<Body<real_t>>(m2, "Body")
+     .def_readwrite("q", &Body<real_t>::q)
+     .def_readwrite("p", &Body<real_t>::p)
+     .def_readwrite("X", &Body<real_t>::X)
+     .def_readwrite("F", &Body<real_t>::F)
+     .def_readwrite("ibody", &Body<real_t>::ibody)
+     .def(py::init<>());
+
+  py::class_<Node<real_t>>(m2, "Node")
+     .def_readwrite("isrcs", &Node<real_t>::isrcs)
+     .def_readwrite("itrgs", &Node<real_t>::itrgs)
+     .def_readwrite("trg_value", &Node<real_t>::trg_value)
+     .def_readwrite("key", &Node<real_t>::key)
+     .def_readwrite("parent", &Node<real_t>::parent)
+     .def_readwrite("colleagues", &Node<real_t>::colleagues)
+     .def_readwrite("x", &Node<real_t>::x)
+     .def_readwrite("r", &Node<real_t>::r)
+     .def_readwrite("nsrcs", &Node<real_t>::nsrcs)
+     .def_readwrite("ntrgs", &Node<real_t>::ntrgs)
+     .def_readwrite("level", &Node<real_t>::level)
+     .def_readwrite("is_leaf", &Node<real_t>::is_leaf)
+     .def(py::init<>());
+
+  py::class_<Tree<real_t>>(m2, "Tree")
+     .def_readwrite("nodes", &Tree<real_t>::nodes)
+     .def_readwrite("leafs", &Tree<real_t>::leafs)
+     .def_readwrite("nonleafs", &Tree<real_t>::nonleafs)
+     .def(py::init<>());
+
+  py::class_<exafmm_t::ModifiedHelmholtzFMM, exafmm_t::FMM>(m2, "ModifiedHelmholtzFMM")
+     .def("precompute", &exafmm_t::ModifiedHelmholtzFMM::precompute)
+     .def("M2L_setup", &exafmm_t::ModifiedHelmholtzFMM::M2L_setup)
+     .def("verify", &exafmm_t::ModifiedHelmholtzFMM::verify)
+     .def(py::init<>());
+
   m0.def("init_sources", py::overload_cast<py::array_t<real_t>, py::array_t<real_t>>(&init_sources), "initialize sources");
   m1.def("init_sources", py::overload_cast<py::array_t<real_t>, py::array_t<complex_t>>(&init_sources), "initialize sources");
+  m2.def("init_sources", py::overload_cast<py::array_t<real_t>, py::array_t<real_t>>(&init_sources), "initialize sources");
 
   m0.def("init_targets", &init_targets<real_t>, "initialize targets");
   m1.def("init_targets", &init_targets<complex_t>, "initialize targets");
+  m2.def("init_targets", &init_targets<real_t>, "initialize targets");
 
   m0.def("build_tree", &build_tree<real_t>, py::return_value_policy::reference, "build tree");
   m1.def("build_tree", &build_tree<complex_t>, py::return_value_policy::reference, "build tree");
+  m2.def("build_tree", &build_tree<real_t>, py::return_value_policy::reference, "build tree");
 
   m0.def("build_list", &build_list<real_t>, "build list");
   m1.def("build_list", &build_list<complex_t>, "build list");
+  m2.def("build_list", &build_list<real_t>, "build list");
 
   m0.def("evaluate", &evaluate, "evaluate");
   m1.def("evaluate", &evaluate_h, "evaluate");
+  m2.def("evaluate", &evaluate_m, "evaluate");
 
 /*
   m0.def("update", &exafmm_t::update, "update charges of sources");

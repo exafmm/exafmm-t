@@ -43,7 +43,7 @@ else ()
   message (FATAL_ERROR "The compiler does not support OpenMP.")
 endif()
 
-pybind11_add_module(exafmm python/exafmm.cpp ${COMMON_SOURCES} src/laplace.cpp src/helmholtz.cpp)
+pybind11_add_module(exafmm python/exafmm.cpp ${COMMON_SOURCES} src/laplace.cpp src/helmholtz.cpp src/modified_helmholtz.cpp)
 target_link_libraries (exafmm PRIVATE ${BLAS_LIBRARIES}
                               PRIVATE ${LAPACK_LIBRARIES}
                               PRIVATE ${FFTW_LIBRARIES})
