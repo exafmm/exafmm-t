@@ -654,13 +654,15 @@ namespace exafmm_t {
     }
     friend vec rsqrt(const vec & v) {
 #if EXAFMM_RSQRT_APPROX
-      vec three = 3.0f;
+      vec three = 3.0;
+      vec twelve = 12.0;
 #ifdef __MIC__
       vec temp = vec(_mm512_rsqrt23_ps(v.data));
 #else
       vec temp = vec(_mm512_rsqrt14_ps(v.data));
 #endif
       temp *= (three - temp * temp * v);
+      temp *= (twelve - temp * temp * v);
       return temp;
 #else
       vec one = 1;
@@ -1249,7 +1251,9 @@ namespace exafmm_t {
 #if EXAFMM_RSQRT_APPROX
       vec temp = vec(_mm_rsqrt_ps(v.data));
       vec three = 3.0f;
+      vec twelve = 12.0f;
       temp *= (three - temp * temp * v);
+      temp *= (twelve - temp * temp * v);
       return temp;
 #else
       vec one = 1;
