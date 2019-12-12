@@ -62,15 +62,15 @@ namespace exafmm_t {
     real_t newton_coef = 16;   // comes from Newton's method in simd rsqrt function
     const real_t COEF = 1.0/(4*PI*newton_coef);
     simdvec coef(COEF);
-    int src_cnt = src_coord.size() / 3;
-    int trg_cnt = trg_coord.size() / 3;
+    int nsrcs = src_coord.size() / 3;
+    int ntrgs = trg_coord.size() / 3;
     int t;
-    for(t=0; t+NSIMD<=trg_cnt; t+=NSIMD) {
+    for(t=0; t+NSIMD<=ntrgs; t+=NSIMD) {
       simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
       simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
       simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
       simdvec tv(zero);
-      for(int s=0; s<src_cnt; s++) {
+      for(int s=0; s<nsrcs; s++) {
         simdvec sx(src_coord[3*s+0]);
         sx = sx - tx;
         simdvec sy(src_coord[3*s+1]);
@@ -87,23 +87,24 @@ namespace exafmm_t {
         tv += invR * sv;
       }
       tv *= coef;
-      for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
+      for(int k=0; k<NSIMD && t+k<ntrgs; k++) {
         trg_value[t+k] += tv[k];
       }
     }
-    for(; t<trg_cnt; t++) {
-      real_t p = 0;
-      for(int s=0; s<src_cnt; s++) {
-        real_t r = 0;
+    for(; t<ntrgs; t++) {
+      real_t potential = 0;
+      for(int s=0; s<nsrcs; ++s) {
+        vec3 dx = 0;
         for(int d=0; d<3; d++) {
-          r += (trg_coord[t*3+d] - src_coord[s*3+d]) * (trg_coord[t*3+d] - src_coord[s*3+d]);
+          dx[d] += trg_coord[3*t+d] - src_coord[3*s+d];
         }
-        r = sqrt(r);
-        if(r != 0) {
-          p += src_value[s] / r;
+        real_t r2 = norm(dx);
+        if(r2!=0) {
+          real_t inv_r = 1 / std::sqrt(r2);
+          potential += src_value[s] * inv_r;
         }
       }
-      trg_value[t] += p / (4*PI);
+      trg_value[t] += potential / (4*PI);
     }
   }
 
@@ -115,10 +116,10 @@ namespace exafmm_t {
     const real_t COEFG = -1.0/(4*PI*newton_coefg);
     simdvec coefp(COEFP);
     simdvec coefg(COEFG);
-    int src_cnt = src_coord.size() / 3;
-    int trg_cnt = trg_coord.size() / 3;
+    int nsrcs = src_coord.size() / 3;
+    int ntrgs = trg_coord.size() / 3;
     int t;
-    for(t=0; t+NSIMD<=trg_cnt; t+=NSIMD) {
+    for(t=0; t+NSIMD<=ntrgs; t+=NSIMD) {
       simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
       simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
       simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
@@ -126,7 +127,7 @@ namespace exafmm_t {
       simdvec tv1(zero);
       simdvec tv2(zero);
       simdvec tv3(zero);
-      for(int s=0; s<src_cnt; s++) {
+      for(int s=0; s<nsrcs; s++) {
         simdvec sx(src_coord[3*s+0]);
         sx = tx - sx;
         simdvec sy(src_coord[3*s+1]);
@@ -151,32 +152,36 @@ namespace exafmm_t {
       tv1 *= coefg;
       tv2 *= coefg;
       tv3 *= coefg;
-      for(int k=0; k<NSIMD && t+k<trg_cnt; k++) {
+      for(int k=0; k<NSIMD && t+k<ntrgs; k++) {
         trg_value[0+4*(t+k)] += tv0[k];
         trg_value[1+4*(t+k)] += tv1[k];
         trg_value[2+4*(t+k)] += tv2[k];
         trg_value[3+4*(t+k)] += tv3[k];
       }
     }
-    for(; t<trg_cnt; t++) {
-      real_t p = 0, tx = 0, ty = 0, tz = 0;
-      for(int s=0; s<src_cnt; s++) {
-        real_t r = 0;
-        for(int d=0; d<3; d++) {
-          r += (trg_coord[t*3+d] - src_coord[s*3+d]) * (trg_coord[t*3+d] - src_coord[s*3+d]);
+    for(; t<ntrgs; t++) {
+      real_t potential = 0;
+      vec3 gradient = 0;
+      for(int s=0; s<nsrcs; ++s) {
+        vec3 dx = 0;
+        for (int d=0; d<3; ++d) {
+          dx[d] = trg_coord[3*t+d] - src_coord[3*s+d];
         }
-        r = sqrt(r);
-        if(r != 0) {
-          p += src_value[s]/r;
-          tx += src_value[s] * (trg_coord[t*3] - src_coord[s*3])/(r * r * r);
-          ty += src_value[s] * (trg_coord[t*3+1] - src_coord[s*3+1])/(r * r * r);
-          tz += src_value[s] * (trg_coord[t*3+2] - src_coord[s*3+2])/(r * r * r);
+        real_t r2 = norm(dx);
+        if (r2!=0) {
+          real_t inv_r2 = 1.0 / r2;
+          real_t inv_r = src_value[s] * std::sqrt(inv_r2);
+          potential += inv_r;
+          dx *= inv_r2 * inv_r;
+          gradient[0] += dx[0];
+          gradient[1] += dx[1];
+          gradient[2] += dx[2];
         }
       }
-      trg_value[4*t] += p / (4*PI) ;
-      trg_value[4*t+1] -= tx / (4*PI);
-      trg_value[4*t+2] -= ty / (4*PI);
-      trg_value[4*t+3] -= tz / (4*PI);
+      trg_value[4*t] += potential / (4*PI) ;
+      trg_value[4*t+1] -= gradient[0] / (4*PI);
+      trg_value[4*t+2] -= gradient[1] / (4*PI);
+      trg_value[4*t+3] -= gradient[2] / (4*PI);
     }
   }
 
