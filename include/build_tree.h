@@ -7,14 +7,16 @@
 
 namespace exafmm_t {
   /**
-   * @brief Get bounding box of sources and targets
+   * @brief Get bounding box of sources and targets.
    *
-   * @param sources Vector of sources
-   * @param targets Vector of targets
-   * @param x0 Coordinates of the center of the bounding box
-   * @param r0 Radius of the bounding box
+   * @tparam T Target's value type (real or complex).
+   * @param sources Vector of sources.
+   * @param targets Vector of targets.
+   * @param x0 Coordinates of the center of the bounding box.
+   * @param r0 Radius of the bounding box.
    */
-  void get_bounds(const Bodies& sources, const Bodies& targets, vec3& x0, real_t& r0) {
+  template <typename T>
+  void get_bounds(const Bodies<T>& sources, const Bodies<T>& targets, vec3& x0, real_t& r0) {
     vec3 Xmin = sources[0].X;
     vec3 Xmax = sources[0].X;
     for (size_t b=0; b<sources.size(); ++b) {
@@ -26,13 +28,14 @@ namespace exafmm_t {
       Xmax = max(targets[b].X, Xmax);
     }
     x0 = (Xmax + Xmin) / 2;
-    r0 = fmax(max(X0-Xmin), max(Xmax-X0));
+    r0 = fmax(max(x0-Xmin), max(Xmax-x0));
     r0 *= 1.00001;
   } 
 
   /**
    * @brief Sort a chunk of bodies in a node according to their octants
    *
+   * @tparam T Target's value type (real or complex)
    * @param node The node that bodies are in 
    * @param bodies The bodies to be sorted
    * @param buffer The sorted bodies
@@ -41,7 +44,8 @@ namespace exafmm_t {
    * @param size Vector of the counts of bodies in each octant after
    * @param offsets Vector of the offsets of sorted bodies in each octant
    */
-  void sort_bodies(Node* const node, Body* const bodies, Body* const buffer,
+  template <typename T>
+  void sort_bodies(Node<T>* const node, Body<T>* const bodies, Body<T>* const buffer,
                    int begin, int end, std::vector<int>& size, std::vector<int>& offsets) {
     // Count number of bodies in each octant
     size.resize(8, 0);
@@ -73,22 +77,18 @@ namespace exafmm_t {
   }
 
   //! Build nodes of tree adaptively using a top-down approach based on recursion
-  void build_tree(Body * sources, Body * sources_buffer, int source_begin, int source_end, 
-                 Body * targets, Body * targets_buffer, int target_begin, int target_end,
-                 Node * node, Nodes & nodes, NodePtrs & leafs, NodePtrs & nonleafs,
-                 const Args & args, const Keys & leafkeys, bool direction=false) {
+  template <typename T>
+  void build_tree(Body<T>* sources, Body<T>* sources_buffer, int source_begin, int source_end, 
+                  Body<T>* targets, Body<T>* targets_buffer, int target_begin, int target_end,
+                  Node<T>* node, Nodes<T>& nodes, NodePtrs<T>& leafs, NodePtrs<T>& nonleafs,
+                  const Keys& leafkeys, FMM& fmm, bool direction=false) {
     //! Create a tree node
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
     node->nsrcs = source_end - source_begin;
     node->ntrgs = target_end - target_begin;
-#if COMPLEX
-    node->up_equiv.resize(NSURF, complex_t(0.,0.));
-    node->dn_equiv.resize(NSURF, complex_t(0.,0.));
-#else
-    node->up_equiv.resize(NSURF, 0.);
-    node->dn_equiv.resize(NSURF, 0.);
-#endif
-    ivec3 iX = get3DIndex(node->x, node->level);
+    node->up_equiv.resize(fmm.nsurf, (T)(0.));
+    node->dn_equiv.resize(fmm.nsurf, (T)(0.));
+    ivec3 iX = get3DIndex(node->x, node->level, fmm.x0, fmm.r0);
     node->key = getKey(iX, node->level);
 
     //! If node is a leaf
@@ -99,13 +99,9 @@ namespace exafmm_t {
         is_leaf_key = 0;
       }
     }
-    if (node->nsrcs<=args.ncrit && node->ntrgs<=args.ncrit && is_leaf_key) {
+    if (node->nsrcs<=fmm.ncrit && node->ntrgs<=fmm.ncrit && is_leaf_key) {
       node->is_leaf = true;
-#if COMPLEX
-      node->trg_value.resize(node->ntrgs*4, complex_t(0.,0.));   // initialize target result vector
-#else
-      node->trg_value.resize(node->ntrgs*4, 0.);   // initialize target result vector
-#endif
+      node->trg_value.resize(node->ntrgs*4, (T)(0.));   // initialize target result vector
       if (node->nsrcs || node->ntrgs)
         leafs.push_back(node);
       if (direction) {
@@ -119,9 +115,9 @@ namespace exafmm_t {
       }
       // Copy sources and targets' coords and values to leaf (only during 2:1 tree balancing)
       if (!leafkeys.empty()) {
-        Body* first_source = (direction ? sources_buffer : sources) + source_begin;
-        Body* first_target = (direction ? targets_buffer : targets) + target_begin;
-        for (Body* B=first_source; B<first_source+node->nsrcs; ++B) {
+        Body<T>* first_source = (direction ? sources_buffer : sources) + source_begin;
+        Body<T>* first_target = (direction ? targets_buffer : targets) + target_begin;
+        for (Body<T>* B=first_source; B<first_source+node->nsrcs; ++B) {
           for (int d=0; d<3; ++d) {
             node->src_coord.push_back(B->X[d]);
           }
@@ -130,7 +126,7 @@ namespace exafmm_t {
 #endif
           node->src_value.push_back(B->q);
         }
-        for (Body* B=first_target; B<first_target+node->ntrgs; ++B) {
+        for (Body<T>* B=first_target; B<first_target+node->ntrgs; ++B) {
           for (int d=0; d<3; ++d) {
             node->trg_coord.push_back(B->X[d]);
           }
@@ -151,7 +147,7 @@ namespace exafmm_t {
     nonleafs.push_back(node);
     assert(nodes.capacity() >= nodes.size()+NCHILD);
     nodes.resize(nodes.size()+NCHILD);
-    Node * child = &nodes.back() - NCHILD + 1;
+    Node<T> * child = &nodes.back() - NCHILD + 1;
     node->children.resize(8, nullptr);
     for (int c=0; c<8; c++) {
       node->children[c] = &child[c];
@@ -164,58 +160,63 @@ namespace exafmm_t {
       child[c].octant = c;
       child[c].level = node->level + 1;
       build_tree(sources_buffer, sources, source_offsets[c], source_offsets[c] + source_size[c],
-                targets_buffer, targets, target_offsets[c], target_offsets[c] + target_size[c],
-                &child[c], nodes,  leafs, nonleafs, args, leafkeys, !direction);
+                 targets_buffer, targets, target_offsets[c], target_offsets[c] + target_size[c],
+                 &child[c], nodes, leafs, nonleafs,
+                 leafkeys, fmm, !direction);
     }
   }
 
   /**
    * @brief Recursively build the tree and return the tree as a vector of nodes
    *
+   * @tparam T Target's value type (real or complex)
    * @param sources Vector of sources
    * @param targets Vector of targets
-   * @param x0 Coordinates of the lower left bottom vertex of the bounding box
-   * @param r0 Radius of the bounding box
    * @param leafs Vector of pointers of leaf nodes
    * @param nonleafs Vector of pointers of nonleaf nodes
-   * @param args Args that contains tree information
+   * @param fmm FMM instance
    * @param leafkeys Vector of leaf Hilbert keys of each level, only used during 2:1 tree balancing 
    *
    * @return Vector of nodes that represents the tree
    */
-  Nodes build_tree(Bodies& sources, Bodies& targets, vec3 x0, real_t r0, NodePtrs& leafs,
-                   NodePtrs& nonleafs, const Args& args, const Keys& leafkeys=Keys()) {
-    Bodies sources_buffer = sources;
-    Bodies targets_buffer = targets;
-    Nodes nodes(1);
+  template <typename T>
+  Nodes<T> build_tree(Bodies<T>& sources, Bodies<T>& targets,
+                      NodePtrs<T>& leafs, NodePtrs<T>& nonleafs,
+                      FMM& fmm, const Keys& leafkeys=Keys()) {
+    Bodies<T> sources_buffer = sources;
+    Bodies<T> targets_buffer = targets;
+    Nodes<T> nodes(1);
     nodes[0].parent = nullptr;
     nodes[0].octant = 0;
-    nodes[0].x = x0;
-    nodes[0].r = r0;
+    nodes[0].x = fmm.x0;
+    nodes[0].r = fmm.r0;
     nodes[0].level = 0;
-    nodes.reserve((sources.size()+targets.size()) * (32/args.ncrit+1));
+    nodes.reserve((sources.size()+targets.size()) * (32/fmm.ncrit+1));
     build_tree(&sources[0], &sources_buffer[0], 0, sources.size(), 
-              &targets[0], &targets_buffer[0], 0, targets.size(),
-              &nodes[0], nodes, leafs, nonleafs, args, leafkeys);
+               &targets[0], &targets_buffer[0], 0, targets.size(),
+               &nodes[0], nodes, leafs, nonleafs,
+               leafkeys, fmm);
     return nodes;
   }
 
   /**
    * @brief Generate the set of Morton keys of nodes at each level using a breadth-first traversal
    * 
+   * @tparam T Target's value type (real or complex)
    * @param root Root node pointer
    * @param key2id A map from Morton key to node index
    * @return Vector of the set of Morton keys of nodes at each level (before balancing)
    */
-  Keys breadth_first_traversal(Node* const root, std::unordered_map<uint64_t, size_t>& key2id) {
+  template <typename T>
+  Keys breadth_first_traversal(Node<T>* const root, std::unordered_map<uint64_t, size_t>& key2id) {
     assert(root);
     Keys keys;
-    std::queue<Node*> buffer;
+    std::queue<Node<T>*> buffer;
     buffer.push(root);
     int level = 0;
     std::set<uint64_t> keys_;
     while (!buffer.empty()) {
-      Node* curr = buffer.front();
+      Node<T>* curr = buffer.front();
       if (curr->level != level) {
         keys.push_back(keys_);
         keys_.clear();
@@ -238,12 +239,14 @@ namespace exafmm_t {
   /**
    * @brief Generate the set of Morton keys of nodes at each level after 2:1 balancing
    * 
+   * @tparam K Target's value type (real or complex)
    * @param keys Vector of the set of Morton keys of nodes at each level (before balancing)
    * @param key2id A map from Morton key to node index
    * @param nodes Vector of nodes that represents the tree
    * @return Vector of the set of Morton keys of nodes at each level after 2:1 balancing
    */
-  Keys balance_tree(const Keys& keys, const std::unordered_map<uint64_t, size_t>& key2id, const Nodes& nodes) {
+  template <typename K>
+  Keys balance_tree(const Keys& keys, const std::unordered_map<uint64_t, size_t>& key2id, const Nodes<K>& nodes) {
     int nlevels = keys.size();
     int maxlevel = nlevels - 1;
     Keys bkeys(keys.size());      // balanced Morton keys
@@ -321,18 +324,19 @@ namespace exafmm_t {
   }
 
   /**
-   * @brief 
+   * @brief Rebuild the tree by enforcing 2:1 balance constraint.
    * 
+   * @tparam T Target's value type (real or complex)
    * @param nodes Vector of nodes that represents the tree (after 2:1 balancing)
    * @param sources Vector of sources
    * @param targets Vector of targets
-   * @param x0 Coordinates of the center of the root
-   * @param r0 Radius of root node
    * @param leafs Vector of pointers of leaf nodes
    * @param nonleafs Vector of pointers of non-leaf nodes
-   * @param args Args that contains tree information
+   * @param fmm FMM instance
    */
-  void balance_tree(Nodes& nodes, Bodies& sources, Bodies& targets, vec3 x0, real_t r0, NodePtrs& leafs, NodePtrs& nonleafs, const Args& args) {
+  template <typename T>
+  void balance_tree(Nodes<T>& nodes, Bodies<T>& sources, Bodies<T>& targets,
+                    NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FMM& fmm) {
     std::unordered_map<uint64_t, size_t> key2id;
     Keys keys = breadth_first_traversal(&nodes[0], key2id);
     Keys balanced_keys = balance_tree(keys, key2id, nodes);
@@ -340,8 +344,10 @@ namespace exafmm_t {
     nodes.clear();
     leafs.clear();
     nonleafs.clear();
-    nodes = build_tree(sources, targets, x0, r0, leafs, nonleafs, args, leaf_keys);
-    MAXLEVEL = keys.size() - 1;
+    nodes = build_tree(sources, targets,
+                       leafs, nonleafs,
+                       fmm, leaf_keys);
+    fmm.depth = keys.size() - 1;
   }
 }
 #endif

@@ -180,11 +180,13 @@ namespace exafmm_t {
    * 
    * @param X 3D coordinates.
    * @param level Level.
+   * @param x0 Coordinates of the center of the bounding box.
+   * @param r0 Half of the side length of the bounding box.
    * @return ivec3 3D index, an integer triplet.
    */
-  ivec3 get3DIndex(vec3 X, int level) {
-    vec3 Xmin = X0 - R0;
-    real_t dx = 2 * R0 / (1 << level);
+  ivec3 get3DIndex(vec3 X, int level, vec3 x0, real_t r0) {
+    vec3 Xmin = x0 - r0;
+    real_t dx = 2 * r0 / (1 << level);
     ivec3 iX;
     for (int d=0; d<3; d++) {
       iX[d] = floor((X[d] - Xmin[d]) / dx);
@@ -197,11 +199,13 @@ namespace exafmm_t {
    * 
    * @param iX 3D index, an integer triplet.
    * @param level Level.
+   * @param x0 Coordinates of the center of the bounding box.
+   * @param r0 Half of the side length of the bounding box.
    * @return vec3 3D coordinates.
    */
-  vec3 getCoordinates(ivec3 iX, int level) {
-    vec3 Xmin = X0 - R0;
-    real_t dx = 2 * R0 / (1 << level);
+  vec3 getCoordinates(ivec3 iX, int level, vec3 x0, real_t r0) {
+    vec3 Xmin = x0 - r0;
+    real_t dx = 2 * r0 / (1 << level);
     vec3 X;
     for (int d=0; d<3; d++) {
       X[d] = (iX[d] + 0.5) * dx + Xmin[d];

@@ -3,9 +3,9 @@
 #include "exafmm_t.h"
 
 namespace exafmm_t {
-  RealVec surface(int p, real_t* c, real_t alpha, int level, bool is_mapping=false);
+  RealVec surface(int p, real_t r0, int level, real_t* c, real_t alpha, bool is_mapping=false);
 
-  RealVec convolution_grid(real_t* c, int level);
+  RealVec convolution_grid(int p, real_t r0, int level, real_t* c);
 
   int hash(ivec3& coord);
 

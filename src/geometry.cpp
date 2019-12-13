@@ -4,11 +4,22 @@ namespace exafmm_t {
   std::vector<std::vector<ivec3>> REL_COORD;
   std::vector<std::vector<int>> HASH_LUT;     // coord_hash -> index in rel_coord
 
-  // alpha is the ratio r_surface/r_node
-  // 2.95 for upward check surface / downward equivalent surface
-  // 1.05 for upward equivalent surface / downward check surface
-  // c is now the center of node
-  RealVec surface(int p, real_t* c, real_t alpha, int level, bool is_mapping) {
+  /**
+   * @brief Given a box, calculate the coordinates of surface points.
+   *
+   * @param p order of expansion.
+   * @param r0 Half side length of the bounding box (root node).
+   * @param level Level of the box. 
+   * @param c Coordinates of the center of the box. 
+   * @param alpha Ratio between the side length of surface box and original box.
+   *              Use 2.95 for upward check and downward equivalent surface,
+   *              use 1.05 for upward equivalent and downward check surface.
+   * @param is_mapping A boolean that indicates whether the surface coordinates represent
+   *                   the mapping between surface points and convolution grids. 
+   * 
+   * @return Vector of coordinates of surface points. 
+   */
+  RealVec surface(int p, real_t r0, int level, real_t* c, real_t alpha, bool is_mapping) {
     size_t n = 6*(p-1)*(p-1) + 2;
     RealVec coord(n*3);
     coord[0] = -1.0;
@@ -42,7 +53,7 @@ namespace exafmm_t {
     for(size_t i=0; i<(n/2)*3; i++) {
       coord[count*3+i] = -coord[i];
     }
-    real_t r = is_mapping ? 0.5 : R0;
+    real_t r = is_mapping ? 0.5 : r0;
     r *= powf(0.5, level);
     real_t b = alpha * r;
     for(size_t i=0; i<n; i++){
@@ -53,19 +64,19 @@ namespace exafmm_t {
     return coord;
   }
 
-  RealVec convolution_grid(real_t* c, int level) {
-    real_t d = 2 * R0 * powf(0.5, level);  // diameter
-    real_t a = d * 1.05;  // diameter of upward equivalent/downward check box
-    int n1 = P * 2;
+  RealVec convolution_grid(int p, real_t r0, int level, real_t* c) {
+    real_t d = 2 * r0 * powf(0.5, level);
+    real_t a = d * 1.05;  // side length of upward equivalent/downward check box
+    int n1 = p * 2;
     int n2 = n1 * n1;
     int n3 = n1 * n1 * n1;
     RealVec grid(n3*3);
     for(int i=0; i<n1; i++) {
       for(int j=0; j<n1; j++) {
         for(int k=0; k<n1; k++) {
-          grid[(i+n1*j+n2*k)*3+0] = (i-P)*a/(P-1) + c[0];
-          grid[(i+n1*j+n2*k)*3+1] = (j-P)*a/(P-1) + c[1];
-          grid[(i+n1*j+n2*k)*3+2] = (k-P)*a/(P-1) + c[2];
+          grid[(i+n1*j+n2*k)*3+0] = (i-p)*a/(p-1) + c[0];
+          grid[(i+n1*j+n2*k)*3+1] = (j-p)*a/(p-1) + c[1];
+          grid[(i+n1*j+n2*k)*3+2] = (k-p)*a/(p-1) + c[2];
         }
       }
     }

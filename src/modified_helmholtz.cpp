@@ -1,46 +1,45 @@
 #include <cstring>  // std::memset()
 #include <fstream>  // std::ifstream
 #include <set>      // std::set
-#include "helmholtz.h"
+#include "modified_helmholtz.h"
 
 namespace exafmm_t {
-  // complex gemv by blas lib
-  void HelmholtzFMM::gemv(int m, int n, complex_t* A, complex_t* x, complex_t* y) {
+  //! blas gemv with row major data
+  void ModifiedHelmholtzFMM::gemv(int m, int n, real_t* A, real_t* x, real_t* y) {
     char trans = 'T';
-    complex_t alpha(1., 0.), beta(0.,0.);
+    real_t alpha = 1.0, beta = 0.0;
     int incx = 1, incy = 1;
 #if FLOAT
-    cgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
+    sgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #else
-    zgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
+    dgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #endif
   }
 
-  // complex gemm by blas lib
-  void HelmholtzFMM::gemm(int m, int n, int k, complex_t* A, complex_t* B, complex_t* C) {
+  //! blas gemm with row major data
+  void ModifiedHelmholtzFMM::gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C) {
     char transA = 'N', transB = 'N';
-    complex_t alpha(1., 0.), beta(0.,0.);
+    real_t alpha = 1.0, beta = 0.0;
 #if FLOAT
-    cgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+    sgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #else
-    zgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
+    dgemm_(&transA, &transB, &n, &m, &k, &alpha, B, &n, A, &k, &beta, C, &n);
 #endif
   }
 
   //! lapack svd with row major data: A = U*S*VT, A is m by n
-  void HelmholtzFMM::svd(int m, int n, complex_t* A, real_t* S, complex_t* U, complex_t* VT) {
+  void ModifiedHelmholtzFMM::svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT) {
     char JOBU = 'S', JOBVT = 'S';
     int INFO;
     int LWORK = std::max(3*std::min(m,n)+std::max(m,n), 5*std::min(m,n));
     LWORK = std::max(LWORK, 1);
     int k = std::min(m, n);
     RealVec tS(k, 0.);
-    ComplexVec WORK(LWORK);
-    RealVec RWORK(5*k);
+    RealVec WORK(LWORK);
 #if FLOAT
-    cgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &RWORK[0], &INFO);
+    sgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &INFO);
 #else
-    zgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &RWORK[0], &INFO);
+    dgesvd_(&JOBU, &JOBVT, &n, &m, A, &n, &tS[0], VT, &n, U, &k, &WORK[0], &LWORK, &INFO);
 #endif
     // copy singular values from 1d layout (tS) to 2d layout (S)
     for(int i=0; i<k; i++) {
@@ -48,8 +47,8 @@ namespace exafmm_t {
     }
   }
 
-  ComplexVec HelmholtzFMM::transpose(ComplexVec& vec, int m, int n) {
-    ComplexVec temp(vec.size());
+  RealVec ModifiedHelmholtzFMM::transpose(RealVec& vec, int m, int n) {
+    RealVec temp(vec.size());
     for(int i=0; i<m; i++) {
       for(int j=0; j<n; j++) {
         temp[j*m+i] = vec[i*n+j];
@@ -58,255 +57,76 @@ namespace exafmm_t {
     return temp;
   }
 
-  ComplexVec HelmholtzFMM::conjugate_transpose(ComplexVec& vec, int m, int n) {
-    ComplexVec temp(vec.size());
-    for(int i=0; i<m; i++) {
-      for(int j=0; j<n; j++) {
-        temp[j*m+i] = std::conj(vec[i*n+j]);
-      }
-    }
-    return temp;
-  }
-
-  void HelmholtzFMM::potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-    simdvec zero((real_t)0);
-    real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
-    const real_t COEF = 1.0/(4*PI*newton_scale);
-    simdvec coef(COEF);
-    simdvec k(wavek/newton_scale);
-    int src_cnt = src_coord.size() / 3;
-    int trg_cnt = trg_coord.size() / 3;
-    int t;
-    const complex_t I(0, 1);
-    for(t=0; t+NSIMD<=trg_cnt; t+=NSIMD) {
-      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
-      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
-      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
-      simdvec tv_real(zero);
-      simdvec tv_imag(zero);
-      for(int s=0; s<src_cnt; s++) {
-        simdvec sx(src_coord[3*s+0]);
-        sx = tx - sx;
-        simdvec sy(src_coord[3*s+1]);
-        sy = ty - sy;
-        simdvec sz(src_coord[3*s+2]);
-        sz = tz - sz;
-        simdvec sv_real(src_value[s].real());
-        simdvec sv_imag(src_value[s].imag());
-        simdvec r2(zero);
-        r2 += sx * sx;
-        r2 += sy * sy;
-        r2 += sz * sz;
-        simdvec invR = rsqrt(r2);   // invR = newton_scale * 1/r
-        invR &= r2 > zero;
-
-        simdvec kr = k * r2 * invR;   // newton_scales in k & invR cancel out
-        simdvec G_real = cos(kr) * invR;  // G = e^(ikr) / r
-        simdvec G_imag = sin(kr) * invR;  // invR carries newton_scale
-        tv_real += sv_real*G_real - sv_imag*G_imag;  // p += G * q
-        tv_imag += sv_real*G_imag + sv_imag*G_real;
-      }
-      tv_real *= coef;  // coef carries 1/(4*PI) and offsets newton_scale in invR
-      tv_imag *= coef;
-      for(int m=0; m<NSIMD && (t+m)<trg_cnt; m++) {
-        trg_value[t+m] += complex_t(tv_real[m], tv_imag[m]);
-      }
-    }
-    for(; t<trg_cnt; t++) {
-      complex_t p(0, 0);
-      for(int s=0; s<src_cnt; s++) {
-        vec3 dX;
-        for(int d=0; d<3; d++)
-          dX[d] = trg_coord[3*t+d] - src_coord[3*s+d];
-        real_t R2 = norm(dX);
-        if(R2 != 0) {
-          real_t R = std::sqrt(R2);
-          p += std::exp(I * R * wavek) * src_value[s] / R;
+  void ModifiedHelmholtzFMM::potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+    int nsrcs = src_coord.size() / 3;
+    int ntrgs = trg_coord.size() / 3;
+    for (int i=0; i<ntrgs; ++i) {
+      vec3 x_trg;
+      real_t potential = 0;
+      for (int d=0; d<3; ++d)
+        x_trg[d] = trg_coord[3*i+d];
+      for (int j=0; j<nsrcs; ++j) {
+        vec3 x_src;
+        for (int d=0; d<3; ++d) {
+          x_src[d] = src_coord[3*j+d];
+        }
+        vec3 dx = x_trg - x_src;
+        real_t r = std::sqrt(norm(dx));
+        if (r>0) {
+          potential += std::exp(-wavek*r) / r * src_value[j];
         }
       }
-      trg_value[t] += p / (4*PI);
+      trg_value[i] += potential / 4*PI;
     }
   }
 
-  void HelmholtzFMM::gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-    simdvec zero((real_t)0);
-    real_t newton_scale = 16;   // comes from Newton's method in simd rsqrt function
-    const real_t COEF = 1.0/(4*PI*newton_scale);   // factor 16 comes from the simd rsqrt function
-    simdvec coef(COEF);
-    simdvec k(wavek/newton_scale);
-    simdvec NEWTON(newton_scale);
-    int src_cnt = src_coord.size() / 3;
-    int trg_cnt = trg_coord.size() / 3;
-    int t;
-    const complex_t I(0, 1);
-    for(t=0; t+NSIMD<=trg_cnt; t+=NSIMD) {
-      simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
-      simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
-      simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
-      simdvec tv_real(zero);
-      simdvec tv_imag(zero);
-      simdvec F0_real(zero);
-      simdvec F0_imag(zero);
-      simdvec F1_real(zero);
-      simdvec F1_imag(zero);
-      simdvec F2_real(zero);
-      simdvec F2_imag(zero);
-      for(int s=0; s<src_cnt; s++) {
-        simdvec sx(src_coord[3*s+0]);
-        sx = tx - sx;
-        simdvec sy(src_coord[3*s+1]);
-        sy = ty - sy;
-        simdvec sz(src_coord[3*s+2]);
-        sz = tz - sz;
-        simdvec sv_real(src_value[s].real());
-        simdvec sv_imag(src_value[s].imag());
-        simdvec r2(zero);
-        r2 += sx * sx;
-        r2 += sy * sy;
-        r2 += sz * sz;
-        simdvec invR = rsqrt(r2);
-        invR &= r2 > zero;
-
-        simdvec kr = k * r2 * invR;   // newton_scales in k & invR cancel out
-        simdvec G_real = cos(kr) * invR;  // G = e^(ikr) / r
-        simdvec G_imag = sin(kr) * invR;  // invR carries newton_scale
-        simdvec p_real = sv_real*G_real - sv_imag*G_imag;    // p = G * q
-        simdvec p_imag = sv_real*G_imag + sv_imag*G_real;
-        tv_real += p_real;
-        tv_imag += p_imag;
-        // F = -\nabla p = (1/(r^2) - k/r*I) * p * dX
-        simdvec coefg_real = invR * invR / NEWTON / NEWTON;  // coefg = 1/(r^2) - k/r*I
-        simdvec coefg_imag = - k * invR;
-        simdvec F_real = coefg_real*p_real - coefg_imag*p_imag; // F = coefg * p * dX
-        simdvec F_imag = coefg_real*p_imag + coefg_imag*p_real;
-        F0_real += sx * F_real;
-        F0_imag += sx * F_imag;
-        F1_real += sy * F_real;
-        F1_imag += sy * F_imag;
-        F2_real += sz * F_real;
-        F2_imag += sz * F_imag;
-      }
-      tv_real *= coef;
-      tv_imag *= coef;
-      F0_real *= coef;
-      F0_imag *= coef;
-      F1_real *= coef;
-      F1_imag *= coef;
-      F2_real *= coef;
-      F2_imag *= coef;
-      for(int m=0; m<NSIMD && (t+m)<trg_cnt; m++) {
-        trg_value[4*(t+m)+0] += complex_t(tv_real[m], tv_imag[m]);
-        trg_value[4*(t+m)+1] += complex_t(F0_real[m], F0_imag[m]);
-        trg_value[4*(t+m)+2] += complex_t(F1_real[m], F1_imag[m]);
-        trg_value[4*(t+m)+3] += complex_t(F2_real[m], F2_imag[m]);
-      }
-    }
-    for(; t<trg_cnt; t++) {
-      complex_t p(0, 0);
-      cvec3 F = complex_t(0., 0.);
-      for(int s=0; s<src_cnt; s++) {
-        vec3 dX;
-        for(int d=0; d<3; d++)
-          dX[d] = trg_coord[3*t+d] - src_coord[3*s+d];
-        real_t R2 = norm(dX);
-        if(R2 != 0) {
-          real_t R = std::sqrt(R2);
-          complex_t pij = std::exp(I * R * wavek) * src_value[s] / R;
-          complex_t coefg = (1/R2 - I*wavek/R) * pij;
-          p += pij;
-          for(int d=0; d<3; d++)
-            F[d] += coefg * dX[d];
+  void ModifiedHelmholtzFMM::gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+    int nsrcs = src_coord.size() / 3;
+    int ntrgs = trg_coord.size() / 3;
+    for (int i=0; i<ntrgs; ++i) {
+      vec3 x_trg;
+      real_t potential = 0;
+      vec3 gradient = 0;
+      for (int d=0; d<3; ++d)
+        x_trg[d] = trg_coord[3*i+d];
+      for (int j=0; j<nsrcs; ++j) {
+        vec3 x_src;
+        for (int d=0; d<3; ++d) {
+          x_src[d] = src_coord[3*j+d];
+        }
+        vec3 dx = x_trg - x_src;
+        real_t r = std::sqrt(norm(dx));
+        // dp / dr
+        if (r>0) {
+          real_t kernel  = std::exp(-wavek*r) / r;
+          real_t dpdr = - kernel * (wavek*r+1) / r;
+          potential += kernel * src_value[j];
+          gradient[0] += dpdr / r * dx[0] * src_value[j];
+          gradient[1] += dpdr / r * dx[1] * src_value[j];
+          gradient[2] += dpdr / r * dx[2] * src_value[j];
         }
       }
-      trg_value[4*t+0] += p / (4*PI);
-      trg_value[4*t+1] += F[0] / (4*PI);
-      trg_value[4*t+2] += F[1] / (4*PI);
-      trg_value[4*t+3] += F[2] / (4*PI);
+      trg_value[4*i+0] += potential / 4*PI;
+      trg_value[4*i+1] += gradient[0] / 4*PI;
+      trg_value[4*i+2] += gradient[1] / 4*PI;
+      trg_value[4*i+3] += gradient[2] / 4*PI;
     }
   }
 
-#if 0
-  // non-simd P2P
-  void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-    complex_t I(0, 1);
-    //complex_t wavek = complex_t(1,.1) / real_t(2*PI);
-    real_t wavek = 20*PI;
-    int src_cnt = src_coord.size() / 3;
-    int trg_cnt = trg_coord.size() / 3;
-    for (int i=0; i<trg_cnt; i++) {
-      complex_t p = complex_t(0., 0.);
-      cvec3 F = complex_t(0., 0.);
-      for (int j=0; j<src_cnt; j++) {
-        vec3 dX;
-        for (int d=0; d<3; d++) dX[d] = trg_coord[3*i+d] - src_coord[3*j+d];
-        real_t R2 = norm(dX);
-        if (R2 != 0) {
-          // real_t R = std::sqrt(R2);
-          // newton iteration
-          real_t invR = 1 / std::sqrt(R2);  // initial guess
-          invR *= 3 - R2*invR*invR;
-          invR *= 12 - R2*invR*invR;        // two iterations
-          invR /= 16;                       // add back the coefficient in Newton iterations
-          real_t R = 1 / invR;
-          complex_t pij = std::exp(I * R * wavek) * src_value[j] / R;
-          complex_t coef = (1/R2 - I*wavek/R) * pij;
-          p += pij;
-        }
-      }
-      trg_value[i] += p / (4*PI);
-    }
-  }
-
-  void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-    complex_t I(0, 1);
-    //complex_t wavek = complex_t(1,.1) / real_t(2*PI);
-    real_t wavek = 20*PI;
-    int src_cnt = src_coord.size() / 3;
-    int trg_cnt = trg_coord.size() / 3;
-    for (int i=0; i<trg_cnt; i++) {
-      complex_t p = complex_t(0., 0.);
-      cvec3 F = complex_t(0., 0.);
-      for (int j=0; j<src_cnt; j++) {
-        vec3 dX;
-        for (int d=0; d<3; d++) dX[d] = trg_coord[3*i+d] - src_coord[3*j+d];
-        real_t R2 = norm(dX);
-        if (R2 != 0) {
-          // real_t R = std::sqrt(R2);
-          // newton iteration
-          real_t invR = 1 / std::sqrt(R2);  // initial guess
-          invR *= 3 - R2*invR*invR;
-          invR *= 12 - R2*invR*invR;        // two iterations
-          invR /= 16;                       // add back the coefficient in Newton iterations
-          real_t R = 1 / invR;
-          complex_t pij = std::exp(I * R * wavek) * src_value[j] / R;
-          complex_t coef = (1/R2 - I*wavek/R) * pij;
-          p += pij;
-          for (int d=0; d<3; d++) {
-            F[d] += coef * dX[d];
-          }
-        }
-      }
-      trg_value[4*i+0] += p / (4*PI);
-      trg_value[4*i+1] += F[0] / (4*PI);
-      trg_value[4*i+2] += F[1] / (4*PI);
-      trg_value[4*i+3] += F[2] / (4*PI);
-    }
-  }
-#endif 
-
-  void HelmholtzFMM::kernel_matrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, complex_t* k_out) {
-    ComplexVec src_value(1, complex_t(1,0));
+  //! P2P save pairwise contributions to k_out (not aggregate over each target)
+  void ModifiedHelmholtzFMM::kernel_matrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) {
+    RealVec src_value(1, 1.);
     RealVec trg_coord(r_trg, r_trg+3*trg_cnt);
     #pragma omp parallel for
     for(int i=0; i<src_cnt; i++) {
       RealVec src_coord(r_src+3*i, r_src+3*(i+1));
-      ComplexVec trg_value(trg_cnt, complex_t(0,0));
+      RealVec trg_value(trg_cnt, 0.);
       potential_P2P(src_coord, src_value, trg_coord, trg_value);
       std::copy(trg_value.begin(), trg_value.end(), &k_out[i*trg_cnt]);
     }
   }
 
-  void HelmholtzFMM::initialize_matrix() {
+  void ModifiedHelmholtzFMM::initialize_matrix() {
     matrix_UC2E_V.resize(depth+1);
     matrix_UC2E_U.resize(depth+1);
     matrix_DC2E_V.resize(depth+1);
@@ -318,23 +138,21 @@ namespace exafmm_t {
       matrix_UC2E_U[level].resize(nsurf*nsurf);
       matrix_DC2E_V[level].resize(nsurf*nsurf);
       matrix_DC2E_U[level].resize(nsurf*nsurf);
-      matrix_M2M[level].resize(REL_COORD[M2M_Type].size(), ComplexVec(nsurf*nsurf));
-      matrix_L2L[level].resize(REL_COORD[L2L_Type].size(), ComplexVec(nsurf*nsurf));
+      matrix_M2M[level].resize(REL_COORD[M2M_Type].size(), RealVec(nsurf*nsurf));
+      matrix_L2L[level].resize(REL_COORD[L2L_Type].size(), RealVec(nsurf*nsurf));
     }
   }
 
-  void HelmholtzFMM::precompute_check2equiv() {
+  void ModifiedHelmholtzFMM::precompute_check2equiv() {
     real_t c[3] = {0, 0, 0};
     for(int level = 0; level <= depth; level++) {
       // caculate matrix_UC2E_U and matrix_UC2E_V
       RealVec up_check_surf = surface(p, r0, level, c, 2.95);
       RealVec up_equiv_surf = surface(p, r0, level, c, 1.05);
-      ComplexVec matrix_c2e(nsurf*nsurf);
+      RealVec matrix_c2e(nsurf*nsurf);
       kernel_matrix(&up_check_surf[0], nsurf, &up_equiv_surf[0], nsurf, &matrix_c2e[0]);
-      RealVec S(nsurf*nsurf);
-      ComplexVec S_(nsurf*nsurf);
-      ComplexVec U(nsurf*nsurf), VH(nsurf*nsurf);
-      svd(nsurf, nsurf, &matrix_c2e[0], &S[0], &U[0], &VH[0]);
+      RealVec U(nsurf*nsurf), S(nsurf*nsurf), VT(nsurf*nsurf);
+      svd(nsurf, nsurf, &matrix_c2e[0], &S[0], &U[0], &VT[0]);
       // inverse S
       real_t max_S = 0;
       for(int i=0; i<nsurf; i++) {
@@ -343,22 +161,17 @@ namespace exafmm_t {
       for(int i=0; i<nsurf; i++) {
         S[i*nsurf+i] = S[i*nsurf+i]>EPS*max_S*4 ? 1.0/S[i*nsurf+i] : 0.0;
       }
-      for(size_t i=0; i<S.size(); ++i) {
-        S_[i] = S[i];
-      }
       // save matrix
-      ComplexVec V = conjugate_transpose(VH, nsurf, nsurf);
-      ComplexVec UH = conjugate_transpose(U, nsurf, nsurf);
-      matrix_UC2E_U[level] = UH;
-      gemm(nsurf, nsurf, nsurf, &V[0], &S_[0], &(matrix_UC2E_V[level][0]));
+      RealVec V = transpose(VT, nsurf, nsurf);
+      matrix_UC2E_U[level] = transpose(U, nsurf, nsurf);
+      gemm(nsurf, nsurf, nsurf, &V[0], &S[0], &(matrix_UC2E_V[level][0]));
 
-      matrix_DC2E_U[level] = transpose(V, nsurf, nsurf);
-      ComplexVec UTH = transpose(UH, nsurf, nsurf);
-      gemm(nsurf, nsurf, nsurf, &UTH[0], &S_[0], &(matrix_DC2E_V[level][0]));
+      matrix_DC2E_U[level] = VT;
+      gemm(nsurf, nsurf, nsurf, &U[0], &S[0], &(matrix_DC2E_V[level][0]));
     }
   }
 
-  void HelmholtzFMM::precompute_M2M() {
+  void ModifiedHelmholtzFMM::precompute_M2M() {
     real_t parent_coord[3] = {0, 0, 0};
     for(int level = 0; level <= depth; level++) {
       RealVec parent_up_check_surf = surface(p, r0, level, parent_coord, 2.95);
@@ -371,10 +184,10 @@ namespace exafmm_t {
                                  parent_coord[1] + coord[1]*s,
                                  parent_coord[2] + coord[2]*s};
         RealVec child_up_equiv_surf = surface(p, r0, level+1, child_coord, 1.05);
-        ComplexVec matrix_pc2ce(nsurf*nsurf);
+        RealVec matrix_pc2ce(nsurf*nsurf);
         kernel_matrix(&parent_up_check_surf[0], nsurf, &child_up_equiv_surf[0], nsurf, &matrix_pc2ce[0]);
         // M2M: child's upward_equiv to parent's check
-        ComplexVec buffer(nsurf*nsurf);
+        RealVec buffer(nsurf*nsurf);
         gemm(nsurf, nsurf, nsurf, &(matrix_UC2E_U[level][0]), &matrix_pc2ce[0], &buffer[0]);
         gemm(nsurf, nsurf, nsurf, &(matrix_UC2E_V[level][0]), &buffer[0], &(matrix_M2M[level][i][0]));
         // L2L: parent's dnward_equiv to child's check, reuse surface coordinates
@@ -385,20 +198,21 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::precompute_M2L(std::ofstream& file, std::vector<std::vector<int>>& parent2child) {
+  void ModifiedHelmholtzFMM::precompute_M2L(std::ofstream& file, std::vector<std::vector<int>>& parent2child) {
     int n1 = p * 2;
     int n3 = n1 * n1 * n1;
-    int fft_size = 2 * n3 * NCHILD * NCHILD;
-    std::vector<RealVec> matrix_M2L_Helper(REL_COORD[M2L_Helper_Type].size(), RealVec(2*n3));
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
+    int fft_size = 2 * n3_ * NCHILD * NCHILD;
+
+    std::vector<RealVec> matrix_M2L_Helper(REL_COORD[M2L_Helper_Type].size(), RealVec(2*n3_));
     std::vector<AlignedVec> matrix_M2L(REL_COORD[M2L_Type].size(), AlignedVec(fft_size));
     // create fftw plan
-    ComplexVec fftw_in(n3);
-    RealVec fftw_out(2*n3);
+    RealVec fftw_in(n3);
+    RealVec fftw_out(2*n3_);
     int dim[3] = {2*p, 2*p, 2*p};
-    fft_plan plan = fft_plan_dft(3, dim,
-                                reinterpret_cast<fft_complex*>(fftw_in.data()), 
-                                reinterpret_cast<fft_complex*>(fftw_out.data()),
-                                FFTW_FORWARD, FFTW_ESTIMATE);
+    fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, fftw_in.data(), nullptr, 1, n3, 
+                    reinterpret_cast<fft_complex*>(fftw_out.data()), nullptr, 1, n3_,
+                    FFTW_ESTIMATE);
     // Precompute M2L matrix
     RealVec trg_coord(3,0);
     for(int l=1; l<depth+1; ++l) {
@@ -410,10 +224,10 @@ namespace exafmm_t {
           coord[d] = REL_COORD[M2L_Helper_Type][i][d] * r0 * powf(0.5, l-1);
         }
         RealVec conv_coord = convolution_grid(p, r0, l, coord);   // convolution grid
-        ComplexVec conv_p(n3);   // potentials on convolution grid
+        RealVec conv_p(n3);   // potentials on convolution grid
         kernel_matrix(conv_coord.data(), n3, trg_coord.data(), 1, conv_p.data());
-        fft_execute_dft(plan, reinterpret_cast<fft_complex*>(conv_p.data()),
-                              reinterpret_cast<fft_complex*>(matrix_M2L_Helper[i].data()));
+        fft_execute_dft_r2c(plan, conv_p.data(),
+                            reinterpret_cast<fft_complex*>(matrix_M2L_Helper[i].data()));
       }
       // convert M2L_Helper to M2L, reorder to improve data locality
 #pragma omp parallel for
@@ -421,7 +235,7 @@ namespace exafmm_t {
         for(int j=0; j<NCHILD*NCHILD; j++) {   // loop over child's relative positions
           int child_rel_idx = parent2child[i][j];
           if (child_rel_idx != -1) {
-            for(int k=0; k<n3; k++) {   // loop over frequencies
+            for(int k=0; k<n3_; k++) {   // loop over frequencies
               int new_idx = k*(2*NCHILD*NCHILD) + 2*j;
               matrix_M2L[i][new_idx+0] = matrix_M2L_Helper[child_rel_idx][k*2+0] / n3;   // real
               matrix_M2L[i][new_idx+1] = matrix_M2L_Helper[child_rel_idx][k*2+1] / n3;   // imag
@@ -438,12 +252,13 @@ namespace exafmm_t {
     fft_destroy_plan(plan);
   }
 
-  bool HelmholtzFMM::load_matrix() {
+  bool ModifiedHelmholtzFMM::load_matrix() {
     std::ifstream file(filename, std::ifstream::binary);
     int n1 = p * 2;
     int n3 = n1 * n1 * n1;
-    size_t fft_size = n3 * 2 * NCHILD * NCHILD;
-    size_t file_size = (2*REL_COORD[M2M_Type].size()+4) * nsurf * nsurf * (depth+1) * sizeof(complex_t)
+    int n3_ = n1 * n1 * (n1/2 + 1);
+    size_t fft_size = n3_ * 2 * NCHILD * NCHILD;
+    size_t file_size = (2*REL_COORD[M2M_Type].size()+4) * nsurf * nsurf * (depth+1) * sizeof(real_t)
                      +  REL_COORD[M2L_Type].size() * fft_size * depth * sizeof(real_t) + 2 * sizeof(real_t);    // 2 denotes r0 and wavek
     if (file.good()) {     // if file exists
       file.seekg(0, file.end);
@@ -466,16 +281,16 @@ namespace exafmm_t {
         size_t size = nsurf * nsurf;
         for(int level = 0; level <= depth; level++) {
           // UC2E, DC2E
-          file.read(reinterpret_cast<char*>(&matrix_UC2E_U[level][0]), size*sizeof(complex_t));
-          file.read(reinterpret_cast<char*>(&matrix_UC2E_V[level][0]), size*sizeof(complex_t));
-          file.read(reinterpret_cast<char*>(&matrix_DC2E_U[level][0]), size*sizeof(complex_t));
-          file.read(reinterpret_cast<char*>(&matrix_DC2E_V[level][0]), size*sizeof(complex_t));
+          file.read(reinterpret_cast<char*>(&matrix_UC2E_U[level][0]), size*sizeof(real_t));
+          file.read(reinterpret_cast<char*>(&matrix_UC2E_V[level][0]), size*sizeof(real_t));
+          file.read(reinterpret_cast<char*>(&matrix_DC2E_U[level][0]), size*sizeof(real_t));
+          file.read(reinterpret_cast<char*>(&matrix_DC2E_V[level][0]), size*sizeof(real_t));
           // M2M, L2L
           for(auto & vec : matrix_M2M[level]) {
-            file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(complex_t));
+            file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
           }
           for(auto & vec : matrix_L2L[level]) {
-            file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(complex_t));
+            file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
           }
         }
         file.close();
@@ -488,7 +303,7 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::save_matrix(std::ofstream& file) {
+  void ModifiedHelmholtzFMM::save_matrix(std::ofstream& file) {
     // root radius r0
     file.write(reinterpret_cast<char*>(&r0), sizeof(real_t));
     // wavenumber wavek
@@ -496,23 +311,23 @@ namespace exafmm_t {
     size_t size = nsurf*nsurf;
     for(int level = 0; level <= depth; level++) {
       // save UC2E, DC2E precompute data
-      file.write(reinterpret_cast<char*>(&matrix_UC2E_U[level][0]), size*sizeof(complex_t));
-      file.write(reinterpret_cast<char*>(&matrix_UC2E_V[level][0]), size*sizeof(complex_t));
-      file.write(reinterpret_cast<char*>(&matrix_DC2E_U[level][0]), size*sizeof(complex_t));
-      file.write(reinterpret_cast<char*>(&matrix_DC2E_V[level][0]), size*sizeof(complex_t));
+      file.write(reinterpret_cast<char*>(&matrix_UC2E_U[level][0]), size*sizeof(real_t));
+      file.write(reinterpret_cast<char*>(&matrix_UC2E_V[level][0]), size*sizeof(real_t));
+      file.write(reinterpret_cast<char*>(&matrix_DC2E_U[level][0]), size*sizeof(real_t));
+      file.write(reinterpret_cast<char*>(&matrix_DC2E_V[level][0]), size*sizeof(real_t));
       // M2M, M2L precompute data
       for(auto & vec : matrix_M2M[level]) {
-        file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(complex_t));
+        file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
       }
       for(auto & vec : matrix_L2L[level]) {
-        file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(complex_t));
+        file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
       }
     }
   }
 
-  void HelmholtzFMM::precompute() {
+  void ModifiedHelmholtzFMM::precompute() {
     // if matrix binary file exists
-    filename = "helmholtz";
+    filename = "modified_helmholtz";
     filename += "_" + std::string(sizeof(real_t)==4 ? "f":"d") + "_" + "p" + std::to_string(p) + "_" + "l" + std::to_string(depth);
     filename += ".dat";
     initialize_matrix();
@@ -531,7 +346,7 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::P2M(NodePtrs_t& leafs) {
+  void ModifiedHelmholtzFMM::P2M(NodePtrs_t& leafs) {
     real_t c[3] = {0, 0, 0};
     std::vector<RealVec> up_check_surf;
     up_check_surf.resize(depth+1);
@@ -550,8 +365,8 @@ namespace exafmm_t {
         checkCoord[3*k+2] = up_check_surf[level][3*k+2] + leaf->x[2];
       }
       potential_P2P(leaf->src_coord, leaf->src_value, checkCoord, leaf->up_equiv);
-      ComplexVec buffer(nsurf);
-      ComplexVec equiv(nsurf);
+      RealVec buffer(nsurf);
+      RealVec equiv(nsurf);
       gemv(nsurf, nsurf, &(matrix_UC2E_U[level][0]), &(leaf->up_equiv[0]), &buffer[0]);
       gemv(nsurf, nsurf, &(matrix_UC2E_V[level][0]), &buffer[0], &equiv[0]);
       for(int k=0; k<nsurf; k++)
@@ -559,7 +374,7 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::M2M(Node_t* node) {
+  void ModifiedHelmholtzFMM::M2M(Node_t* node) {
     if(node->is_leaf) return;
     for(int octant=0; octant<8; octant++) {
       if(node->children[octant])
@@ -570,7 +385,7 @@ namespace exafmm_t {
     for(int octant=0; octant<8; octant++) {
       if(node->children[octant]) {
         Node_t* child = node->children[octant];
-        ComplexVec buffer(nsurf);
+        RealVec buffer(nsurf);
         int level = node->level;
         gemv(nsurf, nsurf, &(matrix_M2M[level][octant][0]), &child->up_equiv[0], &buffer[0]);
         for(int k=0; k<nsurf; k++) {
@@ -580,12 +395,12 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::L2L(Node_t* node) {
+  void ModifiedHelmholtzFMM::L2L(Node_t* node) {
     if(node->is_leaf) return;
     for(int octant=0; octant<8; octant++) {
       if(node->children[octant]) {
         Node_t* child = node->children[octant];
-        ComplexVec buffer(nsurf);
+        RealVec buffer(nsurf);
         int level = node->level;
         gemv(nsurf, nsurf, &(matrix_L2L[level][octant][0]), &node->dn_equiv[0], &buffer[0]);
         for(int k=0; k<nsurf; k++)
@@ -600,7 +415,7 @@ namespace exafmm_t {
     #pragma omp taskwait
   } 
 
-  void HelmholtzFMM::L2P(NodePtrs_t& leafs) {
+  void ModifiedHelmholtzFMM::L2P(NodePtrs_t& leafs) {
     real_t c[3] = {0, 0, 0};
     std::vector<RealVec> dn_equiv_surf;
     dn_equiv_surf.resize(depth+1);
@@ -613,8 +428,8 @@ namespace exafmm_t {
       Node_t* leaf = leafs[i];
       int level = leaf->level;
       // down check surface potential -> equivalent surface charge
-      ComplexVec buffer(nsurf);
-      ComplexVec equiv(nsurf);
+      RealVec buffer(nsurf);
+      RealVec equiv(nsurf);
       gemv(nsurf, nsurf, &(matrix_DC2E_U[level][0]), &(leaf->dn_equiv[0]), &buffer[0]);
       gemv(nsurf, nsurf, &(matrix_DC2E_V[level][0]), &buffer[0], &equiv[0]);
       for(int k=0; k<nsurf; k++)
@@ -630,7 +445,7 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::P2L(Nodes_t& nodes) {
+  void ModifiedHelmholtzFMM::P2L(Nodes_t& nodes) {
     Nodes_t& targets = nodes;
     real_t c[3] = {0.0};
     std::vector<RealVec> dn_check_surf;
@@ -658,7 +473,7 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::M2P(NodePtrs_t& leafs) {
+  void ModifiedHelmholtzFMM::M2P(NodePtrs_t& leafs) {
     NodePtrs_t& targets = leafs;
     real_t c[3] = {0.0};
     std::vector<RealVec> up_equiv_surf;
@@ -686,7 +501,7 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::P2P(NodePtrs_t& leafs) {
+  void ModifiedHelmholtzFMM::P2P(NodePtrs_t& leafs) {
     NodePtrs_t& targets = leafs;   // assume sources == targets
     #pragma omp parallel for
     for(size_t i=0; i<targets.size(); i++) {
@@ -699,9 +514,9 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::M2L_setup(NodePtrs_t& nonleafs) {
+  void ModifiedHelmholtzFMM::M2L_setup(NodePtrs_t& nonleafs) {
     int n1 = p * 2;
-    int n3 = n1 * n1 * n1;
+    int n3_ = n1 * n1 * (n1/2 + 1);
     size_t mat_cnt = REL_COORD[M2L_Type].size();
     // initialize m2ldata
     m2ldata.resize(depth);
@@ -743,7 +558,7 @@ namespace exafmm_t {
       size_t n_blk1 = nodes_out[l].size() * sizeof(real_t) / CACHE_SIZE;
       if(n_blk1==0) n_blk1 = 1;
       size_t interaction_count_offset_ = 0;
-      size_t fftsize = 2 * 8 * n3;
+      size_t fftsize = 2 * 8 * n3_;
       for(size_t blk1=0; blk1<n_blk1; blk1++) {
         size_t blk1_start=(nodes_out[l].size()* blk1   )/n_blk1;
         size_t blk1_end  =(nodes_out[l].size()*(blk1+1))/n_blk1;
@@ -766,11 +581,11 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::hadamard_product(std::vector<size_t>& interaction_count_offset, std::vector<size_t>& interaction_offset_f,
+  void ModifiedHelmholtzFMM::hadamard_product(std::vector<size_t>& interaction_count_offset, std::vector<size_t>& interaction_offset_f,
                        AlignedVec& fft_in, AlignedVec& fft_out, std::vector<AlignedVec>& matrix_M2L) {
     int n1 = p * 2;
-    int n3 = n1 * n1 * n1;
-    size_t fftsize = 2 * NCHILD * n3;
+    int n3_ = n1 * n1 * (n1/2 + 1);
+    size_t fftsize = 2 * NCHILD * n3_;
     AlignedVec zero_vec0(fftsize, 0.);
     AlignedVec zero_vec1(fftsize, 0.);
 
@@ -801,7 +616,7 @@ namespace exafmm_t {
 
     for(size_t blk1=0; blk1<blk1_cnt; blk1++) {
     #pragma omp parallel for
-      for(int k=0; k<n3; k++) {
+      for(int k=0; k<n3_; k++) {
         for(size_t mat_indx=0; mat_indx< mat_cnt; mat_indx++) {
           size_t interac_blk1 = blk1*mat_cnt+mat_indx;
           size_t interaction_count_offset0 = (interac_blk1==0?0:interaction_count_offset[interac_blk1-1]);
@@ -823,9 +638,10 @@ namespace exafmm_t {
     }
   }
 
-  void HelmholtzFMM::fft_up_equiv(std::vector<size_t>& fft_offset, ComplexVec& all_up_equiv, AlignedVec& fft_in) {
+  void ModifiedHelmholtzFMM::fft_up_equiv(std::vector<size_t>& fft_offset, RealVec& all_up_equiv, AlignedVec& fft_in) {
     int n1 = p * 2;
     int n3 = n1 * n1 * n1;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
     std::vector<size_t> map(nsurf);
     real_t c[3]= {0.5, 0.5, 0.5};
     for(int d=0; d<3; d++) c[d] += 0.5*(p-2);
@@ -836,21 +652,21 @@ namespace exafmm_t {
              + ((size_t)(p-1-surf[i*3+2]+0.5)) * n1 * n1;
     }
 
-    size_t fftsize = 2 * NCHILD * n3;
-    ComplexVec fftw_in(n3*NCHILD);
+    size_t fftsize = 2 * NCHILD * n3_;
+    AlignedVec fftw_in(n3 * NCHILD);
     AlignedVec fftw_out(fftsize);
     int dim[3] = {n1, n1, n1};
-
-    fft_plan plan = fft_plan_many_dft(3, dim, NCHILD, reinterpret_cast<fft_complex*>(&fftw_in[0]),
-                                      nullptr, 1, n3, (fft_complex*)(&fftw_out[0]), nullptr, 1, n3, 
-                                      FFTW_FORWARD, FFTW_ESTIMATE);
+    fft_plan plan = fft_plan_many_dft_r2c(3, dim, NCHILD,
+                                          (real_t*)&fftw_in[0], nullptr, 1, n3,
+                                          (fft_complex*)(&fftw_out[0]), nullptr, 1, n3_, 
+                                          FFTW_ESTIMATE);
 
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<fft_offset.size(); node_idx++) {
       RealVec buffer(fftsize, 0);
-      ComplexVec equiv_t(NCHILD*n3, complex_t(0.,0.));
+      RealVec equiv_t(NCHILD*n3, 0.);
 
-      complex_t* up_equiv = &all_up_equiv[fft_offset[node_idx]];  // offset ptr of node's 8 child's up_equiv in all_up_equiv, size=8*nsurf
+      real_t* up_equiv = &all_up_equiv[fft_offset[node_idx]];  // offset ptr of node's 8 child's up_equiv in all_up_equiv, size=8*nsurf
       real_t* up_equiv_f = &fft_in[fftsize*node_idx];   // offset ptr of node_idx in fft_in vector, size=fftsize
 
       for(int k=0; k<nsurf; k++) {
@@ -858,20 +674,21 @@ namespace exafmm_t {
         for(int j0=0; j0<NCHILD; j0++)
           equiv_t[idx+j0*n3] = up_equiv[j0*nsurf+k];
       }
-      fft_execute_dft(plan, reinterpret_cast<fft_complex*>(&equiv_t[0]), (fft_complex*)&buffer[0]);
-      for(int j=0; j<n3; j++) {
+      fft_execute_dft_r2c(plan, &equiv_t[0], (fft_complex*)&buffer[0]);
+      for(int j=0; j<n3_; j++) {
         for(int k=0; k<NCHILD; k++) {
-          up_equiv_f[2*(NCHILD*j+k)+0] = buffer[2*(n3*k+j)+0];
-          up_equiv_f[2*(NCHILD*j+k)+1] = buffer[2*(n3*k+j)+1];
+          up_equiv_f[2*(NCHILD*j+k)+0] = buffer[2*(n3_*k+j)+0];
+          up_equiv_f[2*(NCHILD*j+k)+1] = buffer[2*(n3_*k+j)+1];
         }
       }
     }
     fft_destroy_plan(plan);
   }
 
-  void HelmholtzFMM::ifft_dn_check(std::vector<size_t>& ifft_offset, AlignedVec& fft_out, ComplexVec& all_dn_equiv) {
+  void ModifiedHelmholtzFMM::ifft_dn_check(std::vector<size_t>& ifft_offset, AlignedVec& fft_out, RealVec& all_dn_equiv) {
     int n1 = p * 2;
     int n3 = n1 * n1 * n1;
+    int n3_ = n1 * n1 * (n1 / 2 + 1);
     std::vector<size_t> map(nsurf);
     real_t c[3]= {0.5, 0.5, 0.5};
     for(int d=0; d<3; d++) c[d] += 0.5*(p-2);
@@ -882,56 +699,59 @@ namespace exafmm_t {
              + ((size_t)(p*2-0.5-surf[i*3+2])) * n1 * n1;
     }
 
-    size_t fftsize = 2 * NCHILD * n3;
+    size_t fftsize = 2 * NCHILD * n3_;
     AlignedVec fftw_in(fftsize);
-    ComplexVec fftw_out(n3*NCHILD);
+    AlignedVec fftw_out(n3 * NCHILD);
     int dim[3] = {n1, n1, n1};
 
-    fft_plan plan = fft_plan_many_dft(3, dim, NCHILD, (fft_complex*)(&fftw_in[0]), nullptr, 1, n3, 
-                                      reinterpret_cast<fft_complex*>(&fftw_out[0]), nullptr, 1, n3, 
-                                      FFTW_BACKWARD, FFTW_ESTIMATE);
+    fft_plan plan = fft_plan_many_dft_c2r(3, dim, NCHILD,
+                    (fft_complex*)(&fftw_in[0]), nullptr, 1, n3_, 
+                    (real_t*)(&fftw_out[0]), nullptr, 1, n3, 
+                    FFTW_ESTIMATE);
 
     #pragma omp parallel for
     for(size_t node_idx=0; node_idx<ifft_offset.size(); node_idx++) {
       RealVec buffer0(fftsize, 0);
-      ComplexVec buffer1(NCHILD*n3, 0);
+      RealVec buffer1(fftsize, 0);
       real_t* dn_check_f = &fft_out[fftsize*node_idx];  // offset ptr for node_idx in fft_out vector, size=fftsize
-      complex_t* dn_equiv = &all_dn_equiv[ifft_offset[node_idx]];  // offset ptr for node_idx's child's dn_equiv in all_dn_equiv, size=numChilds * nsurf
-      for(int j=0; j<n3; j++)
+      real_t* dn_equiv = &all_dn_equiv[ifft_offset[node_idx]];  // offset ptr for node_idx's child's dn_equiv in all_dn_equiv, size=numChilds * nsurf
+      for(int j=0; j<n3_; j++)
         for(int k=0; k<NCHILD; k++) {
-          buffer0[2*(n3*k+j)+0] = dn_check_f[2*(NCHILD*j+k)+0];
-          buffer0[2*(n3*k+j)+1] = dn_check_f[2*(NCHILD*j+k)+1];
+          buffer0[2*(n3_*k+j)+0] = dn_check_f[2*(NCHILD*j+k)+0];
+          buffer0[2*(n3_*k+j)+1] = dn_check_f[2*(NCHILD*j+k)+1];
         }
-      fft_execute_dft(plan, (fft_complex*)&buffer0[0], reinterpret_cast<fft_complex*>(&buffer1[0]));
+      fft_execute_dft_c2r(plan, (fft_complex*)&buffer0[0], (real_t*)(&buffer1[0]));
       for(int k=0; k<nsurf; k++) {
         size_t idx = map[k];
         for(int j0=0; j0<NCHILD; j0++)
-          dn_equiv[nsurf*j0+k]+=buffer1[idx+j0*n3];
+          dn_equiv[nsurf*j0+k] += buffer1[idx+j0*n3];
       }
     }
     fft_destroy_plan(plan);
   }
-  
-  void HelmholtzFMM::M2L(Nodes_t& nodes) {
+
+  void ModifiedHelmholtzFMM::M2L(Nodes_t& nodes) {
     int n1 = p * 2;
     int n3 = n1 * n1 * n1;
-    int fft_size = 2 * 8 * n3;
+    int n3_ = n1 * n1 * (n1/2 + 1);
+    int fft_size = 2 * 8 * n3_;
     int num_nodes = nodes.size();
     int num_coords = REL_COORD[M2L_Type].size();   // number of relative coords for M2L_Type
 
-    ComplexVec all_up_equiv, all_dn_equiv;
+    // allocate memory
+    RealVec all_up_equiv, all_dn_equiv;
     all_up_equiv.reserve(num_nodes*nsurf);
     all_dn_equiv.reserve(num_nodes*nsurf);
     std::vector<AlignedVec> matrix_M2L(num_coords, AlignedVec(fft_size*NCHILD, 0));
 
     // setup ifstream of M2L precomputation matrix
-    std::string fname = "helmholtz";   // precomputation matrix file name
+    std::string fname = "modified_helmholtz";   // precomputation matrix file name
     fname += "_" + std::string(sizeof(real_t)==4 ? "f":"d") + "_" + "p" + std::to_string(p) + "_" + "l" + std::to_string(depth);
     fname += ".dat";
     std::ifstream ifile(fname, std::ifstream::binary);
     ifile.seekg(0, ifile.end);
     size_t fsize = ifile.tellg();   // file size in bytes
-    size_t msize = NCHILD * NCHILD * n3 * 2 * sizeof(real_t);   // size in bytes for each M2L matrix
+    size_t msize = NCHILD * NCHILD * n3_ * 2 * sizeof(real_t);   // size in bytes for each M2L matrix
     ifile.seekg(fsize - depth*num_coords*msize, ifile.beg);   // go to the start of M2L section
     
     // collect all upward equivalent charges
@@ -968,7 +788,7 @@ namespace exafmm_t {
     ifile.close();   // close ifstream
   }
 
-   void HelmholtzFMM::upward_pass(Nodes_t& nodes, NodePtrs_t& leafs) {
+   void ModifiedHelmholtzFMM::upward_pass(Nodes_t& nodes, NodePtrs_t& leafs) {
     start("P2M");
     P2M(leafs);
     stop("P2M");
@@ -979,7 +799,7 @@ namespace exafmm_t {
     stop("M2M");
   }
 
-  void HelmholtzFMM::downward_pass(Nodes_t& nodes, NodePtrs_t& leafs) {
+  void ModifiedHelmholtzFMM::downward_pass(Nodes_t& nodes, NodePtrs_t& leafs) {
     start("P2L");
     P2L(nodes);
     stop("P2L");
@@ -1002,7 +822,7 @@ namespace exafmm_t {
     stop("L2P");
   } 
 
-  RealVec HelmholtzFMM::verify(NodePtrs_t& leafs) {
+  RealVec ModifiedHelmholtzFMM::verify(NodePtrs_t& leafs) {
     int ntrgs = 10;
     int stride = leafs.size() / ntrgs;
     Nodes_t targets;
@@ -1032,6 +852,8 @@ namespace exafmm_t {
     RealVec rel_error(2);
     rel_error[0] = sqrt(p_diff/p_norm);   // potential error
     rel_error[1] = sqrt(F_diff/F_norm);   // gradient error
+    
     return rel_error;
+ 
   }
 }  // end namespace exafmm_t
