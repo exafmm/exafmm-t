@@ -151,17 +151,17 @@ __global__
   }
 
   __global__
-  void P2P_kernel(int *d_leafs_idx, int *d_nodes_pt_src_idx, int *d_P2Plists, int *d_P2Plists_idx, real_t *d_bodies_coord, real_t *d_nodes_pt_src, real_t *d_nodes_trg) {
+  void P2P_kernel(int *d_leafs_idx, int *d_nodes_pt_src_idx, int *d_P2Plists, int *d_P2Plists_idx, real_t *d_bodies_coord, real_t *d_nodes_pt_src, real_t *d_nodes_trg, int starting_pos) {
     const real_t COEFP = 1.0/(2*4*M_PI);
     const real_t COEFG = -1.0/(4*2*2*6*M_PI);
 
     int first_trg_coord_idx = 3*d_nodes_pt_src_idx[blockIdx.x];
     int trg_coord_size = 3*(d_nodes_pt_src_idx[blockIdx.x+1] - d_nodes_pt_src_idx[blockIdx.x]);
     int first_trg_val_idx = 4*first_trg_coord_idx/3;
-    if (threadIdx.x < trg_coord_size/3) {
-      real_t tx = d_bodies_coord[first_trg_coord_idx+3*threadIdx.x+0];
-      real_t ty = d_bodies_coord[first_trg_coord_idx+3*threadIdx.x+1];
-      real_t tz = d_bodies_coord[first_trg_coord_idx+3*threadIdx.x+2];
+    if ((starting_pos+threadIdx.x) < trg_coord_size/3) {
+      real_t tx = d_bodies_coord[first_trg_coord_idx+3*(starting_pos+threadIdx.x)+0];
+      real_t ty = d_bodies_coord[first_trg_coord_idx+3*(starting_pos+threadIdx.x)+1];
+      real_t tz = d_bodies_coord[first_trg_coord_idx+3*(starting_pos+threadIdx.x)+2];
       real_t tv0=0;
       real_t tv1=0;
       real_t tv2=0;
@@ -195,10 +195,10 @@ __global__
       tv1 *= COEFG;
       tv2 *= COEFG;
       tv3 *= COEFG;
-      d_nodes_trg[first_trg_val_idx+4*threadIdx.x+0] += tv0;
-      d_nodes_trg[first_trg_val_idx+4*threadIdx.x+1] += tv1;
-      d_nodes_trg[first_trg_val_idx+4*threadIdx.x+2] += tv2;
-      d_nodes_trg[first_trg_val_idx+4*threadIdx.x+3] += tv3;
+      d_nodes_trg[first_trg_val_idx+4*(starting_pos+threadIdx.x)+0] += tv0;
+      d_nodes_trg[first_trg_val_idx+4*(starting_pos+threadIdx.x)+1] += tv1;
+      d_nodes_trg[first_trg_val_idx+4*(starting_pos+threadIdx.x)+2] += tv2;
+      d_nodes_trg[first_trg_val_idx+4*(starting_pos+threadIdx.x)+3] += tv3;
     }
   }
   
@@ -211,10 +211,9 @@ __global__
   }
 
   __global__
-  void hadmard_kernel(int *d_M2Ltargets_idx, cufftComplex_t *d_up_equiv_fft, cufftComplex_t *d_dw_equiv_fft, int *d_M2LRelPos_offset, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int BLOCKS, int *d_M2Llist_idx_offset, int *d_M2Llist_idx) {
+  void hadmard_kernel(int *d_M2Ltargets_idx, cufftComplex_t *d_up_equiv_fft, cufftComplex_t *d_dw_equiv_fft, int *d_M2LRelPos_offset, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int BLOCKS, int *d_M2Llist_idx_offset, int *d_M2Llist_idx, int starting_pos, int n3_) {
     int i = blockIdx.x;
-    int k = threadIdx.x;
-    int n3_ = blockDim.x;
+    int k = starting_pos+threadIdx.x;
     cufftComplex_t check;
     check.x = 0;
     check.y = 0;
@@ -358,7 +357,6 @@ __global__
   void P2MGPU(real_t *d_upwd_check_surf, int *d_leafs_idx, int *d_nodes_depth, real_t *d_nodes_coord, real_t *d_bodies_coord, int *d_nodes_pt_src_idx, real_t *d_upward_equiv, real_t* d_nodes_pt_src, real_t *d_M2M_V, real_t *d_M2M_U, std::vector<int> &leafs_idx, cublasHandle_t &handle, int BLOCKS, int THREADS, int size) {
     real_t *d_buffer;
     cudaMalloc(&d_buffer, sizeof(real_t)*BLOCKS*NSURF);
-
     P2M_kernel<<<BLOCKS, THREADS, sizeof(real_t)*NSURF*3>>>(d_leafs_idx, d_nodes_pt_src_idx, d_bodies_coord, d_upward_equiv, d_nodes_depth, d_upwd_check_surf, d_nodes_coord, d_nodes_pt_src);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -469,7 +467,14 @@ __global__
     
     cudaMemcpy(d_P2Plists, &P2Plist_idx[0], sizeof(int)*P2Plist_idx.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_P2Plists_idx, &P2Plist_offset[0], sizeof(int)*P2Plist_offset.size(), cudaMemcpyHostToDevice);
-    P2P_kernel<<<BLOCKS, THREADS>>>(d_leafs_idx, d_nodes_pt_src_idx, d_P2Plists, d_P2Plists_idx, d_bodies_coord, d_nodes_pt_src, d_nodes_trg);
+    int BLOCK_MAX_THREAD = 1024;
+    int num_kernel_calls = ncrit/BLOCK_MAX_THREAD;
+    int remainder = ncrit%BLOCK_MAX_THREAD;
+    int i;
+    for(i=0; i<num_kernel_calls;i++) {
+      P2P_kernel<<<BLOCKS, BLOCK_MAX_THREAD>>>(d_leafs_idx, d_nodes_pt_src_idx, d_P2Plists, d_P2Plists_idx, d_bodies_coord, d_nodes_pt_src, d_nodes_trg, i*BLOCK_MAX_THREAD);
+    }
+    P2P_kernel<<<BLOCKS, BLOCK_MAX_THREAD>>>(d_leafs_idx, d_nodes_pt_src_idx, d_P2Plists, d_P2Plists_idx, d_bodies_coord, d_nodes_pt_src, d_nodes_trg, i*BLOCK_MAX_THREAD);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
     cudaFree(d_P2Plists_idx);
@@ -567,7 +572,14 @@ __global__
     cudaMemcpy(d_mat_M2L_Helper, &mat_M2L_Helper[0], sizeof(real_t)*mat_M2L_Helper.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_M2Llist_idx_offset, &M2Llist_idx_offset[0], sizeof(int)*M2Llist_idx_offset.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(d_M2Llist_idx, &M2Llist_idx[0], sizeof(int)*M2Llist_idx.size(), cudaMemcpyHostToDevice);
-    hadmard_kernel<<<BLOCKS, THREADS>>>(d_M2Ltargets_idx, d_up_equiv_fft, d_dw_equiv_fft, d_M2LRelPos_offset, d_M2LRelPoss, d_mat_M2L_Helper, BLOCKS, d_M2Llist_idx_offset, d_M2Llist_idx);
+    int BLOCK_MAX_THREAD = 1024;
+    int num_kernel_calls = n3_/BLOCK_MAX_THREAD;
+    int remainder = n3_%BLOCK_MAX_THREAD;
+    int i; 
+    for(i=0; i<num_kernel_calls;i++) {
+      hadmard_kernel<<<BLOCKS, BLOCK_MAX_THREAD >>>(d_M2Ltargets_idx, d_up_equiv_fft, d_dw_equiv_fft, d_M2LRelPos_offset, d_M2LRelPoss, d_mat_M2L_Helper, BLOCKS, d_M2Llist_idx_offset, d_M2Llist_idx, i*BLOCK_MAX_THREAD, n3_);
+    }
+    hadmard_kernel<<<BLOCKS, remainder>>>(d_M2Ltargets_idx, d_up_equiv_fft, d_dw_equiv_fft, d_M2LRelPos_offset, d_M2LRelPoss, d_mat_M2L_Helper, BLOCKS, d_M2Llist_idx_offset, d_M2Llist_idx, i*BLOCK_MAX_THREAD, n3_);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
     

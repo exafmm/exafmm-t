@@ -3,6 +3,7 @@
 #include "exafmm_t.h"
 #include "geometry.h"
 #include "laplace.h"
+#include "profile.h"
 
 namespace exafmm_t {
   RealVec M2M_U, M2M_V;
@@ -108,9 +109,17 @@ namespace exafmm_t {
   }
 
   void Precompute() {
+    Profile::Tic("PrecompCheck2Equiv", false, 5);
     PrecompCheck2Equiv();
+    Profile::Toc();
+
+    Profile::Tic("PrecompM2M", false, 5);
     PrecompM2M();
+    Profile::Toc();
+
+    Profile::Tic("PrecompM2LHelper", false, 5);
     PrecompM2LHelper();
+    Profile::Toc();
   }
 }//end namespace
 #endif
