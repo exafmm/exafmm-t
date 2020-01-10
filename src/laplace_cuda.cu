@@ -63,10 +63,10 @@ __global__
     checkCoord[3*t+2] = d_upwd_check_surf[level*NSURF*3+3*t+2] + d_nodes_coord[leaf_idx*3+2];
     __syncthreads();
     const real_t COEF = 1.0/(2*4*M_PI);
-    int src_cnt = (d_nodes_pt_src_idx[blockIdx.x+1]-d_nodes_pt_src_idx[blockIdx.x]);
-    real_t *src_coord = &d_bodies_coord[d_nodes_pt_src_idx[blockIdx.x]*3];
+    int src_cnt = (d_nodes_pt_src_idx[leaf_idx+1]-d_nodes_pt_src_idx[leaf_idx]);
+    real_t *src_coord = &d_bodies_coord[d_nodes_pt_src_idx[leaf_idx]*3];
     real_t *trg_value = &d_upward_equiv[leaf_idx*NSURF];
-    real_t *src_value = &d_nodes_pt_src[d_nodes_pt_src_idx[blockIdx.x]];
+    real_t *src_value = &d_nodes_pt_src[d_nodes_pt_src_idx[leaf_idx]];
     real_t tx = checkCoord[3*t+0];
     real_t ty = checkCoord[3*t+1];
     real_t tz = checkCoord[3*t+2];
@@ -110,8 +110,8 @@ __global__
     dnward_equiv[k] = d_dnward_equiv[leaf_idx*NSURF+k]*scal; 
     __syncthreads();
 
-    int node_start = d_nodes_pt_src_idx[i];
-    int node_end = d_nodes_pt_src_idx[i+1];
+    int node_start = d_nodes_pt_src_idx[leaf_idx];
+    int node_end = d_nodes_pt_src_idx[leaf_idx+1];
     real_t *trg_coord = &d_bodies_coord[node_start*3];
     real_t *trg_value = &d_nodes_trg[node_start*4];
     int trg_cnt = node_end-node_start;
@@ -152,11 +152,12 @@ __global__
 
   __global__
   void P2P_kernel(int *d_leafs_idx, int *d_nodes_pt_src_idx, int *d_P2Plists, int *d_P2Plists_idx, real_t *d_bodies_coord, real_t *d_nodes_pt_src, real_t *d_nodes_trg, int starting_pos) {
+    int leaf_idx = d_leafs_idx[blockIdx.x];
     const real_t COEFP = 1.0/(2*4*M_PI);
     const real_t COEFG = -1.0/(4*2*2*6*M_PI);
 
-    int first_trg_coord_idx = 3*d_nodes_pt_src_idx[blockIdx.x];
-    int trg_coord_size = 3*(d_nodes_pt_src_idx[blockIdx.x+1] - d_nodes_pt_src_idx[blockIdx.x]);
+    int first_trg_coord_idx = 3*d_nodes_pt_src_idx[leaf_idx];
+    int trg_coord_size = 3*(d_nodes_pt_src_idx[leaf_idx+1] - d_nodes_pt_src_idx[leaf_idx]);
     int first_trg_val_idx = 4*first_trg_coord_idx/3;
     if ((starting_pos+threadIdx.x) < trg_coord_size/3) {
       real_t tx = d_bodies_coord[first_trg_coord_idx+3*(starting_pos+threadIdx.x)+0];
@@ -248,45 +249,42 @@ __global__
 
   __global__
   void P2L_kernel(real_t *d_dnwd_check_surf, int *d_nodes_P2Llist_idx, int *d_nodes_P2Llist_idx_offset, real_t *d_nodes_coord, int *d_nodes_depth, int *d_nodes_pt_src_idx, real_t *d_bodies_coord, real_t *d_nodes_pt_src, real_t *d_dnward_equiv, int *d_nodes_idx, int NSURF) {
-    extern __shared__ real_t targetCheckCoord[];  
     int target_idx = blockIdx.x;
     int source_idx = threadIdx.x;
     int level = d_nodes_depth[d_nodes_idx[target_idx]];
-    for(int k=0; k<NSURF; k++) {
-      targetCheckCoord[3*k+0] = d_dnwd_check_surf[level*NSURF*3+3*k+0] + d_nodes_coord[d_nodes_idx[target_idx]+0];
-      targetCheckCoord[3*k+1] = d_dnwd_check_surf[level*NSURF*3+3*k+1] + d_nodes_coord[d_nodes_idx[target_idx]+1];
-      targetCheckCoord[3*k+2] = d_dnwd_check_surf[level*NSURF*3+3*k+2] + d_nodes_coord[d_nodes_idx[target_idx]+2];
-    }    
-    __syncthreads();
     int src_idx_start = d_nodes_P2Llist_idx_offset[target_idx];
-    int src_idx = d_nodes_P2Llist_idx[src_idx_start+source_idx];
-    int node_start = d_nodes_pt_src_idx[src_idx];
-    int node_end = d_nodes_pt_src_idx[src_idx+1];
+    int P2Llist_idx_size = d_nodes_P2Llist_idx_offset[target_idx+1]-d_nodes_P2Llist_idx_offset[target_idx];
 
-    const real_t COEF = 1.0/(2*4*M_PI);
-    int src_cnt = node_end-node_start;
-    int trg_cnt = NSURF;
-    for(int i=0;i<trg_cnt;i++) {
-      real_t tx = targetCheckCoord[3*i+0];
-      real_t ty = targetCheckCoord[3*i+1];
-      real_t tz = targetCheckCoord[3*i+2];
-      real_t tv = 0;
-      for(int j=0;j<src_cnt;j++) {
-        real_t sx = d_bodies_coord[3*j+0]-tx;
-        real_t sy = d_bodies_coord[3*j+1]-ty;
-        real_t sz = d_bodies_coord[3*j+2]-tz;
-        real_t sv = d_nodes_pt_src[node_start+j];
-        real_t r2 = sx*sx + sy*sy + sz*sz;;
-        if (r2 != 0) {
-          real_t invR = 1.0/sqrt(r2);
-          tv += invR * sv;
+    if(threadIdx.x < P2Llist_idx_size) {
+      int src_idx = d_nodes_P2Llist_idx[src_idx_start+source_idx];
+      int node_start = d_nodes_pt_src_idx[src_idx];
+      int node_end = d_nodes_pt_src_idx[src_idx+1];
+
+      const real_t COEF = 1.0/(2*4*M_PI);
+      int src_cnt = node_end-node_start;
+      int trg_cnt = NSURF;
+      for(int i=0;i<trg_cnt;i++) {
+        real_t tx = (d_dnwd_check_surf[level*NSURF*3+3*i+0] + d_nodes_coord[d_nodes_idx[target_idx]*3+0]);
+        real_t ty = (d_dnwd_check_surf[level*NSURF*3+3*i+1] + d_nodes_coord[d_nodes_idx[target_idx]*3+1]);
+        real_t tz = (d_dnwd_check_surf[level*NSURF*3+3*i+2] + d_nodes_coord[d_nodes_idx[target_idx]*3+2]);
+        real_t tv = 0;
+        for(int j=0;j<src_cnt;j++) {
+          real_t sx = d_bodies_coord[3*node_start+3*j+0]-tx;
+          real_t sy = d_bodies_coord[3*node_start+3*j+1]-ty;
+          real_t sz = d_bodies_coord[3*node_start+3*j+2]-tz;
+          real_t sv = d_nodes_pt_src[node_start+j];
+          real_t r2 = sx*sx + sy*sy + sz*sz;
+          if (r2 != 0) {
+            real_t invR = 1.0/sqrt(r2);
+            tv += invR * sv;
+          }
         }
+        tv *= COEF;
+        atomicAdd(&d_dnward_equiv[d_nodes_idx[target_idx]*NSURF+i], tv);
       }
-      tv *= COEF;
-      d_dnward_equiv[d_nodes_idx[target_idx]*NSURF+i] += tv;
     }
   }
-  
+
   __global__
   void M2P_kernel(int *d_leafs_idx, int *d_nodes_pt_src_idx, int *d_leafs_M2Plist_idx_offset, int *d_leafs_M2Plist_idx, int *d_nodes_depth, real_t *d_nodes_coord, real_t *d_upwd_equiv_surf, real_t *d_upward_equiv, real_t *d_bodies_coord, real_t *d_nodes_trg, int NSURF) {
     int leaf_idx = d_leafs_idx[blockIdx.x];
@@ -297,20 +295,13 @@ __global__
     if(threadIdx.x < sources_idx_size) {
       int source_idx = d_leafs_M2Plist_idx[src_idx_start + threadIdx.x];
       int level = d_nodes_depth[source_idx];
-      real_t *sourceEquivCoord = new real_t[NSURF*3];
-      for(int k=0; k<NSURF; k++) {
-        sourceEquivCoord[3*k+0] = d_upwd_equiv_surf[level*NSURF*3+3*k+0] + d_nodes_coord[source_idx + 0];
-        sourceEquivCoord[3*k+1] = d_upwd_equiv_surf[level*NSURF*3+3*k+1] + d_nodes_coord[source_idx +1];
-        sourceEquivCoord[3*k+2] = d_upwd_equiv_surf[level*NSURF*3+3*k+2] + d_nodes_coord[source_idx +2];
-      }
       real_t *trg_coord = &d_bodies_coord[node_start*3];
-      real_t *src_coord = &sourceEquivCoord[0];
       real_t *src_value = &d_upward_equiv[source_idx*NSURF];
       real_t *trg_value = &d_nodes_trg[node_start*4];
       const real_t COEFP = 1.0/(2*4*M_PI);   // factor 16 comes from the simd rsqrt function
       const real_t COEFG = -1.0/(4*2*2*6*M_PI);
       int src_cnt = NSURF;
-      int trg_cnt = (node_end-node_end);
+      int trg_cnt = (node_end-node_start);
       for(int i=0; i<trg_cnt; i++) {
         real_t tx = trg_coord[3*i+0];
         real_t ty = trg_coord[3*i+1];
@@ -320,9 +311,9 @@ __global__
         real_t tv2=0;
         real_t tv3=0;
         for(int j=0; j<src_cnt; j++) {
-          real_t sx = src_coord[3*j+0] - tx;
-          real_t sy = src_coord[3*j+1] - ty;
-          real_t sz = src_coord[3*j+2] - tz;
+          real_t sx = (d_upwd_equiv_surf[level*NSURF*3+3*j+0] + d_nodes_coord[source_idx*3 + 0]) - tx;
+          real_t sy = (d_upwd_equiv_surf[level*NSURF*3+3*j+1] + d_nodes_coord[source_idx*3 +1]) - ty;
+          real_t sz = (d_upwd_equiv_surf[level*NSURF*3+3*j+2] + d_nodes_coord[source_idx*3 +2]) - tz;
           real_t r2 = sx*sx + sy*sy + sz*sz;
           real_t sv = src_value[j];
           if (r2 != 0) {
@@ -339,12 +330,11 @@ __global__
         tv1 *= COEFG;
         tv2 *= COEFG;
         tv3 *= COEFG;
-        trg_value[4*i+0] += tv0;
-        trg_value[4*i+1] += tv1;
-        trg_value[4*i+2] += tv2;
-        trg_value[4*i+3] += tv3;
+        atomicAdd(&trg_value[4*i+0], tv0);
+        atomicAdd(&trg_value[4*i+1], tv1);
+        atomicAdd(&trg_value[4*i+2], tv2);
+        atomicAdd(&trg_value[4*i+3], tv3);
       }
-      free(sourceEquivCoord);
     }
   }
 
@@ -734,26 +724,23 @@ __global__
         nodes_P2Llist_idx_offset_cnt += sources_idx.size();
       }
       nodes_P2Llist_idx_offset.push_back(nodes_P2Llist_idx_offset_cnt);
-
       int THREADS = sources_max;
       int BLOCKS = nodes.size();
       int *d_nodes_P2Llist_idx, *d_nodes_P2Llist_idx_offset;
     
       cudaMalloc(&d_nodes_P2Llist_idx, sizeof(int)*nodes_P2Llist_idx.size());
       cudaMalloc(&d_nodes_P2Llist_idx_offset, sizeof(int)*nodes_P2Llist_idx_offset.size());
-
       cudaMemcpy(d_nodes_P2Llist_idx, &nodes_P2Llist_idx[0], sizeof(int)*nodes_P2Llist_idx.size(), cudaMemcpyHostToDevice);
       cudaMemcpy(d_nodes_P2Llist_idx_offset, &nodes_P2Llist_idx_offset[0], sizeof(int)*nodes_P2Llist_idx_offset.size(), cudaMemcpyHostToDevice);
     
-      P2L_kernel<<<BLOCKS, THREADS, NSURF*3*sizeof(real_t)>>>(d_dnwd_check_surf, d_nodes_P2Llist_idx, d_nodes_P2Llist_idx_offset, d_nodes_coord, d_nodes_depth, d_nodes_pt_src_idx, d_bodies_coord, d_nodes_pt_src, d_dnward_equiv, d_nodes_idx, NSURF);
+      P2L_kernel<<<BLOCKS, THREADS>>>(d_dnwd_check_surf, d_nodes_P2Llist_idx, d_nodes_P2Llist_idx_offset, d_nodes_coord, d_nodes_depth, d_nodes_pt_src_idx, d_bodies_coord, d_nodes_pt_src, d_dnward_equiv, d_nodes_idx, NSURF);
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
-      
       cudaFree(d_nodes_P2Llist_idx);
       cudaFree(d_nodes_P2Llist_idx_offset);
     }
   }
-  
+
   void M2PGPU(Nodes &nodes, std::vector<int> leafs_idx, int *d_leafs_idx, real_t *d_upward_equiv, real_t *d_nodes_trg, int *d_nodes_pt_src_idx, real_t *d_bodies_coord, int *d_nodes_depth, real_t *d_nodes_coord, real_t *d_upwd_equiv_surf, int BLOCKS) {
     int sources_max = 0;
     for(int i=0; i<BLOCKS; i++) {
@@ -786,7 +773,8 @@ __global__
       cudaMemcpy(d_leafs_M2Plist_idx, &leafs_M2Plist_idx[0], sizeof(int)*leafs_M2Plist_idx.size(), cudaMemcpyHostToDevice);
     
       M2P_kernel<<<BLOCKS, THREADS>>>(d_leafs_idx, d_nodes_pt_src_idx, d_leafs_M2Plist_idx_offset, d_leafs_M2Plist_idx, d_nodes_depth, d_nodes_coord, d_upwd_equiv_surf, d_upward_equiv, d_bodies_coord, d_nodes_trg, NSURF);
-
+      gpuErrchk( cudaPeekAtLastError() );
+      gpuErrchk( cudaDeviceSynchronize() );
       cudaFree(d_leafs_M2Plist_idx_offset);
       cudaFree(d_leafs_M2Plist_idx);
     }

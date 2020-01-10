@@ -64,12 +64,12 @@ namespace exafmm_t {
         if (isleaf) {
           int idx1 = hash_lut[P2P0_Type][c_hash];
           if (idx1>=0)
-            n->P2Plist_idx.push_back(pc->idx_leafs);
+            n->P2Plist_idx.push_back(pc->idx);
         }
         int idx2 = hash_lut[P2L_Type][c_hash];
         if (idx2>=0) {
           if (isleaf && n->numBodies<=NSURF)
-            n->P2Plist_idx.push_back(pc->idx_leafs);
+            n->P2Plist_idx.push_back(pc->idx);
           else
             n->P2Llist_idx.push_back(pc->idx);
         }
@@ -90,7 +90,7 @@ namespace exafmm_t {
         int c_hash = hash(rel_coord);
         if (col->IsLeaf() && isleaf) {
           int idx1 = hash_lut[P2P1_Type][c_hash];
-          if (idx1>=0) n->P2Plist_idx.push_back(col->idx_leafs);
+          if (idx1>=0) n->P2Plist_idx.push_back(col->idx);
         }
       }
     }
@@ -114,13 +114,13 @@ namespace exafmm_t {
             int idx2 = hash_lut[M2P_Type][c_hash];
             if (idx1>=0) {
               assert(col->child[j]->IsLeaf()); //2:1 balanced
-              n->P2Plist_idx.push_back(cc->idx_leafs);
+              n->P2Plist_idx.push_back(cc->idx);
             }
             // since we currently don't save bodies' information in nonleaf nodes
             // M2P can only be switched to P2P when source is leaf
             if (idx2>=0) {
               if (cc->IsLeaf() && cc->numBodies<=NSURF)
-                n->P2Plist_idx.push_back(cc->idx_leafs);
+                n->P2Plist_idx.push_back(cc->idx);
               else
                 n->M2Plist_idx.push_back(cc->idx);
             }
@@ -190,18 +190,19 @@ namespace exafmm_t {
     M2Lsources_idx.assign(sources_idx.begin(), sources_idx.end());
     M2Ltargets_idx.assign(targets_idx.begin(), targets_idx.end());
     int nodes_pt_src_idx_cnt = 0;
-    for(int i=0;i<leafs_idx.size();i++) {
+    for(int i=0;i<nodes.size();i++) {
       nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
-      for(Body* B=nodes[leafs_idx[i]].body; B<nodes[leafs_idx[i]].body+nodes[leafs_idx[i]].numBodies; B++) {
-        bodies_coord.push_back(B->X[0]);
-        bodies_coord.push_back(B->X[1]);
-        bodies_coord.push_back(B->X[2]);
-        nodes_pt_src.push_back(B->q);
-        nodes_pt_src_idx_cnt ++;
+      if(nodes[i].IsLeaf()) {
+        for(Body* B=nodes[i].body; B<nodes[i].body+nodes[i].numBodies; B++) {
+          bodies_coord.push_back(B->X[0]);
+          bodies_coord.push_back(B->X[1]);
+          bodies_coord.push_back(B->X[2]);
+          nodes_pt_src.push_back(B->q);
+          nodes_pt_src_idx_cnt ++;
+        }
       }
     }
     nodes_pt_src_idx.push_back(nodes_pt_src_idx_cnt);
-
     for(int i=1;i<nodes.size();i++){
       nodes_by_level_idx[nodes[i].depth-1].push_back(nodes[i].idx);
       parent_by_level_idx[nodes[i].depth-1].push_back(nodes[i].parent->idx);

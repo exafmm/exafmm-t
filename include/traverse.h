@@ -11,24 +11,24 @@ namespace exafmm_t {
     std::vector<int> direct_target_pt_trg_idx;
     for(size_t i=0; i<numTargets; i++) {
       direct_target_pt_trg_idx.push_back(direct_target_pt_trg_size);
-      direct_target_pt_trg_size += 4*(nodes_pt_src_idx[i*stride+1]-nodes_pt_src_idx[i*stride]);
+      direct_target_pt_trg_size += 4*(nodes_pt_src_idx[leafs_idx[i*stride]+1]-nodes_pt_src_idx[leafs_idx[i*stride]]);
     }
     direct_target_pt_trg_idx.push_back(direct_target_pt_trg_size);
     RealVec direct_target_pt_trg(direct_target_pt_trg_size, 0.);
 #pragma omp parallel for
     for(size_t i=0; i<numTargets; i++) {
       for(size_t j=0; j<leafs_idx.size(); j++) {
-        int leaf_coord_size = 3*(nodes_pt_src_idx[j+1] - nodes_pt_src_idx[j]);
-        int pt_coord_size = 3*(nodes_pt_src_idx[i*stride+1]-nodes_pt_src_idx[i*stride]);
-        gradientP2P(&bodies_coord[nodes_pt_src_idx[j]*3], leaf_coord_size, &nodes_pt_src[nodes_pt_src_idx[j]], &bodies_coord[nodes_pt_src_idx[i*stride]*3], pt_coord_size, &direct_target_pt_trg[direct_target_pt_trg_idx[i]]);
+        int leaf_coord_size = 3*(nodes_pt_src_idx[leafs_idx[j]+1] - nodes_pt_src_idx[leafs_idx[j]]);
+        int pt_coord_size = 3*(nodes_pt_src_idx[leafs_idx[i*stride]+1]-nodes_pt_src_idx[leafs_idx[i*stride]]);
+        gradientP2P(&bodies_coord[nodes_pt_src_idx[leafs_idx[j]]*3], leaf_coord_size, &nodes_pt_src[nodes_pt_src_idx[leafs_idx[j]]], &bodies_coord[nodes_pt_src_idx[leafs_idx[i*stride]]*3], pt_coord_size, &direct_target_pt_trg[direct_target_pt_trg_idx[i]]);
       }
     }
     real_t p_diff = 0, p_norm = 0, g_diff = 0, g_norm = 0;
     for(size_t i=0; i<numTargets; i++) {
       p_norm += direct_target_pt_trg[direct_target_pt_trg_idx[i]]*direct_target_pt_trg[direct_target_pt_trg_idx[i]];
-      p_diff += (direct_target_pt_trg[direct_target_pt_trg_idx[i]] - nodes_trg[nodes_pt_src_idx[i*stride]*4]) * (direct_target_pt_trg[direct_target_pt_trg_idx[i]] - nodes_trg[nodes_pt_src_idx[i*stride]*4]);
+      p_diff += (direct_target_pt_trg[direct_target_pt_trg_idx[i]] - nodes_trg[nodes_pt_src_idx[leafs_idx[i*stride]]*4]) * (direct_target_pt_trg[direct_target_pt_trg_idx[i]] - nodes_trg[nodes_pt_src_idx[leafs_idx[i*stride]]*4]);
       for(int d=1; d<4; d++) {
-        g_diff += (direct_target_pt_trg[direct_target_pt_trg_idx[i]+d] - nodes_trg[nodes_pt_src_idx[i*stride]*4+d]) * (direct_target_pt_trg[direct_target_pt_trg_idx[i]+d] - nodes_trg[nodes_pt_src_idx[i*stride]*4+d]);
+        g_diff += (direct_target_pt_trg[direct_target_pt_trg_idx[i]+d] - nodes_trg[nodes_pt_src_idx[leafs_idx[i*stride]]*4+d]) * (direct_target_pt_trg[direct_target_pt_trg_idx[i]+d] - nodes_trg[nodes_pt_src_idx[leafs_idx[i*stride]]*4+d]);
         g_norm += direct_target_pt_trg[direct_target_pt_trg_idx[i]+d] * direct_target_pt_trg[direct_target_pt_trg_idx[i]+d];
       }
     } 
