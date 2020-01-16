@@ -456,11 +456,14 @@ __global__
     cudaFree(d_P2Plists);
   }
 
-  cufftComplex_t *FFT_UpEquiv_GPU(real_t *d_upward_equiv, int *d_M2Lsources_idx, int *d_map, real_t *d_up_equiv, int M2Lsources_idx_size, int nodes_size) {
+  cufftComplex_t *FFT_UpEquiv_GPU(real_t *d_upward_equiv, int *d_M2Lsources_idx, int *d_map, int M2Lsources_idx_size, int nodes_size) {
     int n1 = MULTIPOLE_ORDER * 2;
     int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     int dims[] = {n1,n1,n1};
+    real_t *d_up_equiv;
+    cudaMalloc(&d_up_equiv, sizeof(real_t)*nodes_size*n3);
+    cudaMemset(d_up_equiv,0,sizeof(real_t)*nodes_size*n3);
     FFT_UpEquiv_kernel<<<M2Lsources_idx_size, NSURF>>>(d_M2Lsources_idx, d_map, d_up_equiv, d_upward_equiv, n3);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -499,7 +502,9 @@ __global__
     int BLOCK_MAX_THREAD = 1024;
     int num_kernel_calls = n3_/BLOCK_MAX_THREAD;
     int remainder = n3_%BLOCK_MAX_THREAD;
-    int i; 
+    int i;
+    cudaMalloc(&d_dw_equiv_fft, sizeof(cufftComplex_t)*BLOCKS*n3_);
+    cudaMemset(d_dw_equiv_fft,0,sizeof(cufftComplex_t)*BLOCKS*n3_);
     for(i=0; i<num_kernel_calls;i++) {
       hadmard_kernel<<<BLOCKS, BLOCK_MAX_THREAD >>>(d_M2Ltargets_idx, d_up_equiv_fft, d_dw_equiv_fft, d_M2LRelPos_offset, d_M2LRelPoss, d_mat_M2L_Helper, BLOCKS, d_M2Llist_idx_offset, d_M2Llist_idx, i*BLOCK_MAX_THREAD, n3_);
       gpuErrchk( cudaPeekAtLastError() );
@@ -552,9 +557,9 @@ __global__
     }
   }
 
-  void M2LGPU(std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, real_t *d_upward_equiv, int upward_equiv_size, real_t *d_dnward_equiv, int dnward_equiv_size, int *d_nodes_depth, int *d_M2Ltargets_idx, Nodes &nodes, std::vector<int> M2LRelPos_offset, std::vector<int> M2LRelPoss, std::vector<int> M2Llist_idx_offset, std::vector<int> M2Llist_idx, int *d_M2Lsources_idx, int *d_map, int *d_map2, real_t *d_up_equiv, cufftComplex_t *d_dw_equiv_fft, int *d_M2LRelPos_offset, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int *d_M2Llist_idx_offset, int *d_M2Llist_idx) {
-    cufftComplex_t *d_up_equiv_fft = FFT_UpEquiv_GPU(d_upward_equiv, d_M2Lsources_idx, d_map, d_up_equiv, M2Lsources_idx.size(), nodes.size());
-    d_dw_equiv_fft = HadmardGPU(d_M2Ltargets_idx, d_up_equiv_fft, d_dw_equiv_fft, d_M2LRelPos_offset, d_M2LRelPoss, d_mat_M2L_Helper, M2Ltargets_idx.size(), d_M2Llist_idx_offset, d_M2Llist_idx);
+  void M2LGPU(std::vector<int> &M2Lsources_idx, std::vector<int> &M2Ltargets_idx, real_t *d_upward_equiv, int upward_equiv_size, real_t *d_dnward_equiv, int dnward_equiv_size, int *d_nodes_depth, int *d_M2Ltargets_idx, Nodes &nodes, std::vector<int> M2LRelPos_offset, std::vector<int> M2LRelPoss, std::vector<int> M2Llist_idx_offset, std::vector<int> M2Llist_idx, int *d_M2Lsources_idx, int *d_map, int *d_map2, int *d_M2LRelPos_offset, int *d_M2LRelPoss, real_t *d_mat_M2L_Helper, int *d_M2Llist_idx_offset, int *d_M2Llist_idx) {
+    cufftComplex_t *d_up_equiv_fft = FFT_UpEquiv_GPU(d_upward_equiv, d_M2Lsources_idx, d_map, M2Lsources_idx.size(), nodes.size());
+    cufftComplex_t *d_dw_equiv_fft = HadmardGPU(d_M2Ltargets_idx, d_up_equiv_fft, d_dw_equiv_fft, d_M2LRelPos_offset, d_M2LRelPoss, d_mat_M2L_Helper, M2Ltargets_idx.size(), d_M2Llist_idx_offset, d_M2Llist_idx);
     FFT_Check2Equiv_GPU(d_dw_equiv_fft, d_dnward_equiv, dnward_equiv_size, d_M2Ltargets_idx, M2Ltargets_idx.size(), d_nodes_depth, d_map2);
     cudaFree(d_up_equiv_fft);
     cudaFree(d_dw_equiv_fft);
@@ -723,9 +728,6 @@ __global__
     Profile::Tic("totalgpu", true);
     Profile::Tic("memcopying",true);
     real_t c[3] = {0.0};
-    int n1 = MULTIPOLE_ORDER * 2;
-    int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
     std::vector<real_t> upwd_check_surf((MAXLEVEL+1)*NSURF*3);
     for(size_t depth = 0; depth <= MAXLEVEL; depth++) {
       surface(MULTIPOLE_ORDER,c,2.95,depth, depth, upwd_check_surf);
@@ -747,9 +749,8 @@ __global__
     std::vector<int> map2(NSURF);
     P2PDATA(nodes, leafs_idx, P2Plist_idx, P2Plist_offset);
     M2LDATA(nodes, M2Ltargets_idx, map, map2, M2LRelPos_offset, M2LRelPoss, M2Llist_idx, M2Llist_idx_offset); 
-    cufftComplex_t *d_dw_equiv_fft;
     int *d_nodes_pt_src_idx, *d_leafs_idx, *d_nodes_depth, *d_nodes_idx, *d_M2Ltargets_idx, *d_M2LRelPos_offset, *d_M2LRelPoss, *d_M2Llist_idx_offset, *d_M2Llist_idx, *d_M2Lsources_idx, *d_map, *d_map2, *d_P2Plists, *d_P2Plists_idx;;
-    real_t *d_bodies_coord, *d_upward_equiv, *d_M2M_V, *d_M2M_U, *d_nodes_coord, *d_nodes_pt_src, *d_dnward_equiv, *d_upwd_check_surf, *d_nodes_trg, *d_dnwd_check_surf, *d_mat_M2M, *d_L2L_U, *d_L2L_V, *d_up_equiv, *d_mat_M2L_Helper;
+    real_t *d_bodies_coord, *d_upward_equiv, *d_M2M_V, *d_M2M_U, *d_nodes_coord, *d_nodes_pt_src, *d_dnward_equiv, *d_upwd_check_surf, *d_nodes_trg, *d_dnwd_check_surf, *d_mat_M2M, *d_L2L_U, *d_L2L_V, *d_mat_M2L_Helper;
     cudaMalloc(&d_nodes_trg, sizeof(real_t)*nodes_trg.size());
     cudaMalloc(&d_dnwd_check_surf, sizeof(real_t)*dnwd_check_surf.size());
     cudaMalloc(&d_nodes_idx, sizeof(int)*nodes_idx.size());
@@ -770,15 +771,11 @@ __global__
     cudaMalloc(&d_L2L_U, sizeof(real_t)*L2L_U.size());
     cudaMalloc(&d_L2L_V, sizeof(real_t)*L2L_V.size());
     cudaMalloc(&d_M2Ltargets_idx, sizeof(int)*M2Ltargets_idx.size());
-    cudaMalloc(&d_up_equiv, sizeof(real_t)*M2Lsources_idx.size()*n3);
-    cudaMemset(d_up_equiv,0,sizeof(real_t)*M2Lsources_idx.size()*n3);
     cudaMalloc(&d_map, sizeof(int)*map.size());
     cudaMalloc(&d_M2Lsources_idx, sizeof(int)*M2Lsources_idx.size());
     cudaMalloc(&d_map2, sizeof(int)*map2.size());
     cudaMalloc(&d_M2LRelPos_offset, sizeof(int)*M2LRelPos_offset.size());
     cudaMalloc(&d_M2LRelPoss, sizeof(int)*M2LRelPoss.size());
-    cudaMalloc(&d_dw_equiv_fft, sizeof(cufftComplex_t)*M2Ltargets_idx.size()*n3_);
-    cudaMemset(d_dw_equiv_fft,0,sizeof(cufftComplex_t)*M2Ltargets_idx.size()*n3_);
     cudaMalloc(&d_mat_M2L_Helper, sizeof(real_t)*mat_M2L_Helper.size());
     cudaMalloc(&d_M2Llist_idx_offset, sizeof(int)*M2Llist_idx_offset.size());
     cudaMalloc(&d_M2Llist_idx, sizeof(int)*M2Llist_idx.size());
@@ -832,7 +829,7 @@ __global__
     Profile::Toc();
 
     Profile::Tic("M2L", false, 5);
-    M2LGPU(M2Lsources_idx, M2Ltargets_idx, d_upward_equiv, nodes.size()*NSURF, d_dnward_equiv, nodes.size()*NSURF, d_nodes_depth, d_M2Ltargets_idx, nodes, M2LRelPos_offset, M2LRelPoss, M2Llist_idx_offset, M2Llist_idx, d_M2Lsources_idx, d_map, d_map2, d_up_equiv, d_dw_equiv_fft, d_M2LRelPos_offset, d_M2LRelPoss, d_mat_M2L_Helper, d_M2Llist_idx_offset, d_M2Llist_idx);
+    M2LGPU(M2Lsources_idx, M2Ltargets_idx, d_upward_equiv, nodes.size()*NSURF, d_dnward_equiv, nodes.size()*NSURF, d_nodes_depth, d_M2Ltargets_idx, nodes, M2LRelPos_offset, M2LRelPoss, M2Llist_idx_offset, M2Llist_idx, d_M2Lsources_idx, d_map, d_map2, d_M2LRelPos_offset, d_M2LRelPoss, d_mat_M2L_Helper, d_M2Llist_idx_offset, d_M2Llist_idx);
     Profile::Toc();
 
     Profile::Tic("L2L", false, 5);
