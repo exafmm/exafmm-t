@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -p teslav
+#SBATCH -p titanv
 #SBATCH --nodes 1
 #SBATCH -J elket
 

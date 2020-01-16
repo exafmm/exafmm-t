@@ -18,7 +18,7 @@ clean:
 	rm -f $(OBJ) *.out
 
 p4:
-	./a.out -T 8 -n 20000 -P 4 -c 1024
+	./a.out -T 8 -n 1000000 -P 4 -c 64
 
 p16:
 	./a.out -T 8 -n 1000000 -P 16 -c 320
