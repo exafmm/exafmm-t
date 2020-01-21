@@ -26,7 +26,7 @@ template <typename T> using Nodes = exafmm_t::Nodes<T>;
 template <typename T> using NodePtrs = exafmm_t::NodePtrs<T>;
 
 /**
- * @brief Initialize sources.
+ * @brief Initialize sources with real-type charges.
  *
  * @param coords Coordinates of sources, an n-by-3 numpy array.
  * @param charges Charges of sources, an n-element numpy array.
@@ -53,6 +53,13 @@ Bodies<real_t> init_sources(py::array_t<real_t> coords, py::array_t<real_t> char
   return sources;
 }
 
+/**
+ * @brief Initialize sources with complex-type charges.
+ *
+ * @param coords Coordinates of sources, an n-by-3 numpy array.
+ * @param charges Charges of sources, an n-element numpy array.
+ * @return Bodies Vector of sources.
+ */
 Bodies<complex_t> init_sources(py::array_t<real_t> coords, py::array_t<complex_t> charges) {
   // checking dimensions
   if (coords.ndim() != 2 || charges.ndim() != 1 || coords.shape(1) != 3)
@@ -98,14 +105,28 @@ Bodies<T> init_targets(py::array_t<real_t> coords) {
   return targets;
 }
 
+/**
+ * @brief Structure of tree.
+ *
+ * @tparam T Value type of sources and targets.
+ */
 template <typename T>
 struct Tree {
 public:
-  Nodes<T> nodes;
-  NodePtrs<T> leafs;
-  NodePtrs<T> nonleafs;
+  Nodes<T> nodes;          //!< Vector of all nodes in the tree
+  NodePtrs<T> leafs;       //!< Vector of leaf pointers
+  NodePtrs<T> nonleafs;    //!< Vector of nonleaf pointers
 };
 
+/**
+ * @brief Construct a tree using sources and targets.
+ *
+ * @tparam T Value type of sources and targets.
+ * @param sources Array of sources.
+ * @param targets Array of targets.
+ * @param fmm The FMM instance.
+ * @return The tree.
+ */
 template <typename T>
 Tree<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, exafmm_t::FMM& fmm) {
   exafmm_t::get_bounds<T>(sources, targets, fmm.x0, fmm.r0);
@@ -122,8 +143,10 @@ Tree<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, exafmm_t::FMM& fmm) {
 /**
  * @brief Create colleagues list, interaction lists and setup M2L kernel.
  * 
+ * @tparam T Value type of sources and targets.
+ * @param tree The octree.
+ * @param fmm The FMM instance.
  * @param skip_P2P A flag to switch off P2P (near-field interaction).
- * @return Nodes Vector of nodes.
  */
 template <typename T>
 void build_list(Tree<T>& tree, exafmm_t::FMM& fmm, bool skip_P2P) {
@@ -131,11 +154,38 @@ void build_list(Tree<T>& tree, exafmm_t::FMM& fmm, bool skip_P2P) {
   exafmm_t::build_list<T>(tree.nodes, fmm, skip_P2P);
 }
 
+Tree<real_t> setup_laplace(Bodies<real_t>& sources, Bodies<real_t>& targets, exafmm_t::LaplaceFMM& fmm, bool skip_P2P) {
+  auto tree = build_tree<real_t>(sources, targets, fmm);
+  exafmm_t::init_rel_coord();
+  build_list<real_t>(tree, fmm, skip_P2P);
+  fmm.M2L_setup(tree.nonleafs);
+  fmm.precompute();
+  return tree;
+}
+
+Tree<complex_t> setup_helmholtz(Bodies<complex_t>& sources, Bodies<complex_t>& targets, exafmm_t::HelmholtzFMM& fmm, bool skip_P2P) {
+  auto tree = build_tree<complex_t>(sources, targets, fmm);
+  exafmm_t::init_rel_coord();
+  build_list<complex_t>(tree, fmm, skip_P2P);
+  fmm.M2L_setup(tree.nonleafs);
+  fmm.precompute();
+  return tree;
+}
+
+Tree<real_t> setup_modified_helmholtz(Bodies<real_t>& sources, Bodies<real_t>& targets, exafmm_t::ModifiedHelmholtzFMM& fmm, bool skip_P2P) {
+  auto tree = build_tree<real_t>(sources, targets, fmm);
+  exafmm_t::init_rel_coord();
+  build_list<real_t>(tree, fmm, skip_P2P);
+  fmm.M2L_setup(tree.nonleafs);
+  fmm.precompute();
+  return tree;
+}
+
 /**
- * @brief Evaluate potential and gradient at targets.
+ * @brief Evaluate Laplace potential and gradient at targets.
  *
- * @param tree Octree.
- * @param fmm FMM instance.
+ * @param tree The octree.
+ * @param fmm Laplace FMM instance.
  * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
  */
 py::array_t<real_t> evaluate(Tree<real_t>& tree, exafmm_t::LaplaceFMM& fmm) {
@@ -165,6 +215,13 @@ py::array_t<real_t> evaluate(Tree<real_t>& tree, exafmm_t::LaplaceFMM& fmm) {
   return trg_value;
 }
 
+/**
+ * @brief Evaluate Helmholtz potential and gradient at targets.
+ *
+ * @param tree The octree.
+ * @param fmm Helmholtz FMM instance.
+ * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
+ */
 py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFMM& fmm) {
   // redirect ostream to python ouptut
   py::scoped_ostream_redirect stream(
@@ -192,6 +249,13 @@ py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFMM&
   return trg_value;
 }
 
+/**
+ * @brief Evaluate modified Helmholtz potential and gradient at targets.
+ *
+ * @param tree The octree.
+ * @param fmm The modified Helmholtz FMM instance.
+ * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
+ */
 py::array_t<real_t> evaluate_m(Tree<real_t>& tree, exafmm_t::ModifiedHelmholtzFMM& fmm) {
   // redirect ostream to python ouptut
   py::scoped_ostream_redirect stream(
@@ -219,42 +283,95 @@ py::array_t<real_t> evaluate_m(Tree<real_t>& tree, exafmm_t::ModifiedHelmholtzFM
   return trg_value;
 }
 
-#if 0
-  /**
-   * @brief Update the charges of sources. (Coordinates do not change)
-   * 
-   * @param charges Charges of sources, a numpy array.
-   */
-  void update(py::array_t<real_t> charges) {
-    // update charges of sources
-    auto charges_ = charges.unchecked<1>();
+/**
+ * @brief Update the charges of sources (real type).
+ * 
+ * @param tree The octree.
+ * @param charges Charges of sources, a numpy array.
+ */
+void update_charges_real(Tree<real_t>& tree, py::array_t<real_t>& charges) {
+  // update charges of sources
+  auto charges_ = charges.unchecked<1>();
 #pragma omp parallel for
-    for (int i=0; i<leafs.size(); ++i) {
-      Node * leaf = leafs[i];
-      std::vector<int> & isrcs = leaf->isrcs;
-      for (int j=0; j<isrcs.size(); ++j) {
-        leaf->src_value[j] = charges_[isrcs[j]];
-      }
+  for (int i=0; i<tree.leafs.size(); ++i) {
+    auto leaf = tree.leafs[i];
+    std::vector<int>& isrcs = leaf->isrcs;
+    for (int j=0; j<isrcs.size(); ++j) {
+      leaf->src_value[j] = charges_[isrcs[j]];
     }
   }
+}
 
-  /**
-   * @brief Reset target values, equivalent charges and check potentials to 0.
-   * 
-   */
-  void clear() {
+/**
+ * @brief Update the charges of sources (complex type).
+ * 
+ * @param tree The octree.
+ * @param charges Charges of sources, a numpy array.
+ */
+void update_charges_cplx(Tree<complex_t>& tree, py::array_t<complex_t>& charges) {
+  // update charges of sources
+  auto charges_ = charges.unchecked<1>();
 #pragma omp parallel for
-    for (int i=0; i<nodes.size(); ++i) {
-      Node & node = nodes[i];
-      std::fill(node.up_equiv.begin(), node.up_equiv.end(), 0.);
-      std::fill(node.dn_equiv.begin(), node.dn_equiv.end(), 0.);
-      if (node.is_leaf)
-        std::fill(node.trg_value.begin(), node.trg_value.end(), 0.);
+  for (int i=0; i<tree.leafs.size(); ++i) {
+    auto leaf = tree.leafs[i];
+    std::vector<int>& isrcs = leaf->isrcs;
+    for (int j=0; j<isrcs.size(); ++j) {
+      leaf->src_value[j] = charges_[isrcs[j]];
     }
   }
-#endif
+}
+
+/**
+ * @brief Reset target values, equivalent charges and check potentials to 0.
+ * 
+ * @tparam T Value type of sources and targets.
+ * @param The Octree.
+ */
+template <typename T>
+void clear_values(Tree<T>& tree) {
+#pragma omp parallel for
+  for (int i=0; i<tree.nodes.size(); ++i) {
+    auto& node = tree.nodes[i];
+    std::fill(node.up_equiv.begin(), node.up_equiv.end(), 0.);
+    std::fill(node.dn_equiv.begin(), node.dn_equiv.end(), 0.);
+    if (node.is_leaf)
+      std::fill(node.trg_value.begin(), node.trg_value.end(), 0.);
+  }
+}
+
 
 PYBIND11_MODULE(exafmm, m) {
+  /**
+   * m:  exafmm-t's module.
+   *     - class: vec3
+   *     - class: FMM
+   *     - function: init_rel_coord()
+   * m0: Laplace submodule (real type).
+   *     - class: Body
+   *     - class: Node
+   *     - class: Tree
+   *     - class: LaplaceFMM
+   *     - function: init_sources()
+   *     - function: init_targets()
+   *     - function: build_tree()
+   *     - function: build_list()
+   *     - function: evaluate()
+   * m1: Helmholtz submodule (complex type).
+   *     - class: Body
+   *     - class: Node
+   *     - class: Tree
+   *     - class: HelmholtzFMM
+   *     - function: init_sources()
+   *     - function: init_targets()
+   *     - function: build_tree()
+   *     - function: build_list()
+   *     - function: evaluate()
+   * m2: Modified Helmholtz submodule (real type).
+   *     - class: Body, Node, Tree are aliases from Laplace submodule.
+   *     - class: ModifiedHelmholtzFMM
+   *     - function: init_sources(), init_targets(), build_tree(), build_list() are aliases from Laplace submodule.  
+   *     - function: evaluate()
+   */
   m.doc() = "exafmm's pybind11 module";
 
   py::module m0 = m.def_submodule("laplace", "A submodule of exafmm's Laplace kernel");
@@ -393,12 +510,19 @@ PYBIND11_MODULE(exafmm, m) {
   m1.def("build_list", &build_list<complex_t>, "build list");
   m2.attr("build_list") = m0.attr("build_list");
 
+  m0.def("setup", &setup_laplace, "setup FMM, including tree construction, list construction, M2L setup and pre-computation.");
+  m1.def("setup", &setup_helmholtz, "setup FMM, including tree construction, list construction, M2L setup and pre-computation.");
+  m2.def("setup", &setup_modified_helmholtz, "setup FMM, including tree construction, list construction, M2L setup and pre-computation.");
+
   m0.def("evaluate", &evaluate, "evaluate");
   m1.def("evaluate", &evaluate_h, "evaluate");
   m2.def("evaluate", &evaluate_m, "evaluate");
 
-/*
-  m0.def("update", &exafmm_t::update, "update charges of sources");
-  m0.def("clear", &exafmm_t::clear, "clear target potentials, equivalent charges and check potentials");
-*/
+  m0.def("update_charges", &update_charges_real, "update charges of sources");
+  m1.def("update_charges", &update_charges_cplx, "update charges of sources");
+  m2.attr("update_charges") = m0.attr("update_charges");
+
+  m0.def("clear_values", &clear_values<real_t>, "clear target potentials, equivalent charges and check potentials");
+  m1.def("clear_values", &clear_values<complex_t>, "clear target potentials, equivalent charges and check potentials");
+  m2.attr("clear_values") = m0.attr("clear_values");
 }
