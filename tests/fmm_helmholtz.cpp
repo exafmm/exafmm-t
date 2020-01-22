@@ -24,12 +24,7 @@ int main(int argc, char **argv) {
   Bodies<complex_t> sources = init_sources<complex_t>(args.numBodies, args.distribution, 0);
   Bodies<complex_t> targets = init_targets<complex_t>(args.numBodies, args.distribution, 5);
 
-  HelmholtzFMM fmm;
-  fmm.ncrit = args.ncrit;
-  fmm.p = args.P;
-  fmm.nsurf = 6*(fmm.p-1)*(fmm.p-1) + 2;
-  fmm.depth = args.maxlevel;
-  fmm.wavek = args.k;
+  HelmholtzFMM fmm(args.P, args.ncrit, args.maxlevel, args.k);
 
   start("Build Tree");
   get_bounds(sources, targets, fmm.x0, fmm.r0);

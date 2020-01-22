@@ -24,11 +24,7 @@ int main(int argc, char **argv) {
   Bodies<real_t> sources = init_sources<real_t>(args.numBodies, args.distribution, 0);
   Bodies<real_t> targets = init_targets<real_t>(args.numBodies, args.distribution, 5);
 
-  LaplaceFMM fmm;
-  fmm.ncrit = args.ncrit;
-  fmm.p = args.P;
-  fmm.nsurf = 6*(fmm.p-1)*(fmm.p-1) + 2;
-  fmm.depth = args.maxlevel;
+  LaplaceFMM fmm(args.P, args.ncrit, args.maxlevel);
 
   start("Build Tree");
   get_bounds(sources, targets, fmm.x0, fmm.r0);

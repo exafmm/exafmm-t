@@ -30,14 +30,10 @@ int main(int argc, char **argv) {
 #endif
 
   // create fmm instance
-  HelmholtzFMM fmm;
-  fmm.ncrit = args.ncrit;
-  fmm.p = args.P;
-  fmm.nsurf = 6*(fmm.p-1)*(fmm.p-1) + 2;
+  HelmholtzFMM fmm(args.P, args.ncrit, args.maxlevel, args.k);
   fmm.depth = 3;
   fmm.x0 = 4.;
   fmm.r0 = 4.;
-  fmm.wavek = args.k;
 
   // precomputation
   init_rel_coord();

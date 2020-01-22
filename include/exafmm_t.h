@@ -152,6 +152,11 @@ namespace exafmm_t {
     vec3 x0;               //!< Coordinates of the center of root box
     std::string filename;  //!< File name of the precomputation matrices
     bool is_precomputed;   //!< Whether the matrix file is found
+
+    FMM() {}
+    FMM(int p_, int ncrit_, int depth_) : p(p_), ncrit(ncrit_), depth(depth_) {
+      nsurf = 6*(p_-1)*(p_-1) + 2;
+    }
   };
 
   // Relative coordinates and interaction lists

@@ -404,7 +404,8 @@ PYBIND11_MODULE(exafmm, m) {
      .def_readwrite("ncrit", &exafmm_t::FMM::ncrit)
      .def_readwrite("r0", &exafmm_t::FMM::r0)
      .def_readwrite("x0", &exafmm_t::FMM::x0)
-     .def(py::init<>());
+     .def(py::init<>())
+     .def(py::init<int, int, int>());
 
   m.def("init_rel_coord", py::overload_cast<>(&exafmm_t::init_rel_coord), "initialize relative coordinates matrix");
 
@@ -441,7 +442,8 @@ PYBIND11_MODULE(exafmm, m) {
      .def("precompute", &exafmm_t::LaplaceFMM::precompute)
      .def("M2L_setup", &exafmm_t::LaplaceFMM::M2L_setup)
      .def("verify", &exafmm_t::LaplaceFMM::verify)
-     .def(py::init<>());
+     .def(py::init<>())
+     .def(py::init<int, int, int>());
 
   py::class_<Body<complex_t>>(m1, "Body")
      .def_readwrite("q", &Body<complex_t>::q)
@@ -477,7 +479,8 @@ PYBIND11_MODULE(exafmm, m) {
      .def("M2L_setup", &exafmm_t::HelmholtzFMM::M2L_setup)
      .def("verify", &exafmm_t::HelmholtzFMM::verify)
      .def_readwrite("wavek", &exafmm_t::HelmholtzFMM::wavek)
-     .def(py::init<>());
+     .def(py::init<>())
+     .def(py::init<int, int, int, real_t>());
 
   m2.attr("Body") = m0.attr("Body");
   m2.attr("Node") = m0.attr("Node");
@@ -488,7 +491,8 @@ PYBIND11_MODULE(exafmm, m) {
      .def("M2L_setup", &exafmm_t::ModifiedHelmholtzFMM::M2L_setup)
      .def("verify", &exafmm_t::ModifiedHelmholtzFMM::verify)
      .def_readwrite("wavek", &exafmm_t::ModifiedHelmholtzFMM::wavek)
-     .def(py::init<>());
+     .def(py::init<>())
+     .def(py::init<int, int, int, real_t>());
 
   /* Cannot register the same C++ class/function two times in Python interface.
      The workaround is to create alias on Python side, see https://github.com/pybind/pybind11/issues/439.

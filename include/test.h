@@ -13,6 +13,9 @@ namespace exafmm_t {
     using NodePtrs_t = NodePtrs<real_t>;
  
   public:
+    TestFMM() {}
+    TestFMM(int ncrit_) { p = 1; nsurf = 1; ncrit = ncrit_;}
+
     /**
      * @brief Given the octant of a node, return a triplet's relative postion to its parent
      *

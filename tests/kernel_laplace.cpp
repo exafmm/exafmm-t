@@ -30,10 +30,7 @@ int main(int argc, char **argv) {
 #endif
 
   // create fmm instance
-  LaplaceFMM fmm;
-  fmm.ncrit = args.ncrit;
-  fmm.p = args.P;
-  fmm.nsurf = 6*(fmm.p-1)*(fmm.p-1) + 2;
+  LaplaceFMM fmm(args.P, args.ncrit, args.maxlevel);
   fmm.depth = 3;
   fmm.x0 = 4.;
   fmm.r0 = 4.;

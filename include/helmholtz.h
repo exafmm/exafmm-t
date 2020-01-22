@@ -39,6 +39,9 @@ namespace exafmm_t {
     std::vector<std::vector<ComplexVec>> matrix_L2L;
     std::vector<M2LData> m2ldata;
 
+    HelmholtzFMM() {}
+    HelmholtzFMM(int p_, int ncrit_, int depth_, real_t wavek_) : FMM(p_, ncrit_, depth_) { wavek = wavek_;}
+
     void gemv(int m, int n, complex_t* A, complex_t* x, complex_t* y);
     void gemm(int m, int n, int k, complex_t* A, complex_t* B, complex_t* C);
     void svd(int m, int n, complex_t* A, real_t* S, complex_t* U, complex_t* VT);

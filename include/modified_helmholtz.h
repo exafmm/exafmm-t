@@ -39,6 +39,9 @@ namespace exafmm_t {
     std::vector<std::vector<RealVec>> matrix_L2L;
     std::vector<M2LData> m2ldata;
 
+    ModifiedHelmholtzFMM() {}
+    ModifiedHelmholtzFMM(int p_, int ncrit_, int depth_, real_t wavek_) : FMM(p_, ncrit_, depth_) { wavek = wavek_;}
+
     void gemv(int m, int n, real_t* A, real_t* x, real_t* y);
     void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
     void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);

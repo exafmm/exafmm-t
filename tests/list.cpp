@@ -14,10 +14,7 @@ int main(int argc, char** argv) {
   Bodies<real_t> sources = init_sources<real_t>(args.numBodies, args.distribution, 0);
   Bodies<real_t> targets = init_targets<real_t>(args.numBodies, args.distribution, 5);
   
-  TestFMM fmm;
-  fmm.ncrit = args.ncrit;
-  fmm.p = 1;
-  fmm.nsurf = 1;   // only store monopole
+  TestFMM fmm(args.ncrit);  // p and nsurf are set to 1 in the constructor
 
   NodePtrs<real_t> leafs, nonleafs;
   get_bounds(sources, targets, fmm.x0, fmm.r0);

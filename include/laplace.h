@@ -38,6 +38,9 @@ namespace exafmm_t {
     std::vector<AlignedVec> matrix_M2L;  //!< The pseudo-inverse of M2L kernel matrix.
     M2LData m2ldata;
 
+    LaplaceFMM() {}
+    LaplaceFMM(int p_, int ncrit_, int depth_) : FMM(p_, ncrit_, depth_) {}
+
     void gemv(int m, int n, real_t* A, real_t* x, real_t* y);
     void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
     void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
