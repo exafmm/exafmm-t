@@ -1,8 +1,29 @@
+# exafmm-t 
+
 [![Build Status](https://travis-ci.com/exafmm/exafmm-t.svg?branch=master)](https://travis-ci.com/exafmm/exafmm-t)
 
-## Documentation
+**exafmm-t** is a kernel-independent fast multipole method library that provides both C++ and Python APIs.
+We use [pybind11](https://github.com/pybind/pybind11) to create Python bindings for our C++ code.
 
-* [Installation](docs/source/compile.rst)
+## Requirements
+
+* C++ compiler that supports C++11 standard and OpenMP
+* BLAS
+* LAPACK
+* FFTW3
+
+To compile the Python package, you need:
+* CMake (3.6 or later)
+* C++ compiler that supports C++14 standard
+* OpenBLAS (as the choice of BLAS library)
+* pybind11 (already included as a git submodule in our repo)
+
+## Installation
+
+* [Build](docs/source/compile.rst)
+* [Compile Python Package](python/README.md)
+
+We will soon make the Python package available on PyPI and conda-forge channel.
 
 ---
 
