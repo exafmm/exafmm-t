@@ -25,3 +25,7 @@ docs/build/
 
 # jupyter notebook
 .ipynb_checkpoints/
+
+# python package building files
+*.egg-info
+dist
