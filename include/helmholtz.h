@@ -5,21 +5,6 @@
 #include "intrinsics.h"
 #include "timer.h"
 
-extern "C" {
-  void cgemv_(char* trans, int* m, int* n, std::complex<float>* alpha, std::complex<float>* a, int* lda, std::complex<float>* x,
-              int* incx, std::complex<float>* beta, std::complex<float>* y, int* incy);
-  void zgemv_(char* trans, int* m, int* n, std::complex<double>* alpha, std::complex<double>* a, int* lda, std::complex<double>* x,
-              int* incx, std::complex<double>* beta, std::complex<double>* y, int* incy);
-  void cgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, std::complex<float>* ALPHA, std::complex<float>* A,
-              int* LDA, std::complex<float>* B, int* LDB, std::complex<float>* BETA, std::complex<float>* C, int* LDC);
-  void zgemm_(char* TRANSA, char* TRANSB, int* M, int* N, int* K, std::complex<double>* ALPHA, std::complex<double>* A,
-              int* LDA, std::complex<double>* B, int* LDB, std::complex<double>* BETA, std::complex<double>* C, int* LDC);
-  void cgesvd_(char *JOBU, char *JOBVT, int *M, int *N, std::complex<float> *A, int *LDA,
-               float *S, std::complex<float> *U, int *LDU, std::complex<float> *VT, int *LDVT, std::complex<float> *WORK, int *LWORK, float *RWORK, int *INFO);
-  void zgesvd_(char *JOBU, char *JOBVT, int *M, int *N, std::complex<double> *A, int *LDA,
-               double *S, std::complex<double> *U, int *LDU, std::complex<double> *VT, int *LDVT, std::complex<double> *WORK, int *LWORK, double *RWORK, int *INFO);
-}
-
 namespace exafmm_t {
   //! A derived FMM class for Helmholtz kernel.
   class HelmholtzFMM : public FMM {
@@ -41,12 +26,6 @@ namespace exafmm_t {
 
     HelmholtzFMM() {}
     HelmholtzFMM(int p_, int ncrit_, int depth_, real_t wavek_) : FMM(p_, ncrit_, depth_) { wavek = wavek_;}
-
-    void gemv(int m, int n, complex_t* A, complex_t* x, complex_t* y);
-    void gemm(int m, int n, int k, complex_t* A, complex_t* B, complex_t* C);
-    void svd(int m, int n, complex_t* A, real_t* S, complex_t* U, complex_t* VT);
-    ComplexVec transpose(ComplexVec& vec, int m, int n);
-    ComplexVec conjugate_transpose(ComplexVec& vec, int m, int n);
 
     void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value);
 
