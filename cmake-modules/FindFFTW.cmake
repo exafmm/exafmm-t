@@ -149,17 +149,17 @@ else()
     PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
   )
 
-  find_library(
-    FFTW_DOUBLE_THREADS_LIB
-    NAMES "fftw3_threads"
-    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
-  )
-
-  find_library(
-          FFTW_DOUBLE_OPENMP_LIB
-          NAMES "fftw3_omp"
-          PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
-  )
+#  find_library(
+#    FFTW_DOUBLE_THREADS_LIB
+#    NAMES "fftw3_threads"
+#    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+#  )
+#
+#  find_library(
+#          FFTW_DOUBLE_OPENMP_LIB
+#          NAMES "fftw3_omp"
+#          PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+#  )
 
   find_library(
     FFTW_FLOAT_LIB
@@ -167,34 +167,34 @@ else()
     PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
   )
 
-  find_library(
-    FFTW_FLOAT_THREADS_LIB
-    NAMES "fftw3f_threads"
-    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
-  )
-
-  find_library(
-          FFTW_FLOAT_OPENMP_LIB
-          NAMES "fftw3f_omp"
-          PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
-  )
-
-  find_library(
-    FFTW_LONGDOUBLE_LIB
-    NAMES "fftw3l"
-    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
-  )
-
-  find_library(
-    FFTW_LONGDOUBLE_THREADS_LIB
-    NAMES "fftw3l_threads"
-    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
-  )
-
-  find_library(FFTW_LONGDOUBLE_OPENMP_LIB
-          NAMES "fftw3l_omp"
-          PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
-  )
+#  find_library(
+#    FFTW_FLOAT_THREADS_LIB
+#    NAMES "fftw3f_threads"
+#    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+#  )
+#
+#  find_library(
+#          FFTW_FLOAT_OPENMP_LIB
+#          NAMES "fftw3f_omp"
+#          PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+#  )
+#
+#  find_library(
+#    FFTW_LONGDOUBLE_LIB
+#    NAMES "fftw3l"
+#    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+#  )
+#
+#  find_library(
+#    FFTW_LONGDOUBLE_THREADS_LIB
+#    NAMES "fftw3l_threads"
+#    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+#  )
+#
+#  find_library(FFTW_LONGDOUBLE_OPENMP_LIB
+#          NAMES "fftw3l_omp"
+#          PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+#  )
 
   find_path(FFTW_INCLUDE_DIRS
     NAMES "fftw3.h"
