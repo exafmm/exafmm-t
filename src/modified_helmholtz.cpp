@@ -255,7 +255,6 @@ namespace exafmm_t {
   bool ModifiedHelmholtzFMM::load_matrix() {
     std::ifstream file(filename, std::ifstream::binary);
     int n1 = p * 2;
-    int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1/2 + 1);
     size_t fft_size = n3_ * 2 * NCHILD * NCHILD;
     size_t file_size = (2*REL_COORD[M2M_Type].size()+4) * nsurf * nsurf * (depth+1) * sizeof(real_t)
@@ -732,7 +731,6 @@ namespace exafmm_t {
 
   void ModifiedHelmholtzFMM::M2L(Nodes_t& nodes) {
     int n1 = p * 2;
-    int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1/2 + 1);
     int fft_size = 2 * 8 * n3_;
     int num_nodes = nodes.size();

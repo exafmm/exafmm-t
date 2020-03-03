@@ -91,9 +91,9 @@ namespace exafmm_t {
 
   void init_rel_coord(int max_r, int min_r, int step, Mat_Type t) {
     const int max_hash = 2000;
-    int n1 = (max_r*2)/step+1;
-    int n2 = (min_r*2)/step-1;
-    int count = n1*n1*n1 - (min_r>0?n2*n2*n2:0);
+    // int n1 = (max_r*2)/step+1;
+    // int n2 = (min_r*2)/step-1;
+    // int count = n1*n1*n1 - (min_r>0?n2*n2*n2:0);
     HASH_LUT[t].resize(max_hash, -1);
     for(int k=-max_r; k<=max_r; k+=step) {
       for(int j=-max_r; j<=max_r; j+=step) {

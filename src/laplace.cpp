@@ -200,7 +200,6 @@ namespace exafmm_t {
 
   void LaplaceFMM::initialize_matrix() {
     int n1 = p * 2;
-    int n3 = n1 * n1 * n1;
     int n3_ = n1 * n1 * (n1 / 2 + 1);
     size_t fft_size = n3_ * 2 * NCHILD * NCHILD;
     matrix_UC2E_U.resize(nsurf*nsurf);

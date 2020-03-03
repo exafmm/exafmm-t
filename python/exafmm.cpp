@@ -135,7 +135,7 @@ Tree<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, exafmm_t::FMM& fmm) {
   tree.nodes = exafmm_t::build_tree<T>(sources, targets, tree.leafs, tree.nonleafs, fmm);
 #else
   tree.nodes = exafmm_t::build_tree<T>(sources, targets, tree.leafs, tree.nonleafs, fmm);
-  exafmm_t::balance_tree(nodes, sources, targets, leafs, nonleafs, fmm);
+  exafmm_t::balance_tree(tree.nodes, sources, targets, tree.leafs, tree.nonleafs, fmm);
 #endif
   return tree;
 }
@@ -202,10 +202,10 @@ py::array_t<real_t> evaluate(Tree<real_t>& tree, exafmm_t::LaplaceFMM& fmm) {
   auto r = trg_value.mutable_unchecked<2>();  // access function
 
 #pragma omp parallel for
-  for (int i=0; i<tree.leafs.size(); ++i) {
+  for (size_t i=0; i<tree.leafs.size(); ++i) {
     Node<real_t>* leaf = tree.leafs[i];
     std::vector<int> & itrgs = leaf->itrgs;
-    for (int j=0; j<itrgs.size(); ++j) {
+    for (size_t j=0; j<itrgs.size(); ++j) {
       r(itrgs[j], 0) = leaf->trg_value[4*j+0];
       r(itrgs[j], 1) = leaf->trg_value[4*j+1];
       r(itrgs[j], 2) = leaf->trg_value[4*j+2];
@@ -236,10 +236,10 @@ py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFMM&
   auto r = trg_value.mutable_unchecked<2>();  // access function
 
 #pragma omp parallel for
-  for (int i=0; i<tree.leafs.size(); ++i) {
+  for (size_t i=0; i<tree.leafs.size(); ++i) {
     Node<complex_t>* leaf = tree.leafs[i];
     std::vector<int> & itrgs = leaf->itrgs;
-    for (int j=0; j<itrgs.size(); ++j) {
+    for (size_t j=0; j<itrgs.size(); ++j) {
       r(itrgs[j], 0) = leaf->trg_value[4*j+0];
       r(itrgs[j], 1) = leaf->trg_value[4*j+1];
       r(itrgs[j], 2) = leaf->trg_value[4*j+2];
@@ -270,10 +270,10 @@ py::array_t<real_t> evaluate_m(Tree<real_t>& tree, exafmm_t::ModifiedHelmholtzFM
   auto r = trg_value.mutable_unchecked<2>();  // access function
 
 #pragma omp parallel for
-  for (int i=0; i<tree.leafs.size(); ++i) {
+  for (size_t i=0; i<tree.leafs.size(); ++i) {
     Node<real_t>* leaf = tree.leafs[i];
     std::vector<int> & itrgs = leaf->itrgs;
-    for (int j=0; j<itrgs.size(); ++j) {
+    for (size_t j=0; j<itrgs.size(); ++j) {
       r(itrgs[j], 0) = leaf->trg_value[4*j+0];
       r(itrgs[j], 1) = leaf->trg_value[4*j+1];
       r(itrgs[j], 2) = leaf->trg_value[4*j+2];
@@ -293,10 +293,10 @@ void update_charges_real(Tree<real_t>& tree, py::array_t<real_t>& charges) {
   // update charges of sources
   auto charges_ = charges.unchecked<1>();
 #pragma omp parallel for
-  for (int i=0; i<tree.leafs.size(); ++i) {
+  for (size_t i=0; i<tree.leafs.size(); ++i) {
     auto leaf = tree.leafs[i];
     std::vector<int>& isrcs = leaf->isrcs;
-    for (int j=0; j<isrcs.size(); ++j) {
+    for (size_t j=0; j<isrcs.size(); ++j) {
       leaf->src_value[j] = charges_[isrcs[j]];
     }
   }
@@ -312,10 +312,10 @@ void update_charges_cplx(Tree<complex_t>& tree, py::array_t<complex_t>& charges)
   // update charges of sources
   auto charges_ = charges.unchecked<1>();
 #pragma omp parallel for
-  for (int i=0; i<tree.leafs.size(); ++i) {
+  for (size_t i=0; i<tree.leafs.size(); ++i) {
     auto leaf = tree.leafs[i];
     std::vector<int>& isrcs = leaf->isrcs;
-    for (int j=0; j<isrcs.size(); ++j) {
+    for (size_t j=0; j<isrcs.size(); ++j) {
       leaf->src_value[j] = charges_[isrcs[j]];
     }
   }
@@ -330,7 +330,7 @@ void update_charges_cplx(Tree<complex_t>& tree, py::array_t<complex_t>& charges)
 template <typename T>
 void clear_values(Tree<T>& tree) {
 #pragma omp parallel for
-  for (int i=0; i<tree.nodes.size(); ++i) {
+  for (size_t i=0; i<tree.nodes.size(); ++i) {
     auto& node = tree.nodes[i];
     std::fill(node.up_equiv.begin(), node.up_equiv.end(), 0.);
     std::fill(node.dn_equiv.begin(), node.dn_equiv.end(), 0.);
