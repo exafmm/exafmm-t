@@ -2,6 +2,7 @@
 #define build_list_h
 #include "exafmm_t.h"
 #include "geometry.h"
+#include "fmm_base.h"
 
 namespace exafmm_t {
   /**
@@ -14,7 +15,7 @@ namespace exafmm_t {
    * @param skip_P2P Whether to skip P2P interactions.
    */
   template <typename T>
-  void build_list_parent_level(Node<T>* n, const FMM& fmm, bool skip_P2P=false) {
+  void build_list_parent_level(Node<T>* n, const FmmBase<T>& fmm, bool skip_P2P=false) {
     if (!n->parent) return;
     ivec3 rel_coord;
     int octant = n->octant;
@@ -84,7 +85,7 @@ namespace exafmm_t {
    * @param skip_P2P Whether to skip P2P interactions.
    */
   template <typename T>
-  void build_list_child_level(Node<T>* n, const FMM& fmm, bool skip_P2P=false) {
+  void build_list_child_level(Node<T>* n, const FmmBase<T>& fmm, bool skip_P2P=false) {
     if (!n->is_leaf) return;
     ivec3 rel_coord;
     for(int i=0; i<27; i++) {
@@ -124,7 +125,7 @@ namespace exafmm_t {
    * @param skip_P2P Whether to skip P2P interactions.
    */
   template <typename T>
-  void build_list(Nodes<T>& nodes, const FMM& fmm, bool skip_P2P=false) {
+  void build_list(Nodes<T>& nodes, const FmmBase<T>& fmm, bool skip_P2P=false) {
     #pragma omp parallel for
     for(size_t i=0; i<nodes.size(); i++) {
       Node<T>* node = &nodes[i];

@@ -142,23 +142,6 @@ namespace exafmm_t {
     std::vector<size_t> interaction_count_offset;
   };
 
-  //! Base FMM class
-  struct FMM {
-    int p;                 //!< Order of expansion
-    int nsurf;             //!< Number of points on equivalent / check surface
-    int ncrit;             //!< Max number of bodies per leaf
-    int depth;             //!< Depth of the tree
-    real_t r0;             //!< Half of the side length of the bounding box
-    vec3 x0;               //!< Coordinates of the center of root box
-    std::string filename;  //!< File name of the precomputation matrices
-    bool is_precomputed;   //!< Whether the matrix file is found
-
-    FMM() {}
-    FMM(int p_, int ncrit_, int depth_) : p(p_), ncrit(ncrit_), depth(depth_) {
-      nsurf = 6*(p_-1)*(p_-1) + 2;
-    }
-  };
-
   // Relative coordinates and interaction lists
   extern std::vector<std::vector<ivec3>> REL_COORD;  //!< Vector of possible relative coordinates (inner) of each interaction type (outer)
   extern std::vector<std::vector<int>> HASH_LUT;     //!< Vector of hash Lookup tables (inner) of relative positions for each interaction type (outer)

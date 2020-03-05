@@ -4,6 +4,7 @@
 #include <queue>
 #include "exafmm_t.h"
 #include "hilbert.h"
+#include "fmm_base.h"
 
 namespace exafmm_t {
   /**
@@ -81,7 +82,7 @@ namespace exafmm_t {
   void build_tree(Body<T>* sources, Body<T>* sources_buffer, int source_begin, int source_end, 
                   Body<T>* targets, Body<T>* targets_buffer, int target_begin, int target_end,
                   Node<T>* node, Nodes<T>& nodes, NodePtrs<T>& leafs, NodePtrs<T>& nonleafs,
-                  const Keys& leafkeys, FMM& fmm, bool direction=false) {
+                  const Keys& leafkeys, FmmBase<T>& fmm, bool direction=false) {
     //! Create a tree node
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
     node->nsrcs = source_end - source_begin;
@@ -182,7 +183,7 @@ namespace exafmm_t {
   template <typename T>
   Nodes<T> build_tree(Bodies<T>& sources, Bodies<T>& targets,
                       NodePtrs<T>& leafs, NodePtrs<T>& nonleafs,
-                      FMM& fmm, const Keys& leafkeys=Keys()) {
+                      FmmBase<T>& fmm, const Keys& leafkeys=Keys()) {
     Bodies<T> sources_buffer = sources;
     Bodies<T> targets_buffer = targets;
     Nodes<T> nodes(1);
@@ -336,7 +337,7 @@ namespace exafmm_t {
    */
   template <typename T>
   void balance_tree(Nodes<T>& nodes, Bodies<T>& sources, Bodies<T>& targets,
-                    NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FMM& fmm) {
+                    NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FmmBase<T>& fmm) {
     std::unordered_map<uint64_t, size_t> key2id;
     Keys keys = breadth_first_traversal(&nodes[0], key2id);
     Keys balanced_keys = balance_tree(keys, key2id, nodes);
