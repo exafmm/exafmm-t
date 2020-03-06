@@ -88,7 +88,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = p2p_laplace$(EXEEXT) tree$(EXEEXT)
+bin_PROGRAMS = p2p_laplace$(EXEEXT) kernel_laplace$(EXEEXT) \
+	tree$(EXEEXT)
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_append_compile_flags.m4 \
@@ -115,19 +116,25 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
-am__objects_1 = ../src/p2p_laplace-geometry.$(OBJEXT) \
-	../src/p2p_laplace-timer.$(OBJEXT)
-am_p2p_laplace_OBJECTS = p2p_laplace-p2p_laplace.$(OBJEXT) \
+am__objects_1 = ../src/kernel_laplace-geometry.$(OBJEXT) \
+	../src/kernel_laplace-timer.$(OBJEXT)
+am_kernel_laplace_OBJECTS = kernel_laplace-kernel_laplace.$(OBJEXT) \
 	$(am__objects_1)
-p2p_laplace_OBJECTS = $(am_p2p_laplace_OBJECTS)
+kernel_laplace_OBJECTS = $(am_kernel_laplace_OBJECTS)
 am__DEPENDENCIES_1 =
 am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
-p2p_laplace_DEPENDENCIES = $(am__DEPENDENCIES_2)
+kernel_laplace_DEPENDENCIES = $(am__DEPENDENCIES_2)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am__objects_2 = ../src/p2p_laplace-geometry.$(OBJEXT) \
+	../src/p2p_laplace-timer.$(OBJEXT)
+am_p2p_laplace_OBJECTS = p2p_laplace-p2p_laplace.$(OBJEXT) \
+	$(am__objects_2)
+p2p_laplace_OBJECTS = $(am_p2p_laplace_OBJECTS)
+p2p_laplace_DEPENDENCIES = $(am__DEPENDENCIES_2)
 am_tree_OBJECTS = tree-tree.$(OBJEXT)
 tree_OBJECTS = $(am_tree_OBJECTS)
 tree_DEPENDENCIES = $(am__DEPENDENCIES_2)
@@ -165,8 +172,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(p2p_laplace_SOURCES) $(tree_SOURCES)
-DIST_SOURCES = $(p2p_laplace_SOURCES) $(tree_SOURCES)
+SOURCES = $(kernel_laplace_SOURCES) $(p2p_laplace_SOURCES) \
+	$(tree_SOURCES)
+DIST_SOURCES = $(kernel_laplace_SOURCES) $(p2p_laplace_SOURCES) \
+	$(tree_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -565,6 +574,10 @@ MODIFIED_HELMHOLTZ_SRCS = ../src/modified_helmholtz.cpp $(COMMON_SRCS)
 p2p_laplace_SOURCES = p2p_laplace.cpp $(COMMON_SRCS)
 p2p_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 p2p_laplace_LDADD = $(LIBS_LDADD)
+#kernel_helmholtz kernel_modified_helmholtz
+kernel_laplace_SOURCES = kernel_laplace.cpp $(COMMON_SRCS)
+kernel_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+kernel_laplace_LDADD = $(LIBS_LDADD)
 tree_SOURCES = tree.cpp
 tree_CPPFLAGS = $(AM_CPPFLAGS)
 tree_LDADD = $(LIBS_LDADD)
@@ -691,6 +704,14 @@ clean-binPROGRAMS:
 ../src/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../src/$(DEPDIR)
 	@: > ../src/$(DEPDIR)/$(am__dirstamp)
+../src/kernel_laplace-geometry.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
+../src/kernel_laplace-timer.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
+
+kernel_laplace$(EXEEXT): $(kernel_laplace_OBJECTS) $(kernel_laplace_DEPENDENCIES) $(EXTRA_kernel_laplace_DEPENDENCIES) 
+	@rm -f kernel_laplace$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(kernel_laplace_OBJECTS) $(kernel_laplace_LDADD) $(LIBS)
 ../src/p2p_laplace-geometry.$(OBJEXT): ../src/$(am__dirstamp) \
 	../src/$(DEPDIR)/$(am__dirstamp)
 ../src/p2p_laplace-timer.$(OBJEXT): ../src/$(am__dirstamp) \
@@ -711,8 +732,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_laplace-geometry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_laplace-timer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/p2p_laplace-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/p2p_laplace-timer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kernel_laplace-kernel_laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p2p_laplace-p2p_laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tree-tree.Po@am__quote@
 
@@ -739,6 +763,48 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+kernel_laplace-kernel_laplace.o: kernel_laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT kernel_laplace-kernel_laplace.o -MD -MP -MF $(DEPDIR)/kernel_laplace-kernel_laplace.Tpo -c -o kernel_laplace-kernel_laplace.o `test -f 'kernel_laplace.cpp' || echo '$(srcdir)/'`kernel_laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/kernel_laplace-kernel_laplace.Tpo $(DEPDIR)/kernel_laplace-kernel_laplace.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='kernel_laplace.cpp' object='kernel_laplace-kernel_laplace.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o kernel_laplace-kernel_laplace.o `test -f 'kernel_laplace.cpp' || echo '$(srcdir)/'`kernel_laplace.cpp
+
+kernel_laplace-kernel_laplace.obj: kernel_laplace.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT kernel_laplace-kernel_laplace.obj -MD -MP -MF $(DEPDIR)/kernel_laplace-kernel_laplace.Tpo -c -o kernel_laplace-kernel_laplace.obj `if test -f 'kernel_laplace.cpp'; then $(CYGPATH_W) 'kernel_laplace.cpp'; else $(CYGPATH_W) '$(srcdir)/kernel_laplace.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/kernel_laplace-kernel_laplace.Tpo $(DEPDIR)/kernel_laplace-kernel_laplace.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='kernel_laplace.cpp' object='kernel_laplace-kernel_laplace.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o kernel_laplace-kernel_laplace.obj `if test -f 'kernel_laplace.cpp'; then $(CYGPATH_W) 'kernel_laplace.cpp'; else $(CYGPATH_W) '$(srcdir)/kernel_laplace.cpp'; fi`
+
+../src/kernel_laplace-geometry.o: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/kernel_laplace-geometry.o -MD -MP -MF ../src/$(DEPDIR)/kernel_laplace-geometry.Tpo -c -o ../src/kernel_laplace-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/kernel_laplace-geometry.Tpo ../src/$(DEPDIR)/kernel_laplace-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/kernel_laplace-geometry.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/kernel_laplace-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+
+../src/kernel_laplace-geometry.obj: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/kernel_laplace-geometry.obj -MD -MP -MF ../src/$(DEPDIR)/kernel_laplace-geometry.Tpo -c -o ../src/kernel_laplace-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/kernel_laplace-geometry.Tpo ../src/$(DEPDIR)/kernel_laplace-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/kernel_laplace-geometry.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/kernel_laplace-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+
+../src/kernel_laplace-timer.o: ../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/kernel_laplace-timer.o -MD -MP -MF ../src/$(DEPDIR)/kernel_laplace-timer.Tpo -c -o ../src/kernel_laplace-timer.o `test -f '../src/timer.cpp' || echo '$(srcdir)/'`../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/kernel_laplace-timer.Tpo ../src/$(DEPDIR)/kernel_laplace-timer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/timer.cpp' object='../src/kernel_laplace-timer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/kernel_laplace-timer.o `test -f '../src/timer.cpp' || echo '$(srcdir)/'`../src/timer.cpp
+
+../src/kernel_laplace-timer.obj: ../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/kernel_laplace-timer.obj -MD -MP -MF ../src/$(DEPDIR)/kernel_laplace-timer.Tpo -c -o ../src/kernel_laplace-timer.obj `if test -f '../src/timer.cpp'; then $(CYGPATH_W) '../src/timer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/timer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/kernel_laplace-timer.Tpo ../src/$(DEPDIR)/kernel_laplace-timer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/timer.cpp' object='../src/kernel_laplace-timer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/kernel_laplace-timer.obj `if test -f '../src/timer.cpp'; then $(CYGPATH_W) '../src/timer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/timer.cpp'; fi`
 
 p2p_laplace-p2p_laplace.o: p2p_laplace.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(p2p_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT p2p_laplace-p2p_laplace.o -MD -MP -MF $(DEPDIR)/p2p_laplace-p2p_laplace.Tpo -c -o p2p_laplace-p2p_laplace.o `test -f 'p2p_laplace.cpp' || echo '$(srcdir)/'`p2p_laplace.cpp
@@ -998,6 +1064,13 @@ recheck: all
 p2p_laplace.log: p2p_laplace$(EXEEXT)
 	@p='p2p_laplace$(EXEEXT)'; \
 	b='p2p_laplace'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+kernel_laplace.log: kernel_laplace$(EXEEXT)
+	@p='kernel_laplace$(EXEEXT)'; \
+	b='kernel_laplace'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

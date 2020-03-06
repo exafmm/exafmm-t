@@ -5,52 +5,7 @@
 #include "math_wrapper.h"
 
 namespace exafmm_t {
-  void LaplaceFMM::precompute_M2L(std::vector<std::vector<int>>& parent2child) {
-    int n1 = p * 2;
-    int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
 
-    std::vector<RealVec> matrix_M2L_Helper(REL_COORD[M2L_Helper_Type].size(),
-                                           RealVec(2*n3_));
-    // create fftw plan
-    RealVec fftw_in(n3);
-    RealVec fftw_out(2*n3_);
-    int dim[3] = {2*p, 2*p, 2*p};
-    fft_plan plan = fft_plan_many_dft_r2c(3, dim, 1, fftw_in.data(), nullptr, 1, n3,
-                    reinterpret_cast<fft_complex*>(fftw_out.data()), nullptr, 1, n3_,
-                    FFTW_ESTIMATE);
-    // Precompute M2L matrix
-    RealVec trg_coord(3,0);
-    // compute DFT of potentials at convolution grids
-#pragma omp parallel for
-    for(size_t i=0; i<REL_COORD[M2L_Helper_Type].size(); ++i) {
-      real_t coord[3];
-      for(int d=0; d<3; d++) {
-        coord[d] = REL_COORD[M2L_Helper_Type][i][d] * r0 / 0.5;
-      }
-      RealVec conv_coord = convolution_grid(p, r0, 0, coord);   // convolution grid
-      RealVec conv_p(n3);   // potentials on convolution grid
-      kernel_matrix(conv_coord.data(), n3, trg_coord.data(), 1, conv_p.data());
-      fft_execute_dft_r2c(plan, conv_p.data(), 
-          reinterpret_cast<fft_complex*>(matrix_M2L_Helper[i].data()));
-    }
-    // convert M2L_Helper to M2L, reorder to improve data locality
-#pragma omp parallel for
-    for(size_t i=0; i<REL_COORD[M2L_Type].size(); ++i) {
-      for(int j=0; j<NCHILD*NCHILD; j++) {   // loop over child's relative positions
-        int child_rel_idx = parent2child[i][j];
-        if (child_rel_idx != -1) {
-          for(int k=0; k<n3_; k++) {   // loop over frequencies
-            int new_idx = k*(2*NCHILD*NCHILD) + 2*j;
-            matrix_M2L[i][new_idx+0] = matrix_M2L_Helper[child_rel_idx][k*2+0] / n3;   // real
-            matrix_M2L[i][new_idx+1] = matrix_M2L_Helper[child_rel_idx][k*2+1] / n3;   // imag
-          }
-        }
-      }
-    }
-    // destroy fftw plan
-    fft_destroy_plan(plan);
-  }
 
   bool LaplaceFMM::load_matrix() {
     std::ifstream file(filename, std::ifstream::binary);

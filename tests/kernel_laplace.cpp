@@ -1,6 +1,6 @@
-#include <numeric>
-#include "laplace.h"
+#include <numeric>    // std::accumulate
 #include "exafmm_t.h"
+#include "laplace.h"
 #include "timer.h"
 
 using namespace exafmm_t;
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 #endif
 
   // create fmm instance
-  LaplaceFMM fmm(args.P, args.ncrit, args.maxlevel);
+  LaplaceFmm fmm(args.P, args.ncrit, args.maxlevel);
   fmm.depth = 3;
   fmm.x0 = 4.;
   fmm.r0 = 4.;
@@ -39,6 +39,7 @@ int main(int argc, char **argv) {
   init_rel_coord();
   fmm.precompute();
 
+#if 0
   // create tree
   std::vector<int> nnodes = {1, 8, 8*2, 8*2};  // number of nodes at each level
   Nodes<real_t> nodes(std::accumulate(nnodes.begin(), nnodes.end(), 0));
@@ -148,6 +149,6 @@ int main(int argc, char **argv) {
   F_error = sqrt(F_diff/F_norm);
   print("Potential Error", p_error);
   print("Gradient Error", F_error);
-
+#endif
   return 0;
 }

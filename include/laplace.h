@@ -159,26 +159,13 @@ namespace exafmm_t {
 
 
 
-    //! Initialize the precomputation matrices.
-    void initialize_matrix();
-
-    //! Pre-compute matrix_UC2E_U, matrix_UC2E_V, matrix_DC2E_U and matrix_DC2E_U.
-    void precompute_check2equiv();
-
-    //! Pre-compute matrix_M2M and matrix_L2L.
-    void precompute_M2M();
-
-    //! Pre-compute matrix_M2L.
-    void precompute_M2L(std::vector<std::vector<int>>& parent2child);
 
     //! Load precomputation matrices from saved file to memory.
-    bool load_matrix();
+    //bool load_matrix();
 
     //! Save precomputation matrices to file.
-    void save_matrix();
+    //void save_matrix();
 
-    //! Pre-compute all matrices.
-    void precompute();
 
     //! M2L operator.
     void M2L(Nodes<real_t>& nodes) {}

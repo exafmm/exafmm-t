@@ -2,7 +2,8 @@
 
 namespace exafmm_t {
   std::vector<std::vector<ivec3>> REL_COORD;
-  std::vector<std::vector<int>> HASH_LUT;     // coord_hash -> index in rel_coord
+  std::vector<std::vector<int>> HASH_LUT;       // coord_hash -> index in rel_coord
+  std::vector<std::vector<int>> M2L_INDEX_MAP;  // [M2L_relpos_idx][octant] -> M2L_Helper_relpos_idx
 
   /**
    * @brief Given a box, calculate the coordinates of surface points.
@@ -111,24 +112,10 @@ namespace exafmm_t {
     }
   }
 
-  void init_rel_coord() {
-    REL_COORD.resize(Type_Count);
-    HASH_LUT.resize(Type_Count);
-    init_rel_coord(1, 1, 2, M2M_Type);
-    init_rel_coord(1, 1, 2, L2L_Type);
-    init_rel_coord(3, 3, 2, P2P0_Type);
-    init_rel_coord(1, 0, 1, P2P1_Type);
-    init_rel_coord(3, 3, 2, P2P2_Type);
-    init_rel_coord(3, 2, 1, M2L_Helper_Type);
-    init_rel_coord(1, 1, 1, M2L_Type);
-    init_rel_coord(5, 5, 2, M2P_Type);
-    init_rel_coord(5, 5, 2, P2L_Type);
-  }
-
-  // Map indices of M2L_Type to indices of M2L_Helper_Type
-  std::vector<std::vector<int>> map_matrix_index() {
+  //! Generate a map that maps indices of M2L_Type to indices of M2L_Helper_Type
+  void generate_M2L_index_map() {
     int num_coords = REL_COORD[M2L_Type].size();   // number of relative coords for M2L_Type
-    std::vector<std::vector<int>> parent2child(num_coords, std::vector<int>(NCHILD*NCHILD));
+    M2L_INDEX_MAP.resize(num_coords, std::vector<int>(NCHILD*NCHILD));
 #pragma omp parallel for
     for(int i=0; i<num_coords; ++i) {
       for(int j1=0; j1<NCHILD; ++j1) {
@@ -141,10 +128,24 @@ namespace exafmm_t {
           int coord_hash = hash(child_rel_coord);
           int child_rel_idx = HASH_LUT[M2L_Helper_Type][coord_hash];
           int j = j2*NCHILD + j1;
-          parent2child[i][j] = child_rel_idx;
+          M2L_INDEX_MAP[i][j] = child_rel_idx;
         }
       }
     }
-    return parent2child;
+  }
+
+  void init_rel_coord() {
+    REL_COORD.resize(Type_Count);
+    HASH_LUT.resize(Type_Count);
+    init_rel_coord(1, 1, 2, M2M_Type);
+    init_rel_coord(1, 1, 2, L2L_Type);
+    init_rel_coord(3, 3, 2, P2P0_Type);
+    init_rel_coord(1, 0, 1, P2P1_Type);
+    init_rel_coord(3, 3, 2, P2P2_Type);
+    init_rel_coord(3, 2, 1, M2L_Helper_Type);
+    init_rel_coord(1, 1, 1, M2L_Type);
+    init_rel_coord(5, 5, 2, M2P_Type);
+    init_rel_coord(5, 5, 2, P2L_Type);
+    generate_M2L_index_map();
   }
 } // end namespace

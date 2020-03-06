@@ -26,6 +26,7 @@ namespace exafmm_t {
 #define fft_plan_dft fftwf_plan_dft
 #define fft_plan_many_dft fftwf_plan_many_dft
 #define fft_execute_dft fftwf_execute_dft
+#define fft_plan_dft_r2c fftwf_plan_dft_r2c
 #define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c
 #define fft_plan_many_dft_c2r fftwf_plan_many_dft_c2r
 #define fft_execute_dft_r2c fftwf_execute_dft_r2c
@@ -39,6 +40,7 @@ namespace exafmm_t {
 #define fft_plan_dft fftw_plan_dft
 #define fft_plan_many_dft fftw_plan_many_dft
 #define fft_execute_dft fftw_execute_dft
+#define fft_plan_dft_r2c fftw_plan_dft_r2c
 #define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c
 #define fft_plan_many_dft_c2r fftw_plan_many_dft_c2r
 #define fft_execute_dft_r2c fftw_execute_dft_r2c
@@ -145,5 +147,6 @@ namespace exafmm_t {
   // Relative coordinates and interaction lists
   extern std::vector<std::vector<ivec3>> REL_COORD;  //!< Vector of possible relative coordinates (inner) of each interaction type (outer)
   extern std::vector<std::vector<int>> HASH_LUT;     //!< Vector of hash Lookup tables (inner) of relative positions for each interaction type (outer)
+  extern std::vector<std::vector<int>> M2L_INDEX_MAP;  //!< [M2L_relpos_idx][octant] -> M2L_Helper_relpos_idx
 }
 #endif
