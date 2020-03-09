@@ -1,5 +1,6 @@
 #ifndef fmm_scale_invariant
 #define fmm_scale_invariant
+#include <fstream>      // std::ofstream
 #include <type_traits>  // std::is_same
 #include "fmm_base.h"
 #include "math_wrapper.h"
@@ -50,7 +51,7 @@ namespace exafmm_t {
       RealVec parent_up_check_surf = surface(this->p, this->r0, level, parent_coord, 2.95);
       real_t s = this->r0 * powf(0.5, level+1);
 #pragma omp parallel for
-      for(int i=0; i<npos; i++) {
+      for (int i=0; i<npos; i++) {
         // compute kernel matrix
         ivec3& coord = REL_COORD[M2M_Type][i];
         real_t child_coord[3] = {parent_coord[0] + coord[0]*s,
@@ -76,12 +77,85 @@ namespace exafmm_t {
     //! Precompute M2L
     void precompute_M2L() {}
 
+    //! Save precomputation matrices
+    void save_matrix() {
+      std::remove(this->filename.c_str());
+      std::ofstream file(this->filename, std::ofstream::binary);
+      // r0
+      file.write(reinterpret_cast<char*>(&this->r0), sizeof(real_t));
+      size_t size = this->nsurf * this->nsurf;
+      // UC2E, DC2E
+      file.write(reinterpret_cast<char*>(&matrix_UC2E_U[0]), size*sizeof(T));
+      file.write(reinterpret_cast<char*>(&matrix_UC2E_V[0]), size*sizeof(T));
+      file.write(reinterpret_cast<char*>(&matrix_DC2E_U[0]), size*sizeof(T));
+      file.write(reinterpret_cast<char*>(&matrix_DC2E_V[0]), size*sizeof(T));
+      // M2M, L2L
+      for (auto & vec : matrix_M2M) {
+        file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(T));
+      }
+      for (auto & vec : matrix_L2L) {
+        file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(T));
+      }
+      // M2L
+      int n1 = this->p * 2;
+      int n3_ = n1 * n1 * (n1 / 2 + 1);
+      size = n3_ * 2 * NCHILD * NCHILD;
+      for (auto & vec : matrix_M2L) {
+        file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
+      }
+      file.close(); 
+    }
+
+    //! Check and load precomputation matrices
+    void load_matrix() {
+      int n1 = this->p * 2;
+      int n3_ = n1 * n1 * (n1 / 2 + 1);
+      size_t fft_size = n3_ * 2 * NCHILD * NCHILD;
+      size_t file_size = (2*REL_COORD[M2M_Type].size()+4) * this->nsurf * this->nsurf * sizeof(T) 
+                       + REL_COORD[M2L_Type].size() * fft_size * sizeof(real_t)
+                       + 1 * sizeof(real_t);   // +1 denotes r0
+      std::ifstream file(this->filename, std::ifstream::binary);
+      if (file.good()) {
+        file.seekg(0, file.end);
+        if (size_t(file.tellg()) == file_size) {   // if file size is correct
+          file.seekg(0, file.beg);  // move the position back to the beginning
+          real_t r0_;
+          file.read(reinterpret_cast<char*>(&r0_), sizeof(real_t));
+          if (this->r0 == r0_) {    // if radius match
+            size_t size = this->nsurf * this->nsurf;
+            // UC2E, DC2E
+            file.read(reinterpret_cast<char*>(&matrix_UC2E_U[0]), size*sizeof(T));
+            file.read(reinterpret_cast<char*>(&matrix_UC2E_V[0]), size*sizeof(T));
+            file.read(reinterpret_cast<char*>(&matrix_DC2E_U[0]), size*sizeof(T));
+            file.read(reinterpret_cast<char*>(&matrix_DC2E_V[0]), size*sizeof(T));
+            // M2M, L2L
+            for(auto & vec : matrix_M2M) {
+              file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(T));
+            }
+            for(auto & vec : matrix_L2L) {
+              file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(T));
+            }
+            // M2L
+            for(auto & vec : matrix_M2L) {
+              file.read(reinterpret_cast<char*>(&vec[0]), fft_size*sizeof(real_t));
+            }
+            this->is_precomputed = true;
+          }
+        }
+      }
+      file.close();
+    }
+
     //! Precompute
     void precompute() {
       initialize_matrix();
-      precompute_check2equiv();
-      precompute_M2M();
-      precompute_M2L();
+      load_matrix();
+      if (!this->is_precomputed) {
+        precompute_check2equiv();
+        precompute_M2M();
+        precompute_M2L();
+        save_matrix();
+      }
     }
 
     /* constructors */

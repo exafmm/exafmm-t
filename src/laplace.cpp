@@ -5,8 +5,6 @@
 #include "math_wrapper.h"
 
 namespace exafmm_t {
-
-
   bool LaplaceFMM::load_matrix() {
     std::ifstream file(filename, std::ifstream::binary);
     int n1 = p * 2;
@@ -51,34 +49,6 @@ namespace exafmm_t {
     } else {
       return false;
     }
-  }
-
-  void LaplaceFMM::save_matrix() {
-    std::remove(filename.c_str());
-    std::ofstream file(filename, std::ofstream::binary);
-    // r0
-    file.write(reinterpret_cast<char*>(&r0), sizeof(real_t));
-    size_t size = nsurf*nsurf;
-    // UC2E, DC2E
-    file.write(reinterpret_cast<char*>(&matrix_UC2E_U[0]), size*sizeof(real_t));
-    file.write(reinterpret_cast<char*>(&matrix_UC2E_V[0]), size*sizeof(real_t));
-    file.write(reinterpret_cast<char*>(&matrix_DC2E_U[0]), size*sizeof(real_t));
-    file.write(reinterpret_cast<char*>(&matrix_DC2E_V[0]), size*sizeof(real_t));
-    // M2M, L2L
-    for(auto & vec : matrix_M2M) {
-      file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
-    }
-    for(auto & vec : matrix_L2L) {
-      file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
-    }
-    // M2L
-    int n1 = p * 2;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
-    size = n3_ * 2 * NCHILD * NCHILD;
-    for(auto & vec : matrix_M2L) {
-      file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
-    }
-    file.close();
   }
 
   void LaplaceFMM::precompute() {

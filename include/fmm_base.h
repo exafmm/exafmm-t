@@ -23,6 +23,7 @@ namespace exafmm_t {
     FmmBase(int p_, int ncrit_, int depth_) : p(p_), ncrit(ncrit_), depth(depth_) {
       nsurf = 6*(p_-1)*(p_-1) + 2;
       is_real = std::is_same<T, real_t>::value;
+      is_precomputed = false;
     }
 
     virtual void potential_P2P(RealVec& src_coord, std::vector<T>& src_value,
