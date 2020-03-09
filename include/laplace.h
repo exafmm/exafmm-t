@@ -160,9 +160,6 @@ namespace exafmm_t {
       }   
     }
 
-    //! M2L operator.
-    void M2L(Nodes<real_t>& nodes) {}
-
 /*
 
     void M2L_setup(NodePtrs_t& nonleafs);

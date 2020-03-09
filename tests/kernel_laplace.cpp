@@ -101,7 +101,6 @@ int main(int argc, char **argv) {
   }
 #endif
 
-#if 0
   // set up M2L_list
   target->parent->parent->M2L_list.resize(REL_COORD[M2L_Type].size(), nullptr);
   target->parent->parent->M2L_list[0] = source->parent->parent;
@@ -149,6 +148,6 @@ int main(int argc, char **argv) {
   F_error = sqrt(F_diff/F_norm);
   print("Potential Error", p_error);
   print("Gradient Error", F_error);
-#endif
+
   return 0;
 }
