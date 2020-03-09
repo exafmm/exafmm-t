@@ -26,6 +26,11 @@ namespace exafmm_t {
 
     M2LData m2ldata;
 
+    /* constructors */
+    FmmScaleInvariant() {}
+    FmmScaleInvariant(int p_, int ncrit_, int depth_) : FmmBase<T>(p_, ncrit_, depth_) {
+    }
+
     /* precomputation */
     //! Setup the sizes of precomputation matrices
     void initialize_matrix() {
@@ -129,14 +134,14 @@ namespace exafmm_t {
             file.read(reinterpret_cast<char*>(&matrix_DC2E_U[0]), size*sizeof(T));
             file.read(reinterpret_cast<char*>(&matrix_DC2E_V[0]), size*sizeof(T));
             // M2M, L2L
-            for(auto & vec : matrix_M2M) {
+            for (auto & vec : matrix_M2M) {
               file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(T));
             }
-            for(auto & vec : matrix_L2L) {
+            for (auto & vec : matrix_L2L) {
               file.read(reinterpret_cast<char*>(&vec[0]), size*sizeof(T));
             }
             // M2L
-            for(auto & vec : matrix_M2L) {
+            for (auto & vec : matrix_M2L) {
               file.read(reinterpret_cast<char*>(&vec[0]), fft_size*sizeof(real_t));
             }
             this->is_precomputed = true;
@@ -158,11 +163,120 @@ namespace exafmm_t {
       }
     }
 
-    /* constructors */
-    FmmScaleInvariant() {}
-    FmmScaleInvariant(int p_, int ncrit_, int depth_) : FmmBase<T>(p_, ncrit_, depth_) {
+    //! P2M operator
+    void P2M(NodePtrs<T>& leafs) {
+      int nsurf = this->nsurf;
+      real_t c[3] = {0,0,0};
+      std::vector<RealVec> up_check_surf;
+      up_check_surf.resize(this->depth+1);
+      for (int level = 0; level <= this->depth; level++) {
+        up_check_surf[level].resize(nsurf*3);
+        up_check_surf[level] = surface(this->p, this->r0, level, c, 2.95);
+      }
+#pragma omp parallel for
+      for (size_t i=0; i<leafs.size(); i++) {
+        Node<T>* leaf = leafs[i];
+        int level = leaf->level;
+        real_t scale = pow(0.5, level);  // scaling factor of UC2UE precomputation matrix
+        // calculate upward check potential induced by sources' charges
+        RealVec check_coord(nsurf*3);
+        for (int k=0; k<nsurf; k++) {
+          check_coord[3*k+0] = up_check_surf[level][3*k+0] + leaf->x[0];
+          check_coord[3*k+1] = up_check_surf[level][3*k+1] + leaf->x[1];
+          check_coord[3*k+2] = up_check_surf[level][3*k+2] + leaf->x[2];
+        }
+        this->potential_P2P(leaf->src_coord, leaf->src_value,
+                            check_coord, leaf->up_equiv);
+        // convert upward check potential to upward equivalent charge
+        std::vector<T> buffer(nsurf);
+        std::vector<T> equiv(nsurf);
+        gemv(nsurf, nsurf, &matrix_UC2E_U[0], &(leaf->up_equiv[0]), &buffer[0]);
+        gemv(nsurf, nsurf, &matrix_UC2E_V[0], &buffer[0], &equiv[0]);
+        // scale the check-to-equivalent conversion (precomputation)
+        for (int k=0; k<nsurf; k++)
+          leaf->up_equiv[k] = scale * equiv[k];
+      }
     }
 
+    //! L2P operator
+    void L2P(NodePtrs<T>& leafs) {
+      int nsurf = this->nsurf;
+      real_t c[3] = {0.0};
+      std::vector<RealVec> dn_equiv_surf;
+      dn_equiv_surf.resize(this->depth+1);
+      for (int level = 0; level <= this->depth; level++) {
+        dn_equiv_surf[level].resize(nsurf*3);
+        dn_equiv_surf[level] = surface(this->p, this->r0, level, c, 2.95);
+      }
+#pragma omp parallel for
+      for (size_t i=0; i<leafs.size(); i++) {
+        Node<T>* leaf = leafs[i];
+        int level = leaf->level;
+        real_t scale = pow(0.5, level);
+        // convert downward check potential to downward equivalent charge
+        std::vector<T> buffer(nsurf);
+        std::vector<T> equiv(nsurf);
+        gemv(nsurf, nsurf, &matrix_DC2E_U[0], &(leaf->dn_equiv[0]), &buffer[0]);
+        gemv(nsurf, nsurf, &matrix_DC2E_V[0], &buffer[0], &equiv[0]);
+        // scale the check-to-equivalent conversion (precomputation)
+        for (int k=0; k<nsurf; k++)
+          leaf->dn_equiv[k] = scale * equiv[k];
+        // calculate targets' potential & gradient induced by downward equivalent charge
+        RealVec equiv_coord(nsurf*3);
+        for (int k=0; k<nsurf; k++) {
+          equiv_coord[3*k+0] = dn_equiv_surf[level][3*k+0] + leaf->x[0];
+          equiv_coord[3*k+1] = dn_equiv_surf[level][3*k+1] + leaf->x[1];
+          equiv_coord[3*k+2] = dn_equiv_surf[level][3*k+2] + leaf->x[2];
+        }
+        this->gradient_P2P(equiv_coord, leaf->dn_equiv,
+                           leaf->trg_coord, leaf->trg_value);
+      }
+    }
+
+    //! M2M operator
+    void M2M(Node<T>* node) {
+      int nsurf = this->nsurf;
+      if (node->is_leaf) return;
+      for (int octant=0; octant<8; octant++) {
+        if (node->children[octant])
+#pragma omp task untied
+          M2M(node->children[octant]);
+      }
+#pragma omp taskwait
+      // evaluate parent's upward equivalent charge from child's upward equivalent charge
+      for (int octant=0; octant<8; octant++) {
+        if (node->children[octant]) {
+          Node<T>* child = node->children[octant];
+          std::vector<T> buffer(nsurf);
+          gemv(nsurf, nsurf, &(matrix_M2M[octant][0]), &child->up_equiv[0], &buffer[0]);
+          for (int k=0; k<nsurf; k++) {
+            node->up_equiv[k] += buffer[k];
+          }
+        }
+      }
+    }
+
+    //! L2L operator
+    void L2L(Node<T>* node) {
+      int nsurf = this->nsurf;
+      if (node->is_leaf) return;
+      // evaluate child's downward check potential from parent's downward check potential
+      for (int octant=0; octant<8; octant++) {
+        if (node->children[octant]) {
+          Node<T>* child = node->children[octant];
+          std::vector<T> buffer(nsurf);
+          gemv(nsurf, nsurf, &(matrix_L2L[octant][0]), &node->dn_equiv[0], &buffer[0]);
+          for (int k=0; k<nsurf; k++)
+            child->dn_equiv[k] += buffer[k];
+        }
+      }
+      for (int octant=0; octant<8; octant++) {
+        if (node->children[octant])
+#pragma omp task untied
+          L2L(node->children[octant]);
+      }
+#pragma omp taskwait
+    }
   };
 
   
@@ -254,9 +368,9 @@ namespace exafmm_t {
     // compute M2L kernel matrix, perform DFT
     RealVec trg_coord(3,0);
 #pragma omp parallel for
-    for(size_t i=0; i<REL_COORD[M2L_Helper_Type].size(); ++i) {
+    for (size_t i=0; i<REL_COORD[M2L_Helper_Type].size(); ++i) {
       real_t coord[3];
-      for(int d=0; d<3; d++) {
+      for (int d=0; d<3; d++) {
         coord[d] = REL_COORD[M2L_Helper_Type][i][d] * this->r0 / 0.5;  // relative coords
       }
       RealVec conv_coord = convolution_grid(this->p, this->r0, 0, coord);   // convolution grid
@@ -266,11 +380,11 @@ namespace exafmm_t {
     }
     // convert M2L_Helper to M2L and reorder data layout to improve locality
 #pragma omp parallel for
-    for(size_t i=0; i<REL_COORD[M2L_Type].size(); ++i) {
-      for(int j=0; j<NCHILD*NCHILD; j++) {   // loop over child's relative positions
+    for (size_t i=0; i<REL_COORD[M2L_Type].size(); ++i) {
+      for (int j=0; j<NCHILD*NCHILD; j++) {   // loop over child's relative positions
         int child_rel_idx = M2L_INDEX_MAP[i][j];
         if (child_rel_idx != -1) {
-          for(int k=0; k<n3_; k++) {   // loop over frequencies
+          for (int k=0; k<n3_; k++) {   // loop over frequencies
             int new_idx = k*(2*NCHILD*NCHILD) + 2*j;
             matrix_M2L[i][new_idx+0] = matrix_M2L_Helper[child_rel_idx][k*2+0] / n3;   // real
             matrix_M2L[i][new_idx+1] = matrix_M2L_Helper[child_rel_idx][k*2+1] / n3;   // imag

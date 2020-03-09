@@ -39,7 +39,6 @@ int main(int argc, char **argv) {
   init_rel_coord();
   fmm.precompute();
 
-#if 0
   // create tree
   std::vector<int> nnodes = {1, 8, 8*2, 8*2};  // number of nodes at each level
   Nodes<real_t> nodes(std::accumulate(nnodes.begin(), nnodes.end(), 0));
@@ -102,6 +101,7 @@ int main(int argc, char **argv) {
   }
 #endif
 
+#if 0
   // set up M2L_list
   target->parent->parent->M2L_list.resize(REL_COORD[M2L_Type].size(), nullptr);
   target->parent->parent->M2L_list[0] = source->parent->parent;

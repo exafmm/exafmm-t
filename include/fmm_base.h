@@ -92,7 +92,7 @@ namespace exafmm_t {
       up_equiv_surf.resize(depth+1);
       for(int level = 0; level <= depth; level++) {
         up_equiv_surf[level].resize(nsurf*3);
-        up_equiv_surf[level] = surface(p, r0, level, c, 1.05, level);
+        up_equiv_surf[level] = surface(p, r0, level, c, 1.05);
       }
 #pragma omp parallel for
       for(size_t i=0; i<targets.size(); i++) {

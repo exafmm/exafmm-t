@@ -160,30 +160,8 @@ namespace exafmm_t {
       }   
     }
 
-
-
-
-    //! Load precomputation matrices from saved file to memory.
-    //bool load_matrix();
-
-    //! Save precomputation matrices to file.
-    //void save_matrix();
-
-
     //! M2L operator.
     void M2L(Nodes<real_t>& nodes) {}
-
-    //! M2M operator.
-    void M2M(Node<real_t>* node) {}
-
-    //! L2L operator.
-    void L2L(Node<real_t>* node) {}
-    
-    //! P2M operator.
-    void P2M(NodePtrs<real_t>& leafs) {}
-    
-    //! L2P operator.
-    void L2P(NodePtrs<real_t>& leafs) {}
 
 /*
 
