@@ -32,12 +32,12 @@ namespace exafmm_t {
       int nsrcs = src_coord.size() / 3;
       int ntrgs = trg_coord.size() / 3;
       int t;
-      for(t=0; t+NSIMD<=ntrgs; t+=NSIMD) {
+      for (t=0; t+NSIMD<=ntrgs; t+=NSIMD) {
         simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
         simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
         simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
         simdvec tv(zero);
-        for(int s=0; s<nsrcs; s++) {
+        for (int s=0; s<nsrcs; s++) {
           simdvec sx(src_coord[3*s+0]);
           sx = sx - tx;
           simdvec sy(src_coord[3*s+1]);
@@ -54,19 +54,19 @@ namespace exafmm_t {
           tv += invR * sv;
         }
         tv *= coef;
-        for(int k=0; k<NSIMD && t+k<ntrgs; k++) {
+        for (int k=0; k<NSIMD && t+k<ntrgs; k++) {
           trg_value[t+k] += tv[k];
         }
       }
-      for(; t<ntrgs; t++) {
+      for (; t<ntrgs; t++) {
         real_t potential = 0;
-        for(int s=0; s<nsrcs; ++s) {
+        for (int s=0; s<nsrcs; ++s) {
           vec3 dx = 0;
-          for(int d=0; d<3; d++) {
+          for (int d=0; d<3; d++) {
             dx[d] += trg_coord[3*t+d] - src_coord[3*s+d];
           }
           real_t r2 = norm(dx);
-          if(r2!=0) {
+          if (r2!=0) {
             real_t inv_r = 1 / std::sqrt(r2);
             potential += src_value[s] * inv_r;
           }
@@ -94,7 +94,7 @@ namespace exafmm_t {
       int nsrcs = src_coord.size() / 3;
       int ntrgs = trg_coord.size() / 3;
       int t;
-      for(t=0; t+NSIMD<=ntrgs; t+=NSIMD) {
+      for (t=0; t+NSIMD<=ntrgs; t+=NSIMD) {
         simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
         simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
         simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
@@ -102,7 +102,7 @@ namespace exafmm_t {
         simdvec tv1(zero);
         simdvec tv2(zero);
         simdvec tv3(zero);
-        for(int s=0; s<nsrcs; s++) {
+        for (int s=0; s<nsrcs; s++) {
           simdvec sx(src_coord[3*s+0]);
           sx = tx - sx;
           simdvec sy(src_coord[3*s+1]);
@@ -127,17 +127,17 @@ namespace exafmm_t {
         tv1 *= coefg;
         tv2 *= coefg;
         tv3 *= coefg;
-        for(int k=0; k<NSIMD && t+k<ntrgs; k++) {
+        for (int k=0; k<NSIMD && t+k<ntrgs; k++) {
           trg_value[0+4*(t+k)] += tv0[k];
           trg_value[1+4*(t+k)] += tv1[k];
           trg_value[2+4*(t+k)] += tv2[k];
           trg_value[3+4*(t+k)] += tv3[k];
         }
       }
-      for(; t<ntrgs; t++) {
+      for (; t<ntrgs; t++) {
         real_t potential = 0;
         vec3 gradient = 0;
-        for(int s=0; s<nsrcs; ++s) {
+        for (int s=0; s<nsrcs; ++s) {
           vec3 dx = 0;
           for (int d=0; d<3; ++d) {
             dx[d] = trg_coord[3*t+d] - src_coord[3*s+d];
@@ -159,27 +159,6 @@ namespace exafmm_t {
         trg_value[4*t+3] -= gradient[2] / (4*PI);
       }   
     }
-
-/*
-
-    void M2L_setup(NodePtrs_t& nonleafs);
-
-    void hadamard_product(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
-                          AlignedVec& fft_in, AlignedVec& fft_out);
-
-    void fft_up_equiv(std::vector<size_t>& fft_offset, RealVec& all_up_equiv, AlignedVec& fft_in);
-
-    void ifft_dn_check(std::vector<size_t>& ifft_offset, RealVec& ifft_scal, AlignedVec& fft_out, RealVec& all_dn_equiv);
-    
-*/
-
-    /**
-     * @brief Calculate the relative error of potentials and gradients in L2-norm.
-     * 
-     * @param leafs Vector of pointers to leaf nodes.
-     * @return RealVec A two-element vector: potential error and gradient error.
-     */
-//    RealVec verify(NodePtrs_t& leafs);
   };
 }  // end namespace exafmm_t
 #endif

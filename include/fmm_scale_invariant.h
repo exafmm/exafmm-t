@@ -171,7 +171,7 @@ namespace exafmm_t {
       real_t c[3] = {0,0,0};
       std::vector<RealVec> up_check_surf;
       up_check_surf.resize(this->depth+1);
-      for (int level = 0; level <= this->depth; level++) {
+      for (int level=0; level<=this->depth; level++) {
         up_check_surf[level].resize(nsurf*3);
         up_check_surf[level] = surface(this->p, this->r0, level, c, 2.95);
       }
@@ -206,7 +206,7 @@ namespace exafmm_t {
       real_t c[3] = {0.0};
       std::vector<RealVec> dn_equiv_surf;
       dn_equiv_surf.resize(this->depth+1);
-      for (int level = 0; level <= this->depth; level++) {
+      for (int level=0; level<=this->depth; level++) {
         dn_equiv_surf[level].resize(nsurf*3);
         dn_equiv_surf[level] = surface(this->p, this->r0, level, c, 2.95);
       }

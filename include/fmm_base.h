@@ -59,7 +59,7 @@ namespace exafmm_t {
       int nsrcs = src_coord.size() / 3;
       int ntrgs = trg_coord.size() / 3;
 #pragma omp parallel for
-      for(int i=0; i<nsrcs; i++) {
+      for (int i=0; i<nsrcs; i++) {
         RealVec src_coord_(src_coord.data()+3*i, src_coord.data()+3*(i+1));
         std::vector<T> trg_value_(ntrgs, 0.);
         potential_P2P(src_coord_, src_value, trg_coord, trg_value_);
@@ -74,10 +74,10 @@ namespace exafmm_t {
     void P2P(NodePtrs<T>& leafs) {
       NodePtrs<T>& targets = leafs;
 #pragma omp parallel for
-      for(size_t i=0; i<targets.size(); i++) {
+      for (size_t i=0; i<targets.size(); i++) {
         Node<T>* target = targets[i];
         NodePtrs<T>& sources = target->P2P_list;
-        for(size_t j=0; j<sources.size(); j++) {
+        for (size_t j=0; j<sources.size(); j++) {
           Node<T>* source = sources[j];
           gradient_P2P(source->src_coord, source->src_value,
                        target->trg_coord, target->trg_value);
@@ -91,20 +91,20 @@ namespace exafmm_t {
       real_t c[3] = {0.0};
       std::vector<RealVec> up_equiv_surf;
       up_equiv_surf.resize(depth+1);
-      for(int level = 0; level <= depth; level++) {
+      for (int level=0; level<=depth; level++) {
         up_equiv_surf[level].resize(nsurf*3);
         up_equiv_surf[level] = surface(p, r0, level, c, 1.05);
       }
 #pragma omp parallel for
-      for(size_t i=0; i<targets.size(); i++) {
+      for (size_t i=0; i<targets.size(); i++) {
         Node<T>* target = targets[i];
         NodePtrs<T>& sources = target->M2P_list;
-        for(size_t j=0; j<sources.size(); j++) {
+        for (size_t j=0; j<sources.size(); j++) {
           Node<T>* source = sources[j];
           RealVec src_equiv_coord(nsurf*3);
           int level = source->level;
           // source node's equiv coord = relative equiv coord + node's center
-          for(int k=0; k<nsurf; k++) {
+          for (int k=0; k<nsurf; k++) {
             src_equiv_coord[3*k+0] = up_equiv_surf[level][3*k+0] + source->x[0];
             src_equiv_coord[3*k+1] = up_equiv_surf[level][3*k+1] + source->x[1];
             src_equiv_coord[3*k+2] = up_equiv_surf[level][3*k+2] + source->x[2];
@@ -121,20 +121,20 @@ namespace exafmm_t {
       real_t c[3] = {0.0};
       std::vector<RealVec> dn_check_surf;
       dn_check_surf.resize(depth+1);
-      for(int level = 0; level <= depth; level++) {
+      for (int level=0; level<=depth; level++) {
         dn_check_surf[level].resize(nsurf*3);
         dn_check_surf[level] = surface(p, r0, level, c, 1.05);
       }
 #pragma omp parallel for
-      for(size_t i=0; i<targets.size(); i++) {
+      for (size_t i=0; i<targets.size(); i++) {
         Node<T>* target = &targets[i];
         NodePtrs<T>& sources = target->P2L_list;
-        for(size_t j=0; j<sources.size(); j++) {
+        for (size_t j=0; j<sources.size(); j++) {
           Node<T>* source = sources[j];
           RealVec trg_check_coord(nsurf*3);
           int level = target->level;
           // target node's check coord = relative check coord + node's center
-          for(int k=0; k<nsurf; k++) {
+          for (int k=0; k<nsurf; k++) {
             trg_check_coord[3*k+0] = dn_check_surf[level][3*k+0] + target->x[0];
             trg_check_coord[3*k+1] = dn_check_surf[level][3*k+1] + target->x[1];
             trg_check_coord[3*k+2] = dn_check_surf[level][3*k+2] + target->x[2];
