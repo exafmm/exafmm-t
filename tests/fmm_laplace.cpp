@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   Bodies<real_t> sources = init_sources<real_t>(args.numBodies, args.distribution, 0);
   Bodies<real_t> targets = init_targets<real_t>(args.numBodies, args.distribution, 5);
 
-  LaplaceFMM<real_t> fmm(args.P, args.ncrit, args.maxlevel);
+  LaplaceFmm fmm(args.P, args.ncrit, args.maxlevel);
 
   start("Build Tree");
   get_bounds(sources, targets, fmm.x0, fmm.r0);
@@ -60,10 +60,10 @@ int main(int argc, char **argv) {
 
   stop("Total");
 
-  RealVec error = fmm.verify(leafs);
+  RealVec err = fmm.verify(leafs);
   print_divider("Error");
-  print("Potential Error", error[0]);
-  print("Gradient Error", error[1]);
+  print("Potential Error", err[0]);
+  print("Gradient Error", err[1]);
 
   print_divider("Tree");
   print("Root Center x", fmm.x0[0]);
