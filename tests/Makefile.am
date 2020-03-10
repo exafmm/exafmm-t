@@ -37,9 +37,9 @@ tree_CPPFLAGS = $(AM_CPPFLAGS)
 tree_LDADD = $(LIBS_LDADD)
 
 # list tests
-# bin_PROGRAMS += list
-#list_SOURCES = list.cpp $(COMMON_SRCS)
-#list_CPPFLAGS = $(AM_CPPFLAGS)
+bin_PROGRAMS += list
+list_SOURCES = list.cpp $(COMMON_SRCS)
+list_CPPFLAGS = $(AM_CPPFLAGS)
 
 # full fmm tests
 bin_PROGRAMS += fmm_laplace

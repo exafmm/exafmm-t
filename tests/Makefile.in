@@ -89,7 +89,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = p2p_laplace$(EXEEXT) kernel_laplace$(EXEEXT) \
-	tree$(EXEEXT) fmm_laplace$(EXEEXT)
+	tree$(EXEEXT) list$(EXEEXT) fmm_laplace$(EXEEXT)
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_append_compile_flags.m4 \
@@ -135,10 +135,15 @@ am_kernel_laplace_OBJECTS = kernel_laplace-kernel_laplace.$(OBJEXT) \
 	$(am__objects_2)
 kernel_laplace_OBJECTS = $(am_kernel_laplace_OBJECTS)
 kernel_laplace_DEPENDENCIES = $(am__DEPENDENCIES_2)
-am__objects_3 = ../src/p2p_laplace-geometry.$(OBJEXT) \
+am__objects_3 = ../src/list-geometry.$(OBJEXT) \
+	../src/list-timer.$(OBJEXT)
+am_list_OBJECTS = list-list.$(OBJEXT) $(am__objects_3)
+list_OBJECTS = $(am_list_OBJECTS)
+list_LDADD = $(LDADD)
+am__objects_4 = ../src/p2p_laplace-geometry.$(OBJEXT) \
 	../src/p2p_laplace-timer.$(OBJEXT)
 am_p2p_laplace_OBJECTS = p2p_laplace-p2p_laplace.$(OBJEXT) \
-	$(am__objects_3)
+	$(am__objects_4)
 p2p_laplace_OBJECTS = $(am_p2p_laplace_OBJECTS)
 p2p_laplace_DEPENDENCIES = $(am__DEPENDENCIES_2)
 am_tree_OBJECTS = tree-tree.$(OBJEXT)
@@ -179,9 +184,9 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(fmm_laplace_SOURCES) $(kernel_laplace_SOURCES) \
-	$(p2p_laplace_SOURCES) $(tree_SOURCES)
+	$(list_SOURCES) $(p2p_laplace_SOURCES) $(tree_SOURCES)
 DIST_SOURCES = $(fmm_laplace_SOURCES) $(kernel_laplace_SOURCES) \
-	$(p2p_laplace_SOURCES) $(tree_SOURCES)
+	$(list_SOURCES) $(p2p_laplace_SOURCES) $(tree_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -587,6 +592,8 @@ kernel_laplace_LDADD = $(LIBS_LDADD)
 tree_SOURCES = tree.cpp
 tree_CPPFLAGS = $(AM_CPPFLAGS)
 tree_LDADD = $(LIBS_LDADD)
+list_SOURCES = list.cpp $(COMMON_SRCS)
+list_CPPFLAGS = $(AM_CPPFLAGS)
 #bin_PROGRAMS += fmm_laplace fmm_laplace_non_adaptive
 fmm_laplace_SOURCES = fmm_laplace.cpp $(COMMON_SRCS)
 fmm_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
@@ -719,6 +726,14 @@ fmm_laplace$(EXEEXT): $(fmm_laplace_OBJECTS) $(fmm_laplace_DEPENDENCIES) $(EXTRA
 kernel_laplace$(EXEEXT): $(kernel_laplace_OBJECTS) $(kernel_laplace_DEPENDENCIES) $(EXTRA_kernel_laplace_DEPENDENCIES) 
 	@rm -f kernel_laplace$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(kernel_laplace_OBJECTS) $(kernel_laplace_LDADD) $(LIBS)
+../src/list-geometry.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
+../src/list-timer.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
+
+list$(EXEEXT): $(list_OBJECTS) $(list_DEPENDENCIES) $(EXTRA_list_DEPENDENCIES) 
+	@rm -f list$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(list_OBJECTS) $(list_LDADD) $(LIBS)
 ../src/p2p_laplace-geometry.$(OBJEXT): ../src/$(am__dirstamp) \
 	../src/$(DEPDIR)/$(am__dirstamp)
 ../src/p2p_laplace-timer.$(OBJEXT): ../src/$(am__dirstamp) \
@@ -743,10 +758,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/fmm_laplace-timer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_laplace-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/kernel_laplace-timer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/list-geometry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/list-timer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/p2p_laplace-geometry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/p2p_laplace-timer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmm_laplace-fmm_laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kernel_laplace-kernel_laplace.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list-list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p2p_laplace-p2p_laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tree-tree.Po@am__quote@
 
@@ -857,6 +875,48 @@ kernel_laplace-kernel_laplace.obj: kernel_laplace.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/timer.cpp' object='../src/kernel_laplace-timer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/kernel_laplace-timer.obj `if test -f '../src/timer.cpp'; then $(CYGPATH_W) '../src/timer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/timer.cpp'; fi`
+
+list-list.o: list.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT list-list.o -MD -MP -MF $(DEPDIR)/list-list.Tpo -c -o list-list.o `test -f 'list.cpp' || echo '$(srcdir)/'`list.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/list-list.Tpo $(DEPDIR)/list-list.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='list.cpp' object='list-list.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o list-list.o `test -f 'list.cpp' || echo '$(srcdir)/'`list.cpp
+
+list-list.obj: list.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT list-list.obj -MD -MP -MF $(DEPDIR)/list-list.Tpo -c -o list-list.obj `if test -f 'list.cpp'; then $(CYGPATH_W) 'list.cpp'; else $(CYGPATH_W) '$(srcdir)/list.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/list-list.Tpo $(DEPDIR)/list-list.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='list.cpp' object='list-list.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o list-list.obj `if test -f 'list.cpp'; then $(CYGPATH_W) 'list.cpp'; else $(CYGPATH_W) '$(srcdir)/list.cpp'; fi`
+
+../src/list-geometry.o: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/list-geometry.o -MD -MP -MF ../src/$(DEPDIR)/list-geometry.Tpo -c -o ../src/list-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/list-geometry.Tpo ../src/$(DEPDIR)/list-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/list-geometry.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/list-geometry.o `test -f '../src/geometry.cpp' || echo '$(srcdir)/'`../src/geometry.cpp
+
+../src/list-geometry.obj: ../src/geometry.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/list-geometry.obj -MD -MP -MF ../src/$(DEPDIR)/list-geometry.Tpo -c -o ../src/list-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/list-geometry.Tpo ../src/$(DEPDIR)/list-geometry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/geometry.cpp' object='../src/list-geometry.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/list-geometry.obj `if test -f '../src/geometry.cpp'; then $(CYGPATH_W) '../src/geometry.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/geometry.cpp'; fi`
+
+../src/list-timer.o: ../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/list-timer.o -MD -MP -MF ../src/$(DEPDIR)/list-timer.Tpo -c -o ../src/list-timer.o `test -f '../src/timer.cpp' || echo '$(srcdir)/'`../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/list-timer.Tpo ../src/$(DEPDIR)/list-timer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/timer.cpp' object='../src/list-timer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/list-timer.o `test -f '../src/timer.cpp' || echo '$(srcdir)/'`../src/timer.cpp
+
+../src/list-timer.obj: ../src/timer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ../src/list-timer.obj -MD -MP -MF ../src/$(DEPDIR)/list-timer.Tpo -c -o ../src/list-timer.obj `if test -f '../src/timer.cpp'; then $(CYGPATH_W) '../src/timer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/timer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/$(DEPDIR)/list-timer.Tpo ../src/$(DEPDIR)/list-timer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/timer.cpp' object='../src/list-timer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ../src/list-timer.obj `if test -f '../src/timer.cpp'; then $(CYGPATH_W) '../src/timer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/timer.cpp'; fi`
 
 p2p_laplace-p2p_laplace.o: p2p_laplace.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(p2p_laplace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT p2p_laplace-p2p_laplace.o -MD -MP -MF $(DEPDIR)/p2p_laplace-p2p_laplace.Tpo -c -o p2p_laplace-p2p_laplace.o `test -f 'p2p_laplace.cpp' || echo '$(srcdir)/'`p2p_laplace.cpp
@@ -1130,6 +1190,13 @@ kernel_laplace.log: kernel_laplace$(EXEEXT)
 tree.log: tree$(EXEEXT)
 	@p='tree$(EXEEXT)'; \
 	b='tree'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+list.log: list$(EXEEXT)
+	@p='list$(EXEEXT)'; \
+	b='list'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
