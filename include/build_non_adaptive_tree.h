@@ -2,6 +2,7 @@
 #define build_non_adaptive_tree_h
 #include "exafmm_t.h"
 #include "hilbert.h"
+#include "fmm_base.h"
 
 namespace exafmm_t {
   /**
@@ -94,7 +95,7 @@ namespace exafmm_t {
   void build_tree(Body<T>* sources, int source_begin, int source_end,
                   Body<T>* targets, int target_begin, int target_end,
                   Node<T>* node, Nodes<T>& nodes,
-                  NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FMM& fmm) {
+                  NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FmmBase<T>& fmm) {
     //! Create a tree node
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
     node->nsrcs = source_end - source_begin;
@@ -186,7 +187,7 @@ namespace exafmm_t {
    */
   template <typename T>
   Nodes<T> build_tree(Bodies<T>& sources, Bodies<T>& targets,
-                      NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FMM& fmm) {
+                      NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FmmBase<T>& fmm) {
     Nodes<T> nodes(1);
     nodes[0].parent = nullptr;
     nodes[0].octant = 0;
