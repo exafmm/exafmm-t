@@ -1,82 +1,95 @@
 #ifndef modified_helmholtz_h
 #define modified_helmholtz_h
 #include "exafmm_t.h"
+#include "fmm.h"
 #include "geometry.h"
 #include "intrinsics.h"
 #include "timer.h"
 
 namespace exafmm_t {
   //! A derived FMM class for modified Helmholtz kernel.
-  class ModifiedHelmholtzFMM : public FMM {
-    using Body_t = Body<real_t>;
-    using Bodies_t = Bodies<real_t>;
-    using Node_t = Node<real_t>;
-    using Nodes_t = Nodes<real_t>;
-    using NodePtrs_t = NodePtrs<real_t>;
-
+  class ModifiedHelmholtzFmm : public Fmm<real_t> {
   public:
     real_t wavek;
-    std::vector<RealVec> matrix_UC2E_U;
-    std::vector<RealVec> matrix_UC2E_V;
-    std::vector<RealVec> matrix_DC2E_U;
-    std::vector<RealVec> matrix_DC2E_V;
-    std::vector<std::vector<RealVec>> matrix_M2M;
-    std::vector<std::vector<RealVec>> matrix_L2L;
-    std::vector<M2LData> m2ldata;
 
-    ModifiedHelmholtzFMM() {}
-    ModifiedHelmholtzFMM(int p_, int ncrit_, int depth_, real_t wavek_) : FMM(p_, ncrit_, depth_) { wavek = wavek_;}
-
-    void potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
-
-    void gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
-
-    void kernel_matrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
-
-    void initialize_matrix();
-
-    void precompute_check2equiv();
-
-    void precompute_M2M();
-
-    void precompute_M2L(std::ofstream& file, std::vector<std::vector<int>>& parent2child);
-
-    bool load_matrix();
-
-    void save_matrix(std::ofstream& file);
-
-    void precompute();
+    ModifiedHelmholtzFmm() {}
+    ModifiedHelmholtzFmm(int p_, int ncrit_, int depth_, real_t wavek_) : Fmm(p_, ncrit_, depth_) {
+      wavek = wavek_;
+      this->filename = std::string("modified_helmholtz_") + (std::is_same<real_t, float>::value ? "f" : "d")
+                     + std::string("_p") + std::to_string(p) + std::string(".dat");
+    }
     
-    void P2M(NodePtrs_t& leafs);
+    /**
+     * @brief Compute potentials at targets induced by sources directly.
+     * 
+     * @param src_coord Vector of coordinates of sources.
+     * @param src_value Vector of charges of sources.
+     * @param trg_coord Vector of coordinates of targets.
+     * @param trg_value Vector of potentials of targets.
+     */
+    void potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+      int nsrcs = src_coord.size() / 3;
+      int ntrgs = trg_coord.size() / 3;
+      for (int i=0; i<ntrgs; ++i) {
+        vec3 x_trg;
+        real_t potential = 0;
+        for (int d=0; d<3; ++d)
+          x_trg[d] = trg_coord[3*i+d];
+        for (int j=0; j<nsrcs; ++j) {
+          vec3 x_src;
+          for (int d=0; d<3; ++d) {
+            x_src[d] = src_coord[3*j+d];
+          }
+          vec3 dx = x_trg - x_src;
+          real_t r = std::sqrt(norm(dx));
+          if (r>0) {
+            potential += std::exp(-wavek*r) / r * src_value[j];
+          }
+        }
+        trg_value[i] += potential / 4*PI;
+      }
+    }
 
-    void M2M(Node_t* node);
-
-    void L2L(Node_t* node);
-
-    void L2P(NodePtrs_t& leafs);
-
-    void P2L(Nodes_t& nodes);
-
-    void M2P(NodePtrs_t& leafs);
-
-    void P2P(NodePtrs_t& leafs);
-
-    void M2L_setup(NodePtrs_t& nonleafs);
-
-    void hadamard_product(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
-                         AlignedVec& fft_in, AlignedVec& fft_out, std::vector<AlignedVec>& matrix_M2L);
-
-    void fft_up_equiv(std::vector<size_t>& fft_vec, RealVec& all_up_equiv, AlignedVec& fft_in);
-
-    void ifft_dn_check(std::vector<size_t>& ifft_vec, AlignedVec& fft_out, RealVec& all_dn_equiv);
-
-    void M2L(Nodes_t& nodes);
-
-    void upward_pass(Nodes_t& nodes, NodePtrs_t& leafs);
-
-    void downward_pass(Nodes_t& nodes, NodePtrs_t& leafs);
-
-    RealVec verify(NodePtrs_t& leafs);
+    /**
+     * @brief Compute potentials and gradients at targets induced by sources directly.
+     * 
+     * @param src_coord Vector of coordinates of sources.
+     * @param src_value Vector of charges of sources.
+     * @param trg_coord Vector of coordinates of targets.
+     * @param trg_value Vector of potentials of targets.
+     */
+    void gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+      int nsrcs = src_coord.size() / 3;
+      int ntrgs = trg_coord.size() / 3;
+      for (int i=0; i<ntrgs; ++i) {
+        vec3 x_trg;
+        real_t potential = 0;
+        vec3 gradient = 0;
+        for (int d=0; d<3; ++d)
+          x_trg[d] = trg_coord[3*i+d];
+        for (int j=0; j<nsrcs; ++j) {
+          vec3 x_src;
+          for (int d=0; d<3; ++d) {
+            x_src[d] = src_coord[3*j+d];
+          }
+          vec3 dx = x_trg - x_src;
+          real_t r = std::sqrt(norm(dx));
+          // dp / dr
+          if (r>0) {
+            real_t kernel  = std::exp(-wavek*r) / r;
+            real_t dpdr = - kernel * (wavek*r+1) / r;
+            potential += kernel * src_value[j];
+            gradient[0] += dpdr / r * dx[0] * src_value[j];
+            gradient[1] += dpdr / r * dx[1] * src_value[j];
+            gradient[2] += dpdr / r * dx[2] * src_value[j];
+          }
+        }
+        trg_value[4*i+0] += potential / 4*PI;
+        trg_value[4*i+1] += gradient[0] / 4*PI;
+        trg_value[4*i+2] += gradient[1] / 4*PI;
+        trg_value[4*i+3] += gradient[2] / 4*PI;
+      }
+    }
   };
 }  // end namespace exafmm_t
 #endif

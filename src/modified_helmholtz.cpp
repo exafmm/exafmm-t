@@ -5,61 +5,9 @@
 #include "math_wrapper.h"
 
 namespace exafmm_t {
-  void ModifiedHelmholtzFMM::potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
-    int nsrcs = src_coord.size() / 3;
-    int ntrgs = trg_coord.size() / 3;
-    for (int i=0; i<ntrgs; ++i) {
-      vec3 x_trg;
-      real_t potential = 0;
-      for (int d=0; d<3; ++d)
-        x_trg[d] = trg_coord[3*i+d];
-      for (int j=0; j<nsrcs; ++j) {
-        vec3 x_src;
-        for (int d=0; d<3; ++d) {
-          x_src[d] = src_coord[3*j+d];
-        }
-        vec3 dx = x_trg - x_src;
-        real_t r = std::sqrt(norm(dx));
-        if (r>0) {
-          potential += std::exp(-wavek*r) / r * src_value[j];
-        }
-      }
-      trg_value[i] += potential / 4*PI;
-    }
-  }
 
-  void ModifiedHelmholtzFMM::gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
-    int nsrcs = src_coord.size() / 3;
-    int ntrgs = trg_coord.size() / 3;
-    for (int i=0; i<ntrgs; ++i) {
-      vec3 x_trg;
-      real_t potential = 0;
-      vec3 gradient = 0;
-      for (int d=0; d<3; ++d)
-        x_trg[d] = trg_coord[3*i+d];
-      for (int j=0; j<nsrcs; ++j) {
-        vec3 x_src;
-        for (int d=0; d<3; ++d) {
-          x_src[d] = src_coord[3*j+d];
-        }
-        vec3 dx = x_trg - x_src;
-        real_t r = std::sqrt(norm(dx));
-        // dp / dr
-        if (r>0) {
-          real_t kernel  = std::exp(-wavek*r) / r;
-          real_t dpdr = - kernel * (wavek*r+1) / r;
-          potential += kernel * src_value[j];
-          gradient[0] += dpdr / r * dx[0] * src_value[j];
-          gradient[1] += dpdr / r * dx[1] * src_value[j];
-          gradient[2] += dpdr / r * dx[2] * src_value[j];
-        }
-      }
-      trg_value[4*i+0] += potential / 4*PI;
-      trg_value[4*i+1] += gradient[0] / 4*PI;
-      trg_value[4*i+2] += gradient[1] / 4*PI;
-      trg_value[4*i+3] += gradient[2] / 4*PI;
-    }
-  }
+
+
 
   //! P2P save pairwise contributions to k_out (not aggregate over each target)
   void ModifiedHelmholtzFMM::kernel_matrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out) {
