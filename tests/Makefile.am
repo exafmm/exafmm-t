@@ -1,22 +1,18 @@
 include $(top_srcdir)/Makefile.am.include
 
 COMMON_SRCS = ../src/geometry.cpp ../src/timer.cpp
-LAPLACE_SRCS = ../src/laplace.cpp $(COMMON_SRCS)
-HELMHOLTZ_SRCS = ../src/helmholtz.cpp $(COMMON_SRCS)
-MODIFIED_HELMHOLTZ_SRCS = ../src/modified_helmholtz.cpp $(COMMON_SRCS)
-
 bin_PROGRAMS = 
 
 # simd p2p tests
-bin_PROGRAMS += p2p_laplace
-# p2p_helmholtz
+bin_PROGRAMS += p2p_laplace p2p_helmholtz
 p2p_laplace_SOURCES = p2p_laplace.cpp $(COMMON_SRCS)
 p2p_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 p2p_laplace_LDADD = $(LIBS_LDADD)
-#p2p_helmholtz_SOURCES = p2p_helmholtz.cpp $(HELMHOLTZ_SRCS)
-#p2p_helmholtz_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
-#p2p_helmholtz_LDADD = $(LIBS_LDADD)
-#
+
+p2p_helmholtz_SOURCES = p2p_helmholtz.cpp $(COMMON_SRCS)
+p2p_helmholtz_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+p2p_helmholtz_LDADD = $(LIBS_LDADD)
+
 # kernel tests
 bin_PROGRAMS += kernel_laplace
 #kernel_helmholtz kernel_modified_helmholtz
@@ -46,7 +42,7 @@ bin_PROGRAMS += fmm_laplace fmm_laplace_non_adaptive
 fmm_laplace_SOURCES = fmm_laplace.cpp $(COMMON_SRCS)
 fmm_laplace_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 fmm_laplace_LDADD = $(LIBS_LDADD)
-#
+
 fmm_laplace_non_adaptive_SOURCES = $(fmm_laplace_SOURCES)
 fmm_laplace_non_adaptive_CPPFLAGS = -DNON_ADAPTIVE $(fmm_laplace_CPPFLAGS)
 fmm_laplace_non_adaptive_LDADD = $(fmm_laplace_LDADD)

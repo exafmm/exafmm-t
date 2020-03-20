@@ -7,11 +7,12 @@
 using namespace exafmm_t;
 
 void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+  int nsrcs = src_coord.size() / 3;
   int ntrgs = trg_coord.size() / 3;
-  for (int t=0; t<ntrgs; t++) {
+  for (int t=0; t<ntrgs; ++t) {
     real_t potential = 0;
     vec3 gradient = 0;
-    for (size_t s=0; s<src_value.size(); ++s) {
+    for (int s=0; s<nsrcs; ++s) {
       vec3 dx = 0;
       for (int d=0; d<3; ++d) {
         dx[d] = trg_coord[3*t+d] - src_coord[3*s+d];
@@ -65,10 +66,10 @@ int main(int argc, char **argv) {
   // calculate error
   double p_diff = 0, p_norm = 0;   // potential
   double g_diff = 0, g_norm = 0;   // gradient
-  for(int i=0; i<n; ++i) {
+  for (int i=0; i<n; ++i) {
     p_norm += std::norm(trg_value[4*i]);
     p_diff += std::norm(trg_value[4*i]-trg_value_simd[4*i]);
-    for(int d=1; d<4; ++d) {
+    for (int d=1; d<4; ++d) {
       g_norm += std::norm(trg_value[4*i+d]);
       g_diff += std::norm(trg_value[4*i+d]-trg_value_simd[4*i+d]);
     }
