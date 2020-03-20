@@ -1,5 +1,5 @@
-#ifndef fmm_scale_invariant
-#define fmm_scale_invariant
+#ifndef fmm_scale_invariant_h
+#define fmm_scale_invariant_h
 #include <cstring>      // std::memset
 #include <fstream>      // std::ofstream
 #include <type_traits>  // std::is_same
@@ -30,15 +30,12 @@ namespace exafmm_t {
 
     /* constructors */
     FmmScaleInvariant() {}
-    FmmScaleInvariant(int p_, int ncrit_, int depth_) : FmmBase<T>(p_, ncrit_, depth_) {
-    }
+    FmmScaleInvariant(int p_, int ncrit_, int depth_) : FmmBase<T>(p_, ncrit_, depth_) {}
 
     /* precomputation */
     //! Setup the sizes of precomputation matrices
     void initialize_matrix() {
-      int n1 = this->p * 2;
-      int n3_ = n1 * n1 * (n1 / 2 + 1);
-      size_t size = n3_ * 2 * NCHILD * NCHILD;  // size of each M2L precomputation matrix
+      size_t size = this->nfreq * 2 * NCHILD * NCHILD;  // size of each M2L precomputation matrix
       int nsurf = this->nsurf;
       matrix_UC2E_U.resize(nsurf*nsurf);
       matrix_UC2E_V.resize(nsurf*nsurf);
@@ -104,9 +101,7 @@ namespace exafmm_t {
         file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(T));
       }
       // M2L
-      int n1 = this->p * 2;
-      int n3_ = n1 * n1 * (n1 / 2 + 1);
-      size = n3_ * 2 * NCHILD * NCHILD;
+      size = this->nfreq * 2 * NCHILD * NCHILD;
       for (auto & vec : matrix_M2L) {
         file.write(reinterpret_cast<char*>(&vec[0]), size*sizeof(real_t));
       }
@@ -115,9 +110,7 @@ namespace exafmm_t {
 
     //! Check and load precomputation matrices
     void load_matrix() {
-      int n1 = this->p * 2;
-      int n3_ = n1 * n1 * (n1 / 2 + 1);
-      size_t size_M2L = n3_ * 2 * NCHILD * NCHILD;
+      size_t size_M2L = this->nfreq * 2 * NCHILD * NCHILD;
       size_t file_size = (2*REL_COORD[M2M_Type].size()+4) * this->nsurf * this->nsurf * sizeof(T) 
                        + REL_COORD[M2L_Type].size() * size_M2L * sizeof(real_t)
                        + 1 * sizeof(real_t);   // +1 denotes r0
@@ -282,8 +275,6 @@ namespace exafmm_t {
 
     void M2L_setup(NodePtrs<T> nonleafs) {
       int nsurf = this->nsurf;
-      int n1 = this->p * 2;
-      int n3_ = n1 * n1 * (n1/2 + 1);
       int npos = REL_COORD[M2L_Type].size();  // number of M2L relative positions
 
       // construct lists of source nodes and target nodes for M2L operator
@@ -326,7 +317,7 @@ namespace exafmm_t {
       size_t n_blk1 = trg_nodes.size() * sizeof(real_t) / CACHE_SIZE;
       if (n_blk1==0) n_blk1 = 1;
       size_t interaction_count_offset_ = 0;
-      size_t fft_size = 2 * NCHILD * n3_;
+      size_t fft_size = 2 * NCHILD * this->nfreq;
       for (size_t blk1=0; blk1<n_blk1; blk1++) {
         size_t blk1_start=(trg_nodes.size()* blk1   )/n_blk1;
         size_t blk1_end  =(trg_nodes.size()*(blk1+1))/n_blk1;
@@ -352,9 +343,7 @@ namespace exafmm_t {
     void hadamard_product(std::vector<size_t>& interaction_count_offset, std::vector<size_t>& interaction_offset_f,
                          AlignedVec& fft_in, AlignedVec& fft_out) {
       int p = this->p;
-      int n1 = p * 2;
-      int n3_ = n1 * n1 * (n1/2 + 1);
-      size_t fft_size = 2 * NCHILD * n3_;
+      size_t fft_size = 2 * NCHILD * this->nfreq;
       AlignedVec zero_vec0(fft_size, 0.);
       AlignedVec zero_vec1(fft_size, 0.);
 
@@ -385,7 +374,7 @@ namespace exafmm_t {
 
       for(size_t blk1=0; blk1<blk1_cnt; blk1++) {
       #pragma omp parallel for
-        for(int k=0; k<n3_; k++) {
+        for(int k=0; k<this->nfreq; k++) {
           for(size_t mat_indx=0; mat_indx< npos; mat_indx++) {
             size_t interac_blk1 = blk1*npos+mat_indx;
             size_t interaction_count_offset0 = (interac_blk1==0?0:interaction_count_offset[interac_blk1-1]);
@@ -415,9 +404,7 @@ namespace exafmm_t {
 
     void M2L(Nodes<T>& nodes) {
       int nsurf = this->nsurf;
-      int n1 = this->p * 2;
-      int n3_ = n1 * n1 * (n1/2 + 1);
-      size_t fftsize = 2 * 8 * n3_;
+      size_t fftsize = 2 * NCHILD * this->nfreq;
       size_t numNodes = nodes.size();
 
       // allocate memory
@@ -528,13 +515,13 @@ namespace exafmm_t {
   template <>
   void FmmScaleInvariant<real_t>::precompute_M2L() {
     int n1 = this->p * 2;
-    int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
+    int nconv = this->nconv;
+    int nfreq = this->nfreq;
     std::vector<RealVec> matrix_M2L_Helper(REL_COORD[M2L_Helper_Type].size(),
-                                           RealVec(2*n3_));
+                                           RealVec(2*nfreq));
     // create fft plan
-    RealVec fftw_in(n3);
-    RealVec fftw_out(2*n3_);
+    RealVec fftw_in(nconv);
+    RealVec fftw_out(2*nfreq);
     int dim[3] = {n1, n1, n1};
     fft_plan plan = fft_plan_dft_r2c(3, dim, fftw_in.data(), reinterpret_cast<fft_complex*>(fftw_out.data()), FFTW_ESTIMATE);
     // compute M2L kernel matrix, perform DFT
@@ -546,7 +533,7 @@ namespace exafmm_t {
         coord[d] = REL_COORD[M2L_Helper_Type][i][d] * this->r0 / 0.5;  // relative coords
       }
       RealVec conv_coord = convolution_grid(this->p, this->r0, 0, coord);   // convolution grid
-      RealVec conv_value(n3);   // potentials on convolution grid
+      RealVec conv_value(nconv);   // potentials on convolution grid
       this->kernel_matrix(conv_coord, trg_coord, conv_value);
       fft_execute_dft_r2c(plan, conv_value.data(), reinterpret_cast<fft_complex*>(matrix_M2L_Helper[i].data()));
     }
@@ -556,10 +543,10 @@ namespace exafmm_t {
       for (int j=0; j<NCHILD*NCHILD; j++) {   // loop over child's relative positions
         int child_rel_idx = M2L_INDEX_MAP[i][j];
         if (child_rel_idx != -1) {
-          for (int k=0; k<n3_; k++) {   // loop over frequencies
+          for (int k=0; k<nfreq; k++) {   // loop over frequencies
             int new_idx = k*(2*NCHILD*NCHILD) + 2*j;
-            matrix_M2L[i][new_idx+0] = matrix_M2L_Helper[child_rel_idx][k*2+0] / n3;   // real
-            matrix_M2L[i][new_idx+1] = matrix_M2L_Helper[child_rel_idx][k*2+1] / n3;   // imag
+            matrix_M2L[i][new_idx+0] = matrix_M2L_Helper[child_rel_idx][k*2+0] / nconv;   // real
+            matrix_M2L[i][new_idx+1] = matrix_M2L_Helper[child_rel_idx][k*2+1] / nconv;   // imag
           }
         }
       }
@@ -572,10 +559,10 @@ namespace exafmm_t {
   void FmmScaleInvariant<real_t>::fft_up_equiv(std::vector<size_t>& fft_offset,
                                                RealVec& all_up_equiv, AlignedVec& fft_in) {
     int nsurf = this->nsurf;
+    int nconv = this->nconv;
+    int nfreq = this->nfreq;
     int p = this->p;
     int n1 = p * 2;
-    int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
     std::vector<size_t> map(nsurf);
     real_t c[3]= {0.5, 0.5, 0.5};
     for (int d=0; d<3; d++) c[d] += 0.5*(p-2);
@@ -586,13 +573,13 @@ namespace exafmm_t {
              + ((size_t)(p-1-surf[i*3+2]+0.5)) * n1 * n1;
     }
 
-    size_t fft_size = 2 * NCHILD * n3_;
-    AlignedVec fftw_in(n3 * NCHILD);
+    size_t fft_size = 2 * NCHILD * nfreq;
+    AlignedVec fftw_in(nconv * NCHILD);
     AlignedVec fftw_out(fft_size);
     int dim[3] = {2*p, 2*p, 2*p};
     fft_plan plan = fft_plan_many_dft_r2c(3, dim, NCHILD,
-                                          (real_t*)&fftw_in[0], nullptr, 1, n3,
-                                          (fft_complex*)(&fftw_out[0]), nullptr, 1, n3_,
+                                          (real_t*)&fftw_in[0], nullptr, 1, nconv,
+                                          (fft_complex*)(&fftw_out[0]), nullptr, 1, nfreq,
                                           FFTW_ESTIMATE);
 #pragma omp parallel for
     for (size_t node_idx=0; node_idx<fft_offset.size(); node_idx++) {
@@ -606,13 +593,13 @@ namespace exafmm_t {
       for (int k=0; k<nsurf; k++) {
         size_t idx = map[k];
         for (int j0=0; j0<(int)NCHILD; j0++)
-          up_equiv_f[idx+j0*n3] = up_equiv[j0*nsurf+k];
+          up_equiv_f[idx+j0*nconv] = up_equiv[j0*nsurf+k];
       }
       fft_execute_dft_r2c(plan, up_equiv_f, (fft_complex*)&buffer[0]);
-      for (int j=0; j<n3_; j++) {
+      for (int j=0; j<nfreq; j++) {
         for (size_t k=0; k<NCHILD; k++) {
-          up_equiv_f[2*(NCHILD*j+k)+0] = buffer[2*(n3_*k+j)+0];
-          up_equiv_f[2*(NCHILD*j+k)+1] = buffer[2*(n3_*k+j)+1];
+          up_equiv_f[2*(NCHILD*j+k)+0] = buffer[2*(nfreq*k+j)+0];
+          up_equiv_f[2*(NCHILD*j+k)+1] = buffer[2*(nfreq*k+j)+1];
         }
       }
     }
@@ -623,10 +610,10 @@ namespace exafmm_t {
   void FmmScaleInvariant<real_t>::ifft_dn_check(std::vector<size_t>& ifft_offset, RealVec& ifft_scal,
                        AlignedVec& fft_out, RealVec& all_dn_equiv) {
     int nsurf = this->nsurf;
+    int nconv = this->nconv;
+    int nfreq = this->nfreq;
     int p = this->p;
     int n1 = p * 2;
-    int n3 = n1 * n1 * n1;
-    int n3_ = n1 * n1 * (n1 / 2 + 1);
     std::vector<size_t> map(nsurf);
     real_t c[3]= {0.5, 0.5, 0.5};
     for (int d=0; d<3; d++) c[d] += 0.5*(p-2);
@@ -637,13 +624,13 @@ namespace exafmm_t {
              + ((size_t)(p*2-0.5-surf[i*3+2])) * n1 * n1;
     }
 
-    size_t fft_size = 2 * NCHILD * n3_;
+    size_t fft_size = 2 * NCHILD * nfreq;
     AlignedVec fftw_in(fft_size);
-    AlignedVec fftw_out(n3 * NCHILD);
+    AlignedVec fftw_out(nconv * NCHILD);
     int dim[3] = {2*p, 2*p, 2*p};
     fft_plan plan = fft_plan_many_dft_c2r(3, dim, NCHILD,
-                                 (fft_complex*)&fftw_in[0], nullptr, 1, n3_,
-                                 (real_t*)(&fftw_out[0]), nullptr, 1, n3,
+                                 (fft_complex*)&fftw_in[0], nullptr, 1, nfreq,
+                                 (real_t*)(&fftw_out[0]), nullptr, 1, nconv,
                                  FFTW_ESTIMATE);
     #pragma omp parallel for
     for (size_t node_idx=0; node_idx<ifft_offset.size(); node_idx++) {
@@ -651,16 +638,16 @@ namespace exafmm_t {
       RealVec buffer1(fft_size, 0);
       real_t* dn_check_f = &fft_out[fft_size*node_idx];  // offset ptr for node_idx in fft_out vector, size=fft_size
       real_t* dn_equiv = &all_dn_equiv[ifft_offset[node_idx]];  // offset ptr for node_idx's child's dn_equiv in all_dn_equiv, size=numChilds * nsurf
-      for (int j=0; j<n3_; j++)
+      for (int j=0; j<nfreq; j++)
         for (size_t k=0; k<NCHILD; k++) {
-          buffer0[2*(n3_*k+j)+0] = dn_check_f[2*(NCHILD*j+k)+0];
-          buffer0[2*(n3_*k+j)+1] = dn_check_f[2*(NCHILD*j+k)+1];
+          buffer0[2*(nfreq*k+j)+0] = dn_check_f[2*(NCHILD*j+k)+0];
+          buffer0[2*(nfreq*k+j)+1] = dn_check_f[2*(NCHILD*j+k)+1];
         }
       fft_execute_dft_c2r(plan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
       for (int k=0; k<nsurf; k++) {
         size_t idx = map[k];
         for (int j0=0; j0<NCHILD; j0++)
-          dn_equiv[nsurf*j0+k] += buffer1[idx+j0*n3] * ifft_scal[node_idx];
+          dn_equiv[nsurf*j0+k] += buffer1[idx+j0*nconv] * ifft_scal[node_idx];
       }
     }
     fft_destroy_plan(plan);

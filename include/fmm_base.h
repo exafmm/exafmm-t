@@ -12,18 +12,23 @@ namespace exafmm_t {
   public:
     int p;                 //!< Order of expansion
     int nsurf;             //!< Number of points on equivalent / check surface
+    int nconv;             //!< Number of points on convolution grid
+    int nfreq;             //!< Number of coefficients in DFT (depending on whether T is real_t)
     int ncrit;             //!< Max number of bodies per leaf
     int depth;             //!< Depth of the tree
     real_t r0;             //!< Half of the side length of the bounding box
     vec3 x0;               //!< Coordinates of the center of root box
     bool is_precomputed;   //!< Whether the matrix file is found
-    bool is_real;  //!< Whether template parameter T is real_t
+    bool is_real;          //!< Whether template parameter T is real_t
     std::string filename;  //!< File name of the precomputation matrices
 
     FmmBase() {}
     FmmBase(int p_, int ncrit_, int depth_) : p(p_), ncrit(ncrit_), depth(depth_) {
       nsurf = 6*(p_-1)*(p_-1) + 2;
+      int n1 = 2 * p_;
+      nconv = n1 * n1 * n1;
       is_real = std::is_same<T, real_t>::value;
+      nfreq = is_real ? n1*n1*(n1/2+1) : nconv;
       is_precomputed = false;
     }
 
