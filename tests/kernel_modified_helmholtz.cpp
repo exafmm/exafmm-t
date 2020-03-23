@@ -1,4 +1,4 @@
-#include <numeric>
+#include <numeric>    // std::accumulate
 #include "modified_helmholtz.h"
 #include "exafmm_t.h"
 #include "timer.h"
@@ -30,7 +30,8 @@ int main(int argc, char **argv) {
 #endif
 
   // create fmm instance
-  ModifiedHelmholtzFMM fmm(args.P, args.ncrit, args.maxlevel, args.k);
+  args.k = 0.1;
+  ModifiedHelmholtzFmm fmm(args.P, args.ncrit, args.maxlevel, args.k);
   fmm.depth = 3;
   fmm.x0 = 4.;
   fmm.r0 = 4.;
