@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   Bodies<complex_t> sources = init_sources<complex_t>(args.numBodies, args.distribution, 0);
   Bodies<complex_t> targets = init_targets<complex_t>(args.numBodies, args.distribution, 5);
 
-  HelmholtzFMM fmm(args.P, args.ncrit, args.maxlevel, args.k);
+  HelmholtzFmm fmm(args.P, args.ncrit, args.maxlevel, args.k);
 
   start("Build Tree");
   get_bounds(sources, targets, fmm.x0, fmm.r0);
@@ -53,10 +53,10 @@ int main(int argc, char **argv) {
   fmm.downward_pass(nodes, leafs);
   stop("Total");
 
-  RealVec error = fmm.verify(leafs);
+  RealVec err = fmm.verify(leafs);
   print_divider("Error");
-  print("Potential Error", error[0]);
-  print("Gradient Error", error[1]);
+  print("Potential Error", err[0]);
+  print("Gradient Error", err[1]);
 
   print_divider("Tree");
   print("Root Center x", fmm.x0[0]);

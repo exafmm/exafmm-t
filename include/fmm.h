@@ -678,6 +678,56 @@ namespace exafmm_t {
   }
 
   template <>
+  void Fmm<complex_t>::fft_up_equiv(std::vector<size_t>& fft_offset, ComplexVec& all_up_equiv, AlignedVec& fft_in) {
+    int nsurf = this->nsurf;
+    int p = this->p;
+    int n1 = p * 2;
+    int nconv = this->nconv;
+    int nfreq = this->nfreq;
+    std::vector<size_t> map(nsurf);
+    real_t c[3]= {0.5, 0.5, 0.5};
+    for (int d=0; d<3; d++) c[d] += 0.5*(p-2);
+    RealVec surf = surface(p, this->r0, 0, c, (real_t)(p-1), true);
+    for (size_t i=0; i<map.size(); i++) {
+      map[i] = ((size_t)(p-1-surf[i*3]+0.5))
+             + ((size_t)(p-1-surf[i*3+1]+0.5)) * n1
+             + ((size_t)(p-1-surf[i*3+2]+0.5)) * n1 * n1;
+    }
+
+    size_t fft_size = 2 * NCHILD * nfreq;
+    ComplexVec fftw_in(nconv * NCHILD);
+    AlignedVec fftw_out(fft_size);
+    int dim[3] = {n1, n1, n1};
+
+    fft_plan plan = fft_plan_many_dft(3, dim, NCHILD, reinterpret_cast<fft_complex*>(&fftw_in[0]),
+                                      nullptr, 1, nconv, (fft_complex*)(&fftw_out[0]), nullptr, 1, nfreq, 
+                                      FFTW_FORWARD, FFTW_ESTIMATE);
+
+#pragma omp parallel for
+    for (size_t node_idx=0; node_idx<fft_offset.size(); node_idx++) {
+      RealVec buffer(fft_size, 0);
+      ComplexVec equiv_t(NCHILD*nconv, complex_t(0.,0.));
+
+      complex_t* up_equiv = &all_up_equiv[fft_offset[node_idx]];  // offset ptr of node's 8 child's up_equiv in all_up_equiv, size=8*nsurf
+      real_t* up_equiv_f = &fft_in[fft_size*node_idx];   // offset ptr of node_idx in fft_in vector, size=fftsize
+
+      for (int k=0; k<nsurf; k++) {
+        size_t idx = map[k];
+        for (int j0=0; j0<NCHILD; j0++)
+          equiv_t[idx+j0*nconv] = up_equiv[j0*nsurf+k];
+      }
+      fft_execute_dft(plan, reinterpret_cast<fft_complex*>(&equiv_t[0]), (fft_complex*)&buffer[0]);
+      for (int j=0; j<nfreq; j++) {
+        for (int k=0; k<NCHILD; k++) {
+          up_equiv_f[2*(NCHILD*j+k)+0] = buffer[2*(nfreq*k+j)+0];
+          up_equiv_f[2*(NCHILD*j+k)+1] = buffer[2*(nfreq*k+j)+1];
+        }
+      }
+    }
+    fft_destroy_plan(plan);
+  }
+
+  template <>
   void Fmm<real_t>::ifft_dn_check(std::vector<size_t>& ifft_offset, AlignedVec& fft_out, RealVec& all_dn_equiv) {
     int nsurf = this->nsurf;
     int p = this->p;
@@ -720,6 +770,53 @@ namespace exafmm_t {
         size_t idx = map[k];
         for (int j0=0; j0<NCHILD; j0++)
           dn_equiv[nsurf*j0+k] += buffer1[idx+j0*nconv];
+      }
+    }
+    fft_destroy_plan(plan);
+  }
+  
+  template <>
+  void Fmm<complex_t>::ifft_dn_check(std::vector<size_t>& ifft_offset, AlignedVec& fft_out, ComplexVec& all_dn_equiv) {
+    int nsurf = this->nsurf;
+    int p = this->p;
+    int n1 = p * 2;
+    int nconv = this->nconv;
+    int nfreq = this->nfreq;
+    std::vector<size_t> map(nsurf);
+    real_t c[3]= {0.5, 0.5, 0.5};
+    for (int d=0; d<3; d++) c[d] += 0.5*(p-2);
+    RealVec surf = surface(p, this->r0, 0, c, (real_t)(p-1), true);
+    for (size_t i=0; i<map.size(); i++) {
+      map[i] = ((size_t)(p*2-0.5-surf[i*3]))
+             + ((size_t)(p*2-0.5-surf[i*3+1])) * n1
+             + ((size_t)(p*2-0.5-surf[i*3+2])) * n1 * n1;
+    }
+
+    size_t fft_size = 2 * NCHILD * nfreq;
+    AlignedVec fftw_in(fft_size);
+    ComplexVec fftw_out(nconv*NCHILD);
+    int dim[3] = {n1, n1, n1};
+
+    fft_plan plan = fft_plan_many_dft(3, dim, NCHILD, (fft_complex*)(&fftw_in[0]), nullptr, 1, nfreq, 
+                                      reinterpret_cast<fft_complex*>(&fftw_out[0]), nullptr, 1, nconv, 
+                                      FFTW_BACKWARD, FFTW_ESTIMATE);
+
+#pragma omp parallel for
+    for (size_t node_idx=0; node_idx<ifft_offset.size(); node_idx++) {
+      RealVec buffer0(fft_size, 0);
+      ComplexVec buffer1(NCHILD*nconv, 0);
+      real_t* dn_check_f = &fft_out[fft_size*node_idx];
+      complex_t* dn_equiv = &all_dn_equiv[ifft_offset[node_idx]];
+      for (int j=0; j<nfreq; j++)
+        for (int k=0; k<NCHILD; k++) {
+          buffer0[2*(nfreq*k+j)+0] = dn_check_f[2*(NCHILD*j+k)+0];
+          buffer0[2*(nfreq*k+j)+1] = dn_check_f[2*(NCHILD*j+k)+1];
+        }
+      fft_execute_dft(plan, (fft_complex*)&buffer0[0], reinterpret_cast<fft_complex*>(&buffer1[0]));
+      for (int k=0; k<nsurf; k++) {
+        size_t idx = map[k];
+        for (int j0=0; j0<NCHILD; j0++)
+          dn_equiv[nsurf*j0+k]+=buffer1[idx+j0*nconv];
       }
     }
     fft_destroy_plan(plan);
