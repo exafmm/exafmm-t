@@ -165,5 +165,29 @@ namespace exafmm_t {
 
     void M2L(Nodes<T>& nodes) {}
   };
+
+  /**
+   * @brief A helper function to build the tree needed in kernel test.
+   *
+   * @tparam T Real or complex type.
+   * @param parent Pointer to parent node.
+   * @param first_child Pointer to first child node.
+   */
+  template <typename T>
+  void set_children(Node<T>* parent, Node<T>* first_child) {
+    parent->is_leaf = false;
+    for (int octant=0; octant<8; ++octant) {
+      Node<T>* child = first_child + octant;
+      child->octant = octant;
+      child->parent = parent;
+      child->level = parent->level + 1;
+      child->x = parent->x;
+      child->r = parent->r / 2;
+      for (int d=0; d<3; d++) {
+        child->x[d] += child->r * (((octant & 1 << d) >> d) * 2 - 1);
+      }
+      parent->children.push_back(child);
+    }
+  }
 }// end namespace
 #endif

@@ -1,27 +1,10 @@
 #include <numeric>    // std::accumulate
-#include "modified_helmholtz.h"
 #include "exafmm_t.h"
+#include "modified_helmholtz.h"
+#include "test.h"     // exafmm_t::set_children
 #include "timer.h"
 
 using namespace exafmm_t;
-
-// Helper function to build the tree needed in kernel test
-template <typename T>
-void set_children(Node<T>* parent, Node<T>* first_child) {
-  parent->is_leaf = false;
-  for(int octant=0; octant<8; ++octant) {
-    Node<T>* child = first_child + octant;
-    child->octant = octant;
-    child->parent = parent;
-    child->level = parent->level + 1;
-    child->x = parent->x;
-    child->r = parent->r / 2;
-    for(int d=0; d<3; d++) {
-      child->x[d] += child->r * (((octant & 1 << d) >> d) * 2 - 1);
-    }
-    parent->children.push_back(child);
-  }
-}
 
 int main(int argc, char **argv) {
   Args args(argc, argv);
@@ -45,7 +28,7 @@ int main(int argc, char **argv) {
   Nodes<real_t> nodes(std::accumulate(nnodes.begin(), nnodes.end(), 0));
 
   // initialize nodes
-  for(size_t i=0; i<nodes.size(); ++i) {
+  for (size_t i=0; i<nodes.size(); ++i) {
     Node<real_t>& node = nodes[i];
     node.is_leaf = true;
     node.idx = i;
@@ -77,7 +60,7 @@ int main(int argc, char **argv) {
   
 #if DEBUG
   std::cout << "index level is_leaf nsrcs ntrgs" << std::endl;
-  for(auto& node : nodes) {
+  for (auto& node : nodes) {
     std::cout << node.idx << " " << node.level << " " << node.is_leaf << " "
               << node.src_coord.size()/3 << " " << node.trg_coord.size()/3 << std::endl;
   }
@@ -89,7 +72,7 @@ int main(int argc, char **argv) {
   fmm.P2M(leafs);
 #if DEBUG
   std::cout << "lvl 3 source node's upward equivalent charges" << std::endl;
-  for(int i=0; i<fmm.nsurf; ++i)
+  for (int i=0; i<fmm.nsurf; ++i)
     std::cout << i << " " << source->up_equiv[i] << std::endl;
 #endif
 
@@ -97,7 +80,7 @@ int main(int argc, char **argv) {
   fmm.M2M(root);
 #if DEBUG
   std::cout << "lvl 2 source node's upward equivalent charges" << std::endl;
-  for(int i=0; i<fmm.nsurf; ++i) {
+  for (int i=0; i<fmm.nsurf; ++i) {
     std::cout << i << " " << source->parent->up_equiv[i] << std::endl;
   }
 #endif
@@ -112,7 +95,7 @@ int main(int argc, char **argv) {
   fmm.M2L(nodes);
 #if DEBUG
   std::cout << "lvl 2 target node's downward check potentials" << std::endl;
-  for(int i=0; i<fmm.nsurf; ++i) {
+  for (int i=0; i<fmm.nsurf; ++i) {
     std::cout << i << " " << target->parent->dn_equiv[i] << std::endl;
   }
 #endif
@@ -121,7 +104,7 @@ int main(int argc, char **argv) {
   fmm.L2L(root);
 #if DEBUG
   std::cout << "lvl 3 target node's downward check potentials" << std::endl;
-  for(int i=0; i<fmm.nsurf; ++i) {
+  for (int i=0; i<fmm.nsurf; ++i) {
     std::cout << i << " " << target->dn_equiv[i] << std::endl;
   }
 #endif
@@ -142,7 +125,7 @@ int main(int argc, char **argv) {
   p_norm = std::norm(trg_value_direct[0]);
   p_error = sqrt(p_diff/p_norm);
   real_t F_diff = 0, F_norm = 0, F_error = 0;
-  for(int d=1; d<4; ++d) {
+  for (int d=1; d<4; ++d) {
     F_diff += std::norm(trg_value[d]-trg_value_direct[d]);
     F_norm += std::norm(trg_value_direct[d]);
   }
