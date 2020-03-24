@@ -592,14 +592,14 @@ namespace exafmm_t {
       std::memset(up_equiv_f, 0, fft_size*sizeof(real_t));  // initialize fft_in to 0
       for (int k=0; k<nsurf; k++) {
         size_t idx = map[k];
-        for (int j0=0; j0<(int)NCHILD; j0++)
-          up_equiv_f[idx+j0*nconv] = up_equiv[j0*nsurf+k];
+        for (int j=0; j<NCHILD; j++)
+          up_equiv_f[idx+j*nconv] = up_equiv[j*nsurf+k];
       }
       fft_execute_dft_r2c(plan, up_equiv_f, (fft_complex*)&buffer[0]);
-      for (int j=0; j<nfreq; j++) {
-        for (size_t k=0; k<NCHILD; k++) {
-          up_equiv_f[2*(NCHILD*j+k)+0] = buffer[2*(nfreq*k+j)+0];
-          up_equiv_f[2*(NCHILD*j+k)+1] = buffer[2*(nfreq*k+j)+1];
+      for (int k=0; k<nfreq; k++) {
+        for (int j=0; j<NCHILD; j++) {
+          up_equiv_f[2*(NCHILD*k+j)+0] = buffer[2*(nfreq*j+k)+0];
+          up_equiv_f[2*(NCHILD*k+j)+1] = buffer[2*(nfreq*j+k)+1];
         }
       }
     }
@@ -632,22 +632,22 @@ namespace exafmm_t {
                                  (fft_complex*)&fftw_in[0], nullptr, 1, nfreq,
                                  (real_t*)(&fftw_out[0]), nullptr, 1, nconv,
                                  FFTW_ESTIMATE);
-    #pragma omp parallel for
+#pragma omp parallel for
     for (size_t node_idx=0; node_idx<ifft_offset.size(); node_idx++) {
       RealVec buffer0(fft_size, 0);
       RealVec buffer1(fft_size, 0);
       real_t* dn_check_f = &fft_out[fft_size*node_idx];  // offset ptr for node_idx in fft_out vector, size=fft_size
       real_t* dn_equiv = &all_dn_equiv[ifft_offset[node_idx]];  // offset ptr for node_idx's child's dn_equiv in all_dn_equiv, size=numChilds * nsurf
-      for (int j=0; j<nfreq; j++)
-        for (size_t k=0; k<NCHILD; k++) {
-          buffer0[2*(nfreq*k+j)+0] = dn_check_f[2*(NCHILD*j+k)+0];
-          buffer0[2*(nfreq*k+j)+1] = dn_check_f[2*(NCHILD*j+k)+1];
+      for (int k=0; k<nfreq; k++)
+        for (int j=0; j<NCHILD; j++) {
+          buffer0[2*(nfreq*j+k)+0] = dn_check_f[2*(NCHILD*k+j)+0];
+          buffer0[2*(nfreq*j+k)+1] = dn_check_f[2*(NCHILD*k+j)+1];
         }
       fft_execute_dft_c2r(plan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
       for (int k=0; k<nsurf; k++) {
         size_t idx = map[k];
-        for (int j0=0; j0<NCHILD; j0++)
-          dn_equiv[nsurf*j0+k] += buffer1[idx+j0*nconv] * ifft_scal[node_idx];
+        for (int j=0; j<NCHILD; j++)
+          dn_equiv[nsurf*j+k] += buffer1[idx+j*nconv] * ifft_scal[node_idx];
       }
     }
     fft_destroy_plan(plan);
