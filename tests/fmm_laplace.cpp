@@ -20,10 +20,10 @@ int main(int argc, char **argv) {
 #endif
 
   print_divider("Time");
-  start("Total");
   Bodies<real_t> sources = init_sources<real_t>(args.numBodies, args.distribution, 0);
   Bodies<real_t> targets = init_targets<real_t>(args.numBodies, args.distribution, 5);
 
+  start("Total");
   LaplaceFmm fmm(args.P, args.ncrit, args.maxlevel);
 
   start("Build Tree");
@@ -48,7 +48,9 @@ int main(int argc, char **argv) {
   fmm.precompute();
   stop("Precomputation");
 
+  start("M2L Setup");
   fmm.M2L_setup(nonleafs);
+  stop("M2L Setup");
   fmm.upward_pass(nodes, leafs);
   fmm.downward_pass(nodes, leafs);
 

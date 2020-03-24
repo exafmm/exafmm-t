@@ -20,10 +20,10 @@ int main(int argc, char **argv) {
 #endif
 
   print_divider("Time");
-  start("Total");
   Bodies<complex_t> sources = init_sources<complex_t>(args.numBodies, args.distribution, 0);
   Bodies<complex_t> targets = init_targets<complex_t>(args.numBodies, args.distribution, 5);
 
+  start("Total");
   HelmholtzFmm fmm(args.P, args.ncrit, args.maxlevel, args.k);
 
   start("Build Tree");
@@ -48,7 +48,9 @@ int main(int argc, char **argv) {
   fmm.precompute();
   stop("Precomputation");
 
+  start("M2L Setup");
   fmm.M2L_setup(nonleafs);
+  stop("M2L Setup");
   fmm.upward_pass(nodes, leafs);
   fmm.downward_pass(nodes, leafs);
   stop("Total");

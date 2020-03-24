@@ -20,10 +20,10 @@ int main(int argc, char **argv) {
 #endif
 
   print_divider("Time");
-  start("Total");
   Bodies<real_t> sources = init_sources<real_t>(args.numBodies, args.distribution, 0);
   Bodies<real_t> targets = init_targets<real_t>(args.numBodies, args.distribution, 5);
 
+  start("Total");
   ModifiedHelmholtzFmm fmm(args.P, args.ncrit, args.maxlevel, args.k);
 
   start("Build Tree");
@@ -48,16 +48,11 @@ int main(int argc, char **argv) {
   fmm.precompute();
   stop("Precomputation");
 
+  start("M2L Setup");
   fmm.M2L_setup(nonleafs);
+  stop("M2L Setup");
   fmm.upward_pass(nodes, leafs);
   fmm.downward_pass(nodes, leafs);
-
-#if DEBUG /* check downward check potential at leaf level*/
-  for (auto dn_check : leafs[0]->dn_equiv) {
-    std::cout << dn_check << std::endl;
-  }
-#endif
-
   stop("Total");
 
   RealVec err = fmm.verify(leafs);
