@@ -562,16 +562,7 @@ namespace exafmm_t {
     int nconv = this->nconv;
     int nfreq = this->nfreq;
     int p = this->p;
-    int n1 = p * 2;
-    std::vector<size_t> map(nsurf);
-    real_t c[3]= {0.5, 0.5, 0.5};
-    for (int d=0; d<3; d++) c[d] += 0.5*(p-2);
-    RealVec surf = surface(p, this->r0, 0, c, (real_t)(p-1), true);
-    for (size_t i=0; i<map.size(); i++) {
-      map[i] = ((size_t)(p-1-surf[i*3]+0.5))
-             + ((size_t)(p-1-surf[i*3+1]+0.5)) * n1
-             + ((size_t)(p-1-surf[i*3+2]+0.5)) * n1 * n1;
-    }
+    auto map = generate_surf2conv_up(p);
 
     size_t fft_size = 2 * NCHILD * nfreq;
     AlignedVec fftw_in(nconv * NCHILD);
@@ -613,16 +604,7 @@ namespace exafmm_t {
     int nconv = this->nconv;
     int nfreq = this->nfreq;
     int p = this->p;
-    int n1 = p * 2;
-    std::vector<size_t> map(nsurf);
-    real_t c[3]= {0.5, 0.5, 0.5};
-    for (int d=0; d<3; d++) c[d] += 0.5*(p-2);
-    RealVec surf = surface(p, this->r0, 0, c, (real_t)(p-1), true);
-    for (size_t i=0; i<map.size(); i++) {
-      map[i] = ((size_t)(p*2-0.5-surf[i*3]))
-             + ((size_t)(p*2-0.5-surf[i*3+1])) * n1
-             + ((size_t)(p*2-0.5-surf[i*3+2])) * n1 * n1;
-    }
+    auto map = generate_surf2conv_dn(p);
 
     size_t fft_size = 2 * NCHILD * nfreq;
     AlignedVec fftw_in(fft_size);
