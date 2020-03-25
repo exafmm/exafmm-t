@@ -36,19 +36,19 @@ namespace exafmm_t {
     //! Setup the sizes of precomputation matrices
     void initialize_matrix() {
       size_t size = this->nfreq * 2 * NCHILD * NCHILD;  // size of each M2L precomputation matrix
-      int nsurf = this->nsurf;
-      matrix_UC2E_U.resize(nsurf*nsurf);
-      matrix_UC2E_V.resize(nsurf*nsurf);
-      matrix_DC2E_U.resize(nsurf*nsurf);
-      matrix_DC2E_V.resize(nsurf*nsurf);
-      matrix_M2M.resize(REL_COORD[M2M_Type].size(), std::vector<T>(nsurf*nsurf));
-      matrix_L2L.resize(REL_COORD[L2L_Type].size(), std::vector<T>(nsurf*nsurf));
+      int& nsurf_ = this->nsurf;
+      matrix_UC2E_U.resize(nsurf_*nsurf_);
+      matrix_UC2E_V.resize(nsurf_*nsurf_);
+      matrix_DC2E_U.resize(nsurf_*nsurf_);
+      matrix_DC2E_V.resize(nsurf_*nsurf_);
+      matrix_M2M.resize(REL_COORD[M2M_Type].size(), std::vector<T>(nsurf_*nsurf_));
+      matrix_L2L.resize(REL_COORD[L2L_Type].size(), std::vector<T>(nsurf_*nsurf_));
       matrix_M2L.resize(REL_COORD[M2L_Type].size(), AlignedVec(size));    
     }
 
     //! Precompute M2M and L2L
     void precompute_M2M() {
-      int nsurf = this->nsurf;
+      int& nsurf_ = this->nsurf;
       int npos = REL_COORD[M2M_Type].size();  // number of relative positions
       int level = 0;
       real_t parent_coord[3] = {0, 0, 0};
@@ -62,16 +62,16 @@ namespace exafmm_t {
                                  parent_coord[1] + coord[1]*s,
                                  parent_coord[2] + coord[2]*s};
         RealVec child_up_equiv_surf = surface(this->p, this->r0, level+1, child_coord, 1.05);
-        std::vector<T> matrix_pc2ce(nsurf*nsurf);
+        std::vector<T> matrix_pc2ce(nsurf_*nsurf_);
         this->kernel_matrix(parent_up_check_surf, child_up_equiv_surf, matrix_pc2ce);
         // M2M
-        std::vector<T> buffer(nsurf*nsurf);
-        gemm(nsurf, nsurf, nsurf, &matrix_UC2E_U[0], &matrix_pc2ce[0], &buffer[0]);
-        gemm(nsurf, nsurf, nsurf, &matrix_UC2E_V[0], &buffer[0], &(matrix_M2M[i][0]));
+        std::vector<T> buffer(nsurf_*nsurf_);
+        gemm(nsurf_, nsurf_, nsurf_, &matrix_UC2E_U[0], &matrix_pc2ce[0], &buffer[0]);
+        gemm(nsurf_, nsurf_, nsurf_, &matrix_UC2E_V[0], &buffer[0], &(matrix_M2M[i][0]));
         // L2L
-        matrix_pc2ce = transpose(matrix_pc2ce, nsurf, nsurf);
-        gemm(nsurf, nsurf, nsurf, &matrix_pc2ce[0], &matrix_DC2E_V[0], &buffer[0]);
-        gemm(nsurf, nsurf, nsurf, &buffer[0], &matrix_DC2E_U[0], &(matrix_L2L[i][0]));
+        matrix_pc2ce = transpose(matrix_pc2ce, nsurf_, nsurf_);
+        gemm(nsurf_, nsurf_, nsurf_, &matrix_pc2ce[0], &matrix_DC2E_V[0], &buffer[0]);
+        gemm(nsurf_, nsurf_, nsurf_, &buffer[0], &matrix_DC2E_U[0], &(matrix_L2L[i][0]));
       }
     }
 
@@ -160,12 +160,12 @@ namespace exafmm_t {
 
     //! P2M operator
     void P2M(NodePtrs<T>& leafs) {
-      int nsurf = this->nsurf;
+      int& nsurf_ = this->nsurf;
       real_t c[3] = {0,0,0};
       std::vector<RealVec> up_check_surf;
       up_check_surf.resize(this->depth+1);
       for (int level=0; level<=this->depth; level++) {
-        up_check_surf[level].resize(nsurf*3);
+        up_check_surf[level].resize(nsurf_*3);
         up_check_surf[level] = surface(this->p, this->r0, level, c, 2.95);
       }
 #pragma omp parallel for
@@ -174,8 +174,8 @@ namespace exafmm_t {
         int level = leaf->level;
         real_t scale = pow(0.5, level);  // scaling factor of UC2UE precomputation matrix
         // calculate upward check potential induced by sources' charges
-        RealVec check_coord(nsurf*3);
-        for (int k=0; k<nsurf; k++) {
+        RealVec check_coord(nsurf_*3);
+        for (int k=0; k<nsurf_; k++) {
           check_coord[3*k+0] = up_check_surf[level][3*k+0] + leaf->x[0];
           check_coord[3*k+1] = up_check_surf[level][3*k+1] + leaf->x[1];
           check_coord[3*k+2] = up_check_surf[level][3*k+2] + leaf->x[2];
@@ -183,24 +183,24 @@ namespace exafmm_t {
         this->potential_P2P(leaf->src_coord, leaf->src_value,
                             check_coord, leaf->up_equiv);
         // convert upward check potential to upward equivalent charge
-        std::vector<T> buffer(nsurf);
-        std::vector<T> equiv(nsurf);
-        gemv(nsurf, nsurf, &matrix_UC2E_U[0], &(leaf->up_equiv[0]), &buffer[0]);
-        gemv(nsurf, nsurf, &matrix_UC2E_V[0], &buffer[0], &equiv[0]);
+        std::vector<T> buffer(nsurf_);
+        std::vector<T> equiv(nsurf_);
+        gemv(nsurf_, nsurf_, &matrix_UC2E_U[0], &(leaf->up_equiv[0]), &buffer[0]);
+        gemv(nsurf_, nsurf_, &matrix_UC2E_V[0], &buffer[0], &equiv[0]);
         // scale the check-to-equivalent conversion (precomputation)
-        for (int k=0; k<nsurf; k++)
+        for (int k=0; k<nsurf_; k++)
           leaf->up_equiv[k] = scale * equiv[k];
       }
     }
 
     //! L2P operator
     void L2P(NodePtrs<T>& leafs) {
-      int nsurf = this->nsurf;
+      int& nsurf_ = this->nsurf;
       real_t c[3] = {0.0};
       std::vector<RealVec> dn_equiv_surf;
       dn_equiv_surf.resize(this->depth+1);
       for (int level=0; level<=this->depth; level++) {
-        dn_equiv_surf[level].resize(nsurf*3);
+        dn_equiv_surf[level].resize(nsurf_*3);
         dn_equiv_surf[level] = surface(this->p, this->r0, level, c, 2.95);
       }
 #pragma omp parallel for
@@ -209,16 +209,16 @@ namespace exafmm_t {
         int level = leaf->level;
         real_t scale = pow(0.5, level);
         // convert downward check potential to downward equivalent charge
-        std::vector<T> buffer(nsurf);
-        std::vector<T> equiv(nsurf);
-        gemv(nsurf, nsurf, &matrix_DC2E_U[0], &(leaf->dn_equiv[0]), &buffer[0]);
-        gemv(nsurf, nsurf, &matrix_DC2E_V[0], &buffer[0], &equiv[0]);
+        std::vector<T> buffer(nsurf_);
+        std::vector<T> equiv(nsurf_);
+        gemv(nsurf_, nsurf_, &matrix_DC2E_U[0], &(leaf->dn_equiv[0]), &buffer[0]);
+        gemv(nsurf_, nsurf_, &matrix_DC2E_V[0], &buffer[0], &equiv[0]);
         // scale the check-to-equivalent conversion (precomputation)
-        for (int k=0; k<nsurf; k++)
+        for (int k=0; k<nsurf_; k++)
           leaf->dn_equiv[k] = scale * equiv[k];
         // calculate targets' potential & gradient induced by downward equivalent charge
-        RealVec equiv_coord(nsurf*3);
-        for (int k=0; k<nsurf; k++) {
+        RealVec equiv_coord(nsurf_*3);
+        for (int k=0; k<nsurf_; k++) {
           equiv_coord[3*k+0] = dn_equiv_surf[level][3*k+0] + leaf->x[0];
           equiv_coord[3*k+1] = dn_equiv_surf[level][3*k+1] + leaf->x[1];
           equiv_coord[3*k+2] = dn_equiv_surf[level][3*k+2] + leaf->x[2];
@@ -230,7 +230,7 @@ namespace exafmm_t {
 
     //! M2M operator
     void M2M(Node<T>* node) {
-      int nsurf = this->nsurf;
+      int& nsurf_ = this->nsurf;
       if (node->is_leaf) return;
       for (int octant=0; octant<8; octant++) {
         if (node->children[octant])
@@ -242,9 +242,9 @@ namespace exafmm_t {
       for (int octant=0; octant<8; octant++) {
         if (node->children[octant]) {
           Node<T>* child = node->children[octant];
-          std::vector<T> buffer(nsurf);
-          gemv(nsurf, nsurf, &(matrix_M2M[octant][0]), &child->up_equiv[0], &buffer[0]);
-          for (int k=0; k<nsurf; k++) {
+          std::vector<T> buffer(nsurf_);
+          gemv(nsurf_, nsurf_, &(matrix_M2M[octant][0]), &child->up_equiv[0], &buffer[0]);
+          for (int k=0; k<nsurf_; k++) {
             node->up_equiv[k] += buffer[k];
           }
         }
@@ -253,15 +253,15 @@ namespace exafmm_t {
 
     //! L2L operator
     void L2L(Node<T>* node) {
-      int nsurf = this->nsurf;
+      int& nsurf_ = this->nsurf;
       if (node->is_leaf) return;
       // evaluate child's downward check potential from parent's downward check potential
       for (int octant=0; octant<8; octant++) {
         if (node->children[octant]) {
           Node<T>* child = node->children[octant];
-          std::vector<T> buffer(nsurf);
-          gemv(nsurf, nsurf, &(matrix_L2L[octant][0]), &node->dn_equiv[0], &buffer[0]);
-          for (int k=0; k<nsurf; k++)
+          std::vector<T> buffer(nsurf_);
+          gemv(nsurf_, nsurf_, &(matrix_L2L[octant][0]), &node->dn_equiv[0], &buffer[0]);
+          for (int k=0; k<nsurf_; k++)
             child->dn_equiv[k] += buffer[k];
         }
       }
@@ -274,7 +274,7 @@ namespace exafmm_t {
     }
 
     void M2L_setup(NodePtrs<T> nonleafs) {
-      int nsurf = this->nsurf;
+      int& nsurf_ = this->nsurf;
       int npos = REL_COORD[M2L_Type].size();  // number of M2L relative positions
 
       // construct lists of source nodes and target nodes for M2L operator
@@ -282,7 +282,7 @@ namespace exafmm_t {
       std::set<Node<T>*> src_nodes_;
       for (size_t i=0; i<trg_nodes.size(); i++) {
         NodePtrs<T>& M2L_list = trg_nodes[i]->M2L_list;
-        for (size_t k=0; k<npos; k++) {
+        for (int k=0; k<npos; k++) {
           if (M2L_list[k]) {
             src_nodes_.insert(M2L_list[k]);
           }
@@ -290,7 +290,6 @@ namespace exafmm_t {
       }
       NodePtrs<T> src_nodes;
       auto it = src_nodes_.begin(); 
-      // std::set<Node<T>*>::iterator it = src_nodes_.begin(); 
       for (; it!=src_nodes_.end(); it++) {
         src_nodes.push_back(*it);
       }
@@ -300,11 +299,11 @@ namespace exafmm_t {
       std::vector<size_t> ifft_offset(trg_nodes.size());
       RealVec ifft_scale(trg_nodes.size());
       for (size_t i=0; i<src_nodes.size(); i++) {
-        fft_offset[i] = src_nodes[i]->children[0]->idx * nsurf;
+        fft_offset[i] = src_nodes[i]->children[0]->idx * nsurf_;
       }
       for (size_t i=0; i<trg_nodes.size(); i++) {
         int level = trg_nodes[i]->level+1;
-        ifft_offset[i] = trg_nodes[i]->children[0]->idx * nsurf;
+        ifft_offset[i] = trg_nodes[i]->children[0]->idx * nsurf_;
         ifft_scale[i] = powf(2.0, level);
       }
 
@@ -321,7 +320,7 @@ namespace exafmm_t {
       for (size_t blk1=0; blk1<n_blk1; blk1++) {
         size_t blk1_start=(trg_nodes.size()* blk1   )/n_blk1;
         size_t blk1_end  =(trg_nodes.size()*(blk1+1))/n_blk1;
-        for (size_t k=0; k<npos; k++) {
+        for (int k=0; k<npos; k++) {
           for (size_t i=blk1_start; i<blk1_end; i++) {
             NodePtrs<T>& M2L_list = trg_nodes[i]->M2L_list;
             if (M2L_list[k]) {
@@ -342,7 +341,6 @@ namespace exafmm_t {
 
     void hadamard_product(std::vector<size_t>& interaction_count_offset, std::vector<size_t>& interaction_offset_f,
                          AlignedVec& fft_in, AlignedVec& fft_out) {
-      int p = this->p;
       size_t fft_size = 2 * NCHILD * this->nfreq;
       AlignedVec zero_vec0(fft_size, 0.);
       AlignedVec zero_vec1(fft_size, 0.);
@@ -354,17 +352,17 @@ namespace exafmm_t {
       std::vector<real_t*> OUT_(BLOCK_SIZE*blk1_cnt*npos);
 
       // initialize fft_out with zero
-      #pragma omp parallel for
-      for(size_t i=0; i<fft_out.capacity()/fft_size; ++i) {
+#pragma omp parallel for
+      for (size_t i=0; i<fft_out.capacity()/fft_size; ++i) {
         std::memset(fft_out.data()+i*fft_size, 0, fft_size*sizeof(real_t));
       }
 
-      #pragma omp parallel for
-      for(size_t interac_blk1=0; interac_blk1<blk1_cnt*npos; interac_blk1++) {
+#pragma omp parallel for
+      for (size_t interac_blk1=0; interac_blk1<blk1_cnt*npos; interac_blk1++) {
         size_t interaction_count_offset0 = (interac_blk1==0?0:interaction_count_offset[interac_blk1-1]);
         size_t interaction_count_offset1 =                    interaction_count_offset[interac_blk1  ] ;
         size_t interac_cnt  = interaction_count_offset1-interaction_count_offset0;
-        for(size_t j=0; j<interac_cnt; j++) {
+        for (size_t j=0; j<interac_cnt; j++) {
           IN_ [BLOCK_SIZE*interac_blk1 +j] = &fft_in[interaction_offset_f[(interaction_count_offset0+j)*2+0]];
           OUT_[BLOCK_SIZE*interac_blk1 +j] = &fft_out[interaction_offset_f[(interaction_count_offset0+j)*2+1]];
         }
@@ -372,10 +370,10 @@ namespace exafmm_t {
         OUT_[BLOCK_SIZE*interac_blk1 +interac_cnt] = &zero_vec1[0];
       }
 
-      for(size_t blk1=0; blk1<blk1_cnt; blk1++) {
-      #pragma omp parallel for
-        for(int k=0; k<this->nfreq; k++) {
-          for(size_t mat_indx=0; mat_indx< npos; mat_indx++) {
+      for (size_t blk1=0; blk1<blk1_cnt; blk1++) {
+#pragma omp parallel for
+        for (int k=0; k<this->nfreq; k++) {
+          for (size_t mat_indx=0; mat_indx< npos; mat_indx++) {
             size_t interac_blk1 = blk1*npos+mat_indx;
             size_t interaction_count_offset0 = (interac_blk1==0?0:interaction_count_offset[interac_blk1-1]);
             size_t interaction_count_offset1 =                    interaction_count_offset[interac_blk1  ] ;
@@ -383,7 +381,7 @@ namespace exafmm_t {
             real_t** IN = &IN_[BLOCK_SIZE*interac_blk1];
             real_t** OUT= &OUT_[BLOCK_SIZE*interac_blk1];
             real_t* M = &matrix_M2L[mat_indx][k*2*NCHILD*NCHILD]; // k-th freq's (row) offset in matrix_M2L[mat_indx]
-            for(size_t j=0; j<interac_cnt; j+=2) {
+            for (size_t j=0; j<interac_cnt; j+=2) {
               real_t* M_   = M;
               real_t* IN0  = IN [j+0] + k*NCHILD*2;   // go to k-th freq chunk
               real_t* IN1  = IN [j+1] + k*NCHILD*2;
@@ -403,24 +401,24 @@ namespace exafmm_t {
                        AlignedVec& fft_out, RealVec& all_dn_equiv) {}
 
     void M2L(Nodes<T>& nodes) {
-      int nsurf = this->nsurf;
-      size_t fftsize = 2 * NCHILD * this->nfreq;
-      size_t numNodes = nodes.size();
+      int& nsurf_ = this->nsurf;
+      size_t fft_size = 2 * NCHILD * this->nfreq;
+      int nnodes = nodes.size();
 
       // allocate memory
       std::vector<T> all_up_equiv, all_dn_equiv;
-      all_up_equiv.reserve(numNodes*nsurf);   // use reserve() to avoid the overhead of calling constructor
-      all_dn_equiv.reserve(numNodes*nsurf);   // use pointer instead of iterator to access elements 
+      all_up_equiv.reserve(nnodes*nsurf_);   // use reserve() to avoid the overhead of calling constructor
+      all_dn_equiv.reserve(nnodes*nsurf_);   // use pointer instead of iterator to access elements 
       AlignedVec fft_in, fft_out;
-      fft_in.reserve(m2ldata.fft_offset.size()*fftsize);
-      fft_out.reserve(m2ldata.ifft_offset.size()*fftsize);
+      fft_in.reserve(m2ldata.fft_offset.size()*fft_size);
+      fft_out.reserve(m2ldata.ifft_offset.size()*fft_size);
 
       // gather all upward equivalent charges
-      #pragma omp parallel for collapse(2)
-      for(size_t i=0; i<numNodes; i++) {
-        for(int j=0; j<nsurf; j++) {
-          all_up_equiv[i*nsurf+j] = nodes[i].up_equiv[j];
-          all_dn_equiv[i*nsurf+j] = nodes[i].dn_equiv[j];
+#pragma omp parallel for collapse(2)
+      for (int i=0; i<nnodes; i++) {
+        for (int j=0; j<nsurf_; j++) {
+          all_up_equiv[i*nsurf_+j] = nodes[i].up_equiv[j];
+          all_dn_equiv[i*nsurf_+j] = nodes[i].dn_equiv[j];
         }
       }
 
@@ -429,10 +427,10 @@ namespace exafmm_t {
       ifft_dn_check(m2ldata.ifft_offset, m2ldata.ifft_scale, fft_out, all_dn_equiv);
 
       // scatter all downward check potentials
-      #pragma omp parallel for collapse(2)
-      for(size_t i=0; i<numNodes; i++) {
-        for(int j=0; j<nsurf; j++) {
-          nodes[i].dn_equiv[j] = all_dn_equiv[i*nsurf+j];
+#pragma omp parallel for collapse(2)
+      for (int i=0; i<nnodes; i++) {
+        for (int j=0; j<nsurf_; j++) {
+          nodes[i].dn_equiv[j] = all_dn_equiv[i*nsurf_+j];
         }
       }
     }
@@ -445,83 +443,83 @@ namespace exafmm_t {
   void FmmScaleInvariant<real_t>::precompute_check2equiv() {
     int level = 0;
     real_t c[3] = {0, 0, 0};
-    int nsurf = this->nsurf;
+    int& nsurf_ = this->nsurf;
 
     // compute kernel matrix
     RealVec up_check_surf = surface(this->p, this->r0, level, c, 2.95);
     RealVec up_equiv_surf = surface(this->p, this->r0, level, c, 1.05);
-    RealVec matrix_c2e(nsurf*nsurf);  // UC2UE
+    RealVec matrix_c2e(nsurf_*nsurf_);  // UC2UE
     this->kernel_matrix(up_check_surf, up_equiv_surf, matrix_c2e);
 
     // svd
-    RealVec S(nsurf*nsurf);  // singular values 
-    RealVec U(nsurf*nsurf), VH(nsurf*nsurf);
-    svd(nsurf, nsurf, &matrix_c2e[0], &S[0], &U[0], &VH[0]);
+    RealVec S(nsurf_*nsurf_);  // singular values 
+    RealVec U(nsurf_*nsurf_), VH(nsurf_*nsurf_);
+    svd(nsurf_, nsurf_, &matrix_c2e[0], &S[0], &U[0], &VH[0]);
 
     // pseudo-inverse
     real_t max_S = 0;
-    for (int i=0; i<nsurf; i++) {
-      max_S = fabs(S[i*nsurf+i])>max_S ? fabs(S[i*nsurf+i]) : max_S;
+    for (int i=0; i<nsurf_; i++) {
+      max_S = fabs(S[i*nsurf_+i])>max_S ? fabs(S[i*nsurf_+i]) : max_S;
     }
-    for (int i=0; i<nsurf; i++) {
-      S[i*nsurf+i] = S[i*nsurf+i]>EPS*max_S*4 ? 1.0/S[i*nsurf+i] : 0.0;
+    for (int i=0; i<nsurf_; i++) {
+      S[i*nsurf_+i] = S[i*nsurf_+i]>EPS*max_S*4 ? 1.0/S[i*nsurf_+i] : 0.0;
     }
-    RealVec V = transpose(VH, nsurf, nsurf);
-    matrix_UC2E_U = transpose(U, nsurf, nsurf);
-    gemm(nsurf, nsurf, nsurf, &V[0], &S[0], &matrix_UC2E_V[0]);
+    RealVec V = transpose(VH, nsurf_, nsurf_);
+    matrix_UC2E_U = transpose(U, nsurf_, nsurf_);
+    gemm(nsurf_, nsurf_, nsurf_, &V[0], &S[0], &matrix_UC2E_V[0]);
     matrix_DC2E_U = VH;
-    gemm(nsurf, nsurf, nsurf, &U[0], &S[0], &matrix_DC2E_V[0]);
+    gemm(nsurf_, nsurf_, nsurf_, &U[0], &S[0], &matrix_DC2E_V[0]);
   }
 
   template <>
   void FmmScaleInvariant<complex_t>::precompute_check2equiv() {
     int level = 0;
     real_t c[3] = {0, 0, 0};
-    int nsurf = this->nsurf;
+    int& nsurf_ = this->nsurf;
 
     // compute kernel matrix
     RealVec up_check_surf = surface(this->p, this->r0, level, c, 2.95);
     RealVec up_equiv_surf = surface(this->p, this->r0, level, c, 1.05);
-    ComplexVec matrix_c2e(nsurf*nsurf);  // UC2UE
+    ComplexVec matrix_c2e(nsurf_*nsurf_);  // UC2UE
     this->kernel_matrix(up_check_surf, up_equiv_surf, matrix_c2e);
 
     // svd
-    RealVec S(nsurf*nsurf);  // singular values 
-    ComplexVec U(nsurf*nsurf), VH(nsurf*nsurf);
-    svd(nsurf, nsurf, &matrix_c2e[0], &S[0], &U[0], &VH[0]);
+    RealVec S(nsurf_*nsurf_);  // singular values 
+    ComplexVec U(nsurf_*nsurf_), VH(nsurf_*nsurf_);
+    svd(nsurf_, nsurf_, &matrix_c2e[0], &S[0], &U[0], &VH[0]);
 
     // pseudo-inverse
     real_t max_S = 0;
-    for (int i=0; i<nsurf; i++) {
-      max_S = fabs(S[i*nsurf+i])>max_S ? fabs(S[i*nsurf+i]) : max_S;
+    for (int i=0; i<nsurf_; i++) {
+      max_S = fabs(S[i*nsurf_+i])>max_S ? fabs(S[i*nsurf_+i]) : max_S;
     }
-    for (int i=0; i<nsurf; i++) {
-      S[i*nsurf+i] = S[i*nsurf+i]>EPS*max_S*4 ? 1.0/S[i*nsurf+i] : 0.0;
+    for (int i=0; i<nsurf_; i++) {
+      S[i*nsurf_+i] = S[i*nsurf_+i]>EPS*max_S*4 ? 1.0/S[i*nsurf_+i] : 0.0;
     }
-    ComplexVec S_(nsurf*nsurf);
+    ComplexVec S_(nsurf_*nsurf_);
     for (size_t i=0; i<S_.size(); i++) {   // convert S to complex type
       S_[i] = S[i];
     }
-    ComplexVec V = conjugate_transpose(VH, nsurf, nsurf);
-    ComplexVec UH = conjugate_transpose(U, nsurf, nsurf);
+    ComplexVec V = conjugate_transpose(VH, nsurf_, nsurf_);
+    ComplexVec UH = conjugate_transpose(U, nsurf_, nsurf_);
     matrix_UC2E_U = UH;
-    gemm(nsurf, nsurf, nsurf, &V[0], &S_[0], &matrix_UC2E_V[0]);
-    matrix_DC2E_U = transpose(V, nsurf, nsurf);
-    ComplexVec UHT = transpose(UH, nsurf, nsurf);
-    gemm(nsurf, nsurf, nsurf, &UHT[0], &S_[0], &matrix_DC2E_V[0]);
+    gemm(nsurf_, nsurf_, nsurf_, &V[0], &S_[0], &matrix_UC2E_V[0]);
+    matrix_DC2E_U = transpose(V, nsurf_, nsurf_);
+    ComplexVec UHT = transpose(UH, nsurf_, nsurf_);
+    gemm(nsurf_, nsurf_, nsurf_, &UHT[0], &S_[0], &matrix_DC2E_V[0]);
   }
 
   //! member function specialization for real type
   template <>
   void FmmScaleInvariant<real_t>::precompute_M2L() {
     int n1 = this->p * 2;
-    int nconv = this->nconv;
-    int nfreq = this->nfreq;
+    int& nconv_ = this->nconv;
+    int& nfreq_ = this->nfreq;
     std::vector<RealVec> matrix_M2L_Helper(REL_COORD[M2L_Helper_Type].size(),
-                                           RealVec(2*nfreq));
+                                           RealVec(2*nfreq_));
     // create fft plan
-    RealVec fftw_in(nconv);
-    RealVec fftw_out(2*nfreq);
+    RealVec fftw_in(nconv_);
+    RealVec fftw_out(2*nfreq_);
     int dim[3] = {n1, n1, n1};
     fft_plan plan = fft_plan_dft_r2c(3, dim, fftw_in.data(), reinterpret_cast<fft_complex*>(fftw_out.data()), FFTW_ESTIMATE);
     // compute M2L kernel matrix, perform DFT
@@ -533,7 +531,7 @@ namespace exafmm_t {
         coord[d] = REL_COORD[M2L_Helper_Type][i][d] * this->r0 / 0.5;  // relative coords
       }
       RealVec conv_coord = convolution_grid(this->p, this->r0, 0, coord);   // convolution grid
-      RealVec conv_value(nconv);   // potentials on convolution grid
+      RealVec conv_value(nconv_);   // potentials on convolution grid
       this->kernel_matrix(conv_coord, trg_coord, conv_value);
       fft_execute_dft_r2c(plan, conv_value.data(), reinterpret_cast<fft_complex*>(matrix_M2L_Helper[i].data()));
     }
@@ -543,10 +541,10 @@ namespace exafmm_t {
       for (int j=0; j<NCHILD*NCHILD; j++) {   // loop over child's relative positions
         int child_rel_idx = M2L_INDEX_MAP[i][j];
         if (child_rel_idx != -1) {
-          for (int k=0; k<nfreq; k++) {   // loop over frequencies
+          for (int k=0; k<nfreq_; k++) {   // loop over frequencies
             int new_idx = k*(2*NCHILD*NCHILD) + 2*j;
-            matrix_M2L[i][new_idx+0] = matrix_M2L_Helper[child_rel_idx][k*2+0] / nconv;   // real
-            matrix_M2L[i][new_idx+1] = matrix_M2L_Helper[child_rel_idx][k*2+1] / nconv;   // imag
+            matrix_M2L[i][new_idx+0] = matrix_M2L_Helper[child_rel_idx][k*2+0] / nconv_;   // real
+            matrix_M2L[i][new_idx+1] = matrix_M2L_Helper[child_rel_idx][k*2+1] / nconv_;   // imag
           }
         }
       }
@@ -558,39 +556,39 @@ namespace exafmm_t {
   template <>
   void FmmScaleInvariant<real_t>::fft_up_equiv(std::vector<size_t>& fft_offset,
                                                RealVec& all_up_equiv, AlignedVec& fft_in) {
-    int nsurf = this->nsurf;
-    int nconv = this->nconv;
-    int nfreq = this->nfreq;
-    int p = this->p;
-    auto map = generate_surf2conv_up(p);
+    int& nsurf_ = this->nsurf;
+    int& nconv_ = this->nconv;
+    int& nfreq_ = this->nfreq;
+    int n1 = 2 * this->p;
+    auto map = generate_surf2conv_up(this->p);
 
-    size_t fft_size = 2 * NCHILD * nfreq;
-    AlignedVec fftw_in(nconv * NCHILD);
+    size_t fft_size = 2 * NCHILD * nfreq_;
+    AlignedVec fftw_in(nconv_ * NCHILD);
     AlignedVec fftw_out(fft_size);
-    int dim[3] = {2*p, 2*p, 2*p};
+    int dim[3] = {n1, n1, n1};
     fft_plan plan = fft_plan_many_dft_r2c(3, dim, NCHILD,
-                                          (real_t*)&fftw_in[0], nullptr, 1, nconv,
-                                          (fft_complex*)(&fftw_out[0]), nullptr, 1, nfreq,
+                                          (real_t*)&fftw_in[0], nullptr, 1, nconv_,
+                                          (fft_complex*)(&fftw_out[0]), nullptr, 1, nfreq_,
                                           FFTW_ESTIMATE);
 #pragma omp parallel for
     for (size_t node_idx=0; node_idx<fft_offset.size(); node_idx++) {
       RealVec buffer(fft_size, 0);
-      real_t* up_equiv = &all_up_equiv[fft_offset[node_idx]];  // offset ptr of node's 8 child's upward_equiv in all_up_equiv, size=8*nsurf
+      real_t* up_equiv = &all_up_equiv[fft_offset[node_idx]];  // offset ptr of node's 8 child's upward_equiv in all_up_equiv, size=8*nsurf_
       // upward_equiv_fft (input of r2c) here should have a size of N3*NCHILD
       // the node_idx's chunk of fft_out has a size of 2*N3_*NCHILD
       // since it's larger than what we need,  we can use fft_out as fftw_in buffer here
       real_t* up_equiv_f = &fft_in[fft_size*node_idx]; // offset ptr of node_idx in fft_in vector, size=fft_size
       std::memset(up_equiv_f, 0, fft_size*sizeof(real_t));  // initialize fft_in to 0
-      for (int k=0; k<nsurf; k++) {
+      for (int k=0; k<nsurf_; k++) {
         size_t idx = map[k];
         for (int j=0; j<NCHILD; j++)
-          up_equiv_f[idx+j*nconv] = up_equiv[j*nsurf+k];
+          up_equiv_f[idx+j*nconv_] = up_equiv[j*nsurf_+k];
       }
       fft_execute_dft_r2c(plan, up_equiv_f, (fft_complex*)&buffer[0]);
-      for (int k=0; k<nfreq; k++) {
+      for (int k=0; k<nfreq_; k++) {
         for (int j=0; j<NCHILD; j++) {
-          up_equiv_f[2*(NCHILD*k+j)+0] = buffer[2*(nfreq*j+k)+0];
-          up_equiv_f[2*(NCHILD*k+j)+1] = buffer[2*(nfreq*j+k)+1];
+          up_equiv_f[2*(NCHILD*k+j)+0] = buffer[2*(nfreq_*j+k)+0];
+          up_equiv_f[2*(NCHILD*k+j)+1] = buffer[2*(nfreq_*j+k)+1];
         }
       }
     }
@@ -600,36 +598,36 @@ namespace exafmm_t {
   template <>
   void FmmScaleInvariant<real_t>::ifft_dn_check(std::vector<size_t>& ifft_offset, RealVec& ifft_scal,
                        AlignedVec& fft_out, RealVec& all_dn_equiv) {
-    int nsurf = this->nsurf;
-    int nconv = this->nconv;
-    int nfreq = this->nfreq;
-    int p = this->p;
-    auto map = generate_surf2conv_dn(p);
+    int& nsurf_ = this->nsurf;
+    int& nconv_ = this->nconv;
+    int& nfreq_ = this->nfreq;
+    int n1 = 2 * this->p;
+    auto map = generate_surf2conv_dn(this->p);
 
-    size_t fft_size = 2 * NCHILD * nfreq;
+    size_t fft_size = 2 * NCHILD * nfreq_;
     AlignedVec fftw_in(fft_size);
-    AlignedVec fftw_out(nconv * NCHILD);
-    int dim[3] = {2*p, 2*p, 2*p};
+    AlignedVec fftw_out(nconv_ * NCHILD);
+    int dim[3] = {n1, n1, n1};
     fft_plan plan = fft_plan_many_dft_c2r(3, dim, NCHILD,
-                                 (fft_complex*)&fftw_in[0], nullptr, 1, nfreq,
-                                 (real_t*)(&fftw_out[0]), nullptr, 1, nconv,
+                                 (fft_complex*)&fftw_in[0], nullptr, 1, nfreq_,
+                                 (real_t*)(&fftw_out[0]), nullptr, 1, nconv_,
                                  FFTW_ESTIMATE);
 #pragma omp parallel for
     for (size_t node_idx=0; node_idx<ifft_offset.size(); node_idx++) {
       RealVec buffer0(fft_size, 0);
       RealVec buffer1(fft_size, 0);
       real_t* dn_check_f = &fft_out[fft_size*node_idx];  // offset ptr for node_idx in fft_out vector, size=fft_size
-      real_t* dn_equiv = &all_dn_equiv[ifft_offset[node_idx]];  // offset ptr for node_idx's child's dn_equiv in all_dn_equiv, size=numChilds * nsurf
-      for (int k=0; k<nfreq; k++)
+      real_t* dn_equiv = &all_dn_equiv[ifft_offset[node_idx]];  // offset ptr for node_idx's child's dn_equiv in all_dn_equiv, size=numChilds * nsurf_
+      for (int k=0; k<nfreq_; k++)
         for (int j=0; j<NCHILD; j++) {
-          buffer0[2*(nfreq*j+k)+0] = dn_check_f[2*(NCHILD*k+j)+0];
-          buffer0[2*(nfreq*j+k)+1] = dn_check_f[2*(NCHILD*k+j)+1];
+          buffer0[2*(nfreq_*j+k)+0] = dn_check_f[2*(NCHILD*k+j)+0];
+          buffer0[2*(nfreq_*j+k)+1] = dn_check_f[2*(NCHILD*k+j)+1];
         }
       fft_execute_dft_c2r(plan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
-      for (int k=0; k<nsurf; k++) {
+      for (int k=0; k<nsurf_; k++) {
         size_t idx = map[k];
         for (int j=0; j<NCHILD; j++)
-          dn_equiv[nsurf*j+k] += buffer1[idx+j*nconv] * ifft_scal[node_idx];
+          dn_equiv[nsurf_*j+k] += buffer1[idx+j*nconv_] * ifft_scal[node_idx];
       }
     }
     fft_destroy_plan(plan);

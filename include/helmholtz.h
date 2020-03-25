@@ -169,8 +169,8 @@ namespace exafmm_t {
         }
       }
       for (; t<ntrgs; t++) {
-        complex_t p(0, 0);
-        cvec3 F = complex_t(0., 0.);
+        complex_t potential(0, 0);
+        cvec3 gradient = complex_t(0., 0.);
         for (int s=0; s<nsrcs; s++) {
           vec3 dx;
           for (int d=0; d<3; d++)
@@ -180,15 +180,15 @@ namespace exafmm_t {
             real_t r = std::sqrt(r2);
             complex_t pij = std::exp(I * r * wavek) * src_value[s] / r;
             complex_t coefg = (1/r2 - I*wavek/r) * pij;
-            p += pij;
+            potential += pij;
             for (int d=0; d<3; d++)
-              F[d] += coefg * dx[d];
+              gradient[d] += coefg * dx[d];
           }
         }
-        trg_value[4*t+0] += p / (4*PI);
-        trg_value[4*t+1] += F[0] / (4*PI);
-        trg_value[4*t+2] += F[1] / (4*PI);
-        trg_value[4*t+3] += F[2] / (4*PI);
+        trg_value[4*t+0] += potential / (4*PI);
+        trg_value[4*t+1] += gradient[0] / (4*PI);
+        trg_value[4*t+2] += gradient[1] / (4*PI);
+        trg_value[4*t+3] += gradient[2] / (4*PI);
       }
     }
   };
