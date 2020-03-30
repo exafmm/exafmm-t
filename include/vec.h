@@ -676,6 +676,9 @@ namespace exafmm_t {
     friend vec cos(const vec & v) {
       return vec(_mm512_cos_ps(v.data));
     }
+    friend vec exp(const vec & v) {
+      return vec(_mm512_exp_ps(v.data));
+    }
 #else
     friend vec sin(const vec & v) {
       vec temp = _mm512_setr_ps(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]),
@@ -691,6 +694,12 @@ namespace exafmm_t {
                                 std::cos(v[12]), std::cos(v[13]), std::cos(v[14]), std::cos(v[15]));
       return temp;
     }
+    friend vec exp(const vec & v) {
+      vec temp = _mm512_setr_ps(std::exp(v[0]), std::exp(v[1]), std::exp(v[2]), std::exp(v[3]),
+                                std::exp(v[4]), std::exp(v[5]), std::exp(v[6]), std::exp(v[7]),
+                                std::exp(v[8]), std::exp(v[9]), std::exp(v[10]), std::exp(v[11]),
+                                std::exp(v[12]), std::exp(v[13]), std::exp(v[14]), std::exp(v[15]));
+      return temp;
 #endif
   };
 
@@ -813,6 +822,9 @@ namespace exafmm_t {
     friend vec cos(const vec & v) {
       return vec(_mm512_cos_pd(v.data));
     }
+    friend vec exp(const vec & v) {
+      return vec(_mm512_exp_pd(v.data));
+    }
 #else
     friend vec sin(const vec & v) {
       vec temp = _mm512_setr_pd(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]),
@@ -822,6 +834,11 @@ namespace exafmm_t {
     friend vec cos(const vec & v) {
       vec temp = _mm512_setr_pd(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]),
                                 std::cos(v[4]), std::cos(v[5]), std::cos(v[6]), std::cos(v[7]));
+      return temp;
+    }
+    friend vec exp(const vec & v) {
+      vec temp = _mm512_setr_pd(std::exp(v[0]), std::exp(v[1]), std::exp(v[2]), std::exp(v[3]),
+                                std::exp(v[4]), std::exp(v[5]), std::exp(v[6]), std::exp(v[7]));
       return temp;
     }
 #endif
@@ -969,6 +986,9 @@ namespace exafmm_t {
     friend vec cos(const vec & v) {
       return vec(_mm256_cos_ps(v.data));
     }
+    friend vec exp(const vec & v) {
+      return vec(_mm256_exp_ps(v.data));
+    }
 #else
     friend vec sin(const vec & v) {
       vec temp = _mm256_setr_ps(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]),
@@ -978,6 +998,11 @@ namespace exafmm_t {
     friend vec cos(const vec & v) {
       vec temp = _mm256_setr_ps(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]),
                                 std::cos(v[4]), std::cos(v[5]), std::cos(v[6]), std::cos(v[7]));
+      return temp;
+    }
+    friend vec exp(const vec & v) {
+      vec temp = _mm256_setr_ps(std::exp(v[0]), std::exp(v[1]), std::exp(v[2]), std::exp(v[3]),
+                                std::exp(v[4]), std::exp(v[5]), std::exp(v[6]), std::exp(v[7]));
       return temp;
     }
 #endif
@@ -1118,6 +1143,9 @@ namespace exafmm_t {
     friend vec cos(const vec & v) {
       return vec(_mm256_cos_pd(v.data));
     }
+    friend vec exp(const vec & v) {
+      return vec(_mm256_exp_pd(v.data));
+    }
 #else
     friend vec sin(const vec & v) {
       vec temp = _mm256_setr_pd(std::sin(v[0]), std::sin(v[1]), std::sin(v[2]), std::sin(v[3]));
@@ -1125,6 +1153,10 @@ namespace exafmm_t {
     }
     friend vec cos(const vec & v) {
       vec temp = _mm256_setr_pd(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]));
+      return temp;
+    }
+    friend vec exp(const vec & v) {
+      vec temp = _mm256_setr_pd(std::exp(v[0]), std::exp(v[1]), std::exp(v[2]), std::exp(v[3]));
       return temp;
     }
 #endif
@@ -1261,11 +1293,14 @@ namespace exafmm_t {
 #endif
     }
 #ifdef __INTEL_COMPILER
+    friend vec sin(const vec &v) {
+      return vec(_mm_sin_ps(v.data));
+    }
     friend vec cos(const vec &v) {
       return vec(_mm_cos_ps(v.data));
     }
-    friend vec sin(const vec &v) {
-      return vec(_mm_sin_ps(v.data));
+    friend vec exp(const vec &v) {
+      return vec(_mm_exp_ps(v.data));
     }
 #else
     friend vec sin(const vec & v) {
@@ -1274,6 +1309,10 @@ namespace exafmm_t {
     }
     friend vec cos(const vec & v) {
       vec temp = _mm_setr_ps(std::cos(v[0]), std::cos(v[1]), std::cos(v[2]), std::cos(v[3]));
+      return temp;
+    }
+    friend vec exp(const vec & v) {
+      vec temp = _mm_setr_ps(std::exp(v[0]), std::exp(v[1]), std::exp(v[2]), std::exp(v[3]));
       return temp;
     }
 #endif
@@ -1401,11 +1440,14 @@ namespace exafmm_t {
 #endif
     }
 #ifdef __INTEL_COMPILER
+    friend vec sin(const vec &v) {
+      return vec(_mm_sin_pd(v.data));
+    }
     friend vec cos(const vec &v) {
       return vec(_mm_cos_pd(v.data));
     }
-    friend vec sin(const vec &v) {
-      return vec(_mm_sin_pd(v.data));
+    friend vec exp(const vec &v) {
+      return vec(_mm_exp_pd(v.data));
     }
 #else
     friend vec sin(const vec & v) {
@@ -1414,6 +1456,10 @@ namespace exafmm_t {
     }
     friend vec cos(const vec & v) {
       vec temp = _mm_setr_pd(std::cos(v[0]), std::cos(v[1]));
+      return temp;
+    }
+    friend vec exp(const vec & v) {
+      vec temp = _mm_setr_pd(std::exp(v[0]), std::exp(v[1]));
       return temp;
     }
 #endif
