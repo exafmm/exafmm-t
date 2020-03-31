@@ -39,7 +39,7 @@ void modified_helmholtz_kernel(RealVec& src_coord, RealVec& src_value,
 
 int main(int argc, char **argv) {
   Args args(argc, argv);
-  int n = 10000;
+  int n = 10001;
   std::srand(0);
 
   ModifiedHelmholtzFmm fmm;

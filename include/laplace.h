@@ -27,8 +27,7 @@ namespace exafmm_t {
     void potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
       simdvec zero(real_t(0));
       real_t newton_coef = 16;   // comes from Newton's method in simd rsqrt function
-      const real_t COEF = 1.0/(4*PI*newton_coef);
-      simdvec coef(COEF);
+      simdvec coef(real_t(1.0/(4*PI*newton_coef)));
       int nsrcs = src_coord.size() / 3;
       int ntrgs = trg_coord.size() / 3;
       int t;
@@ -39,23 +38,23 @@ namespace exafmm_t {
         simdvec tv(zero);
         for (int s=0; s<nsrcs; s++) {
           simdvec sx(src_coord[3*s+0]);
-          sx = sx - tx;
+          sx -= tx;
           simdvec sy(src_coord[3*s+1]);
-          sy = sy - ty;
+          sy -= ty;
           simdvec sz(src_coord[3*s+2]);
-          sz = sz - tz;
+          sz -= tz;
           simdvec sv(src_value[s]);
           simdvec r2(zero);
           r2 += sx * sx;
           r2 += sy * sy;
           r2 += sz * sz;
-          simdvec invR = rsqrt(r2);
-          invR &= r2 > zero;
-          tv += invR * sv;
+          simdvec invr = rsqrt(r2);
+          invr &= r2 > zero;
+          tv += invr * sv;
         }
         tv *= coef;
-        for (int k=0; k<NSIMD && t+k<ntrgs; k++) {
-          trg_value[t+k] += tv[k];
+        for (int m=0; m<NSIMD && t+m<ntrgs; m++) {
+          trg_value[t+m] += tv[m];
         }
       }
       for (; t<ntrgs; t++) {
@@ -67,8 +66,8 @@ namespace exafmm_t {
           }
           real_t r2 = norm(dx);
           if (r2!=0) {
-            real_t inv_r = 1 / std::sqrt(r2);
-            potential += src_value[s] * inv_r;
+            real_t invr = 1 / std::sqrt(r2);
+            potential += src_value[s] * invr;
           }
         }
         trg_value[t] += potential / (4*PI);
@@ -85,12 +84,9 @@ namespace exafmm_t {
      */
     void gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
       simdvec zero(real_t(0));
-      real_t newton_coefp = 16;   // comes from Newton's method in simd rsqrt function
-      real_t newton_coefg = 16*16*16;
-      const real_t COEFP = 1.0/(4*PI*newton_coefp);
-      const real_t COEFG = -1.0/(4*PI*newton_coefg);
-      simdvec coefp(COEFP);
-      simdvec coefg(COEFG);
+      real_t newton_coef = 16;   // comes from Newton's method in simd rsqrt function
+      simdvec coefp(real_t(1.0/(4*PI*newton_coef)));
+      simdvec coefg(real_t(1.0/(4*PI*newton_coef*newton_coef*newton_coef)));
       int nsrcs = src_coord.size() / 3;
       int ntrgs = trg_coord.size() / 3;
       int t;
@@ -104,34 +100,34 @@ namespace exafmm_t {
         simdvec tv3(zero);
         for (int s=0; s<nsrcs; s++) {
           simdvec sx(src_coord[3*s+0]);
-          sx = tx - sx;
+          sx -= tx;
           simdvec sy(src_coord[3*s+1]);
-          sy = ty - sy;
+          sy -= ty;
           simdvec sz(src_coord[3*s+2]);
-          sz = tz - sz;
+          sz -= tz;
           simdvec r2(zero);
           r2 += sx * sx;
           r2 += sy * sy;
           r2 += sz * sz;
-          simdvec invR = rsqrt(r2);
-          invR &= r2 > zero;
-          simdvec invR3 = (invR*invR) * invR;
+          simdvec invr = rsqrt(r2);
+          invr &= r2 > zero;
+          simdvec invr3 = (invr*invr) * invr;
           simdvec sv(src_value[s]);
-          tv0 += sv*invR;
-          sv *= invR3;
-          tv1 += sv*sx;
-          tv2 += sv*sy;
-          tv3 += sv*sz;
+          tv0 += sv * invr;
+          sv *= invr3;
+          tv1 += sv * sx;
+          tv2 += sv * sy;
+          tv3 += sv * sz;
         }
         tv0 *= coefp;
         tv1 *= coefg;
         tv2 *= coefg;
         tv3 *= coefg;
-        for (int k=0; k<NSIMD && t+k<ntrgs; k++) {
-          trg_value[0+4*(t+k)] += tv0[k];
-          trg_value[1+4*(t+k)] += tv1[k];
-          trg_value[2+4*(t+k)] += tv2[k];
-          trg_value[3+4*(t+k)] += tv3[k];
+        for (int m=0; m<NSIMD && t+m<ntrgs; m++) {
+          trg_value[0+4*(t+m)] += tv0[m];
+          trg_value[1+4*(t+m)] += tv1[m];
+          trg_value[2+4*(t+m)] += tv2[m];
+          trg_value[3+4*(t+m)] += tv3[m];
         }
       }
       for (; t<ntrgs; t++) {
@@ -144,10 +140,10 @@ namespace exafmm_t {
           }
           real_t r2 = norm(dx);
           if (r2!=0) {
-            real_t inv_r2 = 1.0 / r2;
-            real_t inv_r = src_value[s] * std::sqrt(inv_r2);
-            potential += inv_r;
-            dx *= inv_r2 * inv_r;
+            real_t invr2 = 1.0 / r2;
+            real_t invr = src_value[s] * std::sqrt(invr2);
+            potential += invr;
+            dx *= invr2 * invr;
             gradient[0] += dx[0];
             gradient[1] += dx[1];
             gradient[2] += dx[2];

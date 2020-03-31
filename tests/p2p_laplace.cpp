@@ -19,25 +19,25 @@ void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, 
       }
       real_t r2 = norm(dx);
       if (r2!=0) {
-        real_t inv_r2 = 1.0 / r2;
-        real_t inv_r = src_value[s] * std::sqrt(inv_r2);
-        potential += inv_r;
-        dx *= inv_r2 * inv_r;
+        real_t invr2 = 1.0 / r2;
+        real_t invr = src_value[s] * std::sqrt(invr2);
+        potential += invr;
+        dx *= invr2 * invr;
         gradient[0] += dx[0];
         gradient[1] += dx[1];
         gradient[2] += dx[2];
       }
     }
     trg_value[4*t] += potential / (4*PI);
-    trg_value[4*t+1] += gradient[0] / (-4*PI);
-    trg_value[4*t+2] += gradient[1] / (-4*PI);
-    trg_value[4*t+3] += gradient[2] / (-4*PI);
+    trg_value[4*t+1] -= gradient[0] / (4*PI);
+    trg_value[4*t+2] -= gradient[1] / (4*PI);
+    trg_value[4*t+3] -= gradient[2] / (4*PI);
   }
 }
 
 int main(int argc, char **argv) {
   Args args(argc, argv);
-  int n = 10000;
+  int n = 10001;
   std::srand(0);
   LaplaceFmm fmm;
 

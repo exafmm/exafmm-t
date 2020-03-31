@@ -22,10 +22,10 @@ void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_co
       real_t r2 = norm(dx);
       if (r2!=0) {
         real_t r = std::sqrt(r2);
-        complex_t pij = std::exp(I * WAVEK * r) * src_value[j] / r;
-        potential += pij;
+        complex_t potential_ij = std::exp(I * WAVEK * r) * src_value[j] / r;
+        potential += potential_ij;
         for (int d=0; d<3; ++d) {
-          gradient[d] += (1/r2 - WAVEK*I/r) * pij * dx[d];
+          gradient[d] += (WAVEK*I/r - 1/r2) * potential_ij * dx[d];
         }
       }
     }
@@ -38,7 +38,7 @@ void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_co
 
 int main(int argc, char **argv) {
   Args args(argc, argv);
-  int n = 10000;
+  int n = 10001;
   std::srand(0);
 
   HelmholtzFmm fmm;
