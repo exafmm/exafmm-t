@@ -700,6 +700,7 @@ namespace exafmm_t {
                                 std::exp(v[8]), std::exp(v[9]), std::exp(v[10]), std::exp(v[11]),
                                 std::exp(v[12]), std::exp(v[13]), std::exp(v[14]), std::exp(v[15]));
       return temp;
+    }
 #endif
   };
 
