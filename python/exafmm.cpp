@@ -128,7 +128,7 @@ public:
  * @return The tree.
  */
 template <typename T>
-Tree<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, exafmm_t::FMM& fmm) {
+Tree<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, exafmm_t::FmmBase<T>& fmm) {
   exafmm_t::get_bounds<T>(sources, targets, fmm.x0, fmm.r0);
   Tree<T> tree;
 #if NON_ADAPTIVE
@@ -149,12 +149,12 @@ Tree<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, exafmm_t::FMM& fmm) {
  * @param skip_P2P A flag to switch off P2P (near-field interaction).
  */
 template <typename T>
-void build_list(Tree<T>& tree, exafmm_t::FMM& fmm, bool skip_P2P) {
+void build_list(Tree<T>& tree, exafmm_t::FmmBase<T>& fmm, bool skip_P2P) {
   exafmm_t::set_colleagues<T>(tree.nodes);
   exafmm_t::build_list<T>(tree.nodes, fmm, skip_P2P);
 }
 
-Tree<real_t> setup_laplace(Bodies<real_t>& sources, Bodies<real_t>& targets, exafmm_t::LaplaceFMM& fmm, bool skip_P2P) {
+Tree<real_t> setup_laplace(Bodies<real_t>& sources, Bodies<real_t>& targets, exafmm_t::LaplaceFmm& fmm, bool skip_P2P) {
   auto tree = build_tree<real_t>(sources, targets, fmm);
   exafmm_t::init_rel_coord();
   build_list<real_t>(tree, fmm, skip_P2P);
@@ -163,7 +163,7 @@ Tree<real_t> setup_laplace(Bodies<real_t>& sources, Bodies<real_t>& targets, exa
   return tree;
 }
 
-Tree<complex_t> setup_helmholtz(Bodies<complex_t>& sources, Bodies<complex_t>& targets, exafmm_t::HelmholtzFMM& fmm, bool skip_P2P) {
+Tree<complex_t> setup_helmholtz(Bodies<complex_t>& sources, Bodies<complex_t>& targets, exafmm_t::HelmholtzFmm& fmm, bool skip_P2P) {
   auto tree = build_tree<complex_t>(sources, targets, fmm);
   exafmm_t::init_rel_coord();
   build_list<complex_t>(tree, fmm, skip_P2P);
@@ -172,7 +172,7 @@ Tree<complex_t> setup_helmholtz(Bodies<complex_t>& sources, Bodies<complex_t>& t
   return tree;
 }
 
-Tree<real_t> setup_modified_helmholtz(Bodies<real_t>& sources, Bodies<real_t>& targets, exafmm_t::ModifiedHelmholtzFMM& fmm, bool skip_P2P) {
+Tree<real_t> setup_modified_helmholtz(Bodies<real_t>& sources, Bodies<real_t>& targets, exafmm_t::ModifiedHelmholtzFmm& fmm, bool skip_P2P) {
   auto tree = build_tree<real_t>(sources, targets, fmm);
   exafmm_t::init_rel_coord();
   build_list<real_t>(tree, fmm, skip_P2P);
@@ -188,7 +188,7 @@ Tree<real_t> setup_modified_helmholtz(Bodies<real_t>& sources, Bodies<real_t>& t
  * @param fmm Laplace FMM instance.
  * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
  */
-py::array_t<real_t> evaluate(Tree<real_t>& tree, exafmm_t::LaplaceFMM& fmm) {
+py::array_t<real_t> evaluate(Tree<real_t>& tree, exafmm_t::LaplaceFmm& fmm) {
   // redirect ostream to python ouptut
   py::scoped_ostream_redirect stream(
       std::cout,                                 // std::ostream&
@@ -222,7 +222,7 @@ py::array_t<real_t> evaluate(Tree<real_t>& tree, exafmm_t::LaplaceFMM& fmm) {
  * @param fmm Helmholtz FMM instance.
  * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
  */
-py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFMM& fmm) {
+py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFmm& fmm) {
   // redirect ostream to python ouptut
   py::scoped_ostream_redirect stream(
       std::cout,                                 // std::ostream&
@@ -256,7 +256,7 @@ py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFMM&
  * @param fmm The modified Helmholtz FMM instance.
  * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
  */
-py::array_t<real_t> evaluate_m(Tree<real_t>& tree, exafmm_t::ModifiedHelmholtzFMM& fmm) {
+py::array_t<real_t> evaluate_m(Tree<real_t>& tree, exafmm_t::ModifiedHelmholtzFmm& fmm) {
   // redirect ostream to python ouptut
   py::scoped_ostream_redirect stream(
       std::cout,                                 // std::ostream&
@@ -350,7 +350,7 @@ PYBIND11_MODULE(exafmm, m) {
    *     - class: Body
    *     - class: Node
    *     - class: Tree
-   *     - class: LaplaceFMM
+   *     - class: LaplaceFmm
    *     - function: init_sources()
    *     - function: init_targets()
    *     - function: build_tree()
@@ -360,7 +360,7 @@ PYBIND11_MODULE(exafmm, m) {
    *     - class: Body
    *     - class: Node
    *     - class: Tree
-   *     - class: HelmholtzFMM
+   *     - class: HelmholtzFmm
    *     - function: init_sources()
    *     - function: init_targets()
    *     - function: build_tree()
@@ -368,7 +368,7 @@ PYBIND11_MODULE(exafmm, m) {
    *     - function: evaluate()
    * m2: Modified Helmholtz submodule (real type).
    *     - class: Body, Node, Tree are aliases from Laplace submodule.
-   *     - class: ModifiedHelmholtzFMM
+   *     - class: ModifiedHelmholtzFmm
    *     - function: init_sources(), init_targets(), build_tree(), build_list() are aliases from Laplace submodule.  
    *     - function: evaluate()
    */
@@ -396,16 +396,6 @@ PYBIND11_MODULE(exafmm, m) {
          x[i] = value;
      }, py::is_operator())
      .def(py::init<>());
-
-  py::class_<exafmm_t::FMM>(m, "FMM")
-     .def_readwrite("p", &exafmm_t::FMM::p)
-     .def_readwrite("nsurf", &exafmm_t::FMM::nsurf)
-     .def_readwrite("depth", &exafmm_t::FMM::depth)
-     .def_readwrite("ncrit", &exafmm_t::FMM::ncrit)
-     .def_readwrite("r0", &exafmm_t::FMM::r0)
-     .def_readwrite("x0", &exafmm_t::FMM::x0)
-     .def(py::init<>())
-     .def(py::init<int, int, int>());
 
   m.def("init_rel_coord", py::overload_cast<>(&exafmm_t::init_rel_coord), "initialize relative coordinates matrix");
 
@@ -438,10 +428,8 @@ PYBIND11_MODULE(exafmm, m) {
      .def_readwrite("nonleafs", &Tree<real_t>::nonleafs)
      .def(py::init<>());
 
-  py::class_<exafmm_t::LaplaceFMM, exafmm_t::FMM>(m0, "LaplaceFMM")
-     .def("precompute", &exafmm_t::LaplaceFMM::precompute)
-     .def("M2L_setup", &exafmm_t::LaplaceFMM::M2L_setup)
-     .def("verify", &exafmm_t::LaplaceFMM::verify)
+  py::class_<exafmm_t::LaplaceFmm>(m0, "LaplaceFmm")
+     .def("verify", &exafmm_t::LaplaceFmm::verify)
      .def(py::init<>())
      .def(py::init<int, int, int>());
 
@@ -474,11 +462,9 @@ PYBIND11_MODULE(exafmm, m) {
      .def_readwrite("nonleafs", &Tree<complex_t>::nonleafs)
      .def(py::init<>());
 
-  py::class_<exafmm_t::HelmholtzFMM, exafmm_t::FMM>(m1, "HelmholtzFMM")
-     .def("precompute", &exafmm_t::HelmholtzFMM::precompute)
-     .def("M2L_setup", &exafmm_t::HelmholtzFMM::M2L_setup)
-     .def("verify", &exafmm_t::HelmholtzFMM::verify)
-     .def_readwrite("wavek", &exafmm_t::HelmholtzFMM::wavek)
+  py::class_<exafmm_t::HelmholtzFmm>(m1, "HelmholtzFmm")
+     .def("verify", &exafmm_t::HelmholtzFmm::verify)
+     .def_readwrite("wavek", &exafmm_t::HelmholtzFmm::wavek)
      .def(py::init<>())
      .def(py::init<int, int, int, real_t>());
 
@@ -486,11 +472,9 @@ PYBIND11_MODULE(exafmm, m) {
   m2.attr("Node") = m0.attr("Node");
   m2.attr("Tree") = m0.attr("Tree");
 
-  py::class_<exafmm_t::ModifiedHelmholtzFMM, exafmm_t::FMM>(m2, "ModifiedHelmholtzFMM")
-     .def("precompute", &exafmm_t::ModifiedHelmholtzFMM::precompute)
-     .def("M2L_setup", &exafmm_t::ModifiedHelmholtzFMM::M2L_setup)
-     .def("verify", &exafmm_t::ModifiedHelmholtzFMM::verify)
-     .def_readwrite("wavek", &exafmm_t::ModifiedHelmholtzFMM::wavek)
+  py::class_<exafmm_t::ModifiedHelmholtzFmm>(m2, "ModifiedHelmholtzFmm")
+     .def("verify", &exafmm_t::ModifiedHelmholtzFmm::verify)
+     .def_readwrite("wavek", &exafmm_t::ModifiedHelmholtzFmm::wavek)
      .def(py::init<>())
      .def(py::init<int, int, int, real_t>());
 
