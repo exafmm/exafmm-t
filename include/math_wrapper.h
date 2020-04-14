@@ -2,6 +2,7 @@
 #define math_wrapper_h
 #include <complex>
 #include "exafmm_t.h"
+#include "timer.h"
 
 using std::complex;
 
@@ -56,6 +57,7 @@ namespace exafmm_t {
 #else
     dgemv_(&trans, &n, &m, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #endif
+    add_flop((long long)(2*m*n));
   }
 
   // complex gemv by blas lib

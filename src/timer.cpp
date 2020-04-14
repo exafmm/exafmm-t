@@ -2,7 +2,8 @@
 
 namespace exafmm_t {
   timeval time;
-  std::map<std::string,timeval> timer;
+  std::map<std::string, timeval> timer;
+  long long flop = 0;
 
   void start(std::string event) {
     gettimeofday(&time, NULL);
@@ -32,7 +33,11 @@ namespace exafmm_t {
     std::cout << std::string(halfLength, '-') << s
               << std::string(dividerLength-halfLength-s.length(), '-') << std::endl;
   }
-
+  
+  void add_flop(long long n) {
+#pragma omp atomic update
+    flop += n;
+  }
   // template<typename T>
   // void printMPI(T data) {
     // if (!VERBOSE) return;

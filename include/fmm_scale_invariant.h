@@ -392,6 +392,8 @@ namespace exafmm_t {
           }
         }
       }
+      // add flop
+      add_flop((long long)(8*8*8)*(interaction_offset_f.size()/2)*this->nfreq);
     }
     
     void fft_up_equiv(std::vector<size_t>& fft_offset,
@@ -585,6 +587,10 @@ namespace exafmm_t {
           up_equiv_f[idx+j*nconv_] = up_equiv[j*nsurf_+k];
       }
       fft_execute_dft_r2c(plan, up_equiv_f, (fft_complex*)&buffer[0]);
+      // add flop
+      double add, mul, fma;
+      fft_flops(plan, &add, &mul, &fma);
+      add_flop((long long)(add + mul + 2*fma));
       for (int k=0; k<nfreq_; k++) {
         for (int j=0; j<NCHILD; j++) {
           up_equiv_f[2*(NCHILD*k+j)+0] = buffer[2*(nfreq_*j+k)+0];
@@ -624,6 +630,10 @@ namespace exafmm_t {
           buffer0[2*(nfreq_*j+k)+1] = dn_check_f[2*(NCHILD*k+j)+1];
         }
       fft_execute_dft_c2r(plan, (fft_complex*)&buffer0[0], (real_t*)&buffer1[0]);
+      // add flop
+      double add, mul, fma;
+      fft_flops(plan, &add, &mul, &fma);
+      add_flop((long long)(add + mul + 2*fma));
       for (int k=0; k<nsurf_; k++) {
         size_t idx = map[k];
         for (int j=0; j<NCHILD; j++)

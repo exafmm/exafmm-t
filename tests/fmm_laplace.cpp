@@ -51,16 +51,19 @@ int main(int argc, char **argv) {
   start("M2L Setup");
   fmm.M2L_setup(nonleafs);
   stop("M2L Setup");
+
+  start("Evaluation");
   fmm.upward_pass(nodes, leafs);
   fmm.downward_pass(nodes, leafs);
+  stop("Evaluation");
 
 #if DEBUG /* check downward check potential at leaf level*/
   for (auto dn_check : leafs[0]->dn_equiv) {
     std::cout << dn_check << std::endl;
   }
 #endif
-
   stop("Total");
+  print("Evaluation Gflop", (float)flop/1e9);
 
   RealVec err = fmm.verify(leafs);
   print_divider("Error");

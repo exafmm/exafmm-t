@@ -32,6 +32,7 @@ namespace exafmm_t {
 #define fft_execute_dft_r2c fftwf_execute_dft_r2c
 #define fft_execute_dft_c2r fftwf_execute_dft_c2r
 #define fft_destroy_plan fftwf_destroy_plan
+#define fft_flops fftwf_flops
 #else
   typedef double real_t;                       //!< Real number type
   const real_t EPS = 1e-16;
@@ -46,6 +47,7 @@ namespace exafmm_t {
 #define fft_execute_dft_r2c fftw_execute_dft_r2c
 #define fft_execute_dft_c2r fftw_execute_dft_c2r
 #define fft_destroy_plan fftw_destroy_plan
+#define fft_flops fftw_flops
 #endif
 
   const real_t PI = M_PI;

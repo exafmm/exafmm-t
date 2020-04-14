@@ -72,6 +72,7 @@ namespace exafmm_t {
         }
         trg_value[t] += potential / (4*PI);
       }
+      add_flop((long long)ntrgs*(long long)nsrcs*(12+4*2));
     }
 
     /**
@@ -154,6 +155,7 @@ namespace exafmm_t {
         trg_value[4*t+2] -= gradient[1] / (4*PI);
         trg_value[4*t+3] -= gradient[2] / (4*PI);
       }   
+      add_flop((long long)ntrgs*(long long)nsrcs*(20+4*2));
     }
   };
 }  // end namespace exafmm_t
