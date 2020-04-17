@@ -1,5 +1,5 @@
 # automake preprocessor, compiler and linker flags
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/vectorclass
+AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_CXXFLAGS = -std=c++11
 AM_LDFLAGS = -lpthread -lm
 

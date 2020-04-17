@@ -649,8 +649,8 @@ top_srcdir = @top_srcdir@
 # automake preprocessor, compiler and linker flags
 
 # libraries
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/vectorclass \
-	$(FFTW_CPPFLAGS) # include user-defined path of fftw3.h
+AM_CPPFLAGS = -I$(top_srcdir)/include $(FFTW_CPPFLAGS) # include \
+	user-defined path of fftw3.h
 
 # OpenMP flags
 
