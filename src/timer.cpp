@@ -10,11 +10,12 @@ namespace exafmm_t {
     timer[event] = time;
   }
 
-  double stop(std::string event) {
+  double stop(std::string event, bool verbose) {
     gettimeofday(&time, NULL);
     double eventTime = time.tv_sec - timer[event].tv_sec +
       (time.tv_usec - timer[event].tv_usec) * 1e-6;
-    print(event, eventTime);
+    if (verbose)
+      print(event, eventTime);
     return eventTime;
   }
 

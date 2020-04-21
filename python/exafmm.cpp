@@ -6,11 +6,7 @@
 #include <iostream>
 #include "exafmm_t.h"
 #include "dataset.h"
-#if NON_ADAPTIVE
-#include "build_non_adaptive_tree.h"
-#else
 #include "build_tree.h"
-#endif
 #include "build_list.h"
 #include "laplace.h"
 #include "helmholtz.h"
@@ -146,36 +142,35 @@ Tree<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, exafmm_t::FmmBase<T>&
  * @tparam T Value type of sources and targets.
  * @param tree The octree.
  * @param fmm The FMM instance.
- * @param skip_P2P A flag to switch off P2P (near-field interaction).
  */
 template <typename T>
-void build_list(Tree<T>& tree, exafmm_t::FmmBase<T>& fmm, bool skip_P2P) {
+void build_list(Tree<T>& tree, exafmm_t::FmmBase<T>& fmm) {
   exafmm_t::set_colleagues<T>(tree.nodes);
-  exafmm_t::build_list<T>(tree.nodes, fmm, skip_P2P);
+  exafmm_t::build_list<T>(tree.nodes, fmm);
 }
 
-Tree<real_t> setup_laplace(Bodies<real_t>& sources, Bodies<real_t>& targets, exafmm_t::LaplaceFmm& fmm, bool skip_P2P) {
+Tree<real_t> setup_laplace(Bodies<real_t>& sources, Bodies<real_t>& targets, exafmm_t::LaplaceFmm& fmm) {
   auto tree = build_tree<real_t>(sources, targets, fmm);
   exafmm_t::init_rel_coord();
-  build_list<real_t>(tree, fmm, skip_P2P);
+  build_list<real_t>(tree, fmm);
   fmm.M2L_setup(tree.nonleafs);
   fmm.precompute();
   return tree;
 }
 
-Tree<complex_t> setup_helmholtz(Bodies<complex_t>& sources, Bodies<complex_t>& targets, exafmm_t::HelmholtzFmm& fmm, bool skip_P2P) {
+Tree<complex_t> setup_helmholtz(Bodies<complex_t>& sources, Bodies<complex_t>& targets, exafmm_t::HelmholtzFmm& fmm) {
   auto tree = build_tree<complex_t>(sources, targets, fmm);
   exafmm_t::init_rel_coord();
-  build_list<complex_t>(tree, fmm, skip_P2P);
+  build_list<complex_t>(tree, fmm);
   fmm.M2L_setup(tree.nonleafs);
   fmm.precompute();
   return tree;
 }
 
-Tree<real_t> setup_modified_helmholtz(Bodies<real_t>& sources, Bodies<real_t>& targets, exafmm_t::ModifiedHelmholtzFmm& fmm, bool skip_P2P) {
+Tree<real_t> setup_modified_helmholtz(Bodies<real_t>& sources, Bodies<real_t>& targets, exafmm_t::ModifiedHelmholtzFmm& fmm) {
   auto tree = build_tree<real_t>(sources, targets, fmm);
   exafmm_t::init_rel_coord();
-  build_list<real_t>(tree, fmm, skip_P2P);
+  build_list<real_t>(tree, fmm);
   fmm.M2L_setup(tree.nonleafs);
   fmm.precompute();
   return tree;
@@ -186,17 +181,12 @@ Tree<real_t> setup_modified_helmholtz(Bodies<real_t>& sources, Bodies<real_t>& t
  *
  * @param tree The octree.
  * @param fmm Laplace FMM instance.
+ * @param verbose Turn on verbose mode if true, default to false.
  * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
  */
-py::array_t<real_t> evaluate(Tree<real_t>& tree, exafmm_t::LaplaceFmm& fmm) {
-  // redirect ostream to python ouptut
-  py::scoped_ostream_redirect stream(
-      std::cout,                                 // std::ostream&
-      py::module::import("sys").attr("stdout")   // Python output
-  );
-
-  fmm.upward_pass(tree.nodes, tree.leafs);
-  fmm.downward_pass(tree.nodes, tree.leafs);
+py::array_t<real_t> evaluate_laplace(Tree<real_t>& tree, exafmm_t::LaplaceFmm& fmm, bool verbose=false) {
+  fmm.upward_pass(tree.nodes, tree.leafs, verbose);
+  fmm.downward_pass(tree.nodes, tree.leafs, verbose);
 
   auto trg_value = py::array_t<real_t>({tree.nodes[0].ntrgs, 4});
   auto r = trg_value.mutable_unchecked<2>();  // access function
@@ -220,15 +210,10 @@ py::array_t<real_t> evaluate(Tree<real_t>& tree, exafmm_t::LaplaceFmm& fmm) {
  *
  * @param tree The octree.
  * @param fmm Helmholtz FMM instance.
+ * @param verbose Turn on verbose mode if true, default to false.
  * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
  */
-py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFmm& fmm) {
-  // redirect ostream to python ouptut
-  py::scoped_ostream_redirect stream(
-      std::cout,                                 // std::ostream&
-      py::module::import("sys").attr("stdout")   // Python output
-  );
-
+py::array_t<complex_t> evaluate_helmholtz(Tree<complex_t>& tree, exafmm_t::HelmholtzFmm& fmm, bool verbose=false) {
   fmm.upward_pass(tree.nodes, tree.leafs);
   fmm.downward_pass(tree.nodes, tree.leafs);
   
@@ -254,15 +239,10 @@ py::array_t<complex_t> evaluate_h(Tree<complex_t>& tree, exafmm_t::HelmholtzFmm&
  *
  * @param tree The octree.
  * @param fmm The modified Helmholtz FMM instance.
+ * @param verbose Turn on verbose mode if true, default to false.
  * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
  */
-py::array_t<real_t> evaluate_m(Tree<real_t>& tree, exafmm_t::ModifiedHelmholtzFmm& fmm) {
-  // redirect ostream to python ouptut
-  py::scoped_ostream_redirect stream(
-      std::cout,                                 // std::ostream&
-      py::module::import("sys").attr("stdout")   // Python output
-  );
-
+py::array_t<real_t> evaluate_modified_helmholtz(Tree<real_t>& tree, exafmm_t::ModifiedHelmholtzFmm& fmm, bool verbose=false) {
   fmm.upward_pass(tree.nodes, tree.leafs);
   fmm.downward_pass(tree.nodes, tree.leafs);
 
@@ -502,9 +482,38 @@ PYBIND11_MODULE(exafmm, m) {
   m1.def("setup", &setup_helmholtz, "setup FMM, including tree construction, list construction, M2L setup and pre-computation.");
   m2.def("setup", &setup_modified_helmholtz, "setup FMM, including tree construction, list construction, M2L setup and pre-computation.");
 
-  m0.def("evaluate", &evaluate, "evaluate");
-  m1.def("evaluate", &evaluate_h, "evaluate");
-  m2.def("evaluate", &evaluate_m, "evaluate");
+  m0.def("evaluate",
+         &evaluate_laplace,
+         "evaluate Laplace potential and gradient",
+         py::arg("tree"),
+         py::arg("fmm"),
+         py::arg("verbose") = false);
+  
+  // Add a scoped redirect for your noisy code
+  /*
+  m0.def("evaluate_verbose",
+         [](Tree<real_t>& tree, exafmm_t::LaplaceFmm& fmm) {
+           py::scoped_ostream_redirect stream(
+             std::cout,                               // std::ostream&
+             py::module::import("sys").attr("stdout") // Python output
+           );
+           evaluate_laplace(tree, fmm);
+         });
+         */
+
+  m1.def("evaluate",
+         &evaluate_helmholtz,
+         "evaluate Helmholtz potential and gradient",
+         py::arg("tree"),
+         py::arg("fmm"),
+         py::arg("verbose") = false);
+
+  m2.def("evaluate",
+         &evaluate_modified_helmholtz,
+         "evaluate Modified Helmholtz potential and gradient",
+         py::arg("tree"),
+         py::arg("fmm"),
+         py::arg("verbose") = false);
 
   m0.def("update_charges", &update_charges_real, "update charges of sources");
   m1.def("update_charges", &update_charges_cplx, "update charges of sources");

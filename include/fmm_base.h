@@ -156,15 +156,15 @@ namespace exafmm_t {
      * @param nodes Vector of all nodes.
      * @param leafs Vector of pointers to leaf nodes.
      */   
-    void upward_pass(Nodes<T>& nodes, NodePtrs<T>& leafs) {
+    void upward_pass(Nodes<T>& nodes, NodePtrs<T>& leafs, bool verbose=true) {
       start("P2M");
       P2M(leafs);
-      stop("P2M");
+      stop("P2M", verbose);
       start("M2M");
 #pragma omp parallel
 #pragma omp single nowait
       M2M(&nodes[0]);
-      stop("M2M");
+      stop("M2M", verbose);
     }
 
     /**
@@ -173,27 +173,27 @@ namespace exafmm_t {
      * @param nodes Vector of all nodes.
      * @param leafs Vector of pointers to leaf nodes.
      */   
-    void downward_pass(Nodes<T>& nodes, NodePtrs<T>& leafs) {
+    void downward_pass(Nodes<T>& nodes, NodePtrs<T>& leafs, bool verbose=true) {
       start("P2L");
       P2L(nodes);
-      stop("P2L");
+      stop("P2L", verbose);
       start("M2P");
       M2P(leafs);
-      stop("M2P");
+      stop("M2P", verbose);
       start("P2P");
       P2P(leafs);
-      stop("P2P");
+      stop("P2P", verbose);
       start("M2L");
       M2L(nodes);
-      stop("M2L");
+      stop("M2L", verbose);
       start("L2L");
 #pragma omp parallel
 #pragma omp single nowait
       L2L(&nodes[0]);
-      stop("L2L");
+      stop("L2L", verbose);
       start("L2P");
       L2P(leafs);
-      stop("L2P");
+      stop("L2P", verbose);
     }
 
     /**

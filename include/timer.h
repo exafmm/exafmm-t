@@ -17,7 +17,7 @@ namespace exafmm_t {
   extern std::map<std::string, timeval> timer;
 
   void start(std::string event);
-  double stop(std::string event);
+  double stop(std::string event, bool verbose=true);
   void print(std::string s);
   void print_divider(std::string s);
 
