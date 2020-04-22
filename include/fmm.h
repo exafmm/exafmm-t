@@ -115,7 +115,7 @@ namespace exafmm_t {
           file.read(reinterpret_cast<char*>(&r0_), sizeof(real_t));
           if (this->r0 == r0_) {    // if radius match
             size_t size = nsurf_ * nsurf_;
-            for (int l=0; l<depth_; l++) {
+            for (int l=0; l<=depth_; l++) {
               // UC2E, DC2E
               file.read(reinterpret_cast<char*>(&matrix_UC2E_U[l][0]), size*sizeof(T));
               file.read(reinterpret_cast<char*>(&matrix_UC2E_V[l][0]), size*sizeof(T));
