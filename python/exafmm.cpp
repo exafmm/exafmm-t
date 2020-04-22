@@ -214,8 +214,8 @@ py::array_t<real_t> evaluate_laplace(Tree<real_t>& tree, exafmm_t::LaplaceFmm& f
  * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
  */
 py::array_t<complex_t> evaluate_helmholtz(Tree<complex_t>& tree, exafmm_t::HelmholtzFmm& fmm, bool verbose=false) {
-  fmm.upward_pass(tree.nodes, tree.leafs);
-  fmm.downward_pass(tree.nodes, tree.leafs);
+  fmm.upward_pass(tree.nodes, tree.leafs, verbose);
+  fmm.downward_pass(tree.nodes, tree.leafs, verbose);
   
   auto trg_value = py::array_t<complex_t>({tree.nodes[0].ntrgs, 4});
   auto r = trg_value.mutable_unchecked<2>();  // access function
@@ -243,8 +243,8 @@ py::array_t<complex_t> evaluate_helmholtz(Tree<complex_t>& tree, exafmm_t::Helmh
  * @return trg_value Potential and gradient of targets, an n_trg-by-4 numpy array.
  */
 py::array_t<real_t> evaluate_modified_helmholtz(Tree<real_t>& tree, exafmm_t::ModifiedHelmholtzFmm& fmm, bool verbose=false) {
-  fmm.upward_pass(tree.nodes, tree.leafs);
-  fmm.downward_pass(tree.nodes, tree.leafs);
+  fmm.upward_pass(tree.nodes, tree.leafs, verbose);
+  fmm.downward_pass(tree.nodes, tree.leafs, verbose);
 
   auto trg_value = py::array_t<real_t>({tree.nodes[0].ntrgs, 4});
   auto r = trg_value.mutable_unchecked<2>();  // access function
