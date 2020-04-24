@@ -6,7 +6,11 @@
 #include <iostream>
 #include "exafmm_t.h"
 #include "dataset.h"
+#if NON_ADAPTIVE
+#include "build_non_adaptive_tree.h"
+#else
 #include "build_tree.h"
+#endif
 #include "build_list.h"
 #include "laplace.h"
 #include "helmholtz.h"
@@ -127,8 +131,12 @@ template <typename T>
 Tree<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, exafmm_t::FmmBase<T>& fmm) {
   exafmm_t::get_bounds<T>(sources, targets, fmm.x0, fmm.r0);
   Tree<T> tree;
+#if NON_ADAPTIVE
+  tree.nodes = exafmm_t::build_tree<T>(sources, targets, tree.leafs, tree.nonleafs, fmm);
+#else
   tree.nodes = exafmm_t::build_tree<T>(sources, targets, tree.leafs, tree.nonleafs, fmm);
   exafmm_t::balance_tree(tree.nodes, sources, targets, tree.leafs, tree.nonleafs, fmm);
+#endif
   return tree;
 }
 
