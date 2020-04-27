@@ -27,7 +27,6 @@ namespace exafmm_t {
      * @param trg_coord Vector of coordinates of targets.
      * @param trg_value Vector of potentials of targets.
      */
-    /*
     void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
       simdvec zero((real_t)0);
       real_t newton_coef = 16;
@@ -86,56 +85,7 @@ namespace exafmm_t {
         trg_value[t] += potential / (4*PI);
       }
     }
-*/
-void potential_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-  complex_t I = std::complex<real_t>(0., 1.);
-  int nsrcs = src_coord.size() / 3;
-  int ntrgs = trg_coord.size() / 3;
-  for (int i=0; i<ntrgs; ++i) {
-    complex_t potential = 0;
-    for (int j=0; j<nsrcs; ++j) {
-      vec3 dx;
-      for (int d=0; d<3; ++d) {
-        dx[d] = trg_coord[3*i+d] - src_coord[3*j+d];
-      }
-      real_t r2 = norm(dx);
-      if (r2!=0) {
-        real_t r = std::sqrt(r2);
-        complex_t potential_ij = std::exp(I * wavek * r) * src_value[j] / r;
-        potential += potential_ij;
-      }
-    }
-    trg_value[i] += potential / (4*PI);
-  }
-}
-void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
-  complex_t I = std::complex<real_t>(0., 1.);
-  int nsrcs = src_coord.size() / 3;
-  int ntrgs = trg_coord.size() / 3;
-  for (int i=0; i<ntrgs; ++i) {
-    complex_t potential = 0;
-    cvec3 gradient = complex_t(0,0);
-    for (int j=0; j<nsrcs; ++j) {
-      vec3 dx;
-      for (int d=0; d<3; ++d) {
-        dx[d] = trg_coord[3*i+d] - src_coord[3*j+d];
-      }
-      real_t r2 = norm(dx);
-      if (r2!=0) {
-        real_t r = std::sqrt(r2);
-        complex_t potential_ij = std::exp(I * wavek * r) * src_value[j] / r;
-        potential += potential_ij;
-        for (int d=0; d<3; ++d) {
-          gradient[d] += (wavek*I/r - 1/r2) * potential_ij * dx[d];
-        }
-      }
-    }
-    trg_value[4*i] += potential / (4*PI);
-    trg_value[4*i+1] += gradient[0] / (4*PI);
-    trg_value[4*i+2] += gradient[1] / (4*PI);
-    trg_value[4*i+3] += gradient[2] / (4*PI);
-  }
-}
+
     /**
      * @brief Compute potentials and gradients at targets induced by sources directly.
      * 
@@ -144,7 +94,6 @@ void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord,
      * @param trg_coord Vector of coordinates of targets.
      * @param trg_value Vector of potentials of targets.
      */
-/*
     void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
       simdvec zero((real_t)0);
       real_t newton_coef = 16;   // comes from Newton's method in simd rsqrt function
@@ -241,7 +190,6 @@ void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord,
         trg_value[4*t+3] += gradient[2] / (4*PI);
       }
     }
-  */
   };
 }  // end namespace exafmm_t
 #endif

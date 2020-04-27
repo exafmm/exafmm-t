@@ -65,10 +65,11 @@ int main(int argc, char **argv) {
   stop("Total");
   print("Evaluation Gflop", (float)flop/1e9);
 
-  RealVec err = fmm.verify(leafs);
+  bool sample = (args.numBodies >= 10000);
+  RealVec err = fmm.verify(leafs, sample);
   print_divider("Error");
-  print("Potential Error", err[0]);
-  print("Gradient Error", err[1]);
+  print("Potential Error L2", err[0]);
+  print("Gradient Error L2", err[1]);
 
   print_divider("Tree");
   print("Root Center x", fmm.x0[0]);
