@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 
   // create fmm instance
   args.k = 0.1;
-  HelmholtzFmm fmm(args.P, args.ncrit, args.maxlevel, args.k);
+  HelmholtzFmm fmm(args.P, args.ncrit, args.maxlevel, args.k, "helmholtz_kernel_test.dat");
   fmm.depth = 3;
   fmm.x0 = 4.;
   fmm.r0 = 4.;

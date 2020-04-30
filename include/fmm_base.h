@@ -23,7 +23,9 @@ namespace exafmm_t {
     std::string filename;  //!< File name of the precomputation matrices
 
     FmmBase() {}
-    FmmBase(int p_, int ncrit_, int depth_) : p(p_), ncrit(ncrit_), depth(depth_) {
+    FmmBase(int p_, int ncrit_, int depth_, std::string filename_=std::string()) :
+      p(p_), ncrit(ncrit_), depth(depth_), filename(filename_)
+    {
       nsurf = 6*(p_-1)*(p_-1) + 2;
       int n1 = 2 * p_;
       nconv = n1 * n1 * n1;

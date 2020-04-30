@@ -30,7 +30,7 @@ namespace exafmm_t {
 
     /* constructors */
     FmmScaleInvariant() {}
-    FmmScaleInvariant(int p_, int ncrit_, int depth_) : FmmBase<T>(p_, ncrit_, depth_) {}
+    FmmScaleInvariant(int p_, int ncrit_, int depth_, std::string filename_=std::string()) : FmmBase<T>(p_, ncrit_, depth_, filename_) {}
 
     /* precomputation */
     //! Setup the sizes of precomputation matrices

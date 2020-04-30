@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 #endif
 
   // create fmm instance
-  LaplaceFmm fmm(args.P, args.ncrit, args.maxlevel);
+  LaplaceFmm fmm(args.P, args.ncrit, args.maxlevel, "laplace_kernel_test.dat");
   fmm.depth = 3;
   fmm.x0 = 4.;
   fmm.r0 = 4.;

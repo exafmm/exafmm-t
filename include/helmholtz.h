@@ -13,10 +13,14 @@ namespace exafmm_t {
     real_t wavek;      //!< Wave number k.
 
     HelmholtzFmm() {}
-    HelmholtzFmm(int p_, int ncrit_, int depth_, real_t wavek_) : Fmm(p_, ncrit_, depth_) {
+    HelmholtzFmm(int p_, int ncrit_, int depth_, real_t wavek_, std::string filename_=std::string()) :
+      Fmm<complex_t>(p_, ncrit_, depth_, filename_)
+    {
       wavek = wavek_;
-      this->filename = std::string("helmholtz_") + (std::is_same<real_t, float>::value ? "f" : "d")
-                     + std::string("_p") + std::to_string(p) + std::string(".dat");
+      if (this->filename.empty()) {
+        this->filename = std::string("helmholtz_") + (std::is_same<real_t, float>::value ? "f" : "d")
+                       + std::string("_p") + std::to_string(p) + std::string(".dat");
+      }
     }
 
     /**
