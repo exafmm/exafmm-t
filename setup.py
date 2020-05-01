@@ -25,7 +25,7 @@ class get_pybind_include(object):
 ext_modules = [
     Extension(
         name='exafmm',
-        sources=['python/exafmm.cpp'] + glob.glob('src/*.cpp'),
+        sources=['python/exafmm.cpp'],
         include_dirs=[
             # Path to pybind11 headers
             get_pybind_include(),
