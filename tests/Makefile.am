@@ -33,8 +33,8 @@ kernel_modified_helmholtz_LDADD = $(LIBS_LDADD)
 
 # tree tests
 bin_PROGRAMS += tree
-tree_SOURCES = tree.cpp
-tree_CPPFLAGS = $(AM_CPPFLAGS)
+tree_SOURCES = tree.cpp $(COMMON_SRCS)
+tree_CPPFLAGS = $(AM_CPPFLAGS) -DSORT_BACK
 tree_LDADD = $(LIBS_LDADD)
 
 # list tests

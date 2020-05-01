@@ -1,7 +1,8 @@
 #ifndef build_tree_h
 #define build_tree_h
-#include <unordered_map>
+#include <cassert>
 #include <queue>
+#include <unordered_map>
 #include "exafmm_t.h"
 #include "hilbert.h"
 #include "fmm_base.h"
@@ -109,9 +110,11 @@ namespace exafmm_t {
         for (int i=source_begin; i<source_end; i++) {
           sources_buffer[i].X = sources[i].X;
           sources_buffer[i].q = sources[i].q;
+          sources_buffer[i].ibody = sources[i].ibody;
         }
         for (int i=target_begin; i<target_end; i++) {
           targets_buffer[i].X = targets[i].X;
+          targets_buffer[i].ibody = targets[i].ibody;
         }
       }
       // Copy sources and targets' coords and values to leaf (only during 2:1 tree balancing)
