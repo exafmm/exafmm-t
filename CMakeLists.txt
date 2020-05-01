@@ -26,14 +26,9 @@ find_package(OpenMP REQUIRED)
 find_package(FFTW REQUIRED)
 
 # targets
-set (COMMON_SOURCES
-     src/geometry.cpp
-     src/timer.cpp
-)
-
 include_directories (${PROJECT_SOURCE_DIR}/include)
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx -DSORT_BACK -DNON_ADAPTIVE")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -march=native -DNON_ADAPTIVE")
 
 if (OPENMP_FOUND)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -43,7 +38,7 @@ else ()
   message (FATAL_ERROR "The compiler does not support OpenMP.")
 endif()
 
-pybind11_add_module(exafmm python/exafmm.cpp ${COMMON_SOURCES})
+pybind11_add_module(exafmm python/exafmm.cpp)
 target_link_libraries (exafmm PRIVATE ${BLAS_LIBRARIES}
                               PRIVATE ${LAPACK_LIBRARIES}
                               PRIVATE ${FFTW_LIBRARIES})

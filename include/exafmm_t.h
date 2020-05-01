@@ -86,9 +86,7 @@ namespace exafmm_t {
    */
   template <typename T>
   struct Body {
-#if SORT_BACK
     int ibody;                             //!< Initial body numbering for sorting back
-#endif
     vec3 X;                                //!< Coordinates
     T q;                                   //!< Charge
     T p;                                   //!< Potential
@@ -120,10 +118,8 @@ namespace exafmm_t {
     std::vector<Node*> M2P_list;                //!< Vector of pointers to nodes in M2P interaction list
     std::vector<Node*> P2P_list;                //!< Vector of pointers to nodes in P2P interaction list
     std::vector<Node*> M2L_list;                //!< Vector of pointers to nodes in M2L interaction list
-#if SORT_BACK
     std::vector<int> isrcs;                     //!< Vector of initial source numbering
     std::vector<int> itrgs;                     //!< Vector of initial target numbering
-#endif
     RealVec src_coord;                          //!< Vector of coordinates of sources in the node
     RealVec trg_coord;                          //!< Vector of coordinates of targets in the node
     std::vector<T> src_value;                   //!< Vector of charges of sources in the node
@@ -147,8 +143,8 @@ namespace exafmm_t {
   };
 
   // Relative coordinates and interaction lists
-  extern std::vector<std::vector<ivec3>> REL_COORD;  //!< Vector of possible relative coordinates (inner) of each interaction type (outer)
-  extern std::vector<std::vector<int>> HASH_LUT;     //!< Vector of hash Lookup tables (inner) of relative positions for each interaction type (outer)
-  extern std::vector<std::vector<int>> M2L_INDEX_MAP;  //!< [M2L_relpos_idx][octant] -> M2L_Helper_relpos_idx
+  std::vector<std::vector<ivec3>> REL_COORD;  //!< Vector of possible relative coordinates (inner) of each interaction type (outer)
+  std::vector<std::vector<int>> HASH_LUT;     //!< Vector of hash Lookup tables (inner) of relative positions for each interaction type (outer)
+  std::vector<std::vector<int>> M2L_INDEX_MAP;  //!< [M2L_relpos_idx][octant] -> M2L_Helper_relpos_idx
 }
 #endif

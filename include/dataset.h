@@ -111,11 +111,9 @@ namespace exafmm_t {
       default:
         fprintf(stderr, "Unknown data distribution %s\n", distribution);
     }
-#if SORT_BACK
     for (int i=0; i<numBodies; ++i) {
       bodies[i].ibody = i;
     }
-#endif
     return bodies;
   }
 

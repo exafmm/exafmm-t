@@ -75,18 +75,14 @@ namespace exafmm_t {
       int octant = (x[0] > X[0]) + ((x[1] > X[1]) << 1) + ((x[2] > X[2]) << 2);
       buffer[counter[octant]].X = bodies[i].X;
       buffer[counter[octant]].q = bodies[i].q;
-#if SORT_BACK
       buffer[counter[octant]].ibody = bodies[i].ibody;
-#endif
       counter[octant]++;
     }
     // copy sorted bodies in buffer back to bodies
     for (int i=begin; i<end; ++i) {
       bodies[i].X = buffer[i-begin].X;
       bodies[i].q = buffer[i-begin].q;
-#if SORT_BACK
       bodies[i].ibody = buffer[i-begin].ibody;
-#endif
     }
   }
 
@@ -123,18 +119,14 @@ namespace exafmm_t {
         for (int d=0; d<3; ++d) {
           node->src_coord.push_back(B->X[d]);
         }
-#if SORT_BACK
         node->isrcs.push_back(B->ibody);
-#endif
         node->src_value.push_back(B->q);
       }
       for (Body<T>* B=first_target; B<first_target+node->ntrgs; ++B) {
         for (int d=0; d<3; ++d) {
           node->trg_coord.push_back(B->X[d]);
         }
-#if SORT_BACK
         node->itrgs.push_back(B->ibody);
-#endif
       }
       return;
     }
