@@ -4,7 +4,6 @@
 #include "build_tree.h"
 #endif
 #include "build_list.h"
-#include "config.h"
 #include "dataset.h"
 #include "laplace.h"
 
