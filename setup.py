@@ -70,7 +70,7 @@ class BuildExt(build_ext):
     """A custom build extension for adding compiler-specific options."""
     c_opts = {
         'msvc': ['/EHsc'],
-        'unix': ['-fopenmp', '-DNON_ADAPTIVE', '-march=native', '-O2'],
+        'unix': ['-fopenmp', '-march=native', '-O2'],
     }
     l_opts = {
         'msvc': [],
