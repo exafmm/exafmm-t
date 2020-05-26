@@ -481,11 +481,11 @@ PYBIND11_MODULE(exafmm, m) {
 
   // init_sources function
   m0.def("init_sources",
-         py::overload_cast<py::array_t<real_t>, py::array_t<real_t>>(&init_sources),
+         (Bodies<real_t> (*)(py::array_t<real_t>, py::array_t<real_t>)) &init_sources,
          "initialize sources");
   
   m1.def("init_sources",
-         py::overload_cast<py::array_t<real_t>, py::array_t<complex_t>>(&init_sources),
+         (Bodies<complex_t> (*)(py::array_t<real_t>, py::array_t<complex_t>)) &init_sources,
          "initialize sources");
   
   m2.attr("init_sources") = m0.attr("init_sources");
