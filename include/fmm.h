@@ -303,21 +303,21 @@ namespace exafmm_t {
         std::vector<size_t> interaction_offset_f;
         std::vector<size_t> interaction_count_offset;
         for (size_t i=0; i<src_nodes.size(); i++) {
-          src_nodes[i]->idx_M2L = i;  // node_id: node's index in nodes_in list
+          src_nodes[i]->idx_M2L = i;  // node_id: node's index in src_nodes list
         }
-        size_t n_blk1 = trg_nodes[l].size() * sizeof(real_t) / CACHE_SIZE;
-        if (n_blk1==0) n_blk1 = 1;
+        size_t nblk_trg = trg_nodes[l].size() * sizeof(real_t) / CACHE_SIZE;
+        if (nblk_trg==0) nblk_trg = 1;
         size_t interaction_count_offset_ = 0;
         size_t fft_size = 2 * NCHILD * this->nfreq;
-        for (size_t blk1=0; blk1<n_blk1; blk1++) {
-          size_t blk1_start=(trg_nodes[l].size()* blk1   )/n_blk1;
-          size_t blk1_end  =(trg_nodes[l].size()*(blk1+1))/n_blk1;
+        for (size_t iblk_trg=0; iblk_trg<nblk_trg; iblk_trg++) {
+          size_t blk_start = (trg_nodes[l].size()* iblk_trg   ) / nblk_trg;
+          size_t blk_end   = (trg_nodes[l].size()*(iblk_trg+1)) / nblk_trg;
           for (int k=0; k<npos; k++) {
-            for (size_t i=blk1_start; i<blk1_end; i++) {
+            for (size_t i=blk_start; i<blk_end; i++) {
               NodePtrs<T>& M2L_list = trg_nodes[l][i]->M2L_list;
               if (M2L_list[k]) {
-                interaction_offset_f.push_back(M2L_list[k]->idx_M2L * fft_size);   // node_in's displacement in fft_in
-                interaction_offset_f.push_back(        i           * fft_size);   // node_out's displacement in fft_out
+                interaction_offset_f.push_back(M2L_list[k]->idx_M2L * fft_size);   // src_node's displacement in fft_in
+                interaction_offset_f.push_back(        i           * fft_size);   // trg_node's displacement in fft_out
                 interaction_count_offset_++;
               }
             }
@@ -338,10 +338,11 @@ namespace exafmm_t {
       AlignedVec zero_vec1(fft_size, 0.);
 
       size_t npos = matrix_M2L.size();
-      size_t blk1_cnt = interaction_count_offset.size()/npos;
+      size_t nblk_inter = interaction_count_offset.size();   // num of blocks of interactions
+      size_t nblk_trg = nblk_inter / npos;                   // num of blocks based on trg_nodes
       int BLOCK_SIZE = CACHE_SIZE * 2 / sizeof(real_t);
-      std::vector<real_t*> IN_(BLOCK_SIZE*blk1_cnt*npos);
-      std::vector<real_t*> OUT_(BLOCK_SIZE*blk1_cnt*npos);
+      std::vector<real_t*> IN_(BLOCK_SIZE*nblk_inter);
+      std::vector<real_t*> OUT_(BLOCK_SIZE*nblk_inter);
 
       // initialize fft_out with zero
 #pragma omp parallel for
@@ -350,30 +351,30 @@ namespace exafmm_t {
       }
       
 #pragma omp parallel for
-      for (size_t interac_blk1=0; interac_blk1<blk1_cnt*npos; interac_blk1++) {
-        size_t interaction_count_offset0 = (interac_blk1==0?0:interaction_count_offset[interac_blk1-1]);
-        size_t interaction_count_offset1 =                    interaction_count_offset[interac_blk1  ] ;
-        size_t interac_cnt  = interaction_count_offset1-interaction_count_offset0;
-        for (size_t j=0; j<interac_cnt; j++) {
-          IN_ [BLOCK_SIZE*interac_blk1 +j] = &fft_in[interaction_offset_f[(interaction_count_offset0+j)*2+0]];
-          OUT_[BLOCK_SIZE*interac_blk1 +j] = &fft_out[interaction_offset_f[(interaction_count_offset0+j)*2+1]];
+      for (size_t iblk_inter=0; iblk_inter<nblk_inter; iblk_inter++) {
+        size_t interaction_count_offset0 = (iblk_inter==0 ? 0 : interaction_count_offset[iblk_inter-1]);
+        size_t interaction_count_offset1 = interaction_count_offset[iblk_inter];
+        size_t interaction_count = interaction_count_offset1 - interaction_count_offset0;
+        for (size_t j=0; j<interaction_count; j++) {
+          IN_ [BLOCK_SIZE*iblk_inter+j] = &fft_in[interaction_offset_f[(interaction_count_offset0+j)*2+0]];
+          OUT_[BLOCK_SIZE*iblk_inter+j] = &fft_out[interaction_offset_f[(interaction_count_offset0+j)*2+1]];
         }
-        IN_ [BLOCK_SIZE*interac_blk1 +interac_cnt] = &zero_vec0[0];
-        OUT_[BLOCK_SIZE*interac_blk1 +interac_cnt] = &zero_vec1[0];
+        IN_ [BLOCK_SIZE*iblk_inter+interaction_count] = &zero_vec0[0];
+        OUT_[BLOCK_SIZE*iblk_inter+interaction_count] = &zero_vec1[0];
       }
 
-      for (size_t blk1=0; blk1<blk1_cnt; blk1++) {
+      for (size_t iblk_trg=0; iblk_trg<nblk_trg; iblk_trg++) {
 #pragma omp parallel for
         for (int k=0; k<this->nfreq; k++) {
-          for (size_t mat_indx=0; mat_indx< npos; mat_indx++) {
-            size_t interac_blk1 = blk1*npos+mat_indx;
-            size_t interaction_count_offset0 = (interac_blk1==0?0:interaction_count_offset[interac_blk1-1]);
-            size_t interaction_count_offset1 =                    interaction_count_offset[interac_blk1  ] ;
-            size_t interac_cnt  = interaction_count_offset1-interaction_count_offset0;
-            real_t** IN = &IN_[BLOCK_SIZE*interac_blk1];
-            real_t** OUT= &OUT_[BLOCK_SIZE*interac_blk1];
-            real_t* M = &matrix_M2L[mat_indx][k*2*NCHILD*NCHILD]; // k-th freq's (row) offset in matrix_M2L
-            for (size_t j=0; j<interac_cnt; j+=2) {
+          for (size_t ipos=0; ipos<npos; ipos++) {
+            size_t iblk_inter = iblk_trg*npos + ipos;
+            size_t interaction_count_offset0 = (iblk_inter==0 ? 0 : interaction_count_offset[iblk_inter-1]);
+            size_t interaction_count_offset1 = interaction_count_offset[iblk_inter];
+            size_t interaction_count = interaction_count_offset1 - interaction_count_offset0;
+            real_t** IN = &IN_[BLOCK_SIZE*iblk_inter];
+            real_t** OUT= &OUT_[BLOCK_SIZE*iblk_inter];
+            real_t* M = &matrix_M2L[ipos][k*2*NCHILD*NCHILD]; // k-th freq's (row) offset in matrix_M2L
+            for (size_t j=0; j<interaction_count; j+=2) {
               real_t* M_   = M;
               real_t* IN0  = IN [j+0] + k*NCHILD*2;   // go to k-th freq chunk
               real_t* IN1  = IN [j+1] + k*NCHILD*2;
