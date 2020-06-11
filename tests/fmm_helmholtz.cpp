@@ -14,9 +14,7 @@ int main(int argc, char **argv) {
   print_divider("Parameters");
   args.print();
 
-#if HAVE_OPENMP
   omp_set_num_threads(args.threads);
-#endif
 
   print_divider("Time");
   Bodies<complex_t> sources = init_sources<complex_t>(args.numBodies, args.distribution, 0);

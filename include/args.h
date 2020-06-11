@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <iostream>
 #include <getopt.h>
+#include <omp.h>
 
 namespace exafmm_t {
   static struct option long_options[] = {
@@ -70,7 +71,7 @@ namespace exafmm_t {
       maxlevel(5),
       numBodies(1000000),
       P(4),
-      threads(16) {
+      threads(omp_get_max_threads()) {
       while (1) {
         int option_index;
         int c = getopt_long(argc, argv, "c:d:k:l:n:P:T:", long_options, &option_index);

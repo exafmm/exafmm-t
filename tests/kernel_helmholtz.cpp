@@ -8,9 +8,7 @@ using namespace exafmm_t;
 
 int main(int argc, char **argv) {
   Args args(argc, argv);
-#if HAVE_OPENMP
   omp_set_num_threads(args.threads);
-#endif
 
   // create fmm instance
   args.k = 0.1;
