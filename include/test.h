@@ -2,19 +2,15 @@
 #define test_h
 #include <cassert>
 #include "exafmm_t.h"
+#include "fmm_base.h"
 
 namespace exafmm_t {
   //! A derived FMM class, assuming that all sources have a unit charge. Kernel functions only compute monopoles. This is used for testing tree and list construction.
-  class TestFMM : public FMM {
-    using Body_t = Body<real_t>;
-    using Bodies_t = Bodies<real_t>;
-    using Node_t = Node<real_t>;
-    using Nodes_t = Nodes<real_t>;
-    using NodePtrs_t = NodePtrs<real_t>;
- 
+  template <typename T>
+  class DummyFmm : public FmmBase<T> {
   public:
-    TestFMM() {}
-    TestFMM(int ncrit_) { p = 1; nsurf = 1; ncrit = ncrit_;}
+    DummyFmm() {}
+    DummyFmm(int ncrit_) { this->p = 1; this->nsurf = 1; this->ncrit = ncrit_;}
 
     /**
      * @brief Given the octant of a node, return a triplet's relative postion to its parent
@@ -32,16 +28,16 @@ namespace exafmm_t {
     } 
 
     //! Dummy P2M operator.
-    void P2M(NodePtrs_t& leafs) {
+    void P2M(NodePtrs<T>& leafs) {
 #pragma omp parallel for
       for(size_t i=0; i<leafs.size(); ++i) {
-        Node_t* leaf = leafs[i];
+        Node<T>* leaf = leafs[i];
         leaf->up_equiv[0] += leaf->nsrcs;
       }
     }
 
     //! Dummy M2M operator.
-    void M2M(Node_t* node) {
+    void M2M(Node<T>* node) {
       if(node->is_leaf) return;
       for(int octant=0; octant<8; ++octant) {  
         if(node->children[octant])
@@ -51,24 +47,25 @@ namespace exafmm_t {
 #pragma omp taskwait
       for(int octant=0; octant<8; octant++) {
         if(node->children[octant]) {
-          Node_t* child = node->children[octant];
+          Node<T>* child = node->children[octant];
           node->up_equiv[0] += child->up_equiv[0];
         }
       }
     }
 
     //! Dummy M2L operator.
-    void M2L(NodePtrs_t& nonleafs) {
+    void M2L(NodePtrs<T>& nonleafs) {
 #pragma omp parallel for schedule(dynamic)
       for(size_t i=0; i<nonleafs.size(); ++i) {
-        Node_t* trg_parent = nonleafs[i];
-        NodePtrs_t& M2L_list = trg_parent->M2L_list;
+        Node<T>* trg_parent = nonleafs[i];
+        NodePtrs<T>& M2L_list = trg_parent->M2L_list;
         for(size_t j=0; j<M2L_list.size(); ++j) {
-          Node_t* src_parent = M2L_list[j];
+          Node<T>* src_parent = M2L_list[j];
           if(src_parent) {
             // find src_parent's relative position to trg_parent
-            NodePtrs_t::iterator it = std::find(trg_parent->colleagues.begin(),
-                                              trg_parent->colleagues.end(), src_parent);
+            // NodePtrs<T>::iterator
+            auto it = std::find(trg_parent->colleagues.begin(),
+                                trg_parent->colleagues.end(), src_parent);
             assert(it != trg_parent->colleagues.end());   // src_parent has to be trg_parent's colleague
             int colleague_idx = it - trg_parent->colleagues.begin();
             ivec3 parent_rel_coord;
@@ -76,10 +73,10 @@ namespace exafmm_t {
             parent_rel_coord[1] = (colleague_idx/3) % 3 - 1;
             parent_rel_coord[2] = (colleague_idx/9) % 3 - 1;
             for(int src_octant=0; src_octant<8; ++src_octant) {
-              Node_t* src_child = src_parent->children[src_octant];
+              Node<T>* src_child = src_parent->children[src_octant];
               ivec3 src_child_coord = octant2coord(src_octant);
               for(int trg_octant=0; trg_octant<8; ++trg_octant) {
-                Node_t* trg_child = trg_parent->children[trg_octant];
+                Node<T>* trg_child = trg_parent->children[trg_octant];
                 ivec3 trg_child_coord = octant2coord(trg_octant);
                 if(src_child && trg_child) {
                   ivec3 rel_coord = parent_rel_coord*2 + (src_child_coord - trg_child_coord) / 2;  // calculate relative coords between children
@@ -99,10 +96,10 @@ namespace exafmm_t {
     }
 
     //! Dummy P2L operator.
-    void P2L(Nodes_t& nodes) {
+    void P2L(Nodes<T>& nodes) {
 #pragma omp parallel for schedule(dynamic)
       for(size_t i=0; i<nodes.size(); ++i) {
-        NodePtrs_t& P2L_list = nodes[i].P2L_list;
+        NodePtrs<T>& P2L_list = nodes[i].P2L_list;
         for(size_t j=0; j<P2L_list.size(); ++j) {
           nodes[i].dn_equiv[0] += P2L_list[j]->nsrcs;
         }
@@ -110,10 +107,10 @@ namespace exafmm_t {
     }
 
     //! Dummy M2P operator.
-    void M2P(NodePtrs_t& leafs) {
+    void M2P(NodePtrs<T>& leafs) {
 #pragma omp parallel for schedule(dynamic)
       for(size_t i=0; i<leafs.size(); ++i) {
-        NodePtrs_t& M2P_list = leafs[i]->M2P_list;
+        NodePtrs<T>& M2P_list = leafs[i]->M2P_list;
         for(size_t j=0; j<M2P_list.size(); ++j) {
           leafs[i]->trg_value[0] += M2P_list[j]->up_equiv[0];
         }
@@ -121,11 +118,11 @@ namespace exafmm_t {
     }
 
     //! Dummy L2L operator.
-    void L2L(Node_t* node) {
+    void L2L(Node<T>* node) {
       if(node->is_leaf) return;
       for(int octant=0; octant<8; octant++) {
         if(node->children[octant]) {
-          Node_t* child = node->children[octant];
+          Node<T>* child = node->children[octant];
           child->dn_equiv[0] += node->dn_equiv[0];
         }
       }
@@ -138,25 +135,59 @@ namespace exafmm_t {
     }
 
     //! Dummy L2P operator.
-    void L2P(NodePtrs_t& leafs) {
+    void L2P(NodePtrs<T>& leafs) {
 #pragma omp parallel for
       for(size_t i=0; i<leafs.size(); ++i) {
-        Node_t* leaf = leafs[i];
+        Node<T>* leaf = leafs[i];
         leaf->trg_value[0] += leaf->dn_equiv[0];
       }
     }
 
     //! Dummy P2P operator.
-    void P2P(NodePtrs_t& leafs) {
+    void P2P(NodePtrs<T>& leafs) {
 #pragma omp parallel for schedule(dynamic)
       for(size_t i=0; i<leafs.size(); ++i) {
-        Node_t* leaf = leafs[i];
-        NodePtrs_t& P2P_list = leaf->P2P_list;
+        Node<T>* leaf = leafs[i];
+        NodePtrs<T>& P2P_list = leaf->P2P_list;
         for(size_t j=0; j<P2P_list.size(); ++j) {
           leaf->trg_value[0] += P2P_list[j]->nsrcs;
         }
       }
     }
+
+    // below are the virtual methods define in FmmBase class
+    void potential_P2P(RealVec& src_coord, std::vector<T>& src_value,
+                       RealVec& trg_coord, std::vector<T>& trg_value) {}
+
+
+    void gradient_P2P(RealVec& src_coord, std::vector<T>& src_value,
+                      RealVec& trg_coord, std::vector<T>& trg_value) {}
+
+    void M2L(Nodes<T>& nodes) {}
   };
+
+  /**
+   * @brief A helper function to build the tree needed in kernel test.
+   *
+   * @tparam T Real or complex type.
+   * @param parent Pointer to parent node.
+   * @param first_child Pointer to first child node.
+   */
+  template <typename T>
+  void set_children(Node<T>* parent, Node<T>* first_child) {
+    parent->is_leaf = false;
+    for (int octant=0; octant<8; ++octant) {
+      Node<T>* child = first_child + octant;
+      child->octant = octant;
+      child->parent = parent;
+      child->level = parent->level + 1;
+      child->x = parent->x;
+      child->r = parent->r / 2;
+      for (int d=0; d<3; d++) {
+        child->x[d] += child->r * (((octant & 1 << d) >> d) * 2 - 1);
+      }
+      parent->children.push_back(child);
+    }
+  }
 }// end namespace
 #endif

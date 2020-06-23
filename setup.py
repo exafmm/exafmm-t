@@ -25,7 +25,7 @@ class get_pybind_include(object):
 ext_modules = [
     Extension(
         name='exafmm',
-        sources=['python/exafmm.cpp'] + glob.glob('src/*.cpp'),
+        sources=['python/exafmm.cpp'],
         include_dirs=[
             # Path to pybind11 headers
             get_pybind_include(),
@@ -53,11 +53,11 @@ def has_flag(compiler, flagname):
 
 
 def cpp_flag(compiler):
-    """Return the -std=c++[11/14/17] compiler flag.
+    """Return the -std=c++[11/14] compiler flag.
 
     The newer version is prefered over c++11 (when it is available).
     """
-    flags = ['-std=c++17', '-std=c++14', '-std=c++11']
+    flags = ['-std=c++14', '-std=c++11']
 
     for flag in flags:
         if has_flag(compiler, flag): return flag
@@ -70,11 +70,11 @@ class BuildExt(build_ext):
     """A custom build extension for adding compiler-specific options."""
     c_opts = {
         'msvc': ['/EHsc'],
-        'unix': ['-fopenmp', '-DSORT_BACK', '-mavx', '-DNON_ADAPTIVE'],
+        'unix': ['-fopenmp', '-march=native', '-O2'],
     }
     l_opts = {
         'msvc': [],
-        'unix': ['-lfftw3f', '-lfftw3', '-lopenblas'],
+        'unix': ['-lfftw3f', '-lfftw3', '-lopenblas', '-fopenmp'],
     }
 
     # darwin not supported yet

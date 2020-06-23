@@ -26,11 +26,13 @@ namespace exafmm_t {
 #define fft_plan_dft fftwf_plan_dft
 #define fft_plan_many_dft fftwf_plan_many_dft
 #define fft_execute_dft fftwf_execute_dft
+#define fft_plan_dft_r2c fftwf_plan_dft_r2c
 #define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c
 #define fft_plan_many_dft_c2r fftwf_plan_many_dft_c2r
 #define fft_execute_dft_r2c fftwf_execute_dft_r2c
 #define fft_execute_dft_c2r fftwf_execute_dft_c2r
 #define fft_destroy_plan fftwf_destroy_plan
+#define fft_flops fftwf_flops
 #else
   typedef double real_t;                       //!< Real number type
   const real_t EPS = 1e-16;
@@ -39,11 +41,13 @@ namespace exafmm_t {
 #define fft_plan_dft fftw_plan_dft
 #define fft_plan_many_dft fftw_plan_many_dft
 #define fft_execute_dft fftw_execute_dft
+#define fft_plan_dft_r2c fftw_plan_dft_r2c
 #define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c
 #define fft_plan_many_dft_c2r fftw_plan_many_dft_c2r
 #define fft_execute_dft_r2c fftw_execute_dft_r2c
 #define fft_execute_dft_c2r fftw_execute_dft_c2r
 #define fft_destroy_plan fftw_destroy_plan
+#define fft_flops fftw_flops
 #endif
 
   const real_t PI = M_PI;
@@ -82,9 +86,7 @@ namespace exafmm_t {
    */
   template <typename T>
   struct Body {
-#if SORT_BACK
     int ibody;                             //!< Initial body numbering for sorting back
-#endif
     vec3 X;                                //!< Coordinates
     T q;                                   //!< Charge
     T p;                                   //!< Potential
@@ -116,10 +118,8 @@ namespace exafmm_t {
     std::vector<Node*> M2P_list;                //!< Vector of pointers to nodes in M2P interaction list
     std::vector<Node*> P2P_list;                //!< Vector of pointers to nodes in P2P interaction list
     std::vector<Node*> M2L_list;                //!< Vector of pointers to nodes in M2L interaction list
-#if SORT_BACK
     std::vector<int> isrcs;                     //!< Vector of initial source numbering
     std::vector<int> itrgs;                     //!< Vector of initial target numbering
-#endif
     RealVec src_coord;                          //!< Vector of coordinates of sources in the node
     RealVec trg_coord;                          //!< Vector of coordinates of targets in the node
     std::vector<T> src_value;                   //!< Vector of charges of sources in the node
@@ -142,25 +142,9 @@ namespace exafmm_t {
     std::vector<size_t> interaction_count_offset;
   };
 
-  //! Base FMM class
-  struct FMM {
-    int p;                 //!< Order of expansion
-    int nsurf;             //!< Number of points on equivalent / check surface
-    int ncrit;             //!< Max number of bodies per leaf
-    int depth;             //!< Depth of the tree
-    real_t r0;             //!< Half of the side length of the bounding box
-    vec3 x0;               //!< Coordinates of the center of root box
-    std::string filename;  //!< File name of the precomputation matrices
-    bool is_precomputed;   //!< Whether the matrix file is found
-
-    FMM() {}
-    FMM(int p_, int ncrit_, int depth_) : p(p_), ncrit(ncrit_), depth(depth_) {
-      nsurf = 6*(p_-1)*(p_-1) + 2;
-    }
-  };
-
   // Relative coordinates and interaction lists
-  extern std::vector<std::vector<ivec3>> REL_COORD;  //!< Vector of possible relative coordinates (inner) of each interaction type (outer)
-  extern std::vector<std::vector<int>> HASH_LUT;     //!< Vector of hash Lookup tables (inner) of relative positions for each interaction type (outer)
+  std::vector<std::vector<ivec3>> REL_COORD;  //!< Vector of possible relative coordinates (inner) of each interaction type (outer)
+  std::vector<std::vector<int>> HASH_LUT;     //!< Vector of hash Lookup tables (inner) of relative positions for each interaction type (outer)
+  std::vector<std::vector<int>> M2L_INDEX_MAP;  //!< [M2L_relpos_idx][octant] -> M2L_Helper_relpos_idx
 }
 #endif

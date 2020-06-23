@@ -4,7 +4,6 @@
 #include "build_tree.h"
 #endif
 #include "build_list.h"
-#include "config.h"
 #include "dataset.h"
 #include "laplace.h"
 
@@ -15,16 +14,14 @@ int main(int argc, char **argv) {
   print_divider("Parameters");
   args.print();
 
-#if HAVE_OPENMP
   omp_set_num_threads(args.threads);
-#endif
 
   print_divider("Time");
-  start("Total");
   Bodies<real_t> sources = init_sources<real_t>(args.numBodies, args.distribution, 0);
   Bodies<real_t> targets = init_targets<real_t>(args.numBodies, args.distribution, 5);
 
-  LaplaceFMM fmm(args.P, args.ncrit, args.maxlevel);
+  start("Total");
+  LaplaceFmm fmm(args.P, args.ncrit, args.maxlevel);
 
   start("Build Tree");
   get_bounds(sources, targets, fmm.x0, fmm.r0);
@@ -48,22 +45,28 @@ int main(int argc, char **argv) {
   fmm.precompute();
   stop("Precomputation");
 
+  start("M2L Setup");
   fmm.M2L_setup(nonleafs);
+  stop("M2L Setup");
+
+  start("Evaluation");
   fmm.upward_pass(nodes, leafs);
   fmm.downward_pass(nodes, leafs);
+  stop("Evaluation");
 
 #if DEBUG /* check downward check potential at leaf level*/
   for (auto dn_check : leafs[0]->dn_equiv) {
     std::cout << dn_check << std::endl;
   }
 #endif
-
   stop("Total");
+  print("Evaluation Gflop", (float)flop/1e9);
 
-  RealVec error = fmm.verify(leafs);
+  bool sample = (args.numBodies >= 10000);
+  RealVec err = fmm.verify(leafs, sample);
   print_divider("Error");
-  print("Potential Error", error[0]);
-  print("Gradient Error", error[1]);
+  print("Potential Error L2", err[0]);
+  print("Gradient Error L2", err[1]);
 
   print_divider("Tree");
   print("Root Center x", fmm.x0[0]);

@@ -1,50 +1,24 @@
 #ifndef laplace_h
 #define laplace_h
 #include "exafmm_t.h"
+#include "fmm_scale_invariant.h"
 #include "geometry.h"
 #include "intrinsics.h"
 #include "timer.h"
 
-extern "C" {
-  void sgemv_(char* trans, int* m, int* n, float* alpha, float* a, int* lda, float* x,
-              int* incx, float* beta, float* y, int* incy);
-  void dgemv_(char* trans, int* m, int* n, double* alpha, double* a, int* lda, double* x,
-              int* incx, double* beta, double* y, int* incy);
-  void sgemm_(char* transa, char* transb, int* m, int* n, int* k, float* alpha, float* a,
-              int* lda, float* b, int* ldb, float* beta, float* c, int* ldc);
-  void dgemm_(char* transa, char* transb, int* m, int* n, int* k, double* alpha, double* a,
-              int* lda, double* b, int* ldb, double* beta, double* c, int* ldc);
-  void sgesvd_(char *jobu, char *jobvt, int *m, int *n, float *a, int *lda,
-               float *s, float *u, int *ldu, float *vt, int *ldvt, float *work, int *lwork, int *info);
-  void dgesvd_(char *jobu, char *jobvt, int *m, int *n, double *a, int *lda,
-               double *s, double *u, int *ldu, double *vt, int *ldvt, double *work, int *lwork, int *info);
-}
 namespace exafmm_t {
   //! A derived FMM class for Laplace kernel.
-  class LaplaceFMM : public FMM {
-    using Body_t = Body<real_t>;
-    using Bodies_t = Bodies<real_t>;
-    using Node_t = Node<real_t>;
-    using Nodes_t = Nodes<real_t>;
-    using NodePtrs_t = NodePtrs<real_t>;
-
+  class LaplaceFmm : public FmmScaleInvariant<real_t> {
   public:
-    RealVec matrix_UC2E_U;  //!< First component of the pseudo-inverse of upward check to upward equivalent kernel matrix.
-    RealVec matrix_UC2E_V;  //!< Second component of the pseudo-inverse of upward check to upward equivalent kernel matrix.
-    RealVec matrix_DC2E_U;  //!< First component of the pseudo-inverse of downward check to downward equivalent kernel matrix.
-    RealVec matrix_DC2E_V;  //!< Second component of the pseudo-inverse of downward check to downward equivalent kernel matrix.
-    std::vector<RealVec> matrix_M2M;     //!< The pseudo-inverse of M2M kernel matrix.
-    std::vector<RealVec> matrix_L2L;     //!< The pseudo-inverse of L2L kernel matrix.
-    std::vector<AlignedVec> matrix_M2L;  //!< The pseudo-inverse of M2L kernel matrix.
-    M2LData m2ldata;
-
-    LaplaceFMM() {}
-    LaplaceFMM(int p_, int ncrit_, int depth_) : FMM(p_, ncrit_, depth_) {}
-
-    void gemv(int m, int n, real_t* A, real_t* x, real_t* y);
-    void gemm(int m, int n, int k, real_t* A, real_t* B, real_t* C);
-    void svd(int m, int n, real_t* A, real_t* S, real_t* U, real_t* VT);
-    RealVec transpose(RealVec& vec, int m, int n);
+    LaplaceFmm() {}
+    LaplaceFmm(int p_, int ncrit_, int depth_, std::string filename_=std::string()) :
+      FmmScaleInvariant<real_t>(p_, ncrit_, depth_, filename_)
+    {
+      if (this->filename.empty()) {
+        this->filename = std::string("laplace_") + (std::is_same<real_t, float>::value ? "f" : "d")
+                       + std::string("_p") + std::to_string(p) + std::string(".dat");
+      }
+    }
 
     /**
      * @brief Compute potentials at targets induced by sources directly.
@@ -54,7 +28,56 @@ namespace exafmm_t {
      * @param trg_coord Vector of coordinates of targets.
      * @param trg_value Vector of potentials of targets.
      */
-    void potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
+    void potential_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+      simdvec zero(real_t(0));
+      real_t newton_coef = 16;   // comes from Newton's method in simd rsqrt function
+      simdvec coef(real_t(1.0/(4*PI*newton_coef)));
+      int nsrcs = src_coord.size() / 3;
+      int ntrgs = trg_coord.size() / 3;
+      int t;
+      for (t=0; t+NSIMD<=ntrgs; t+=NSIMD) {
+        simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
+        simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
+        simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
+        simdvec tv(zero);
+        for (int s=0; s<nsrcs; s++) {
+          simdvec sx(src_coord[3*s+0]);
+          sx -= tx;
+          simdvec sy(src_coord[3*s+1]);
+          sy -= ty;
+          simdvec sz(src_coord[3*s+2]);
+          sz -= tz;
+          simdvec sv(src_value[s]);
+          simdvec r2(zero);
+          r2 += sx * sx;
+          r2 += sy * sy;
+          r2 += sz * sz;
+          simdvec invr = rsqrt(r2);
+          invr &= r2 > zero;
+          tv += invr * sv;
+        }
+        tv *= coef;
+        for (int m=0; m<NSIMD && t+m<ntrgs; m++) {
+          trg_value[t+m] += tv[m];
+        }
+      }
+      for (; t<ntrgs; t++) {
+        real_t potential = 0;
+        for (int s=0; s<nsrcs; ++s) {
+          vec3 dx = 0;
+          for (int d=0; d<3; d++) {
+            dx[d] += trg_coord[3*t+d] - src_coord[3*s+d];
+          }
+          real_t r2 = norm(dx);
+          if (r2!=0) {
+            real_t invr = 1 / std::sqrt(r2);
+            potential += src_value[s] * invr;
+          }
+        }
+        trg_value[t] += potential / (4*PI);
+      }
+      add_flop((long long)ntrgs*(long long)nsrcs*(12+4*2));
+    }
 
     /**
      * @brief Compute potentials and gradients at targets induced by sources directly.
@@ -64,96 +87,80 @@ namespace exafmm_t {
      * @param trg_coord Vector of coordinates of targets.
      * @param trg_value Vector of potentials of targets.
      */
-    void gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value);
-
-    /**
-     * @brief Create a kernel matrix.
-     * 
-     * @param r_src Pointer to coordinates of sources.
-     * @param src_cnt Number of sources.
-     * @param r_trg Pointer to coordinates of targets.
-     * @param trg_cnt Number of targets.
-     * @param k_out Pointer to kernel matrix.
-     */
-    void kernel_matrix(real_t* r_src, int src_cnt, real_t* r_trg, int trg_cnt, real_t* k_out);
-  
-    //! Initialize the precomputation matrices.
-    void initialize_matrix();
-
-    //! Pre-compute matrix_UC2E_U, matrix_UC2E_V, matrix_DC2E_U and matrix_DC2E_U.
-    void precompute_check2equiv();
-
-    //! Pre-compute matrix_M2M and matrix_L2L.
-    void precompute_M2M();
-
-    //! Pre-compute matrix_M2L.
-    void precompute_M2L(std::vector<std::vector<int>>& parent2child);
-
-    //! Load precomputation matrices from saved file to memory.
-    bool load_matrix();
-
-    //! Save precomputation matrices to file.
-    void save_matrix();
-
-    //! Pre-compute all matrices.
-    void precompute();
-
-    //! P2M operator.
-    void P2M(NodePtrs_t& leafs);
-
-    //! M2M operator.
-    void M2M(Node_t* node);
-
-    //! L2L operator.
-    void L2L(Node_t* node);
-
-    //! L2P operator.
-    void L2P(NodePtrs_t& leafs);
-
-    //! P2L operator.
-    void P2L(Nodes_t& nodes);
-
-    //! M2P operator.
-    void M2P(NodePtrs_t& leafs);
-
-    //! P2P operator.
-    void P2P(NodePtrs_t& leafs);
-
-    void M2L_setup(NodePtrs_t& nonleafs);
-
-    void hadamard_product(std::vector<size_t>& interac_dsp, std::vector<size_t>& interac_vec,
-                          AlignedVec& fft_in, AlignedVec& fft_out);
-
-    void fft_up_equiv(std::vector<size_t>& fft_offset, RealVec& all_up_equiv, AlignedVec& fft_in);
-
-    void ifft_dn_check(std::vector<size_t>& ifft_offset, RealVec& ifft_scal, AlignedVec& fft_out, RealVec& all_dn_equiv);
-    
-    //! M2L operator.
-    void M2L(Nodes_t& nodes);
-    
-    /**
-     * @brief Evaluate upward equivalent charges for all nodes in a post-order traversal.
-     * 
-     * @param nodes Vector of all nodes.
-     * @param leafs Vector of pointers to leaf nodes.
-     */
-    void upward_pass(Nodes_t& nodes, NodePtrs_t& leafs);
-
-    /**
-     * @brief Evaluate potentials and gradients for all targets in a pre-order traversal.
-     * 
-     * @param nodes Vector of all nodes.
-     * @param leafs Vector of pointers to leaf nodes.
-     */
-    void downward_pass(Nodes_t& nodes, NodePtrs_t& leafs);
-
-    /**
-     * @brief Calculate the relative error of potentials and gradients in L2-norm.
-     * 
-     * @param leafs Vector of pointers to leaf nodes.
-     * @return RealVec A two-element vector: potential error and gradient error.
-     */
-    RealVec verify(NodePtrs_t& leafs);
+    void gradient_P2P(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+      simdvec zero(real_t(0));
+      real_t newton_coef = 16;   // comes from Newton's method in simd rsqrt function
+      simdvec coefp(real_t(1.0/(4*PI*newton_coef)));
+      simdvec coefg(real_t(1.0/(4*PI*newton_coef*newton_coef*newton_coef)));
+      int nsrcs = src_coord.size() / 3;
+      int ntrgs = trg_coord.size() / 3;
+      int t;
+      for (t=0; t+NSIMD<=ntrgs; t+=NSIMD) {
+        simdvec tx(&trg_coord[3*t+0], 3*(int)sizeof(real_t));
+        simdvec ty(&trg_coord[3*t+1], 3*(int)sizeof(real_t));
+        simdvec tz(&trg_coord[3*t+2], 3*(int)sizeof(real_t));
+        simdvec tv0(zero);
+        simdvec tv1(zero);
+        simdvec tv2(zero);
+        simdvec tv3(zero);
+        for (int s=0; s<nsrcs; s++) {
+          simdvec sx(src_coord[3*s+0]);
+          sx -= tx;
+          simdvec sy(src_coord[3*s+1]);
+          sy -= ty;
+          simdvec sz(src_coord[3*s+2]);
+          sz -= tz;
+          simdvec r2(zero);
+          r2 += sx * sx;
+          r2 += sy * sy;
+          r2 += sz * sz;
+          simdvec invr = rsqrt(r2);
+          invr &= r2 > zero;
+          simdvec invr3 = (invr*invr) * invr;
+          simdvec sv(src_value[s]);
+          tv0 += sv * invr;
+          sv *= invr3;
+          tv1 += sv * sx;
+          tv2 += sv * sy;
+          tv3 += sv * sz;
+        }
+        tv0 *= coefp;
+        tv1 *= coefg;
+        tv2 *= coefg;
+        tv3 *= coefg;
+        for (int m=0; m<NSIMD && t+m<ntrgs; m++) {
+          trg_value[0+4*(t+m)] += tv0[m];
+          trg_value[1+4*(t+m)] += tv1[m];
+          trg_value[2+4*(t+m)] += tv2[m];
+          trg_value[3+4*(t+m)] += tv3[m];
+        }
+      }
+      for (; t<ntrgs; t++) {
+        real_t potential = 0;
+        vec3 gradient = 0;
+        for (int s=0; s<nsrcs; ++s) {
+          vec3 dx = 0;
+          for (int d=0; d<3; ++d) {
+            dx[d] = trg_coord[3*t+d] - src_coord[3*s+d];
+          }
+          real_t r2 = norm(dx);
+          if (r2!=0) {
+            real_t invr2 = 1.0 / r2;
+            real_t invr = src_value[s] * std::sqrt(invr2);
+            potential += invr;
+            dx *= invr2 * invr;
+            gradient[0] += dx[0];
+            gradient[1] += dx[1];
+            gradient[2] += dx[2];
+          }
+        }
+        trg_value[4*t] += potential / (4*PI) ;
+        trg_value[4*t+1] -= gradient[0] / (4*PI);
+        trg_value[4*t+2] -= gradient[1] / (4*PI);
+        trg_value[4*t+3] -= gradient[2] / (4*PI);
+      }   
+      add_flop((long long)ntrgs*(long long)nsrcs*(20+4*2));
+    }
   };
 }  // end namespace exafmm_t
 #endif
