@@ -21,7 +21,8 @@ int main(int argc, char **argv) {
   Bodies<complex_t> targets = init_targets<complex_t>(args.numBodies, args.distribution, 5);
 
   start("Total");
-  HelmholtzFmm fmm(args.P, args.ncrit, args.maxlevel, args.k);
+  complex_t wavek(5, 10);
+  HelmholtzFmm fmm(args.P, args.ncrit, args.maxlevel, wavek);
 
   start("Build Tree");
   get_bounds(sources, targets, fmm.x0, fmm.r0);

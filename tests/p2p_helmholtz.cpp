@@ -5,9 +5,8 @@
 #include "timer.h"
 
 using namespace exafmm_t;
-real_t WAVEK;
 
-void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
+void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value, complex_t wavek) {
   complex_t I = std::complex<real_t>(0., 1.);
   int nsrcs = src_coord.size() / 3;
   int ntrgs = trg_coord.size() / 3;
@@ -22,10 +21,10 @@ void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_co
       real_t r2 = norm(dx);
       if (r2!=0) {
         real_t r = std::sqrt(r2);
-        complex_t potential_ij = std::exp(I * WAVEK * r) * src_value[j] / r;
+        complex_t potential_ij = std::exp(I * wavek * r) * src_value[j] / r;
         potential += potential_ij;
         for (int d=0; d<3; ++d) {
-          gradient[d] += (WAVEK*I/r - 1/r2) * potential_ij * dx[d];
+          gradient[d] += (wavek*I/r - 1/r2) * potential_ij * dx[d];
         }
       }
     }
@@ -36,13 +35,17 @@ void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_co
   }
 }
 
+real_t _rand() {
+  return (real_t) std::rand() / RAND_MAX;
+}
+
 int main(int argc, char **argv) {
   Args args(argc, argv);
   int n = 10001;
   std::srand(0);
 
   HelmholtzFmm fmm;
-  WAVEK = fmm.wavek;
+  fmm.wavek = complex_t(5.,10.);
   int nthreads = args.threads;
   omp_set_num_threads(nthreads);
 
@@ -52,15 +55,16 @@ int main(int argc, char **argv) {
   ComplexVec src_value(n);
   ComplexVec trg_value(4*n, 0);
   ComplexVec trg_value_simd(4*n, 0);
-  std::generate(src_coord.begin(), src_coord.end(), std::rand);
-  std::generate(trg_coord.begin(), trg_coord.end(), std::rand);
+
+  std::generate(src_coord.begin(), src_coord.end(), _rand);
+  std::generate(trg_coord.begin(), trg_coord.end(), _rand);
   std::generate(src_value.begin(), src_value.end(), []() {
-                  return complex_t(std::rand(), std::rand());
+                  return complex_t(_rand(), _rand());
                 });
 
   // direct summation
   start("non-SIMD P2P");
-  helmholtz_kernel(src_coord, src_value, trg_coord, trg_value);
+  helmholtz_kernel(src_coord, src_value, trg_coord, trg_value, fmm.wavek);
   stop("non-SIMD P2P");
 
   start("SIMD P2P Time");
@@ -86,5 +90,6 @@ int main(int argc, char **argv) {
   double threshold = std::is_same<float, real_t>::value ? 1e-6 : 1e-12;
   assert(p_err < threshold);
   assert(g_err < threshold);
+
   return 0;
 }

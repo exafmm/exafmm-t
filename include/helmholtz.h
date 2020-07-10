@@ -10,10 +10,10 @@ namespace exafmm_t {
   //! A derived FMM class for Helmholtz kernel.
   class HelmholtzFmm : public Fmm<complex_t> {
   public:
-    real_t wavek;      //!< Wave number k.
+    complex_t wavek;      //!< Wave number k.
 
     HelmholtzFmm() {}
-    HelmholtzFmm(int p_, int ncrit_, int depth_, real_t wavek_, std::string filename_=std::string()) :
+    HelmholtzFmm(int p_, int ncrit_, int depth_, complex_t wavek_, std::string filename_=std::string()) :
       Fmm<complex_t>(p_, ncrit_, depth_, filename_)
     {
       wavek = wavek_;
@@ -35,7 +35,8 @@ namespace exafmm_t {
       simdvec zero((real_t)0);
       real_t newton_coef = 16;
       simdvec coef(real_t(1.0/(4*PI*newton_coef)));
-      simdvec k(wavek/newton_coef);
+      simdvec k_real(wavek.real()/newton_coef);
+      simdvec k_imag(wavek.imag()/newton_coef);
       int nsrcs = src_coord.size() / 3;
       int ntrgs = trg_coord.size() / 3;
       int t;
@@ -62,9 +63,13 @@ namespace exafmm_t {
           simdvec invr = rsqrt(r2);   // invr = newton_coef * 1/r
           invr &= r2 > zero;
 
-          simdvec kr = k * r2 * invr;   // newton_coefs in k & invr cancel out
-          simdvec G_real = cos(kr) * invr;  // G = e^(ikr) / r
-          simdvec G_imag = sin(kr) * invr;  // invr carries newton_coef
+          simdvec r = r2 * invr;
+          simdvec kr_real = k_real * r;  // k_real * r
+          simdvec kr_imag = k_imag * r;  // k_imag * r
+          simdvec e_ikr = exp(-kr_imag); // exp(-k_imag*r)
+          // simdvec kr = k * r2 * invr;   // newton_coefs in k & invr cancel out
+          simdvec G_real = e_ikr * cos(kr_real) * invr;  // G = e^(ikr) / r
+          simdvec G_imag = e_ikr * sin(kr_real) * invr;  // invr carries newton_coef
           tv_real += sv_real*G_real - sv_imag*G_imag;  // p += G * q
           tv_imag += sv_real*G_imag + sv_imag*G_real;
         }
@@ -100,9 +105,11 @@ namespace exafmm_t {
      */
     void gradient_P2P(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value) {
       simdvec zero((real_t)0);
+      simdvec one((real_t)1);
       real_t newton_coef = 16;   // comes from Newton's method in simd rsqrt function
       simdvec coef(real_t(1.0/(4*PI*newton_coef)));
-      simdvec k(wavek/newton_coef);
+      simdvec k_real(wavek.real()/newton_coef);
+      simdvec k_imag(wavek.imag()/newton_coef);
       simdvec newton_offset(real_t(1.0/(newton_coef*newton_coef)));   // offset invr2 term
       int nsrcs = src_coord.size() / 3;
       int ntrgs = trg_coord.size() / 3;
@@ -136,16 +143,21 @@ namespace exafmm_t {
           simdvec invr = rsqrt(r2);
           invr &= r2 > zero;
 
-          simdvec kr = k * r2 * invr;   // newton_coefs in k & invr cancel out
-          simdvec G_real = cos(kr) * invr;  // G = e^(ikr) / r
-          simdvec G_imag = sin(kr) * invr;  // invr carries newton_coef
+          simdvec r = r2 * invr;
+          simdvec kr_real = k_real * r;  // k_real * r
+          simdvec kr_imag = k_imag * r;  // k_imag * r
+          simdvec e_ikr = exp(-kr_imag); // exp(-k_imag*r)
+          // simdvec kr = k * r2 * invr;   // newton_coefs in k & invr cancel out
+          simdvec G_real = e_ikr * cos(kr_real) * invr;  // G = e^(ikr) / r
+          simdvec G_imag = e_ikr * sin(kr_real) * invr;  // invr carries newton_coef
           simdvec potential_real = sv_real*G_real - sv_imag*G_imag;    // p = G * q
           simdvec potential_imag = sv_real*G_imag + sv_imag*G_real;
           tv0_real += potential_real;
           tv0_imag += potential_imag;
-          // coefg = 1/r2 - k/r*I (considering the negative sign in sx)
-          simdvec coefg_real = invr * invr * newton_offset;
-          simdvec coefg_imag = - k * invr;
+
+          // coefg = (1+k_imag*r)/r2 - k_real/r*I (considering the negative sign in sx)
+          simdvec coefg_real = (one+kr_imag) * invr * invr * newton_offset;
+          simdvec coefg_imag = - k_real * invr;
           // gradient = coefg * potential * dx
           simdvec gradient_real = coefg_real*potential_real - coefg_imag*potential_imag;
           simdvec gradient_imag = coefg_real*potential_imag + coefg_imag*potential_real;

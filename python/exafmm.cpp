@@ -457,7 +457,7 @@ PYBIND11_MODULE(exafmm, m) {
           py::arg("sample") = true)
      .def_readwrite("wavek", &exafmm_t::HelmholtzFmm::wavek)
      .def(py::init<>())
-     .def(py::init<int, int, int, real_t, std::string>(),
+     .def(py::init<int, int, int, complex_t, std::string>(),
           py::arg("p"),
           py::arg("ncrit"),
           py::arg("depth"),
