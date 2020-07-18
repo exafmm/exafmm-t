@@ -40,7 +40,8 @@ int main(int argc, char** argv) {
 #pragma omp parallel for schedule(dynamic)
   for(size_t i=0; i<leafs.size(); ++i) {
     Node<real_t>* leaf = leafs[i];
-    assert(args.numBodies == leaf->trg_value[0]);
+    if (leaf->ntrgs != 0)
+      assert(args.numBodies == leaf->trg_value[0]);
   }
   print("assertion passed!");
   return 0;

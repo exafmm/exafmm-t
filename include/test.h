@@ -110,8 +110,9 @@ namespace exafmm_t {
     void M2P(NodePtrs<T>& leafs) {
 #pragma omp parallel for schedule(dynamic)
       for(size_t i=0; i<leafs.size(); ++i) {
+        if (leafs[i]->ntrgs == 0) continue;
         NodePtrs<T>& M2P_list = leafs[i]->M2P_list;
-        for(size_t j=0; j<M2P_list.size(); ++j) {
+        for (size_t j=0; j<M2P_list.size(); ++j) {
           leafs[i]->trg_value[0] += M2P_list[j]->up_equiv[0];
         }
       }
@@ -139,6 +140,7 @@ namespace exafmm_t {
 #pragma omp parallel for
       for(size_t i=0; i<leafs.size(); ++i) {
         Node<T>* leaf = leafs[i];
+        if (leaf->ntrgs==0) continue;
         leaf->trg_value[0] += leaf->dn_equiv[0];
       }
     }
@@ -148,6 +150,7 @@ namespace exafmm_t {
 #pragma omp parallel for schedule(dynamic)
       for(size_t i=0; i<leafs.size(); ++i) {
         Node<T>* leaf = leafs[i];
+        if (leaf->ntrgs==0) continue;
         NodePtrs<T>& P2P_list = leaf->P2P_list;
         for(size_t j=0; j<P2P_list.size(); ++j) {
           leaf->trg_value[0] += P2P_list[j]->nsrcs;
