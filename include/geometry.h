@@ -196,18 +196,22 @@ namespace exafmm_t {
   
   //! Compute the relative positions for all operators and generate M2L index mapping.
   void init_rel_coord() {
-    REL_COORD.resize(Type_Count);
-    HASH_LUT.resize(Type_Count);
-    init_rel_coord(1, 1, 2, M2M_Type);
-    init_rel_coord(1, 1, 2, L2L_Type);
-    init_rel_coord(3, 3, 2, P2P0_Type);
-    init_rel_coord(1, 0, 1, P2P1_Type);
-    init_rel_coord(3, 3, 2, P2P2_Type);
-    init_rel_coord(3, 2, 1, M2L_Helper_Type);
-    init_rel_coord(1, 1, 1, M2L_Type);
-    init_rel_coord(5, 5, 2, M2P_Type);
-    init_rel_coord(5, 5, 2, P2L_Type);
-    generate_M2L_index_map();
+    static bool is_initialized = false;
+    if (!is_initialized) {
+      REL_COORD.resize(Type_Count);
+      HASH_LUT.resize(Type_Count);
+      init_rel_coord(1, 1, 2, M2M_Type);
+      init_rel_coord(1, 1, 2, L2L_Type);
+      init_rel_coord(3, 3, 2, P2P0_Type);
+      init_rel_coord(1, 0, 1, P2P1_Type);
+      init_rel_coord(3, 3, 2, P2P2_Type);
+      init_rel_coord(3, 2, 1, M2L_Helper_Type);
+      init_rel_coord(1, 1, 1, M2L_Type);
+      init_rel_coord(5, 5, 2, M2P_Type);
+      init_rel_coord(5, 5, 2, P2L_Type);
+      generate_M2L_index_map();
+      is_initialized = true;
+    }
   }
 } // end namespace
 #endif
