@@ -21,7 +21,7 @@ To install the Python package, additionally you need:
 * [Build from source](docs/source/compile.rst)
 
 If you only need the Python package, you can skip the step above and directly install via:
-`pip install git+https://github.com/exafmm/exafmm-t.git@kernel_class`.
+`pip install git+https://github.com/exafmm/exafmm-t.git@master`.
 
 ---
 
