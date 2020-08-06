@@ -135,6 +135,7 @@ namespace exafmm_t {
       }
       return;
     }
+ 
     // Sort bodies and save in buffer
     std::vector<int> source_size, source_offsets;
     std::vector<int> target_size, target_offsets;
@@ -337,14 +338,23 @@ namespace exafmm_t {
                     NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FmmBase<T>& fmm) {
     std::unordered_map<uint64_t, size_t> key2id;
     Keys keys = breadth_first_traversal(&nodes[0], key2id);
-    Keys balanced_keys = balance_tree(keys, key2id, nodes);
-    Keys leaf_keys = find_leaf_keys(balanced_keys);
-    nodes.clear();
-    leafs.clear();
-    nonleafs.clear();
-    nodes = build_tree(sources, targets,
-                       leafs, nonleafs,
-                       fmm, leaf_keys);
+    if (nodes.size() == 1) {
+      nodes.clear();
+      leafs.clear();
+      nonleafs.clear();
+      nodes = build_tree(sources, targets,
+                         leafs, nonleafs,
+                         fmm, keys);
+    } else {
+      Keys balanced_keys = balance_tree(keys, key2id, nodes);
+      Keys leaf_keys = find_leaf_keys(balanced_keys);
+      nodes.clear();
+      leafs.clear();
+      nonleafs.clear();
+      nodes = build_tree(sources, targets,
+                         leafs, nonleafs,
+                         fmm, leaf_keys);
+    }
     fmm.depth = keys.size() - 1;
   }
 }
