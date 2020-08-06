@@ -11,8 +11,9 @@ namespace exafmm_t {
   class LaplaceFmm : public FmmScaleInvariant<real_t> {
   public:
     LaplaceFmm() {}
-    LaplaceFmm(int p_, int ncrit_, int depth_, std::string filename_=std::string()) :
-      FmmScaleInvariant<real_t>(p_, ncrit_, depth_, filename_)
+
+    LaplaceFmm(int p_, int ncrit_, std::string filename_=std::string()) :
+      FmmScaleInvariant<real_t>(p_, ncrit_, filename_)
     {
       if (this->filename.empty()) {
         this->filename = std::string("laplace_") + (std::is_same<real_t, float>::value ? "f" : "d")

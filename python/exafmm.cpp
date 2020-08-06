@@ -444,10 +444,9 @@ PYBIND11_MODULE(exafmm, m) {
           py::arg("leafs"),
           py::arg("sample") = true)
      .def(py::init<>())
-     .def(py::init<int, int, int, std::string>(),
+     .def(py::init<int, int, std::string>(),
           py::arg("p"),
           py::arg("ncrit"),
-          py::arg("depth"),
           py::arg("filename") = std::string());
 
   py::class_<exafmm_t::HelmholtzFmm>(m1, "HelmholtzFmm")
@@ -457,10 +456,9 @@ PYBIND11_MODULE(exafmm, m) {
           py::arg("sample") = true)
      .def_readwrite("wavek", &exafmm_t::HelmholtzFmm::wavek)
      .def(py::init<>())
-     .def(py::init<int, int, int, complex_t, std::string>(),
+     .def(py::init<int, int, complex_t, std::string>(),
           py::arg("p"),
           py::arg("ncrit"),
-          py::arg("depth"),
           py::arg("wavek"),
           py::arg("filename") = std::string());
 
@@ -471,10 +469,9 @@ PYBIND11_MODULE(exafmm, m) {
           py::arg("sample") = true)
      .def_readwrite("wavek", &exafmm_t::ModifiedHelmholtzFmm::wavek)
      .def(py::init<>())
-     .def(py::init<int, int, int, real_t, std::string>(),
+     .def(py::init<int, int, real_t, std::string>(),
           py::arg("p"),
           py::arg("ncrit"),
-          py::arg("depth"),
           py::arg("wavek"),
           py::arg("filename") = std::string());
 

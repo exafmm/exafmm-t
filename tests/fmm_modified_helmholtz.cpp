@@ -21,7 +21,10 @@ int main(int argc, char **argv) {
   Bodies<real_t> targets = init_targets<real_t>(args.numBodies, args.distribution, 5);
 
   start("Total");
-  ModifiedHelmholtzFmm fmm(args.P, args.ncrit, args.maxlevel, args.k);
+  ModifiedHelmholtzFmm fmm(args.P, args.ncrit, args.k);
+#if NON_ADAPTIVE
+  fmm.depth = args.maxlevel;
+#endif
 
   start("Build Tree");
   get_bounds(sources, targets, fmm.x0, fmm.r0);

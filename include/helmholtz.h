@@ -13,8 +13,8 @@ namespace exafmm_t {
     complex_t wavek;      //!< Wave number k.
 
     HelmholtzFmm() {}
-    HelmholtzFmm(int p_, int ncrit_, int depth_, complex_t wavek_, std::string filename_=std::string()) :
-      Fmm<complex_t>(p_, ncrit_, depth_, filename_)
+    HelmholtzFmm(int p_, int ncrit_, complex_t wavek_, std::string filename_=std::string()) :
+      Fmm<complex_t>(p_, ncrit_, filename_)
     {
       wavek = wavek_;
       if (this->filename.empty()) {

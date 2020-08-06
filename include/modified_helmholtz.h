@@ -13,8 +13,9 @@ namespace exafmm_t {
     real_t wavek;
 
     ModifiedHelmholtzFmm() {}
-    ModifiedHelmholtzFmm(int p_, int ncrit_, int depth_, real_t wavek_, std::string filename_=std::string()) :
-      Fmm<real_t>(p_, ncrit_, depth_, filename_)
+
+    ModifiedHelmholtzFmm(int p_, int ncrit_, real_t wavek_, std::string filename_=std::string()) :
+      Fmm<real_t>(p_, ncrit_, filename_)
     {
       wavek = wavek_;
       if (this->filename.empty()) {

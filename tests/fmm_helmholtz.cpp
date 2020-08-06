@@ -22,7 +22,10 @@ int main(int argc, char **argv) {
 
   start("Total");
   complex_t wavek(5, 10);
-  HelmholtzFmm fmm(args.P, args.ncrit, args.maxlevel, wavek);
+  HelmholtzFmm fmm(args.P, args.ncrit, wavek);
+#if NON_ADAPTIVE
+  fmm.depth = args.maxlevel;
+#endif
 
   start("Build Tree");
   get_bounds(sources, targets, fmm.x0, fmm.r0);
