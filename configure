@@ -1466,7 +1466,7 @@ Optional Features:
   --enable-single         compile in single precision
   --enable-float          synonym for --enable-single
   --disable-openmp        disable OpenMP
-  --disable-mpi           do not compile with MPI
+  --enable-mpi            compile using MPI C++ wrapper compiler
   --disable-simd          disable SIMD
 
 Optional Packages:
@@ -12625,10 +12625,6 @@ CC=$lt_save_CC
 
 
 
-# change default compiler flag from -O2 to -O3
-: ${CXXFLAGS="-O3"}
-: ${CFLAGS="-O3"}
-
 # Checks for programs.
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -19958,9 +19954,9 @@ fi
 # Checks for MPI
 # Check whether --enable-mpi was given.
 if test "${enable_mpi+set}" = set; then :
-  enableval=$enable_mpi;
+  enableval=$enable_mpi; enable_mpi=$enableval
 else
-  enable_mpi=yes
+  enable_mpi=no
 fi
 
 if test "$enable_mpi" = "yes"; then

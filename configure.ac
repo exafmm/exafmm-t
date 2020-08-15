@@ -15,10 +15,6 @@ AM_MAINTAINER_MODE
 AM_PROG_AR
 LT_INIT
 
-# change default compiler flag from -O2 to -O3
-: ${CXXFLAGS="-O3"}
-: ${CFLAGS="-O3"}
-
 # Checks for programs.
 AC_PROG_CXX([icpc g++])
 AC_PROG_F77
@@ -57,9 +53,9 @@ AC_SUBST([OPENMP_CXXFLAGS])
 
 # Checks for MPI
 AC_ARG_ENABLE([mpi],
-              [AS_HELP_STRING([--disable-mpi],[do not compile with MPI])],
-              [],
-              [enable_mpi=yes])
+              [AS_HELP_STRING([--enable-mpi],[compile using MPI C++ wrapper compiler])],
+              [enable_mpi=$enableval],
+              [enable_mpi=no])
 if test "$enable_mpi" = "yes"; then
   AX_MPI([],[AC_MSG_ERROR([could not find mpi library for --enable-mpi])])
   AC_CHECK_PROG(MPIRUN, mpirun, mpirun)
