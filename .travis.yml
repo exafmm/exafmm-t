@@ -1,18 +1,18 @@
 matrix:
   include:
     - language: cpp
-        compiler:
-          - mpicxx
-        before_install:
-          - sudo apt-get update
-          - sudo apt-get install -y libopenmpi-dev
-          - sudo apt-get install -y libfftw3-dev
-          - sudo apt-get install -y libopenblas-dev liblapack-dev
-          - sudo apt-get install gfortran
-        script:
-          - ./bootstrap
-          - ./configure
-          - make
+      compiler:
+        - mpicxx
+      before_install:
+        - sudo apt-get update
+        - sudo apt-get install -y libopenmpi-dev
+        - sudo apt-get install -y libfftw3-dev
+        - sudo apt-get install -y libopenblas-dev liblapack-dev
+        - sudo apt-get install gfortran
+      script:
+        - ./bootstrap
+        - ./configure
+        - make
     - language: python
       python:
         - 3.7
