@@ -39,9 +39,9 @@ release = ''
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.todo',
-    'sphinx.ext.githubpages',
-    'breathe'
+    'breathe',
+    'exhale',
+    'sphinx.ext.autosectionlabel'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -72,8 +72,23 @@ exclude_patterns = []
 pygments_style = None
 
 # -- breathe configuration ---------------------------------------------------
-breathe_projects = { "exafmm-t": "../xml/" }
+breathe_projects = { "exafmm-t": "./doxyoutput/xml" }
 breathe_default_project = "exafmm-t"
+
+# -- exhale configuration ----------------------------------------------------
+exhale_args = {
+    # These arguments are required
+    "containmentFolder":     "./api",
+    "rootFileName":          "library_root.rst",
+    "rootFileTitle":         "Library API",
+    "doxygenStripFromPath":  "..",
+    # Suggested optional arguments
+    "createTreeView":        True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    # "treeViewIsBootstrap": True,
+    "exhaleExecutesDoxygen": True,
+    "exhaleDoxygenStdin":    "INPUT = ../include"
+}
 
 # -- Options for HTML output -------------------------------------------------
 
