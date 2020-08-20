@@ -23,4 +23,12 @@ matrix:
         - pip install -r requirements.txt
       script:
         - make html 
-
+        - cd ..
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        github_token: $GITHUB_TOKEN$
+        keep_history: true
+        local_dir: docs/_build/html
+        on:
+          branch: master
