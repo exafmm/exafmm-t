@@ -23,6 +23,7 @@ matrix:
         - pip install -r requirements.txt
       script:
         - make html 
+        - touch _build/html/.nojekyll
         - cd ..
       deploy:
         provider: pages
@@ -32,3 +33,6 @@ matrix:
         local_dir: docs/_build/html
         on:
           branch: master
+
+notifications:
+  email: false
