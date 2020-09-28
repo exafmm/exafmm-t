@@ -1,0 +1,13 @@
+.. _exhale_typedef_exafmm__t_8h_1a4281ebcbc7f4a4e67086e45f2a15e313:
+
+Typedef exafmm_t::AlignedVec
+============================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: exafmm_t::AlignedVec

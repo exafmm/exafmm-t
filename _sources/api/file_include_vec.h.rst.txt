@@ -1,0 +1,64 @@
+
+.. _file_include_vec.h:
+
+File vec.h
+==========
+
+|exhale_lsh| :ref:`Parent directory <dir_include>` (``include``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``include/vec.h``)
+------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_include_vec.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``ostream``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_include_exafmm_t.h`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_exafmm_t`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classexafmm__t_1_1vec`
+
+
+Defines
+-------
+
+
+- :ref:`exhale_define_vec_8h_1a9ee7be9d3d463c6449f037d3525aebad`
+

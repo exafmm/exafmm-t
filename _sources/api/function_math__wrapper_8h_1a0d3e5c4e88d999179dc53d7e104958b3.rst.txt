@@ -1,0 +1,13 @@
+.. _exhale_function_math__wrapper_8h_1a0d3e5c4e88d999179dc53d7e104958b3:
+
+Function zgemm_
+===============
+
+- Defined in :ref:`file_include_math_wrapper.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: zgemm_(char *, char *, int *, int *, int *, complex<double> *, complex<double> *, int *, complex<double> *, int *, complex<double> *, complex<double> *, int *)

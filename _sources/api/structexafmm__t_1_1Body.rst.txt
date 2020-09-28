@@ -1,0 +1,16 @@
+.. _exhale_struct_structexafmm__t_1_1Body:
+
+Template Struct Body
+====================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: exafmm_t::Body
+   :members:
+   :protected-members:
+   :undoc-members:

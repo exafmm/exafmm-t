@@ -1,0 +1,340 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Program Listing for File args.h &mdash; exafmm-t  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> exafmm-t
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">exafmm-t</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Program Listing for File args.h</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/program_listing_file_include_args.h.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="program-listing-for-file-args-h">
+<span id="program-listing-file-include-args-h"></span><h1>Program Listing for File args.h<a class="headerlink" href="#program-listing-for-file-args-h" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="file_include_args.h.html#file-include-args-h"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">include/args.h</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifndef args_h</span>
+<span class="cp">#define args_h</span>
+<span class="cp">#include</span> <span class="cpf">&lt;cstdio&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;cstdlib&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;iomanip&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;getopt.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;omp.h&gt;</span><span class="cp"></span>
+
+<span class="k">namespace</span> <span class="n">exafmm_t</span> <span class="p">{</span>
+  <span class="k">static</span> <span class="k">struct</span> <span class="nc">option</span> <span class="n">long_options</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">{</span><span class="s">&quot;ncrit&quot;</span><span class="p">,</span>        <span class="n">required_argument</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s">&quot;distribution&quot;</span><span class="p">,</span> <span class="n">required_argument</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="sc">&#39;d&#39;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s">&quot;wavenumber&quot;</span><span class="p">,</span>   <span class="n">required_argument</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="sc">&#39;k&#39;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s">&quot;maxlevel&quot;</span><span class="p">,</span>     <span class="n">required_argument</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="sc">&#39;l&#39;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s">&quot;numBodies&quot;</span><span class="p">,</span>    <span class="n">required_argument</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="sc">&#39;n&#39;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s">&quot;P&quot;</span><span class="p">,</span>            <span class="n">required_argument</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="sc">&#39;P&#39;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s">&quot;threads&quot;</span><span class="p">,</span>      <span class="n">required_argument</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="sc">&#39;T&#39;</span><span class="p">},</span>
+    <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">}</span>
+  <span class="p">};</span>
+
+  <span class="k">class</span> <span class="nc">Args</span> <span class="p">{</span>
+  <span class="k">public</span><span class="o">:</span>
+    <span class="kt">int</span> <span class="n">ncrit</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">distribution</span><span class="p">;</span>
+    <span class="kt">double</span> <span class="n">k</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">maxlevel</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">numBodies</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">P</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">threads</span><span class="p">;</span>
+
+  <span class="k">private</span><span class="o">:</span>
+    <span class="kt">void</span> <span class="n">usage</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span>
+          <span class="s">&quot;Usage: %s [options]</span><span class="se">\n</span><span class="s">&quot;</span>
+          <span class="s">&quot;Long option (short option)     : Description (Default value)</span><span class="se">\n</span><span class="s">&quot;</span>
+          <span class="s">&quot; --ncrit (-c)                  : Number of bodies per leaf node (%d)</span><span class="se">\n</span><span class="s">&quot;</span>
+          <span class="s">&quot; --distribution (-d) [c/s/p]   : cube, sphere, plummer (%s)</span><span class="se">\n</span><span class="s">&quot;</span>
+          <span class="s">&quot; --wavenumber (-k)             : Wavenumber of Helmholtz kernel (%f)</span><span class="se">\n</span><span class="s">&quot;</span>
+          <span class="s">&quot; --maxlevel (-l)               : Max level of tree (%d) (only applies to non-adaptive tree)</span><span class="se">\n</span><span class="s">&quot;</span>
+          <span class="s">&quot; --numBodies (-n)              : Number of bodies (%d)</span><span class="se">\n</span><span class="s">&quot;</span>
+          <span class="s">&quot; --P (-P)                      : Order of expansion (%d)</span><span class="se">\n</span><span class="s">&quot;</span>
+          <span class="s">&quot; --threads (-T)                : Number of threads (%d)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+          <span class="n">name</span><span class="p">,</span>
+          <span class="n">ncrit</span><span class="p">,</span>
+          <span class="n">distribution</span><span class="p">,</span>
+          <span class="n">k</span><span class="p">,</span>
+          <span class="n">maxlevel</span><span class="p">,</span>
+          <span class="n">numBodies</span><span class="p">,</span>
+          <span class="n">P</span><span class="p">,</span>
+          <span class="n">threads</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">parseDistribution</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">arg</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">switch</span> <span class="p">(</span><span class="n">arg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="sc">&#39;c&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="s">&quot;cube&quot;</span><span class="p">;</span>
+        <span class="k">case</span> <span class="sc">&#39;s&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="s">&quot;sphere&quot;</span><span class="p">;</span>
+        <span class="k">case</span> <span class="sc">&#39;p&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="s">&quot;plummer&quot;</span><span class="p">;</span>
+        <span class="k">default</span><span class="o">:</span>
+          <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;invalid distribution %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">arg</span><span class="p">);</span>
+          <span class="n">abort</span><span class="p">();</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="s">&quot;&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+
+  <span class="k">public</span><span class="o">:</span>
+    <span class="n">Args</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span> <span class="n">argv</span><span class="o">=</span><span class="k">nullptr</span><span class="p">)</span> <span class="o">:</span>
+      <span class="n">ncrit</span><span class="p">(</span><span class="mi">64</span><span class="p">),</span>
+      <span class="n">distribution</span><span class="p">(</span><span class="s">&quot;cube&quot;</span><span class="p">),</span>
+      <span class="n">k</span><span class="p">(</span><span class="mi">20</span><span class="p">),</span>
+      <span class="n">maxlevel</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
+      <span class="n">numBodies</span><span class="p">(</span><span class="mi">1000000</span><span class="p">),</span>
+      <span class="n">P</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span>
+      <span class="n">threads</span><span class="p">(</span><span class="n">omp_get_max_threads</span><span class="p">())</span> <span class="p">{</span>
+      <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">option_index</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="n">getopt_long</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="s">&quot;c:d:k:l:n:P:T:&quot;</span><span class="p">,</span> <span class="n">long_options</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">option_index</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">==</span> <span class="mi">-1</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+        <span class="k">switch</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">case</span> <span class="sc">&#39;c&#39;</span><span class="o">:</span>
+            <span class="n">ncrit</span> <span class="o">=</span> <span class="n">atoi</span><span class="p">(</span><span class="n">optarg</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+          <span class="k">case</span> <span class="sc">&#39;d&#39;</span><span class="o">:</span>
+            <span class="n">distribution</span> <span class="o">=</span> <span class="n">parseDistribution</span><span class="p">(</span><span class="n">optarg</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+          <span class="k">case</span> <span class="sc">&#39;k&#39;</span><span class="o">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">atof</span><span class="p">(</span><span class="n">optarg</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+          <span class="k">case</span> <span class="sc">&#39;l&#39;</span><span class="o">:</span>
+            <span class="n">maxlevel</span> <span class="o">=</span> <span class="n">atoi</span><span class="p">(</span><span class="n">optarg</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+          <span class="k">case</span> <span class="sc">&#39;n&#39;</span><span class="o">:</span>
+            <span class="n">numBodies</span> <span class="o">=</span> <span class="n">atoi</span><span class="p">(</span><span class="n">optarg</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+          <span class="k">case</span> <span class="sc">&#39;P&#39;</span><span class="o">:</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="n">atoi</span><span class="p">(</span><span class="n">optarg</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+          <span class="k">case</span> <span class="sc">&#39;T&#39;</span><span class="o">:</span>
+            <span class="n">threads</span> <span class="o">=</span> <span class="n">atoi</span><span class="p">(</span><span class="n">optarg</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+          <span class="k">default</span><span class="o">:</span>
+            <span class="n">usage</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+            <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kt">void</span> <span class="n">print</span><span class="p">(</span><span class="kt">int</span> <span class="n">stringLength</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="n">stringLength</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">fixed</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">left</span>
+                <span class="o">&lt;&lt;</span> <span class="s">&quot;ncrit&quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">ncrit</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span>
+                <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="n">stringLength</span><span class="p">)</span>
+                <span class="o">&lt;&lt;</span> <span class="s">&quot;distribution&quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">distribution</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span>
+                <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="n">stringLength</span><span class="p">)</span>
+                <span class="o">&lt;&lt;</span> <span class="s">&quot;numBodies&quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">numBodies</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span>
+                <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="n">stringLength</span><span class="p">)</span>
+                <span class="o">&lt;&lt;</span> <span class="s">&quot;P&quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; : &quot;</span> <span class="o">&lt;&lt;</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">P</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span>
+                <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="n">stringLength</span><span class="p">)</span>
+                <span class="o">&lt;&lt;</span> <span class="s">&quot;maxlevel&quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">maxlevel</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span>
+                <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="n">stringLength</span><span class="p">)</span>
+                <span class="o">&lt;&lt;</span> <span class="s">&quot;threads&quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">threads</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span>
+                <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">setw</span><span class="p">(</span><span class="n">stringLength</span><span class="p">)</span>
+                <span class="o">&lt;&lt;</span> <span class="s">&quot;wavenumber&quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">k</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2019, exafmm
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

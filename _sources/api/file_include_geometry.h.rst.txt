@@ -1,0 +1,79 @@
+
+.. _file_include_geometry.h:
+
+File geometry.h
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_include>` (``include``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``include/geometry.h``)
+-----------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_include_geometry.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``exafmm_t.h`` (:ref:`file_include_exafmm_t.h`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_include_build_list.h`
+
+- :ref:`file_include_fmm_base.h`
+
+- :ref:`file_include_helmholtz.h`
+
+- :ref:`file_include_laplace.h`
+
+- :ref:`file_include_modified_helmholtz.h`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_exafmm_t`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_geometry_8h_1a06a39c5d97493b98b450fa6ac664fa9e`
+
+- :ref:`exhale_function_geometry_8h_1aa062533b965f5e150ac3c9b558dc1832`
+
+- :ref:`exhale_function_geometry_8h_1a782c38af45349ecebdda2ee791d3c1b2`
+
+- :ref:`exhale_function_geometry_8h_1a3e073ac735c8a14905b5d1c55a55a780`
+
+- :ref:`exhale_function_geometry_8h_1a26c1088e34abd5d093fc3c19159c2d85`
+
+- :ref:`exhale_function_geometry_8h_1a11dbe9df64e9bde882b36643773cf0da`
+
+- :ref:`exhale_function_geometry_8h_1a6a977977e889db8d96ee5bbbb32aaa21`
+
+- :ref:`exhale_function_geometry_8h_1ae38354b1bc64cf1422034c3560717653`
+

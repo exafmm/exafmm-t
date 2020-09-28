@@ -1,0 +1,27 @@
+.. _exhale_class_classexafmm__t_1_1FmmBase:
+
+Template Class FmmBase
+======================
+
+- Defined in :ref:`file_include_fmm_base.h`
+
+
+Inheritance Relationships
+-------------------------
+
+Derived Types
+*************
+
+- ``public exafmm_t::DummyFmm< T >`` (:ref:`exhale_class_classexafmm__t_1_1DummyFmm`)
+- ``public exafmm_t::Fmm< T >`` (:ref:`exhale_class_classexafmm__t_1_1Fmm`)
+- ``public exafmm_t::FmmScaleInvariant< T >`` (:ref:`exhale_class_classexafmm__t_1_1FmmScaleInvariant`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: exafmm_t::FmmBase
+   :members:
+   :protected-members:
+   :undoc-members:

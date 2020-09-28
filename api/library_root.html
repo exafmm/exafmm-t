@@ -1,0 +1,1512 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Library API &mdash; exafmm-t  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Namespace exafmm_t" href="namespace_exafmm_t.html" />
+    <link rel="prev" title="Build Documentation" href="../documentation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> exafmm-t
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Library API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#full-api">Full API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#namespaces">Namespaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="namespace_exafmm_t.html">Namespace exafmm_t</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#classes-and-structs">Classes and Structs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="structAlignedAllocator.html">Template Struct AlignedAllocator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structAlignedAllocator_1_1rebind.html">Template Struct AlignedAllocator::rebind</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structexafmm__t_1_1Body.html">Template Struct Body</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structexafmm__t_1_1M2LData.html">Struct M2LData</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structexafmm__t_1_1Node.html">Template Struct Node</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classexafmm__t_1_1Args.html">Class Args</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classexafmm__t_1_1DummyFmm.html">Template Class DummyFmm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classexafmm__t_1_1Fmm.html">Template Class Fmm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classexafmm__t_1_1FmmBase.html">Template Class FmmBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classexafmm__t_1_1FmmScaleInvariant.html">Template Class FmmScaleInvariant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classexafmm__t_1_1HelmholtzFmm.html">Class HelmholtzFmm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classexafmm__t_1_1LaplaceFmm.html">Class LaplaceFmm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classexafmm__t_1_1ModifiedHelmholtzFmm.html">Class ModifiedHelmholtzFmm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classexafmm__t_1_1vec.html">Template Class vec</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#enums">Enums</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="enum_exafmm__t_8h_1a90321ace254beb0e9eacd5517ae3a4b4.html">Enum Mat_Type</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1a3ccbbd8ee5c77b49038408abf8b507f5.html">Function cgemm_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1a990e45baa279206afb6f3db702ddf3af.html">Function cgemv_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1ae61bdb8e8448051b6e220bbee459fcf2.html">Function cgesvd_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1a893258e0b2ea9411e7e6a55d0f422db6.html">Function dgemm_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1a53c7c2159f19abafbec2bc09f2c0cdcc.html">Function dgemv_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1a3e45f8d4a4bf16793e31a81771f2f69d.html">Function dgesvd_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_timer_8h_1af7c6e603a0d0b0b4cdbe08d864673c6e.html">Function exafmm_t::add_flop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__tree_8h_1a3e0bb450a71bdf46d51d841401c64bf9.html">Template Function exafmm_t::balance_tree(const Keys&amp;, const std::unordered_map&lt;uint64_t, size_t&gt;&amp;, const Nodes&lt;K&gt;&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__tree_8h_1ac31bd05613d6a0101639798632e655a7.html">Template Function exafmm_t::balance_tree(Nodes&lt;T&gt;&amp;, Bodies&lt;T&gt;&amp;, Bodies&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, FmmBase&lt;T&gt;&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__tree_8h_1a440d0b7e71aa7648bc2dd8933b108681.html">Template Function exafmm_t::breadth_first_traversal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__list_8h_1a36c77b3d59826372f25bc4d637a9ee6b.html">Template Function exafmm_t::build_list</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__list_8h_1aa95f7cdc9f863143b78c8b85d7580adf.html">Template Function exafmm_t::build_list_child_level</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__list_8h_1a4072daf9d26f03648eb5007a74cddda8.html">Template Function exafmm_t::build_list_current_level</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__list_8h_1a4c5585ab36a873853bd1037a305174ff.html">Template Function exafmm_t::build_list_parent_level</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1ae5d771aab7f5b200a29da6f1bdca073a.html">Template Function exafmm_t::build_tree(Body&lt;T&gt; *, int, int, Body&lt;T&gt; *, int, int, Node&lt;T&gt; *, Nodes&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, FmmBase&lt;T&gt;&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1a845cf95f32c6b703f8b35605eac17646.html">Template Function exafmm_t::build_tree(Bodies&lt;T&gt;&amp;, Bodies&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, FmmBase&lt;T&gt;&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__tree_8h_1aa9bbd6da308c547dd21851abe39449e4.html">Template Function exafmm_t::build_tree(Body&lt;T&gt; *, Body&lt;T&gt; *, int, int, Body&lt;T&gt; *, Body&lt;T&gt; *, int, int, Node&lt;T&gt; *, Nodes&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, const Keys&amp;, FmmBase&lt;T&gt;&amp;, bool)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__tree_8h_1a960b9cf76e38f5647b229440cd189315.html">Template Function exafmm_t::build_tree(Bodies&lt;T&gt;&amp;, Bodies&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, FmmBase&lt;T&gt;&amp;, const Keys&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1ac159c0760835de5ae0b738996fb1ee1b.html">Function exafmm_t::conjugate_transpose</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_geometry_8h_1a06a39c5d97493b98b450fa6ac664fa9e.html">Function exafmm_t::convolution_grid</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_dataset_8h_1aac1fc3fa459a15049918792ef985b930.html">Template Function exafmm_t::cube</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__tree_8h_1a0d0dcca9a5f55d709a3d514a4a30bfab.html">Function exafmm_t::find_leaf_keys</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1ad7918998e6c3ca118d036a3937ab34a2.html">Function exafmm_t::gemm(int, int, int, real_t *, real_t *, real_t *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1ae89127f219755f35424125f1fda91d48.html">Function exafmm_t::gemm(int, int, int, complex_t *, complex_t *, complex_t *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1af2d8718a8fa6737fdc1459b74389d7b7.html">Function exafmm_t::gemv(int, int, real_t *, real_t *, real_t *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1ade041e7485d2c0f360c6d964374856bf.html">Function exafmm_t::gemv(int, int, complex_t *, complex_t *, complex_t *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_geometry_8h_1aa062533b965f5e150ac3c9b558dc1832.html">Function exafmm_t::generate_M2L_index_map</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_geometry_8h_1a782c38af45349ecebdda2ee791d3c1b2.html">Function exafmm_t::generate_surf2conv_dn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_geometry_8h_1a3e073ac735c8a14905b5d1c55a55a780.html">Function exafmm_t::generate_surf2conv_up</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_hilbert_8h_1ab4d55b3e07834e85598d006bd4742d67.html">Function exafmm_t::get3DIndex(uint64_t)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_hilbert_8h_1a900821b4d08033d97d3218b9ea31d655.html">Function exafmm_t::get3DIndex(uint64_t, int)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_hilbert_8h_1a813bb5f79e83ed1d76a10e91ef8afbfd.html">Function exafmm_t::get3DIndex(vec3, int, vec3, real_t)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1a68ab50d01815bca7c8b44e79b4282596.html">Template Function exafmm_t::get_bounds</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_hilbert_8h_1a76aecaf13b17dc071e9b5d88f97fa289.html">Function exafmm_t::getChild</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_hilbert_8h_1acbacae5aeb367fda7c008f401cb3d9a5.html">Function exafmm_t::getCoordinates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_hilbert_8h_1ade851bbacffc6293190b19af941306c0.html">Function exafmm_t::getKey</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_hilbert_8h_1a561dbde8a89a5326e3f260c8b1712778.html">Function exafmm_t::getLevel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_hilbert_8h_1ac2eef8ec1dea0dfaaebed9ba508421ef.html">Function exafmm_t::getOctant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_hilbert_8h_1aeb820f35e725d989c0cf15ace47bc946.html">Function exafmm_t::getParent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_geometry_8h_1a26c1088e34abd5d093fc3c19159c2d85.html">Function exafmm_t::hash</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_geometry_8h_1a11dbe9df64e9bde882b36643773cf0da.html">Function exafmm_t::init_rel_coord(int, int, int, Mat_Type)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_geometry_8h_1a6a977977e889db8d96ee5bbbb32aaa21.html">Function exafmm_t::init_rel_coord()</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_dataset_8h_1ad0528ffe62eca34477475f058ef3b075.html">Template Function exafmm_t::init_sources(int, const char *, int)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_dataset_8h_1ad41a7b3f40be1d43245d44b63be08743.html">Function exafmm_t::init_sources(int, const char *, int)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_dataset_8h_1a50318156289412f1ccfd4c55db7004d5.html">Template Function exafmm_t::init_targets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_hilbert_8h_1a0ef2314c64ea52d9994667dffcbb936b.html">Function exafmm_t::levelOffset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_intrinsics_8h_1a405d6ef265ac5f2250134cc77958a335.html">Function exafmm_t::matmult_8x8x2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_dataset_8h_1a88d9291236aba33fddb5a587f87c74da.html">Template Function exafmm_t::plummer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_timer_8h_1a5c22ea008cf4f1525993cafe660f6140.html">Function exafmm_t::print(std::string)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_timer_8h_1a71cc0de723d64168c13de2e2ee41cdb1.html">Template Function exafmm_t::print(std::string, T, bool)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_timer_8h_1a90d312d44d375a4859d794b99700eff3.html">Function exafmm_t::print_divider</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_test_8h_1adf72c12fd698ebf283bf02ae94d82ff7.html">Template Function exafmm_t::set_children</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__list_8h_1a7e01b7c369f769d9eb64c49d0523bb5e.html">Template Function exafmm_t::set_colleagues(Node&lt;T&gt; *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__list_8h_1a99a87ebc089fc38be60f0ba46a256485.html">Template Function exafmm_t::set_colleagues(Nodes&lt;T&gt;&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1a71b1b9efc409aed0bb812fe16448a407.html">Template Function exafmm_t::sort_bodies(Node&lt;T&gt; *const, Body&lt;T&gt; *const, int, int, std::vector&lt;int&gt;&amp;, std::vector&lt;int&gt;&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_build__tree_8h_1a352c04e2f9ad1f9d382c02e8f4486d56.html">Template Function exafmm_t::sort_bodies(Node&lt;T&gt; *const, Body&lt;T&gt; *const, Body&lt;T&gt; *const, int, int, std::vector&lt;int&gt;&amp;, std::vector&lt;int&gt;&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_dataset_8h_1ab3369b6745a2cddefcfdf32f02619587.html">Template Function exafmm_t::sphere</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_timer_8h_1a86c1b2909c9ba1c73e680684fd98bf82.html">Function exafmm_t::start</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_timer_8h_1a04b7a0d60fe3b6d02cad9a0333a2df53.html">Function exafmm_t::stop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_geometry_8h_1ae38354b1bc64cf1422034c3560717653.html">Function exafmm_t::surface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1a9c916295e6289c058a40aa1eb9d9a7e4.html">Function exafmm_t::svd(int, int, real_t *, real_t *, real_t *, real_t *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1ae4384b5b04dc15f99982cdefe16099bb.html">Function exafmm_t::svd(int, int, complex_t *, real_t *, complex_t *, complex_t *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1a3ae2f84d558a7a24f0fe8185daf6aea5.html">Function exafmm_t::transpose(RealVec&amp;, int, int)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1ad55f7b28da054d864de336b61018cc25.html">Function exafmm_t::transpose(ComplexVec&amp;, int, int)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1af6dbe980fcef3e98da9e587a3a56773b.html">Function sgemm_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1a23a974884df223866538932a7d17c76d.html">Function sgemv_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1ace87060f8200eb354b5356b867a0265d.html">Function sgesvd_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1a0d3e5c4e88d999179dc53d7e104958b3.html">Function zgemm_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1a76eedb0a58f4f44bb7a6dd5780725160.html">Function zgemv_</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_math__wrapper_8h_1ad46949a9d6b1e9f1fe2e9a02a37c2ed5.html">Function zgesvd_</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#variables">Variables</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="variable_exafmm__t_8h_1ae023a5fe5e5b93cf20479d865a6603d1.html">Variable exafmm_t::CACHE_SIZE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_timer_8h_1ab29bc54121936837bef921a9305b1590.html">Variable exafmm_t::decimal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_timer_8h_1a57b203c2726ddd7089d526f0ef9be6c8.html">Variable exafmm_t::dividerLength</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_exafmm__t_8h_1a962dcd04c46f6c92edcbdf260558c1d2.html">Variable exafmm_t::EPS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_timer_8h_1a7f1db63bf6d828b1d98d7f2f4eb78ac7.html">Variable exafmm_t::flop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_exafmm__t_8h_1a332984e167a7402dd1f2f60a46ad6518.html">Variable exafmm_t::HASH_LUT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_args_8h_1a13ee1667229a50b1cff16bbcd9df0b91.html">Variable exafmm_t::long_options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_exafmm__t_8h_1a3d343a1e8253e91b75cf9bdd70d2e5e5.html">Variable exafmm_t::M2L_INDEX_MAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_exafmm__t_8h_1a239822242f9800a18f48d1934c135e56.html">Variable exafmm_t::MEM_ALIGN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_exafmm__t_8h_1aef8978c8a3f66f0d5ddff851911a4c2e.html">Variable exafmm_t::NCHILD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_exafmm__t_8h_1af622fbda7031cfe0b52ea82a0be3caf1.html">Variable exafmm_t::NSIMD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_exafmm__t_8h_1a7f60ab2e3e30d03b69fd686753f658a3.html">Variable exafmm_t::PI</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_exafmm__t_8h_1a95cf5bec10c23f5ef1393ff69a3192cf.html">Variable exafmm_t::REL_COORD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_timer_8h_1ac088b97ee852ae2b7eb406d0d4c08137.html">Variable exafmm_t::stringLength</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_timer_8h_1abe0e8aee055f4cfeee780f99c7a1ed44.html">Variable exafmm_t::time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_timer_8h_1afa5b83f5035af4ab6870335337732753.html">Variable exafmm_t::timer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_timer_8h_1ab6139bbaea916df0bb598f4b0871881f.html">Variable exafmm_t::wait</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#defines">Defines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="define_hilbert_8h_1aa708d6faae9e312e7f22a8358244e3b2.html">Define EXAFMM_HILBERT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_vec_8h_1a9ee7be9d3d463c6449f037d3525aebad.html">Define EXAFMM_RSQRT_APPROX</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_exafmm__t_8h_1ac5fd334e16e0f5c6d3bb17e4e412351c.html">Define fft_destroy_plan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_exafmm__t_8h_1ad389d9fca48a755ec90ffd93286e85a4.html">Define fft_execute_dft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_exafmm__t_8h_1a29080d09fb8c9cf06cb6ba9b009894a6.html">Define fft_execute_dft_c2r</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_exafmm__t_8h_1a9a7a2e46b7b2f35066a9d21d65af4f83.html">Define fft_execute_dft_r2c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_exafmm__t_8h_1a85ecf21c1fbabd1f824a9fd1de5a1f01.html">Define fft_flops</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_exafmm__t_8h_1a87424cbce2033b800147a13d28c55798.html">Define fft_plan_dft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_exafmm__t_8h_1ae1ed766915188a6af6e713556d6f2ed5.html">Define fft_plan_dft_r2c</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_exafmm__t_8h_1af4d5f688e07c30608af91fe76584ce86.html">Define fft_plan_many_dft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_exafmm__t_8h_1a69def9fdb2e3c91ede6c181000c7807e.html">Define fft_plan_many_dft_c2r</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_exafmm__t_8h_1a23827995db6fe72971b2e4d8d2543819.html">Define fft_plan_many_dft_r2c</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#typedefs">Typedefs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1ad0c0d2f775528e2888aa7edada48e2de.html">Typedef exafmm_t::AlignAllocator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1a4281ebcbc7f4a4e67086e45f2a15e313.html">Typedef exafmm_t::AlignedVec</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1a44fbf7b196ac53a9de5e76ee42c6ccd5.html">Typedef exafmm_t::Bodies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1a320a500e2e4fde262073736f8bc3d64b.html">Typedef exafmm_t::complex_t</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1af47ea9bbea1f61c4d2ffec5f5f08ead8.html">Typedef exafmm_t::ComplexVec</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1ae3ef4351bbc31781661c69d5a964ebf0.html">Typedef exafmm_t::cvec3</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1ab5d05a3cf636da5a84b86ba56f29a81f.html">Typedef exafmm_t::fft_complex</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1ae0423fc35c5984c4be74d6b8a0a47d29.html">Typedef exafmm_t::fft_plan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1a3c3101bfaaaa5a02e9d0be11b8a0c69d.html">Typedef exafmm_t::ivec3</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1ab52b97a9c44134d8ef9aefeaff0bea0c.html">Typedef exafmm_t::Keys</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1a2bea1ab2ea176e198342661fc44c5d09.html">Typedef exafmm_t::NodePtrs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1a2d37b6036cc78f5b8cbb668b2f098b89.html">Typedef exafmm_t::Nodes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1a2e3829883d8994317a6af622cc67938f.html">Typedef exafmm_t::real_t</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1aef82c2f6046b1f367463d328387d3c8f.html">Typedef exafmm_t::RealVec</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1ab627a33531a8a60a2de40546f847ea42.html">Typedef exafmm_t::simdvec</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typedef_exafmm__t_8h_1ad031a0df672935f79c9e139ce288363b.html">Typedef exafmm_t::vec3</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">exafmm-t</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Library API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/library_root.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="library-api">
+<h1>Library API<a class="headerlink" href="#library-api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="class-hierarchy">
+<h2>Class Hierarchy<a class="headerlink" href="#class-hierarchy" title="Permalink to this headline">¶</a></h2>
+<ul class="treeView" id="class-treeView">
+  <li>
+    <ul class="collapsibleList">
+      <li>Namespace <a href="namespace_exafmm_t.html#namespace-exafmm-t">exafmm_t</a><ul><li>Template Struct <a href="structexafmm__t_1_1Body.html#exhale-struct-structexafmm-t-1-1Body">Body</a></li><li>Struct <a href="structexafmm__t_1_1M2LData.html#exhale-struct-structexafmm-t-1-1M2LData">M2LData</a></li><li>Template Struct <a href="structexafmm__t_1_1Node.html#exhale-struct-structexafmm-t-1-1Node">Node</a></li><li>Class <a href="classexafmm__t_1_1Args.html#exhale-class-classexafmm-t-1-1Args">Args</a></li><li>Template Class <a href="classexafmm__t_1_1DummyFmm.html#exhale-class-classexafmm-t-1-1DummyFmm">DummyFmm</a></li><li>Template Class <a href="classexafmm__t_1_1Fmm.html#exhale-class-classexafmm-t-1-1Fmm">Fmm</a></li><li>Template Class <a href="classexafmm__t_1_1FmmBase.html#exhale-class-classexafmm-t-1-1FmmBase">FmmBase</a></li><li>Template Class <a href="classexafmm__t_1_1FmmScaleInvariant.html#exhale-class-classexafmm-t-1-1FmmScaleInvariant">FmmScaleInvariant</a></li><li>Class <a href="classexafmm__t_1_1HelmholtzFmm.html#exhale-class-classexafmm-t-1-1HelmholtzFmm">HelmholtzFmm</a></li><li>Class <a href="classexafmm__t_1_1LaplaceFmm.html#exhale-class-classexafmm-t-1-1LaplaceFmm">LaplaceFmm</a></li><li>Class <a href="classexafmm__t_1_1ModifiedHelmholtzFmm.html#exhale-class-classexafmm-t-1-1ModifiedHelmholtzFmm">ModifiedHelmholtzFmm</a></li><li>Template Class <a href="classexafmm__t_1_1vec.html#exhale-class-classexafmm-t-1-1vec">vec</a></li><li class="lastChild">Enum <a href="enum_exafmm__t_8h_1a90321ace254beb0e9eacd5517ae3a4b4.html#exhale-enum-exafmm-t-8h-1a90321ace254beb0e9eacd5517ae3a4b4">Mat_Type</a></li></ul></li><li class="lastChild">Template Struct <a href="structAlignedAllocator.html#exhale-struct-structAlignedAllocator">AlignedAllocator</a><ul><li class="lastChild">Template Struct <a href="structAlignedAllocator_1_1rebind.html#exhale-struct-structAlignedAllocator-1-1rebind">AlignedAllocator::rebind</a></li></ul></li>
+    </ul>
+  </li><!-- only tree view element -->
+</ul><!-- /treeView class-treeView --></div>
+<div class="section" id="file-hierarchy">
+<h2>File Hierarchy<a class="headerlink" href="#file-hierarchy" title="Permalink to this headline">¶</a></h2>
+<ul class="treeView" id="file-treeView">
+  <li>
+    <ul class="collapsibleList">
+      <li class="lastChild">Directory <a href="dir_include.html#dir-include">include</a><ul><li>File <a href="file_include_align.h.html#file-include-align.h">align.h</a></li><li>File <a href="file_include_args.h.html#file-include-args.h">args.h</a></li><li>File <a href="file_include_build_list.h.html#file-include-build-list.h">build_list.h</a></li><li>File <a href="file_include_build_non_adaptive_tree.h.html#file-include-build-non-adaptive-tree.h">build_non_adaptive_tree.h</a></li><li>File <a href="file_include_build_tree.h.html#file-include-build-tree.h">build_tree.h</a></li><li>File <a href="file_include_dataset.h.html#file-include-dataset.h">dataset.h</a></li><li>File <a href="file_include_exafmm_t.h.html#file-include-exafmm-t.h">exafmm_t.h</a></li><li>File <a href="file_include_fmm.h.html#file-include-fmm.h">fmm.h</a></li><li>File <a href="file_include_fmm_base.h.html#file-include-fmm-base.h">fmm_base.h</a></li><li>File <a href="file_include_fmm_scale_invariant.h.html#file-include-fmm-scale-invariant.h">fmm_scale_invariant.h</a></li><li>File <a href="file_include_geometry.h.html#file-include-geometry.h">geometry.h</a></li><li>File <a href="file_include_helmholtz.h.html#file-include-helmholtz.h">helmholtz.h</a></li><li>File <a href="file_include_hilbert.h.html#file-include-hilbert.h">hilbert.h</a></li><li>File <a href="file_include_intrinsics.h.html#file-include-intrinsics.h">intrinsics.h</a></li><li>File <a href="file_include_laplace.h.html#file-include-laplace.h">laplace.h</a></li><li>File <a href="file_include_math_wrapper.h.html#file-include-math-wrapper.h">math_wrapper.h</a></li><li>File <a href="file_include_modified_helmholtz.h.html#file-include-modified-helmholtz.h">modified_helmholtz.h</a></li><li>File <a href="file_include_test.h.html#file-include-test.h">test.h</a></li><li>File <a href="file_include_timer.h.html#file-include-timer.h">timer.h</a></li><li class="lastChild">File <a href="file_include_vec.h.html#file-include-vec.h">vec.h</a></li></ul></li>
+    </ul>
+  </li><!-- only tree view element -->
+</ul><!-- /treeView file-treeView --></div>
+<div class="section" id="full-api">
+<h2>Full API<a class="headerlink" href="#full-api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="namespaces">
+<h3>Namespaces<a class="headerlink" href="#namespaces" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="namespace_exafmm_t.html">Namespace exafmm_t</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="namespace_exafmm_t.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="namespace_exafmm_t.html#enums">Enums</a></li>
+<li class="toctree-l2"><a class="reference internal" href="namespace_exafmm_t.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="namespace_exafmm_t.html#typedefs">Typedefs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="namespace_exafmm_t.html#variables">Variables</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="classes-and-structs">
+<h3>Classes and Structs<a class="headerlink" href="#classes-and-structs" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structAlignedAllocator.html">Template Struct AlignedAllocator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structAlignedAllocator.html#nested-relationships">Nested Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="structAlignedAllocator.html#nested-types">Nested Types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="structAlignedAllocator.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="structAlignedAllocator.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="structAlignedAllocator.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structAlignedAllocator_1_1rebind.html">Template Struct AlignedAllocator::rebind</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structAlignedAllocator_1_1rebind.html#nested-relationships">Nested Relationships</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structAlignedAllocator_1_1rebind.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structexafmm__t_1_1Body.html">Template Struct Body</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structexafmm__t_1_1Body.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structexafmm__t_1_1M2LData.html">Struct M2LData</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structexafmm__t_1_1M2LData.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structexafmm__t_1_1Node.html">Template Struct Node</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structexafmm__t_1_1Node.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classexafmm__t_1_1Args.html">Class Args</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1Args.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classexafmm__t_1_1DummyFmm.html">Template Class DummyFmm</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1DummyFmm.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="classexafmm__t_1_1DummyFmm.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1DummyFmm.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classexafmm__t_1_1Fmm.html">Template Class Fmm</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1Fmm.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="classexafmm__t_1_1Fmm.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1Fmm.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classexafmm__t_1_1FmmBase.html">Template Class FmmBase</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1FmmBase.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="classexafmm__t_1_1FmmBase.html#derived-types">Derived Types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1FmmBase.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classexafmm__t_1_1FmmScaleInvariant.html">Template Class FmmScaleInvariant</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1FmmScaleInvariant.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="classexafmm__t_1_1FmmScaleInvariant.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1FmmScaleInvariant.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classexafmm__t_1_1HelmholtzFmm.html">Class HelmholtzFmm</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1HelmholtzFmm.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="classexafmm__t_1_1HelmholtzFmm.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1HelmholtzFmm.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classexafmm__t_1_1LaplaceFmm.html">Class LaplaceFmm</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1LaplaceFmm.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="classexafmm__t_1_1LaplaceFmm.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1LaplaceFmm.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classexafmm__t_1_1ModifiedHelmholtzFmm.html">Class ModifiedHelmholtzFmm</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1ModifiedHelmholtzFmm.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="classexafmm__t_1_1ModifiedHelmholtzFmm.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1ModifiedHelmholtzFmm.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classexafmm__t_1_1vec.html">Template Class vec</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classexafmm__t_1_1vec.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="enums">
+<h3>Enums<a class="headerlink" href="#enums" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_exafmm__t_8h_1a90321ace254beb0e9eacd5517ae3a4b4.html">Enum Mat_Type</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_exafmm__t_8h_1a90321ace254beb0e9eacd5517ae3a4b4.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1a3ccbbd8ee5c77b49038408abf8b507f5.html">Function cgemm_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1a3ccbbd8ee5c77b49038408abf8b507f5.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1a990e45baa279206afb6f3db702ddf3af.html">Function cgemv_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1a990e45baa279206afb6f3db702ddf3af.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1ae61bdb8e8448051b6e220bbee459fcf2.html">Function cgesvd_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1ae61bdb8e8448051b6e220bbee459fcf2.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1a893258e0b2ea9411e7e6a55d0f422db6.html">Function dgemm_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1a893258e0b2ea9411e7e6a55d0f422db6.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1a53c7c2159f19abafbec2bc09f2c0cdcc.html">Function dgemv_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1a53c7c2159f19abafbec2bc09f2c0cdcc.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1a3e45f8d4a4bf16793e31a81771f2f69d.html">Function dgesvd_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1a3e45f8d4a4bf16793e31a81771f2f69d.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_timer_8h_1af7c6e603a0d0b0b4cdbe08d864673c6e.html">Function exafmm_t::add_flop</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_timer_8h_1af7c6e603a0d0b0b4cdbe08d864673c6e.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__tree_8h_1a3e0bb450a71bdf46d51d841401c64bf9.html">Template Function exafmm_t::balance_tree(const Keys&amp;, const std::unordered_map&lt;uint64_t, size_t&gt;&amp;, const Nodes&lt;K&gt;&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__tree_8h_1a3e0bb450a71bdf46d51d841401c64bf9.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__tree_8h_1ac31bd05613d6a0101639798632e655a7.html">Template Function exafmm_t::balance_tree(Nodes&lt;T&gt;&amp;, Bodies&lt;T&gt;&amp;, Bodies&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, FmmBase&lt;T&gt;&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__tree_8h_1ac31bd05613d6a0101639798632e655a7.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__tree_8h_1a440d0b7e71aa7648bc2dd8933b108681.html">Template Function exafmm_t::breadth_first_traversal</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__tree_8h_1a440d0b7e71aa7648bc2dd8933b108681.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__list_8h_1a36c77b3d59826372f25bc4d637a9ee6b.html">Template Function exafmm_t::build_list</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__list_8h_1a36c77b3d59826372f25bc4d637a9ee6b.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__list_8h_1aa95f7cdc9f863143b78c8b85d7580adf.html">Template Function exafmm_t::build_list_child_level</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__list_8h_1aa95f7cdc9f863143b78c8b85d7580adf.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__list_8h_1a4072daf9d26f03648eb5007a74cddda8.html">Template Function exafmm_t::build_list_current_level</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__list_8h_1a4072daf9d26f03648eb5007a74cddda8.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__list_8h_1a4c5585ab36a873853bd1037a305174ff.html">Template Function exafmm_t::build_list_parent_level</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__list_8h_1a4c5585ab36a873853bd1037a305174ff.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1ae5d771aab7f5b200a29da6f1bdca073a.html">Template Function exafmm_t::build_tree(Body&lt;T&gt; *, int, int, Body&lt;T&gt; *, int, int, Node&lt;T&gt; *, Nodes&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, FmmBase&lt;T&gt;&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1ae5d771aab7f5b200a29da6f1bdca073a.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1a845cf95f32c6b703f8b35605eac17646.html">Template Function exafmm_t::build_tree(Bodies&lt;T&gt;&amp;, Bodies&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, FmmBase&lt;T&gt;&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1a845cf95f32c6b703f8b35605eac17646.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__tree_8h_1aa9bbd6da308c547dd21851abe39449e4.html">Template Function exafmm_t::build_tree(Body&lt;T&gt; *, Body&lt;T&gt; *, int, int, Body&lt;T&gt; *, Body&lt;T&gt; *, int, int, Node&lt;T&gt; *, Nodes&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, const Keys&amp;, FmmBase&lt;T&gt;&amp;, bool)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__tree_8h_1aa9bbd6da308c547dd21851abe39449e4.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__tree_8h_1a960b9cf76e38f5647b229440cd189315.html">Template Function exafmm_t::build_tree(Bodies&lt;T&gt;&amp;, Bodies&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, NodePtrs&lt;T&gt;&amp;, FmmBase&lt;T&gt;&amp;, const Keys&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__tree_8h_1a960b9cf76e38f5647b229440cd189315.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1ac159c0760835de5ae0b738996fb1ee1b.html">Function exafmm_t::conjugate_transpose</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1ac159c0760835de5ae0b738996fb1ee1b.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_geometry_8h_1a06a39c5d97493b98b450fa6ac664fa9e.html">Function exafmm_t::convolution_grid</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_geometry_8h_1a06a39c5d97493b98b450fa6ac664fa9e.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_dataset_8h_1aac1fc3fa459a15049918792ef985b930.html">Template Function exafmm_t::cube</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_dataset_8h_1aac1fc3fa459a15049918792ef985b930.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__tree_8h_1a0d0dcca9a5f55d709a3d514a4a30bfab.html">Function exafmm_t::find_leaf_keys</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__tree_8h_1a0d0dcca9a5f55d709a3d514a4a30bfab.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1ad7918998e6c3ca118d036a3937ab34a2.html">Function exafmm_t::gemm(int, int, int, real_t *, real_t *, real_t *)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1ad7918998e6c3ca118d036a3937ab34a2.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1ae89127f219755f35424125f1fda91d48.html">Function exafmm_t::gemm(int, int, int, complex_t *, complex_t *, complex_t *)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1ae89127f219755f35424125f1fda91d48.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1af2d8718a8fa6737fdc1459b74389d7b7.html">Function exafmm_t::gemv(int, int, real_t *, real_t *, real_t *)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1af2d8718a8fa6737fdc1459b74389d7b7.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1ade041e7485d2c0f360c6d964374856bf.html">Function exafmm_t::gemv(int, int, complex_t *, complex_t *, complex_t *)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1ade041e7485d2c0f360c6d964374856bf.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_geometry_8h_1aa062533b965f5e150ac3c9b558dc1832.html">Function exafmm_t::generate_M2L_index_map</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_geometry_8h_1aa062533b965f5e150ac3c9b558dc1832.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_geometry_8h_1a782c38af45349ecebdda2ee791d3c1b2.html">Function exafmm_t::generate_surf2conv_dn</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_geometry_8h_1a782c38af45349ecebdda2ee791d3c1b2.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_geometry_8h_1a3e073ac735c8a14905b5d1c55a55a780.html">Function exafmm_t::generate_surf2conv_up</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_geometry_8h_1a3e073ac735c8a14905b5d1c55a55a780.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_hilbert_8h_1ab4d55b3e07834e85598d006bd4742d67.html">Function exafmm_t::get3DIndex(uint64_t)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_hilbert_8h_1ab4d55b3e07834e85598d006bd4742d67.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_hilbert_8h_1a900821b4d08033d97d3218b9ea31d655.html">Function exafmm_t::get3DIndex(uint64_t, int)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_hilbert_8h_1a900821b4d08033d97d3218b9ea31d655.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_hilbert_8h_1a813bb5f79e83ed1d76a10e91ef8afbfd.html">Function exafmm_t::get3DIndex(vec3, int, vec3, real_t)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_hilbert_8h_1a813bb5f79e83ed1d76a10e91ef8afbfd.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1a68ab50d01815bca7c8b44e79b4282596.html">Template Function exafmm_t::get_bounds</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1a68ab50d01815bca7c8b44e79b4282596.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_hilbert_8h_1a76aecaf13b17dc071e9b5d88f97fa289.html">Function exafmm_t::getChild</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_hilbert_8h_1a76aecaf13b17dc071e9b5d88f97fa289.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_hilbert_8h_1acbacae5aeb367fda7c008f401cb3d9a5.html">Function exafmm_t::getCoordinates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_hilbert_8h_1acbacae5aeb367fda7c008f401cb3d9a5.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_hilbert_8h_1ade851bbacffc6293190b19af941306c0.html">Function exafmm_t::getKey</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_hilbert_8h_1ade851bbacffc6293190b19af941306c0.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_hilbert_8h_1a561dbde8a89a5326e3f260c8b1712778.html">Function exafmm_t::getLevel</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_hilbert_8h_1a561dbde8a89a5326e3f260c8b1712778.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_hilbert_8h_1ac2eef8ec1dea0dfaaebed9ba508421ef.html">Function exafmm_t::getOctant</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_hilbert_8h_1ac2eef8ec1dea0dfaaebed9ba508421ef.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_hilbert_8h_1aeb820f35e725d989c0cf15ace47bc946.html">Function exafmm_t::getParent</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_hilbert_8h_1aeb820f35e725d989c0cf15ace47bc946.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_geometry_8h_1a26c1088e34abd5d093fc3c19159c2d85.html">Function exafmm_t::hash</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_geometry_8h_1a26c1088e34abd5d093fc3c19159c2d85.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_geometry_8h_1a11dbe9df64e9bde882b36643773cf0da.html">Function exafmm_t::init_rel_coord(int, int, int, Mat_Type)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_geometry_8h_1a11dbe9df64e9bde882b36643773cf0da.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_geometry_8h_1a6a977977e889db8d96ee5bbbb32aaa21.html">Function exafmm_t::init_rel_coord()</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_geometry_8h_1a6a977977e889db8d96ee5bbbb32aaa21.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_dataset_8h_1ad0528ffe62eca34477475f058ef3b075.html">Template Function exafmm_t::init_sources(int, const char *, int)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_dataset_8h_1ad0528ffe62eca34477475f058ef3b075.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_dataset_8h_1ad41a7b3f40be1d43245d44b63be08743.html">Function exafmm_t::init_sources(int, const char *, int)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_dataset_8h_1ad41a7b3f40be1d43245d44b63be08743.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_dataset_8h_1a50318156289412f1ccfd4c55db7004d5.html">Template Function exafmm_t::init_targets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_dataset_8h_1a50318156289412f1ccfd4c55db7004d5.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_hilbert_8h_1a0ef2314c64ea52d9994667dffcbb936b.html">Function exafmm_t::levelOffset</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_hilbert_8h_1a0ef2314c64ea52d9994667dffcbb936b.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_intrinsics_8h_1a405d6ef265ac5f2250134cc77958a335.html">Function exafmm_t::matmult_8x8x2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_intrinsics_8h_1a405d6ef265ac5f2250134cc77958a335.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_dataset_8h_1a88d9291236aba33fddb5a587f87c74da.html">Template Function exafmm_t::plummer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_dataset_8h_1a88d9291236aba33fddb5a587f87c74da.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_timer_8h_1a5c22ea008cf4f1525993cafe660f6140.html">Function exafmm_t::print(std::string)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_timer_8h_1a5c22ea008cf4f1525993cafe660f6140.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_timer_8h_1a71cc0de723d64168c13de2e2ee41cdb1.html">Template Function exafmm_t::print(std::string, T, bool)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_timer_8h_1a71cc0de723d64168c13de2e2ee41cdb1.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_timer_8h_1a90d312d44d375a4859d794b99700eff3.html">Function exafmm_t::print_divider</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_timer_8h_1a90d312d44d375a4859d794b99700eff3.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_test_8h_1adf72c12fd698ebf283bf02ae94d82ff7.html">Template Function exafmm_t::set_children</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_test_8h_1adf72c12fd698ebf283bf02ae94d82ff7.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__list_8h_1a7e01b7c369f769d9eb64c49d0523bb5e.html">Template Function exafmm_t::set_colleagues(Node&lt;T&gt; *)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__list_8h_1a7e01b7c369f769d9eb64c49d0523bb5e.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__list_8h_1a99a87ebc089fc38be60f0ba46a256485.html">Template Function exafmm_t::set_colleagues(Nodes&lt;T&gt;&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__list_8h_1a99a87ebc089fc38be60f0ba46a256485.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1a71b1b9efc409aed0bb812fe16448a407.html">Template Function exafmm_t::sort_bodies(Node&lt;T&gt; *const, Body&lt;T&gt; *const, int, int, std::vector&lt;int&gt;&amp;, std::vector&lt;int&gt;&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__non__adaptive__tree_8h_1a71b1b9efc409aed0bb812fe16448a407.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_build__tree_8h_1a352c04e2f9ad1f9d382c02e8f4486d56.html">Template Function exafmm_t::sort_bodies(Node&lt;T&gt; *const, Body&lt;T&gt; *const, Body&lt;T&gt; *const, int, int, std::vector&lt;int&gt;&amp;, std::vector&lt;int&gt;&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_build__tree_8h_1a352c04e2f9ad1f9d382c02e8f4486d56.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_dataset_8h_1ab3369b6745a2cddefcfdf32f02619587.html">Template Function exafmm_t::sphere</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_dataset_8h_1ab3369b6745a2cddefcfdf32f02619587.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_timer_8h_1a86c1b2909c9ba1c73e680684fd98bf82.html">Function exafmm_t::start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_timer_8h_1a86c1b2909c9ba1c73e680684fd98bf82.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_timer_8h_1a04b7a0d60fe3b6d02cad9a0333a2df53.html">Function exafmm_t::stop</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_timer_8h_1a04b7a0d60fe3b6d02cad9a0333a2df53.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_geometry_8h_1ae38354b1bc64cf1422034c3560717653.html">Function exafmm_t::surface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_geometry_8h_1ae38354b1bc64cf1422034c3560717653.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1a9c916295e6289c058a40aa1eb9d9a7e4.html">Function exafmm_t::svd(int, int, real_t *, real_t *, real_t *, real_t *)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1a9c916295e6289c058a40aa1eb9d9a7e4.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1ae4384b5b04dc15f99982cdefe16099bb.html">Function exafmm_t::svd(int, int, complex_t *, real_t *, complex_t *, complex_t *)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1ae4384b5b04dc15f99982cdefe16099bb.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1a3ae2f84d558a7a24f0fe8185daf6aea5.html">Function exafmm_t::transpose(RealVec&amp;, int, int)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1a3ae2f84d558a7a24f0fe8185daf6aea5.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1ad55f7b28da054d864de336b61018cc25.html">Function exafmm_t::transpose(ComplexVec&amp;, int, int)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1ad55f7b28da054d864de336b61018cc25.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1af6dbe980fcef3e98da9e587a3a56773b.html">Function sgemm_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1af6dbe980fcef3e98da9e587a3a56773b.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1a23a974884df223866538932a7d17c76d.html">Function sgemv_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1a23a974884df223866538932a7d17c76d.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1ace87060f8200eb354b5356b867a0265d.html">Function sgesvd_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1ace87060f8200eb354b5356b867a0265d.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1a0d3e5c4e88d999179dc53d7e104958b3.html">Function zgemm_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1a0d3e5c4e88d999179dc53d7e104958b3.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1a76eedb0a58f4f44bb7a6dd5780725160.html">Function zgemv_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1a76eedb0a58f4f44bb7a6dd5780725160.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_math__wrapper_8h_1ad46949a9d6b1e9f1fe2e9a02a37c2ed5.html">Function zgesvd_</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_math__wrapper_8h_1ad46949a9d6b1e9f1fe2e9a02a37c2ed5.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="variables">
+<h3>Variables<a class="headerlink" href="#variables" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_exafmm__t_8h_1ae023a5fe5e5b93cf20479d865a6603d1.html">Variable exafmm_t::CACHE_SIZE</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_exafmm__t_8h_1ae023a5fe5e5b93cf20479d865a6603d1.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_timer_8h_1ab29bc54121936837bef921a9305b1590.html">Variable exafmm_t::decimal</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_timer_8h_1ab29bc54121936837bef921a9305b1590.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_timer_8h_1a57b203c2726ddd7089d526f0ef9be6c8.html">Variable exafmm_t::dividerLength</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_timer_8h_1a57b203c2726ddd7089d526f0ef9be6c8.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_exafmm__t_8h_1a962dcd04c46f6c92edcbdf260558c1d2.html">Variable exafmm_t::EPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_exafmm__t_8h_1a962dcd04c46f6c92edcbdf260558c1d2.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_timer_8h_1a7f1db63bf6d828b1d98d7f2f4eb78ac7.html">Variable exafmm_t::flop</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_timer_8h_1a7f1db63bf6d828b1d98d7f2f4eb78ac7.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_exafmm__t_8h_1a332984e167a7402dd1f2f60a46ad6518.html">Variable exafmm_t::HASH_LUT</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_exafmm__t_8h_1a332984e167a7402dd1f2f60a46ad6518.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_args_8h_1a13ee1667229a50b1cff16bbcd9df0b91.html">Variable exafmm_t::long_options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_args_8h_1a13ee1667229a50b1cff16bbcd9df0b91.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_exafmm__t_8h_1a3d343a1e8253e91b75cf9bdd70d2e5e5.html">Variable exafmm_t::M2L_INDEX_MAP</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_exafmm__t_8h_1a3d343a1e8253e91b75cf9bdd70d2e5e5.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_exafmm__t_8h_1a239822242f9800a18f48d1934c135e56.html">Variable exafmm_t::MEM_ALIGN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_exafmm__t_8h_1a239822242f9800a18f48d1934c135e56.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_exafmm__t_8h_1aef8978c8a3f66f0d5ddff851911a4c2e.html">Variable exafmm_t::NCHILD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_exafmm__t_8h_1aef8978c8a3f66f0d5ddff851911a4c2e.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_exafmm__t_8h_1af622fbda7031cfe0b52ea82a0be3caf1.html">Variable exafmm_t::NSIMD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_exafmm__t_8h_1af622fbda7031cfe0b52ea82a0be3caf1.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_exafmm__t_8h_1a7f60ab2e3e30d03b69fd686753f658a3.html">Variable exafmm_t::PI</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_exafmm__t_8h_1a7f60ab2e3e30d03b69fd686753f658a3.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_exafmm__t_8h_1a95cf5bec10c23f5ef1393ff69a3192cf.html">Variable exafmm_t::REL_COORD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_exafmm__t_8h_1a95cf5bec10c23f5ef1393ff69a3192cf.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_timer_8h_1ac088b97ee852ae2b7eb406d0d4c08137.html">Variable exafmm_t::stringLength</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_timer_8h_1ac088b97ee852ae2b7eb406d0d4c08137.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_timer_8h_1abe0e8aee055f4cfeee780f99c7a1ed44.html">Variable exafmm_t::time</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_timer_8h_1abe0e8aee055f4cfeee780f99c7a1ed44.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_timer_8h_1afa5b83f5035af4ab6870335337732753.html">Variable exafmm_t::timer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_timer_8h_1afa5b83f5035af4ab6870335337732753.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_timer_8h_1ab6139bbaea916df0bb598f4b0871881f.html">Variable exafmm_t::wait</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_timer_8h_1ab6139bbaea916df0bb598f4b0871881f.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="defines">
+<h3>Defines<a class="headerlink" href="#defines" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_hilbert_8h_1aa708d6faae9e312e7f22a8358244e3b2.html">Define EXAFMM_HILBERT</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_hilbert_8h_1aa708d6faae9e312e7f22a8358244e3b2.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_vec_8h_1a9ee7be9d3d463c6449f037d3525aebad.html">Define EXAFMM_RSQRT_APPROX</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_vec_8h_1a9ee7be9d3d463c6449f037d3525aebad.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_exafmm__t_8h_1ac5fd334e16e0f5c6d3bb17e4e412351c.html">Define fft_destroy_plan</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_exafmm__t_8h_1ac5fd334e16e0f5c6d3bb17e4e412351c.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_exafmm__t_8h_1ad389d9fca48a755ec90ffd93286e85a4.html">Define fft_execute_dft</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_exafmm__t_8h_1ad389d9fca48a755ec90ffd93286e85a4.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_exafmm__t_8h_1a29080d09fb8c9cf06cb6ba9b009894a6.html">Define fft_execute_dft_c2r</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_exafmm__t_8h_1a29080d09fb8c9cf06cb6ba9b009894a6.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_exafmm__t_8h_1a9a7a2e46b7b2f35066a9d21d65af4f83.html">Define fft_execute_dft_r2c</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_exafmm__t_8h_1a9a7a2e46b7b2f35066a9d21d65af4f83.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_exafmm__t_8h_1a85ecf21c1fbabd1f824a9fd1de5a1f01.html">Define fft_flops</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_exafmm__t_8h_1a85ecf21c1fbabd1f824a9fd1de5a1f01.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_exafmm__t_8h_1a87424cbce2033b800147a13d28c55798.html">Define fft_plan_dft</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_exafmm__t_8h_1a87424cbce2033b800147a13d28c55798.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_exafmm__t_8h_1ae1ed766915188a6af6e713556d6f2ed5.html">Define fft_plan_dft_r2c</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_exafmm__t_8h_1ae1ed766915188a6af6e713556d6f2ed5.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_exafmm__t_8h_1af4d5f688e07c30608af91fe76584ce86.html">Define fft_plan_many_dft</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_exafmm__t_8h_1af4d5f688e07c30608af91fe76584ce86.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_exafmm__t_8h_1a69def9fdb2e3c91ede6c181000c7807e.html">Define fft_plan_many_dft_c2r</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_exafmm__t_8h_1a69def9fdb2e3c91ede6c181000c7807e.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_exafmm__t_8h_1a23827995db6fe72971b2e4d8d2543819.html">Define fft_plan_many_dft_r2c</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_exafmm__t_8h_1a23827995db6fe72971b2e4d8d2543819.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="typedefs">
+<h3>Typedefs<a class="headerlink" href="#typedefs" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1ad0c0d2f775528e2888aa7edada48e2de.html">Typedef exafmm_t::AlignAllocator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1ad0c0d2f775528e2888aa7edada48e2de.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1a4281ebcbc7f4a4e67086e45f2a15e313.html">Typedef exafmm_t::AlignedVec</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1a4281ebcbc7f4a4e67086e45f2a15e313.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1a44fbf7b196ac53a9de5e76ee42c6ccd5.html">Typedef exafmm_t::Bodies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1a44fbf7b196ac53a9de5e76ee42c6ccd5.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1a320a500e2e4fde262073736f8bc3d64b.html">Typedef exafmm_t::complex_t</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1a320a500e2e4fde262073736f8bc3d64b.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1af47ea9bbea1f61c4d2ffec5f5f08ead8.html">Typedef exafmm_t::ComplexVec</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1af47ea9bbea1f61c4d2ffec5f5f08ead8.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1ae3ef4351bbc31781661c69d5a964ebf0.html">Typedef exafmm_t::cvec3</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1ae3ef4351bbc31781661c69d5a964ebf0.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1ab5d05a3cf636da5a84b86ba56f29a81f.html">Typedef exafmm_t::fft_complex</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1ab5d05a3cf636da5a84b86ba56f29a81f.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1ae0423fc35c5984c4be74d6b8a0a47d29.html">Typedef exafmm_t::fft_plan</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1ae0423fc35c5984c4be74d6b8a0a47d29.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1a3c3101bfaaaa5a02e9d0be11b8a0c69d.html">Typedef exafmm_t::ivec3</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1a3c3101bfaaaa5a02e9d0be11b8a0c69d.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1ab52b97a9c44134d8ef9aefeaff0bea0c.html">Typedef exafmm_t::Keys</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1ab52b97a9c44134d8ef9aefeaff0bea0c.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1a2bea1ab2ea176e198342661fc44c5d09.html">Typedef exafmm_t::NodePtrs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1a2bea1ab2ea176e198342661fc44c5d09.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1a2d37b6036cc78f5b8cbb668b2f098b89.html">Typedef exafmm_t::Nodes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1a2d37b6036cc78f5b8cbb668b2f098b89.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1a2e3829883d8994317a6af622cc67938f.html">Typedef exafmm_t::real_t</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1a2e3829883d8994317a6af622cc67938f.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1aef82c2f6046b1f367463d328387d3c8f.html">Typedef exafmm_t::RealVec</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1aef82c2f6046b1f367463d328387d3c8f.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1ab627a33531a8a60a2de40546f847ea42.html">Typedef exafmm_t::simdvec</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1ab627a33531a8a60a2de40546f847ea42.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_exafmm__t_8h_1ad031a0df672935f79c9e139ce288363b.html">Typedef exafmm_t::vec3</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_exafmm__t_8h_1ad031a0df672935f79c9e139ce288363b.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="namespace_exafmm_t.html" class="btn btn-neutral float-right" title="Namespace exafmm_t" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../documentation.html" class="btn btn-neutral float-left" title="Build Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2019, exafmm
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

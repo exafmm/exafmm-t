@@ -1,0 +1,13 @@
+.. _exhale_function_dataset_8h_1a88d9291236aba33fddb5a587f87c74da:
+
+Template Function exafmm_t::plummer
+===================================
+
+- Defined in :ref:`file_include_dataset.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::plummer(int, int)

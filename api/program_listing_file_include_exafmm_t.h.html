@@ -1,0 +1,351 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Program Listing for File exafmm_t.h &mdash; exafmm-t  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> exafmm-t
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">exafmm-t</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Program Listing for File exafmm_t.h</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/program_listing_file_include_exafmm_t.h.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="program-listing-for-file-exafmm-t-h">
+<span id="program-listing-file-include-exafmm-t-h"></span><h1>Program Listing for File exafmm_t.h<a class="headerlink" href="#program-listing-for-file-exafmm-t-h" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="file_include_exafmm_t.h.html#file-include-exafmm-t-h"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">include/exafmm_t.h</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifndef exafmm_t_h</span>
+<span class="cp">#define exafmm_t_h</span>
+<span class="cp">#include</span> <span class="cpf">&lt;algorithm&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;cassert&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;cmath&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;complex&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;fftw3.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;omp.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;set&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;vector&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;align.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;args.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;vec.h&quot;</span><span class="cp"></span>
+
+<span class="k">namespace</span> <span class="n">exafmm_t</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="kt">int</span> <span class="n">MEM_ALIGN</span> <span class="o">=</span> <span class="mi">64</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">int</span> <span class="n">CACHE_SIZE</span> <span class="o">=</span> <span class="mi">512</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">int</span> <span class="n">NCHILD</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
+
+<span class="cp">#if FLOAT</span>
+  <span class="k">typedef</span> <span class="kt">float</span> <span class="n">real_t</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">real_t</span> <span class="n">EPS</span> <span class="o">=</span> <span class="mf">1e-8f</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">fftwf_complex</span> <span class="n">fft_complex</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">fftwf_plan</span> <span class="n">fft_plan</span><span class="p">;</span>
+<span class="cp">#define fft_plan_dft fftwf_plan_dft</span>
+<span class="cp">#define fft_plan_many_dft fftwf_plan_many_dft</span>
+<span class="cp">#define fft_execute_dft fftwf_execute_dft</span>
+<span class="cp">#define fft_plan_dft_r2c fftwf_plan_dft_r2c</span>
+<span class="cp">#define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c</span>
+<span class="cp">#define fft_plan_many_dft_c2r fftwf_plan_many_dft_c2r</span>
+<span class="cp">#define fft_execute_dft_r2c fftwf_execute_dft_r2c</span>
+<span class="cp">#define fft_execute_dft_c2r fftwf_execute_dft_c2r</span>
+<span class="cp">#define fft_destroy_plan fftwf_destroy_plan</span>
+<span class="cp">#define fft_flops fftwf_flops</span>
+<span class="cp">#else</span>
+  <span class="k">typedef</span> <span class="kt">double</span> <span class="n">real_t</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">real_t</span> <span class="n">EPS</span> <span class="o">=</span> <span class="mf">1e-16</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">fftw_complex</span> <span class="n">fft_complex</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">fftw_plan</span> <span class="n">fft_plan</span><span class="p">;</span>
+<span class="cp">#define fft_plan_dft fftw_plan_dft</span>
+<span class="cp">#define fft_plan_many_dft fftw_plan_many_dft</span>
+<span class="cp">#define fft_execute_dft fftw_execute_dft</span>
+<span class="cp">#define fft_plan_dft_r2c fftw_plan_dft_r2c</span>
+<span class="cp">#define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c</span>
+<span class="cp">#define fft_plan_many_dft_c2r fftw_plan_many_dft_c2r</span>
+<span class="cp">#define fft_execute_dft_r2c fftw_execute_dft_r2c</span>
+<span class="cp">#define fft_execute_dft_c2r fftw_execute_dft_c2r</span>
+<span class="cp">#define fft_destroy_plan fftw_destroy_plan</span>
+<span class="cp">#define fft_flops fftw_flops</span>
+<span class="cp">#endif</span>
+
+  <span class="k">const</span> <span class="n">real_t</span> <span class="n">PI</span> <span class="o">=</span> <span class="n">M_PI</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">std</span><span class="o">::</span><span class="n">complex</span><span class="o">&lt;</span><span class="n">real_t</span><span class="o">&gt;</span> <span class="n">complex_t</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">ivec3</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span><span class="n">real_t</span><span class="o">&gt;</span> <span class="n">vec3</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span><span class="n">complex_t</span><span class="o">&gt;</span> <span class="n">cvec3</span><span class="p">;</span>
+
+  <span class="k">const</span> <span class="kt">int</span> <span class="n">NSIMD</span> <span class="o">=</span> <span class="n">SIMD_BYTES</span> <span class="o">/</span> <span class="kt">int</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">real_t</span><span class="p">));</span>
+  <span class="k">typedef</span> <span class="n">vec</span><span class="o">&lt;</span><span class="n">NSIMD</span><span class="p">,</span> <span class="n">real_t</span><span class="o">&gt;</span> <span class="n">simdvec</span><span class="p">;</span>
+
+  <span class="k">typedef</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">real_t</span><span class="o">&gt;</span> <span class="n">RealVec</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">complex_t</span><span class="o">&gt;</span> <span class="n">ComplexVec</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">AlignedAllocator</span><span class="o">&lt;</span><span class="n">real_t</span><span class="p">,</span> <span class="n">MEM_ALIGN</span><span class="o">&gt;</span> <span class="n">AlignAllocator</span><span class="p">;</span>
+  <span class="k">typedef</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">real_t</span><span class="p">,</span> <span class="n">AlignAllocator</span><span class="o">&gt;</span> <span class="n">AlignedVec</span><span class="p">;</span>
+
+  <span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>
+    <span class="n">M2M_Type</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">L2L_Type</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">M2L_Helper_Type</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">M2L_Type</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="n">P2P0_Type</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="n">P2P1_Type</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="n">P2P2_Type</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="n">M2P_Type</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="n">P2L_Type</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="n">Type_Count</span> <span class="o">=</span> <span class="mi">9</span>
+  <span class="p">}</span> <span class="n">Mat_Type</span><span class="p">;</span>
+
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span>
+  <span class="k">struct</span> <span class="nc">Body</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">ibody</span><span class="p">;</span>
+    <span class="n">vec3</span> <span class="n">X</span><span class="p">;</span>
+    <span class="n">T</span> <span class="n">q</span><span class="p">;</span>
+    <span class="n">T</span> <span class="n">p</span><span class="p">;</span>
+    <span class="n">vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">F</span><span class="p">;</span>
+  <span class="p">};</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span> <span class="k">using</span> <span class="n">Bodies</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Body</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span>
+  <span class="k">struct</span> <span class="nc">Node</span> <span class="p">{</span>
+    <span class="kt">size_t</span> <span class="n">idx</span><span class="p">;</span>
+    <span class="kt">size_t</span> <span class="n">idx_M2L</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">is_leaf</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">ntrgs</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">nsrcs</span><span class="p">;</span>
+    <span class="n">vec3</span> <span class="n">x</span><span class="p">;</span>
+    <span class="n">real_t</span> <span class="n">r</span><span class="p">;</span>
+    <span class="kt">uint64_t</span> <span class="n">key</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">level</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">octant</span><span class="p">;</span>
+    <span class="n">Node</span><span class="o">*</span> <span class="n">parent</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Node</span><span class="o">*&gt;</span> <span class="n">children</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Node</span><span class="o">*&gt;</span> <span class="n">colleagues</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Node</span><span class="o">*&gt;</span> <span class="n">P2L_list</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Node</span><span class="o">*&gt;</span> <span class="n">M2P_list</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Node</span><span class="o">*&gt;</span> <span class="n">P2P_list</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Node</span><span class="o">*&gt;</span> <span class="n">M2L_list</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">isrcs</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">itrgs</span><span class="p">;</span>
+    <span class="n">RealVec</span> <span class="n">src_coord</span><span class="p">;</span>
+    <span class="n">RealVec</span> <span class="n">trg_coord</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">src_value</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">trg_value</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">up_equiv</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">dn_equiv</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="c1">// alias template</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span> <span class="k">using</span> <span class="n">Nodes</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Node</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span> <span class="k">using</span> <span class="n">NodePtrs</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Node</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;*&gt;</span><span class="p">;</span>
+  <span class="k">using</span> <span class="n">Keys</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="kt">uint64_t</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+
+  <span class="k">struct</span> <span class="nc">M2LData</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">fft_offset</span><span class="p">;</span>   <span class="c1">// source&#39;s first child&#39;s upward_equiv&#39;s displacement</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">ifft_offset</span><span class="p">;</span>  <span class="c1">// target&#39;s first child&#39;s dnward_equiv&#39;s displacement</span>
+    <span class="n">RealVec</span> <span class="n">ifft_scale</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">interaction_offset_f</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">interaction_count_offset</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="c1">// Relative coordinates and interaction lists</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">ivec3</span><span class="o">&gt;&gt;</span> <span class="n">REL_COORD</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">HASH_LUT</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">M2L_INDEX_MAP</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2019, exafmm
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

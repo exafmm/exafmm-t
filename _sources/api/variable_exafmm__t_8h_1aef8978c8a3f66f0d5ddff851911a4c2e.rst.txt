@@ -1,0 +1,13 @@
+.. _exhale_variable_exafmm__t_8h_1aef8978c8a3f66f0d5ddff851911a4c2e:
+
+Variable exafmm_t::NCHILD
+=========================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: exafmm_t::NCHILD

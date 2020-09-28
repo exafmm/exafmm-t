@@ -1,0 +1,25 @@
+.. _exhale_class_classexafmm__t_1_1ModifiedHelmholtzFmm:
+
+Class ModifiedHelmholtzFmm
+==========================
+
+- Defined in :ref:`file_include_modified_helmholtz.h`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public exafmm_t::Fmm< real_t >`` (:ref:`exhale_class_classexafmm__t_1_1Fmm`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: exafmm_t::ModifiedHelmholtzFmm
+   :members:
+   :protected-members:
+   :undoc-members:

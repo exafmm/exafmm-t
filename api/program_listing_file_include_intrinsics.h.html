@@ -1,0 +1,552 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Program Listing for File intrinsics.h &mdash; exafmm-t  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> exafmm-t
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">exafmm-t</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Program Listing for File intrinsics.h</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/program_listing_file_include_intrinsics.h.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="program-listing-for-file-intrinsics-h">
+<span id="program-listing-file-include-intrinsics-h"></span><h1>Program Listing for File intrinsics.h<a class="headerlink" href="#program-listing-for-file-intrinsics-h" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="file_include_intrinsics.h.html#file-include-intrinsics-h"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">include/intrinsics.h</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifndef intrinsics_h</span>
+<span class="cp">#define intrinsics_h</span>
+
+<span class="k">namespace</span> <span class="n">exafmm_t</span> <span class="p">{</span>
+<span class="cp">#if FLOAT</span>
+  <span class="kr">inline</span> <span class="kt">void</span> <span class="n">matmult_8x8x2</span><span class="p">(</span><span class="kt">float</span><span class="o">*&amp;</span> <span class="n">M_</span><span class="p">,</span> <span class="kt">float</span><span class="o">*&amp;</span> <span class="n">IN0</span><span class="p">,</span> <span class="kt">float</span><span class="o">*&amp;</span> <span class="n">IN1</span><span class="p">,</span> <span class="kt">float</span><span class="o">*&amp;</span> <span class="n">OUT0</span><span class="p">,</span> <span class="kt">float</span><span class="o">*&amp;</span> <span class="n">OUT1</span><span class="p">){</span>
+    <span class="kr">__m128</span> <span class="n">out00</span><span class="p">,</span><span class="n">out01</span><span class="p">,</span><span class="n">out10</span><span class="p">,</span><span class="n">out11</span><span class="p">;</span>
+    <span class="kr">__m128</span> <span class="n">out20</span><span class="p">,</span><span class="n">out21</span><span class="p">,</span><span class="n">out30</span><span class="p">,</span><span class="n">out31</span><span class="p">;</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">in0__</span> <span class="o">=</span> <span class="n">IN0</span><span class="p">;</span>
+    <span class="kt">float</span><span class="o">*</span> <span class="n">in1__</span> <span class="o">=</span> <span class="n">IN1</span><span class="p">;</span>
+    <span class="n">out00</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">OUT0</span><span class="p">);</span>
+    <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">OUT1</span><span class="p">);</span>
+    <span class="n">out10</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">4</span><span class="p">);</span>
+    <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">4</span><span class="p">);</span>
+    <span class="n">out20</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span>
+    <span class="n">out21</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span>
+    <span class="n">out30</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">12</span><span class="p">);</span>
+    <span class="n">out31</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">12</span><span class="p">);</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i2</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i2</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">;</span><span class="n">i2</span><span class="o">+=</span><span class="mi">2</span><span class="p">){</span>
+      <span class="kr">__m128</span> <span class="n">m00</span><span class="p">;</span>
+      <span class="kr">__m128</span> <span class="n">mt0</span><span class="p">,</span><span class="n">mtt0</span><span class="p">;</span>
+      <span class="kr">__m128</span> <span class="n">in00</span><span class="p">,</span><span class="n">in00_r</span><span class="p">,</span><span class="n">in01</span><span class="p">,</span><span class="n">in01_r</span><span class="p">;</span>
+      <span class="n">in00</span> <span class="o">=</span> <span class="n">_mm_castpd_ps</span><span class="p">(</span><span class="n">_mm_load_pd1</span><span class="p">((</span><span class="k">const</span> <span class="kt">double</span><span class="o">*</span><span class="p">)</span><span class="n">in0__</span><span class="p">));</span>
+      <span class="n">in00_r</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">in00</span><span class="p">,</span><span class="n">in00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">in01</span> <span class="o">=</span> <span class="n">_mm_castpd_ps</span><span class="p">(</span><span class="n">_mm_load_pd1</span><span class="p">((</span><span class="k">const</span> <span class="kt">double</span><span class="o">*</span><span class="p">)</span><span class="n">in1__</span><span class="p">));</span>
+      <span class="n">in01_r</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">in01</span><span class="p">,</span><span class="n">in01</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">M_</span><span class="p">);</span>
+      <span class="n">mt0</span>  <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">));</span>
+      <span class="n">out00</span><span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out00</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in00</span>  <span class="p">));</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">out00</span><span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out00</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">));</span>
+      <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out01</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in01</span>  <span class="p">));</span>
+      <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out01</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">4</span><span class="p">);</span>
+      <span class="n">mt0</span>  <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">));</span>
+      <span class="n">out10</span><span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out10</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in00</span>  <span class="p">));</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">out10</span><span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out10</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">));</span>
+      <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out11</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in01</span>  <span class="p">));</span>
+      <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out11</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span>
+      <span class="n">mt0</span>  <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">));</span>
+      <span class="n">out20</span><span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out20</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in00</span>  <span class="p">));</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">out20</span><span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out20</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">));</span>
+      <span class="n">out21</span> <span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out21</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in01</span>  <span class="p">));</span>
+      <span class="n">out21</span> <span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out21</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">12</span><span class="p">);</span>
+      <span class="n">mt0</span>  <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">));</span>
+      <span class="n">out30</span><span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out30</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span>  <span class="n">in00</span><span class="p">));</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">out30</span><span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out30</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">));</span>
+      <span class="n">out31</span> <span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out31</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in01</span>  <span class="p">));</span>
+      <span class="n">out31</span> <span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out31</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">));</span>
+      <span class="n">in00</span> <span class="o">=</span> <span class="n">_mm_castpd_ps</span><span class="p">(</span><span class="n">_mm_load_pd1</span><span class="p">((</span><span class="k">const</span> <span class="kt">double</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="n">in0__</span><span class="o">+</span><span class="mi">2</span><span class="p">)));</span>
+      <span class="n">in00_r</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">in00</span><span class="p">,</span><span class="n">in00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">in01</span> <span class="o">=</span> <span class="n">_mm_castpd_ps</span><span class="p">(</span><span class="n">_mm_load_pd1</span><span class="p">((</span><span class="k">const</span> <span class="kt">double</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="n">in1__</span><span class="o">+</span><span class="mi">2</span><span class="p">)));</span>
+      <span class="n">in01_r</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">in01</span><span class="p">,</span><span class="n">in01</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">16</span><span class="p">);</span>
+      <span class="n">mt0</span>  <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">));</span>
+      <span class="n">out00</span><span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out00</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in00</span>  <span class="p">));</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">out00</span><span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out00</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">));</span>
+      <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out01</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in01</span>  <span class="p">));</span>
+      <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out01</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">20</span><span class="p">);</span>
+      <span class="n">mt0</span>  <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">));</span>
+      <span class="n">out10</span><span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out10</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in00</span>  <span class="p">));</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">out10</span><span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out10</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">));</span>
+      <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out11</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in01</span> <span class="p">));</span>
+      <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out11</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">24</span><span class="p">);</span>
+      <span class="n">mt0</span>  <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">));</span>
+      <span class="n">out20</span><span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out20</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in00</span>  <span class="p">));</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">out20</span><span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out20</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">));</span>
+      <span class="n">out21</span> <span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out21</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in01</span>  <span class="p">));</span>
+      <span class="n">out21</span> <span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out21</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm_load_ps</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">28</span><span class="p">);</span>
+      <span class="n">mt0</span>  <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">));</span>
+      <span class="n">out30</span><span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out30</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in00</span>  <span class="p">));</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm_shuffle_ps</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">,</span><span class="n">_MM_SHUFFLE</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span>
+      <span class="n">out30</span><span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out30</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">));</span>
+      <span class="n">out31</span> <span class="o">=</span> <span class="n">_mm_add_ps</span>   <span class="p">(</span><span class="n">out31</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span> <span class="n">mt0</span><span class="p">,</span><span class="n">in01</span>  <span class="p">));</span>
+      <span class="n">out31</span> <span class="o">=</span> <span class="n">_mm_addsub_ps</span><span class="p">(</span><span class="n">out31</span><span class="p">,</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">));</span>
+      <span class="n">M_</span> <span class="o">+=</span> <span class="mi">32</span><span class="p">;</span>
+      <span class="n">in0__</span> <span class="o">+=</span> <span class="mi">4</span><span class="p">;</span>
+      <span class="n">in1__</span> <span class="o">+=</span> <span class="mi">4</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">_mm_store_ps</span><span class="p">(</span><span class="n">OUT0</span><span class="p">,</span><span class="n">out00</span><span class="p">);</span>
+    <span class="n">_mm_store_ps</span><span class="p">(</span><span class="n">OUT1</span><span class="p">,</span><span class="n">out01</span><span class="p">);</span>
+    <span class="n">_mm_store_ps</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span><span class="n">out10</span><span class="p">);</span>
+    <span class="n">_mm_store_ps</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span><span class="n">out11</span><span class="p">);</span>
+    <span class="n">_mm_store_ps</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">8</span><span class="p">,</span><span class="n">out20</span><span class="p">);</span>
+    <span class="n">_mm_store_ps</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">8</span><span class="p">,</span><span class="n">out21</span><span class="p">);</span>
+    <span class="n">_mm_store_ps</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">12</span><span class="p">,</span><span class="n">out30</span><span class="p">);</span>
+    <span class="n">_mm_store_ps</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">12</span><span class="p">,</span><span class="n">out31</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="cp">#else</span>
+<span class="cp">#ifdef __AVX512F__</span>
+  <span class="kr">inline</span> <span class="kt">void</span> <span class="n">matmult_8x8x2</span><span class="p">(</span><span class="kt">double</span><span class="o">*&amp;</span> <span class="n">M_</span><span class="p">,</span> <span class="kt">double</span><span class="o">*&amp;</span> <span class="n">IN0</span><span class="p">,</span> <span class="kt">double</span><span class="o">*&amp;</span> <span class="n">IN1</span><span class="p">,</span> <span class="kt">double</span><span class="o">*&amp;</span> <span class="n">OUT0</span><span class="p">,</span> <span class="kt">double</span><span class="o">*&amp;</span> <span class="n">OUT1</span><span class="p">){</span>
+    <span class="kt">double</span><span class="o">*</span> <span class="n">in0_</span> <span class="o">=</span> <span class="n">IN0</span><span class="p">;</span>
+    <span class="kt">double</span><span class="o">*</span> <span class="n">in1_</span> <span class="o">=</span> <span class="n">IN1</span><span class="p">;</span>
+
+    <span class="n">__m512d</span> <span class="n">out00</span><span class="p">,</span> <span class="n">out10</span><span class="p">,</span> <span class="n">out01</span><span class="p">,</span> <span class="n">out11</span><span class="p">;</span>
+    <span class="n">__m512d</span> <span class="n">one</span> <span class="o">=</span> <span class="n">_mm512_set1_pd</span><span class="p">(</span><span class="mf">1.0</span><span class="p">);</span>
+    <span class="n">out00</span> <span class="o">=</span> <span class="n">_mm512_load_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="p">);</span>
+    <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm512_load_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span>
+    <span class="n">out10</span> <span class="o">=</span> <span class="n">_mm512_load_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="p">);</span>
+    <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm512_load_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span>
+
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">;</span><span class="n">i</span><span class="o">+=</span><span class="mi">2</span><span class="p">){</span>
+      <span class="n">__m512d</span> <span class="n">in00</span><span class="p">,</span> <span class="n">in00_r</span><span class="p">,</span> <span class="n">in10</span><span class="p">,</span> <span class="n">in10_r</span><span class="p">;</span>
+      <span class="n">__m512d</span> <span class="n">m00</span><span class="p">,</span> <span class="n">mt0</span><span class="p">,</span> <span class="n">mtt0</span><span class="p">;</span>
+      <span class="n">__m512d</span> <span class="n">temp</span><span class="p">;</span>
+
+      <span class="c1">// (in00, in01, in00, in01, in00, in01, in00, in01)</span>
+      <span class="n">in00</span> <span class="o">=</span> <span class="n">_mm512_broadcast_f64x4</span><span class="p">(</span><span class="n">_mm256_broadcast_pd</span><span class="p">((</span><span class="k">const</span> <span class="kr">__m128d</span><span class="o">*</span><span class="p">)</span><span class="n">in0_</span><span class="p">));</span>
+      <span class="n">in10</span> <span class="o">=</span> <span class="n">_mm512_broadcast_f64x4</span><span class="p">(</span><span class="n">_mm256_broadcast_pd</span><span class="p">((</span><span class="k">const</span> <span class="kr">__m128d</span><span class="o">*</span><span class="p">)</span><span class="n">in1_</span><span class="p">));</span>
+      <span class="c1">// (in01, in00, in01, in00, in01, in00, in01, in00)</span>
+      <span class="n">in00_r</span> <span class="o">=</span> <span class="n">_mm512_permute_pd</span><span class="p">(</span><span class="n">in00</span><span class="p">,</span> <span class="mi">85</span><span class="p">);</span>
+      <span class="n">in10_r</span> <span class="o">=</span> <span class="n">_mm512_permute_pd</span><span class="p">(</span><span class="n">in10</span><span class="p">,</span> <span class="mi">85</span><span class="p">);</span>
+      <span class="c1">// M column1 row0~4 * IN0 row1/IN1 row1</span>
+      <span class="c1">// column 1, 4*2(real and imag)</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm512_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="p">);</span>
+      <span class="c1">// M shuffle (M0, M0, M2, M2, M4, M4, M6, M6)</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm512_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span> <span class="n">m00</span><span class="p">);</span>
+      <span class="c1">// M shuffle (M1, M1, M3, M3, M5, M5, M7, M7)</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm512_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span> <span class="n">m00</span><span class="p">);</span>
+      <span class="n">temp</span> <span class="o">=</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span> <span class="n">in00</span><span class="p">);</span>
+      <span class="n">out00</span> <span class="o">=</span> <span class="n">_mm512_add_pd</span><span class="p">(</span><span class="n">out00</span><span class="p">,</span> <span class="n">_mm512_fmaddsub_pd</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">one</span><span class="p">,</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span> <span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">temp</span> <span class="o">=</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span> <span class="n">in10</span><span class="p">);</span>
+      <span class="n">out10</span> <span class="o">=</span> <span class="n">_mm512_add_pd</span><span class="p">(</span><span class="n">out10</span><span class="p">,</span> <span class="n">_mm512_fmaddsub_pd</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">one</span><span class="p">,</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span> <span class="n">in10_r</span><span class="p">)));</span>
+
+      <span class="c1">// M column1 row5~8 * IN0 row1/IN1 row1</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm512_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm512_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span> <span class="n">m00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm512_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span> <span class="n">m00</span><span class="p">);</span>
+      <span class="n">temp</span> <span class="o">=</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span> <span class="n">in00</span><span class="p">);</span>
+      <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm512_add_pd</span><span class="p">(</span><span class="n">out01</span><span class="p">,</span> <span class="n">_mm512_fmaddsub_pd</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">one</span><span class="p">,</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span> <span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">temp</span> <span class="o">=</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span> <span class="n">in10</span><span class="p">);</span>
+      <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm512_add_pd</span><span class="p">(</span><span class="n">out11</span><span class="p">,</span> <span class="n">_mm512_fmaddsub_pd</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">one</span><span class="p">,</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span> <span class="n">in10_r</span><span class="p">)));</span>
+
+      <span class="c1">// M column2 row0~4 * IN0 row2/In1 row2</span>
+      <span class="n">in00</span> <span class="o">=</span> <span class="n">_mm512_broadcast_f64x4</span><span class="p">(</span><span class="n">_mm256_broadcast_pd</span><span class="p">((</span><span class="k">const</span> <span class="kr">__m128d</span><span class="o">*</span><span class="p">)(</span><span class="n">in0_</span><span class="o">+</span><span class="mi">2</span><span class="p">)));</span>
+      <span class="n">in10</span> <span class="o">=</span> <span class="n">_mm512_broadcast_f64x4</span><span class="p">(</span><span class="n">_mm256_broadcast_pd</span><span class="p">((</span><span class="k">const</span> <span class="kr">__m128d</span><span class="o">*</span><span class="p">)(</span><span class="n">in1_</span><span class="o">+</span><span class="mi">2</span><span class="p">)));</span>
+      <span class="n">in00_r</span> <span class="o">=</span> <span class="n">_mm512_permute_pd</span><span class="p">(</span><span class="n">in00</span><span class="p">,</span> <span class="mi">85</span><span class="p">);</span>
+      <span class="n">in10_r</span> <span class="o">=</span> <span class="n">_mm512_permute_pd</span><span class="p">(</span><span class="n">in10</span><span class="p">,</span> <span class="mi">85</span><span class="p">);</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm512_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">16</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm512_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span> <span class="n">m00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm512_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span> <span class="n">m00</span><span class="p">);</span>
+      <span class="n">temp</span> <span class="o">=</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span> <span class="n">in00</span><span class="p">);</span>
+      <span class="n">out00</span> <span class="o">=</span> <span class="n">_mm512_add_pd</span><span class="p">(</span><span class="n">out00</span><span class="p">,</span> <span class="n">_mm512_fmaddsub_pd</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">one</span><span class="p">,</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span> <span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">temp</span> <span class="o">=</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span> <span class="n">in10</span><span class="p">);</span>
+      <span class="n">out10</span> <span class="o">=</span> <span class="n">_mm512_add_pd</span><span class="p">(</span><span class="n">out10</span><span class="p">,</span> <span class="n">_mm512_fmaddsub_pd</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">one</span><span class="p">,</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span> <span class="n">in10_r</span><span class="p">)));</span>
+
+      <span class="c1">// M column2 row5~8 * IN0 row2/IN1 row2</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm512_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">24</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm512_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span> <span class="n">m00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm512_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span> <span class="n">m00</span><span class="p">);</span>
+      <span class="n">temp</span> <span class="o">=</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span> <span class="n">in00</span><span class="p">);</span>
+      <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm512_add_pd</span><span class="p">(</span><span class="n">out01</span><span class="p">,</span> <span class="n">_mm512_fmaddsub_pd</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">one</span><span class="p">,</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span> <span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">temp</span> <span class="o">=</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span> <span class="n">in10</span><span class="p">);</span>
+      <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm512_add_pd</span><span class="p">(</span><span class="n">out11</span><span class="p">,</span> <span class="n">_mm512_fmaddsub_pd</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">one</span><span class="p">,</span> <span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span> <span class="n">in10_r</span><span class="p">)));</span>
+
+      <span class="n">M_</span><span class="o">+=</span><span class="mi">32</span><span class="p">;</span> <span class="c1">// Jump to (column+2).</span>
+      <span class="n">in0_</span><span class="o">+=</span><span class="mi">4</span><span class="p">;</span>
+      <span class="n">in1_</span><span class="o">+=</span><span class="mi">4</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">_mm512_store_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="p">,</span> <span class="n">out00</span><span class="p">);</span>
+    <span class="n">_mm512_store_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">8</span><span class="p">,</span> <span class="n">out01</span><span class="p">);</span>
+    <span class="n">_mm512_store_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="p">,</span> <span class="n">out10</span><span class="p">);</span>
+    <span class="n">_mm512_store_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">8</span><span class="p">,</span> <span class="n">out11</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="cp">#elif __AVX__</span>
+  <span class="kr">inline</span> <span class="kt">void</span> <span class="n">matmult_8x8x2</span><span class="p">(</span><span class="kt">double</span><span class="o">*&amp;</span> <span class="n">M_</span><span class="p">,</span> <span class="kt">double</span><span class="o">*&amp;</span> <span class="n">IN0</span><span class="p">,</span> <span class="kt">double</span><span class="o">*&amp;</span> <span class="n">IN1</span><span class="p">,</span> <span class="kt">double</span><span class="o">*&amp;</span> <span class="n">OUT0</span><span class="p">,</span> <span class="kt">double</span><span class="o">*&amp;</span> <span class="n">OUT1</span><span class="p">){</span>
+    <span class="n">__m256d</span> <span class="n">out00</span><span class="p">,</span><span class="n">out01</span><span class="p">,</span><span class="n">out10</span><span class="p">,</span><span class="n">out11</span><span class="p">;</span>
+    <span class="n">__m256d</span> <span class="n">out20</span><span class="p">,</span><span class="n">out21</span><span class="p">,</span><span class="n">out30</span><span class="p">,</span><span class="n">out31</span><span class="p">;</span>
+    <span class="kt">double</span><span class="o">*</span> <span class="n">in0__</span> <span class="o">=</span> <span class="n">IN0</span><span class="p">;</span>
+    <span class="kt">double</span><span class="o">*</span> <span class="n">in1__</span> <span class="o">=</span> <span class="n">IN1</span><span class="p">;</span>
+    <span class="n">out00</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="p">);</span>
+    <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="p">);</span>
+    <span class="n">out10</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">4</span><span class="p">);</span>
+    <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">4</span><span class="p">);</span>
+    <span class="n">out20</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span>
+    <span class="n">out21</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span>
+    <span class="n">out30</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">12</span><span class="p">);</span>
+    <span class="n">out31</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">12</span><span class="p">);</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i2</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i2</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">;</span><span class="n">i2</span><span class="o">+=</span><span class="mi">2</span><span class="p">){</span>
+      <span class="n">__m256d</span> <span class="n">m00</span><span class="p">;</span>
+      <span class="n">__m256d</span> <span class="n">ot00</span><span class="p">;</span>
+      <span class="n">__m256d</span> <span class="n">mt0</span><span class="p">,</span><span class="n">mtt0</span><span class="p">;</span>
+      <span class="n">__m256d</span> <span class="n">in00</span><span class="p">,</span><span class="n">in00_r</span><span class="p">,</span><span class="n">in01</span><span class="p">,</span><span class="n">in01_r</span><span class="p">;</span>
+      <span class="n">in00</span> <span class="o">=</span> <span class="n">_mm256_broadcast_pd</span><span class="p">((</span><span class="k">const</span> <span class="kr">__m128d</span><span class="o">*</span><span class="p">)</span><span class="n">in0__</span><span class="p">);</span>
+      <span class="n">in00_r</span> <span class="o">=</span> <span class="n">_mm256_permute_pd</span><span class="p">(</span><span class="n">in00</span><span class="p">,</span><span class="mi">5</span><span class="p">);</span>
+      <span class="n">in01</span> <span class="o">=</span> <span class="n">_mm256_broadcast_pd</span><span class="p">((</span><span class="k">const</span> <span class="kr">__m128d</span><span class="o">*</span><span class="p">)</span><span class="n">in1__</span><span class="p">);</span>
+      <span class="n">in01_r</span> <span class="o">=</span> <span class="n">_mm256_permute_pd</span><span class="p">(</span><span class="n">in01</span><span class="p">,</span><span class="mi">5</span><span class="p">);</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm256_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm256_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">out00</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out00</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in01</span><span class="p">);</span>
+      <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out01</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">)));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">4</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm256_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm256_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">out10</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out10</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in01</span><span class="p">);</span>
+      <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out11</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">)));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm256_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm256_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">out20</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out20</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in01</span><span class="p">);</span>
+      <span class="n">out21</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out21</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">)));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">12</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm256_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm256_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">out30</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out30</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in01</span><span class="p">);</span>
+      <span class="n">out31</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out31</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">)));</span>
+      <span class="n">in00</span> <span class="o">=</span> <span class="n">_mm256_broadcast_pd</span><span class="p">((</span><span class="k">const</span> <span class="kr">__m128d</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="n">in0__</span><span class="o">+</span><span class="mi">2</span><span class="p">));</span>
+      <span class="n">in00_r</span> <span class="o">=</span> <span class="n">_mm256_permute_pd</span><span class="p">(</span><span class="n">in00</span><span class="p">,</span><span class="mi">5</span><span class="p">);</span>
+      <span class="n">in01</span> <span class="o">=</span> <span class="n">_mm256_broadcast_pd</span><span class="p">((</span><span class="k">const</span> <span class="kr">__m128d</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="n">in1__</span><span class="o">+</span><span class="mi">2</span><span class="p">));</span>
+      <span class="n">in01_r</span> <span class="o">=</span> <span class="n">_mm256_permute_pd</span><span class="p">(</span><span class="n">in01</span><span class="p">,</span><span class="mi">5</span><span class="p">);</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">16</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm256_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm256_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">out00</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out00</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in01</span><span class="p">);</span>
+      <span class="n">out01</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out01</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">)));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">20</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm256_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm256_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">out10</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out10</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in01</span><span class="p">);</span>
+      <span class="n">out11</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out11</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">)));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">24</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm256_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm256_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">out20</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out20</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in01</span><span class="p">);</span>
+      <span class="n">out21</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out21</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">)));</span>
+      <span class="n">m00</span> <span class="o">=</span> <span class="n">_mm256_load_pd</span><span class="p">(</span><span class="n">M_</span><span class="o">+</span><span class="mi">28</span><span class="p">);</span>
+      <span class="n">mt0</span> <span class="o">=</span> <span class="n">_mm256_unpacklo_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in00</span><span class="p">);</span>
+      <span class="n">mtt0</span> <span class="o">=</span> <span class="n">_mm256_unpackhi_pd</span><span class="p">(</span><span class="n">m00</span><span class="p">,</span><span class="n">m00</span><span class="p">);</span>
+      <span class="n">out30</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out30</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in00_r</span><span class="p">)));</span>
+      <span class="n">ot00</span> <span class="o">=</span> <span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mt0</span><span class="p">,</span><span class="n">in01</span><span class="p">);</span>
+      <span class="n">out31</span> <span class="o">=</span> <span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">out31</span><span class="p">,</span><span class="n">_mm256_addsub_pd</span><span class="p">(</span><span class="n">ot00</span><span class="p">,</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">mtt0</span><span class="p">,</span><span class="n">in01_r</span><span class="p">)));</span>
+      <span class="n">M_</span> <span class="o">+=</span> <span class="mi">32</span><span class="p">;</span>
+      <span class="n">in0__</span> <span class="o">+=</span> <span class="mi">4</span><span class="p">;</span>
+      <span class="n">in1__</span> <span class="o">+=</span> <span class="mi">4</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">_mm256_store_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="p">,</span><span class="n">out00</span><span class="p">);</span>
+    <span class="n">_mm256_store_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="p">,</span><span class="n">out01</span><span class="p">);</span>
+    <span class="n">_mm256_store_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span><span class="n">out10</span><span class="p">);</span>
+    <span class="n">_mm256_store_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span><span class="n">out11</span><span class="p">);</span>
+    <span class="n">_mm256_store_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">8</span><span class="p">,</span><span class="n">out20</span><span class="p">);</span>
+    <span class="n">_mm256_store_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">8</span><span class="p">,</span><span class="n">out21</span><span class="p">);</span>
+    <span class="n">_mm256_store_pd</span><span class="p">(</span><span class="n">OUT0</span><span class="o">+</span><span class="mi">12</span><span class="p">,</span><span class="n">out30</span><span class="p">);</span>
+    <span class="n">_mm256_store_pd</span><span class="p">(</span><span class="n">OUT1</span><span class="o">+</span><span class="mi">12</span><span class="p">,</span><span class="n">out31</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="cp">#else</span>
+  <span class="kr">inline</span> <span class="kt">void</span> <span class="n">matmult_8x8x2</span><span class="p">(</span><span class="n">real_t</span><span class="o">*&amp;</span> <span class="n">M_</span><span class="p">,</span> <span class="n">real_t</span><span class="o">*&amp;</span> <span class="n">IN0</span><span class="p">,</span> <span class="n">real_t</span><span class="o">*&amp;</span> <span class="n">IN1</span><span class="p">,</span> <span class="n">real_t</span><span class="o">*&amp;</span> <span class="n">OUT0</span><span class="p">,</span> <span class="n">real_t</span><span class="o">*&amp;</span> <span class="n">OUT1</span><span class="p">){</span>
+    <span class="c1">// Generic code.</span>
+    <span class="n">real_t</span> <span class="n">out_reg000</span><span class="p">,</span> <span class="n">out_reg001</span><span class="p">,</span> <span class="n">out_reg010</span><span class="p">,</span> <span class="n">out_reg011</span><span class="p">;</span>
+    <span class="n">real_t</span> <span class="n">out_reg100</span><span class="p">,</span> <span class="n">out_reg101</span><span class="p">,</span> <span class="n">out_reg110</span><span class="p">,</span> <span class="n">out_reg111</span><span class="p">;</span>
+    <span class="n">real_t</span>  <span class="n">in_reg000</span><span class="p">,</span>  <span class="n">in_reg001</span><span class="p">,</span>  <span class="n">in_reg010</span><span class="p">,</span>  <span class="n">in_reg011</span><span class="p">;</span>
+    <span class="n">real_t</span>  <span class="n">in_reg100</span><span class="p">,</span>  <span class="n">in_reg101</span><span class="p">,</span>  <span class="n">in_reg110</span><span class="p">,</span>  <span class="n">in_reg111</span><span class="p">;</span>
+    <span class="n">real_t</span>   <span class="n">m_reg000</span><span class="p">,</span>   <span class="n">m_reg001</span><span class="p">,</span>   <span class="n">m_reg010</span><span class="p">,</span>   <span class="n">m_reg011</span><span class="p">;</span>
+    <span class="n">real_t</span>   <span class="n">m_reg100</span><span class="p">,</span>   <span class="n">m_reg101</span><span class="p">,</span>   <span class="n">m_reg110</span><span class="p">,</span>   <span class="n">m_reg111</span><span class="p">;</span>
+    <span class="c1">//#pragma unroll</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i1</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i1</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">;</span><span class="n">i1</span><span class="o">+=</span><span class="mi">2</span><span class="p">){</span>
+      <span class="n">real_t</span><span class="o">*</span> <span class="n">IN0_</span><span class="o">=</span><span class="n">IN0</span><span class="p">;</span>
+      <span class="n">real_t</span><span class="o">*</span> <span class="n">IN1_</span><span class="o">=</span><span class="n">IN1</span><span class="p">;</span>
+
+      <span class="n">out_reg000</span><span class="o">=</span><span class="n">OUT0</span><span class="p">[</span> <span class="mi">0</span><span class="p">];</span> <span class="n">out_reg001</span><span class="o">=</span><span class="n">OUT0</span><span class="p">[</span> <span class="mi">1</span><span class="p">];</span>
+      <span class="n">out_reg010</span><span class="o">=</span><span class="n">OUT0</span><span class="p">[</span> <span class="mi">2</span><span class="p">];</span> <span class="n">out_reg011</span><span class="o">=</span><span class="n">OUT0</span><span class="p">[</span> <span class="mi">3</span><span class="p">];</span>
+      <span class="n">out_reg100</span><span class="o">=</span><span class="n">OUT1</span><span class="p">[</span> <span class="mi">0</span><span class="p">];</span> <span class="n">out_reg101</span><span class="o">=</span><span class="n">OUT1</span><span class="p">[</span> <span class="mi">1</span><span class="p">];</span>
+      <span class="n">out_reg110</span><span class="o">=</span><span class="n">OUT1</span><span class="p">[</span> <span class="mi">2</span><span class="p">];</span> <span class="n">out_reg111</span><span class="o">=</span><span class="n">OUT1</span><span class="p">[</span> <span class="mi">3</span><span class="p">];</span>
+      <span class="c1">//#pragma unroll</span>
+      <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i2</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i2</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">;</span><span class="n">i2</span><span class="o">+=</span><span class="mi">2</span><span class="p">){</span>
+        <span class="n">m_reg000</span><span class="o">=</span><span class="n">M_</span><span class="p">[</span> <span class="mi">0</span><span class="p">];</span> <span class="n">m_reg001</span><span class="o">=</span><span class="n">M_</span><span class="p">[</span> <span class="mi">1</span><span class="p">];</span>
+        <span class="n">m_reg010</span><span class="o">=</span><span class="n">M_</span><span class="p">[</span> <span class="mi">2</span><span class="p">];</span> <span class="n">m_reg011</span><span class="o">=</span><span class="n">M_</span><span class="p">[</span> <span class="mi">3</span><span class="p">];</span>
+        <span class="n">m_reg100</span><span class="o">=</span><span class="n">M_</span><span class="p">[</span><span class="mi">16</span><span class="p">];</span> <span class="n">m_reg101</span><span class="o">=</span><span class="n">M_</span><span class="p">[</span><span class="mi">17</span><span class="p">];</span>
+        <span class="n">m_reg110</span><span class="o">=</span><span class="n">M_</span><span class="p">[</span><span class="mi">18</span><span class="p">];</span> <span class="n">m_reg111</span><span class="o">=</span><span class="n">M_</span><span class="p">[</span><span class="mi">19</span><span class="p">];</span>
+
+        <span class="n">in_reg000</span><span class="o">=</span><span class="n">IN0_</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="n">in_reg001</span><span class="o">=</span><span class="n">IN0_</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+        <span class="n">in_reg010</span><span class="o">=</span><span class="n">IN0_</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span> <span class="n">in_reg011</span><span class="o">=</span><span class="n">IN0_</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+        <span class="n">in_reg100</span><span class="o">=</span><span class="n">IN1_</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="n">in_reg101</span><span class="o">=</span><span class="n">IN1_</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+        <span class="n">in_reg110</span><span class="o">=</span><span class="n">IN1_</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span> <span class="n">in_reg111</span><span class="o">=</span><span class="n">IN1_</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+
+        <span class="n">out_reg000</span> <span class="o">+=</span> <span class="n">m_reg000</span><span class="o">*</span><span class="n">in_reg000</span> <span class="o">-</span> <span class="n">m_reg001</span><span class="o">*</span><span class="n">in_reg001</span><span class="p">;</span>
+        <span class="n">out_reg001</span> <span class="o">+=</span> <span class="n">m_reg000</span><span class="o">*</span><span class="n">in_reg001</span> <span class="o">+</span> <span class="n">m_reg001</span><span class="o">*</span><span class="n">in_reg000</span><span class="p">;</span>
+        <span class="n">out_reg010</span> <span class="o">+=</span> <span class="n">m_reg010</span><span class="o">*</span><span class="n">in_reg000</span> <span class="o">-</span> <span class="n">m_reg011</span><span class="o">*</span><span class="n">in_reg001</span><span class="p">;</span>
+        <span class="n">out_reg011</span> <span class="o">+=</span> <span class="n">m_reg010</span><span class="o">*</span><span class="n">in_reg001</span> <span class="o">+</span> <span class="n">m_reg011</span><span class="o">*</span><span class="n">in_reg000</span><span class="p">;</span>
+
+        <span class="n">out_reg000</span> <span class="o">+=</span> <span class="n">m_reg100</span><span class="o">*</span><span class="n">in_reg010</span> <span class="o">-</span> <span class="n">m_reg101</span><span class="o">*</span><span class="n">in_reg011</span><span class="p">;</span>
+        <span class="n">out_reg001</span> <span class="o">+=</span> <span class="n">m_reg100</span><span class="o">*</span><span class="n">in_reg011</span> <span class="o">+</span> <span class="n">m_reg101</span><span class="o">*</span><span class="n">in_reg010</span><span class="p">;</span>
+        <span class="n">out_reg010</span> <span class="o">+=</span> <span class="n">m_reg110</span><span class="o">*</span><span class="n">in_reg010</span> <span class="o">-</span> <span class="n">m_reg111</span><span class="o">*</span><span class="n">in_reg011</span><span class="p">;</span>
+        <span class="n">out_reg011</span> <span class="o">+=</span> <span class="n">m_reg110</span><span class="o">*</span><span class="n">in_reg011</span> <span class="o">+</span> <span class="n">m_reg111</span><span class="o">*</span><span class="n">in_reg010</span><span class="p">;</span>
+
+        <span class="n">out_reg100</span> <span class="o">+=</span> <span class="n">m_reg000</span><span class="o">*</span><span class="n">in_reg100</span> <span class="o">-</span> <span class="n">m_reg001</span><span class="o">*</span><span class="n">in_reg101</span><span class="p">;</span>
+        <span class="n">out_reg101</span> <span class="o">+=</span> <span class="n">m_reg000</span><span class="o">*</span><span class="n">in_reg101</span> <span class="o">+</span> <span class="n">m_reg001</span><span class="o">*</span><span class="n">in_reg100</span><span class="p">;</span>
+        <span class="n">out_reg110</span> <span class="o">+=</span> <span class="n">m_reg010</span><span class="o">*</span><span class="n">in_reg100</span> <span class="o">-</span> <span class="n">m_reg011</span><span class="o">*</span><span class="n">in_reg101</span><span class="p">;</span>
+        <span class="n">out_reg111</span> <span class="o">+=</span> <span class="n">m_reg010</span><span class="o">*</span><span class="n">in_reg101</span> <span class="o">+</span> <span class="n">m_reg011</span><span class="o">*</span><span class="n">in_reg100</span><span class="p">;</span>
+
+        <span class="n">out_reg100</span> <span class="o">+=</span> <span class="n">m_reg100</span><span class="o">*</span><span class="n">in_reg110</span> <span class="o">-</span> <span class="n">m_reg101</span><span class="o">*</span><span class="n">in_reg111</span><span class="p">;</span>
+        <span class="n">out_reg101</span> <span class="o">+=</span> <span class="n">m_reg100</span><span class="o">*</span><span class="n">in_reg111</span> <span class="o">+</span> <span class="n">m_reg101</span><span class="o">*</span><span class="n">in_reg110</span><span class="p">;</span>
+        <span class="n">out_reg110</span> <span class="o">+=</span> <span class="n">m_reg110</span><span class="o">*</span><span class="n">in_reg110</span> <span class="o">-</span> <span class="n">m_reg111</span><span class="o">*</span><span class="n">in_reg111</span><span class="p">;</span>
+        <span class="n">out_reg111</span> <span class="o">+=</span> <span class="n">m_reg110</span><span class="o">*</span><span class="n">in_reg111</span> <span class="o">+</span> <span class="n">m_reg111</span><span class="o">*</span><span class="n">in_reg110</span><span class="p">;</span>
+
+        <span class="n">M_</span><span class="o">+=</span><span class="mi">32</span><span class="p">;</span> <span class="c1">// Jump to (column+2).</span>
+        <span class="n">IN0_</span><span class="o">+=</span><span class="mi">4</span><span class="p">;</span>
+        <span class="n">IN1_</span><span class="o">+=</span><span class="mi">4</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="n">OUT0</span><span class="p">[</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">out_reg000</span><span class="p">;</span> <span class="n">OUT0</span><span class="p">[</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">out_reg001</span><span class="p">;</span>
+      <span class="n">OUT0</span><span class="p">[</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="n">out_reg010</span><span class="p">;</span> <span class="n">OUT0</span><span class="p">[</span> <span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">out_reg011</span><span class="p">;</span>
+      <span class="n">OUT1</span><span class="p">[</span> <span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">out_reg100</span><span class="p">;</span> <span class="n">OUT1</span><span class="p">[</span> <span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">out_reg101</span><span class="p">;</span>
+      <span class="n">OUT1</span><span class="p">[</span> <span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="n">out_reg110</span><span class="p">;</span> <span class="n">OUT1</span><span class="p">[</span> <span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">out_reg111</span><span class="p">;</span>
+      <span class="n">M_</span><span class="o">+=</span><span class="mi">4-64</span><span class="o">*</span><span class="mi">2</span><span class="p">;</span> <span class="c1">// Jump back to first column (row+2).</span>
+      <span class="n">OUT0</span><span class="o">+=</span><span class="mi">4</span><span class="p">;</span>
+      <span class="n">OUT1</span><span class="o">+=</span><span class="mi">4</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="cp">#endif</span>
+<span class="cp">#endif</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2019, exafmm
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

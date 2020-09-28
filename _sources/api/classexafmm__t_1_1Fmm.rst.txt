@@ -1,0 +1,25 @@
+.. _exhale_class_classexafmm__t_1_1Fmm:
+
+Template Class Fmm
+==================
+
+- Defined in :ref:`file_include_fmm.h`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public exafmm_t::FmmBase< T >`` (:ref:`exhale_class_classexafmm__t_1_1FmmBase`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: exafmm_t::Fmm
+   :members:
+   :protected-members:
+   :undoc-members:

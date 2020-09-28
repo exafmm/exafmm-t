@@ -1,0 +1,16 @@
+.. _exhale_class_classexafmm__t_1_1vec:
+
+Template Class vec
+==================
+
+- Defined in :ref:`file_include_vec.h`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: exafmm_t::vec
+   :members:
+   :protected-members:
+   :undoc-members:

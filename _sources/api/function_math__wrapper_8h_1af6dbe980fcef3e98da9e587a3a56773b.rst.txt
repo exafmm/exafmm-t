@@ -1,0 +1,13 @@
+.. _exhale_function_math__wrapper_8h_1af6dbe980fcef3e98da9e587a3a56773b:
+
+Function sgemm_
+===============
+
+- Defined in :ref:`file_include_math_wrapper.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: sgemm_(char *, char *, int *, int *, int *, float *, float *, int *, float *, int *, float *, float *, int *)

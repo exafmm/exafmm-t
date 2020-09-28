@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &mdash; exafmm-t  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/collapsible-lists/css/tree_view.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script src="_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="exafmm-t" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> exafmm-t
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-exafmm-t">Install exafmm-t</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-exafmm-t-s-python-package">Install exafmm-t’s Python package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Build Documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html">Library API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">exafmm-t</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Installation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/compile.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>a C++ compiler that supports OpenMP and C++11 standard (or newer).</p></li>
+<li><p>GNU Make</p></li>
+<li><p>BLAS</p></li>
+<li><p>LAPACK</p></li>
+<li><p><a class="reference external" href="http://www.fftw.org/download.html">FFTW3</a></p></li>
+<li><p>GFortran</p></li>
+</ul>
+<p>Notes:</p>
+<ul class="simple">
+<li><p>GNU and Intel compilers have been tested. Compilers that use LLVM, such as clang, are not supported yet.</p></li>
+<li><p>We recommend to install OpenBLAS. The standard build also includes a full LAPACK library.</p></li>
+<li><p>There is no Fortran code in exafmm-t, but gfortran is required in the autotools macros that help configure BLAS and LAPACK libraries.</p></li>
+</ul>
+<p>You can use the following commands to install these dependencies on Ubuntu:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ apt-get update
+$ apt-get -y install libopenblas-dev libfftw3-dev gfortran
+</pre></div>
+</div>
+<p>Modify these commands accordingly if you are running other Linux distributions.</p>
+</div>
+<div class="section" id="install-exafmm-t">
+<h2>Install exafmm-t<a class="headerlink" href="#install-exafmm-t" title="Permalink to this headline">¶</a></h2>
+<p>This section is only necessary for the users who want to use exafmm-t in C++ applications.
+Python users can skip to next section: <a class="reference internal" href="#install-exafmm-t-s-python-package"><span class="std std-ref">Install exafmm-t’s Python package</span></a>.</p>
+<p>exafmm-t uses <strong>autotools</strong> as the build-system. Go to the root directory of exafmm-t and configure the build:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> exafmm-t
+$ ./configure
+</pre></div>
+</div>
+<p>By default, the configure script will use the most advanced SIMD instruction set
+available on the CPU and enable double precision option. Use <code class="docutils literal notranslate"><span class="pre">./configure</span> <span class="pre">--help</span></code> to see all available options.</p>
+<p>After configuration, you can compile and run exafmm-t’s tests with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make check
+</pre></div>
+</div>
+<p>at the root directory of the repo.</p>
+<p>Optionally, you can install the headers to the configured location:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make install
+</pre></div>
+</div>
+</div>
+<div class="section" id="install-exafmm-t-s-python-package">
+<h2>Install exafmm-t’s Python package<a class="headerlink" href="#install-exafmm-t-s-python-package" title="Permalink to this headline">¶</a></h2>
+<p>exafmm-t relies on <a class="reference external" href="https://github.com/pybind/pybind11">pybind11</a> to generate Python bindings.
+It requires Python 2.7 or 3.x. To install the Python package, you need first to install OpenBLAS (as the choice of BLAS library),
+in addition to the aforementioned dependencies.</p>
+<p>Then install exafmm-t to your Python environment using <strong>pip</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install git+https://github.com/exafmm/exafmm-t.git
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="exafmm-t" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2019, exafmm
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

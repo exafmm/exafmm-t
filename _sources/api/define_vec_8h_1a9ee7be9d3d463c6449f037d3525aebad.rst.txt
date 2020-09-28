@@ -1,0 +1,13 @@
+.. _exhale_define_vec_8h_1a9ee7be9d3d463c6449f037d3525aebad:
+
+Define EXAFMM_RSQRT_APPROX
+==========================
+
+- Defined in :ref:`file_include_vec.h`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: EXAFMM_RSQRT_APPROX

@@ -1,0 +1,13 @@
+.. _exhale_function_math__wrapper_8h_1ad7918998e6c3ca118d036a3937ab34a2:
+
+Function exafmm_t::gemm(int, int, int, real_t \*, real_t \*, real_t \*)
+=======================================================================
+
+- Defined in :ref:`file_include_math_wrapper.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::gemm(int, int, int, real_t *, real_t *, real_t *)

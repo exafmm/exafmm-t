@@ -1,0 +1,13 @@
+.. _exhale_function_math__wrapper_8h_1ad46949a9d6b1e9f1fe2e9a02a37c2ed5:
+
+Function zgesvd_
+================
+
+- Defined in :ref:`file_include_math_wrapper.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: zgesvd_(char *, char *, int *, int *, complex<double> *, int *, double *, complex<double> *, int *, complex<double> *, int *, complex<double> *, int *, double *, int *)

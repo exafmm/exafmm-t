@@ -1,0 +1,16 @@
+.. _exhale_class_classexafmm__t_1_1Args:
+
+Class Args
+==========
+
+- Defined in :ref:`file_include_args.h`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: exafmm_t::Args
+   :members:
+   :protected-members:
+   :undoc-members:

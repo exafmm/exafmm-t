@@ -1,0 +1,13 @@
+.. _exhale_function_build__tree_8h_1a352c04e2f9ad1f9d382c02e8f4486d56:
+
+Template Function exafmm_t::sort_bodies(Node<T> \*const, Body<T> \*const, Body<T> \*const, int, int, std::vector<int>&, std::vector<int>&)
+==========================================================================================================================================
+
+- Defined in :ref:`file_include_build_tree.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::sort_bodies(Node<T> *const, Body<T> *const, Body<T> *const, int, int, std::vector<int>&, std::vector<int>&)

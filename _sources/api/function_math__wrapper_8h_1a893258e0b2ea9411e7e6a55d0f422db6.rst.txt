@@ -1,0 +1,13 @@
+.. _exhale_function_math__wrapper_8h_1a893258e0b2ea9411e7e6a55d0f422db6:
+
+Function dgemm_
+===============
+
+- Defined in :ref:`file_include_math_wrapper.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: dgemm_(char *, char *, int *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *)

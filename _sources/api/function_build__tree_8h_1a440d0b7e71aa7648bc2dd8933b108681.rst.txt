@@ -1,0 +1,13 @@
+.. _exhale_function_build__tree_8h_1a440d0b7e71aa7648bc2dd8933b108681:
+
+Template Function exafmm_t::breadth_first_traversal
+===================================================
+
+- Defined in :ref:`file_include_build_tree.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::breadth_first_traversal(Node<T> *const, std::unordered_map<uint64_t, size_t>&)

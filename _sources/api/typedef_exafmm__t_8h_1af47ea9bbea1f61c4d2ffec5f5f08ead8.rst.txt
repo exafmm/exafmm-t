@@ -1,0 +1,13 @@
+.. _exhale_typedef_exafmm__t_8h_1af47ea9bbea1f61c4d2ffec5f5f08ead8:
+
+Typedef exafmm_t::ComplexVec
+============================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: exafmm_t::ComplexVec

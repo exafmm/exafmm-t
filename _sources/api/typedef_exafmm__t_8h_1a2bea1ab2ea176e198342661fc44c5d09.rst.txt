@@ -1,0 +1,13 @@
+.. _exhale_typedef_exafmm__t_8h_1a2bea1ab2ea176e198342661fc44c5d09:
+
+Typedef exafmm_t::NodePtrs
+==========================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: exafmm_t::NodePtrs

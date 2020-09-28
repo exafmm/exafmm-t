@@ -1,0 +1,13 @@
+.. _exhale_function_build__tree_8h_1a3e0bb450a71bdf46d51d841401c64bf9:
+
+Template Function exafmm_t::balance_tree(const Keys&, const std::unordered_map<uint64_t, size_t>&, const Nodes<K>&)
+===================================================================================================================
+
+- Defined in :ref:`file_include_build_tree.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::balance_tree(const Keys&, const std::unordered_map<uint64_t, size_t>&, const Nodes<K>&)

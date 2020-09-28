@@ -1,0 +1,61 @@
+
+.. _file_include_dataset.h:
+
+File dataset.h
+==============
+
+|exhale_lsh| :ref:`Parent directory <dir_include>` (``include``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``include/dataset.h``)
+----------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_include_dataset.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``exafmm_t.h`` (:ref:`file_include_exafmm_t.h`)
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_exafmm_t`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_dataset_8h_1aac1fc3fa459a15049918792ef985b930`
+
+- :ref:`exhale_function_dataset_8h_1ad0528ffe62eca34477475f058ef3b075`
+
+- :ref:`exhale_function_dataset_8h_1ad41a7b3f40be1d43245d44b63be08743`
+
+- :ref:`exhale_function_dataset_8h_1a50318156289412f1ccfd4c55db7004d5`
+
+- :ref:`exhale_function_dataset_8h_1a88d9291236aba33fddb5a587f87c74da`
+
+- :ref:`exhale_function_dataset_8h_1ab3369b6745a2cddefcfdf32f02619587`
+

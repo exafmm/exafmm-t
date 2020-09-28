@@ -1,0 +1,13 @@
+.. _exhale_function_math__wrapper_8h_1ace87060f8200eb354b5356b867a0265d:
+
+Function sgesvd_
+================
+
+- Defined in :ref:`file_include_math_wrapper.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: sgesvd_(char *, char *, int *, int *, float *, int *, float *, float *, int *, float *, int *, float *, int *, int *)

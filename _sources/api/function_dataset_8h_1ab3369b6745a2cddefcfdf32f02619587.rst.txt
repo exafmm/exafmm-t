@@ -1,0 +1,13 @@
+.. _exhale_function_dataset_8h_1ab3369b6745a2cddefcfdf32f02619587:
+
+Template Function exafmm_t::sphere
+==================================
+
+- Defined in :ref:`file_include_dataset.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::sphere(int, int)

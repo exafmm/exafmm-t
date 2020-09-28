@@ -1,0 +1,13 @@
+.. _exhale_function_hilbert_8h_1a76aecaf13b17dc071e9b5d88f97fa289:
+
+Function exafmm_t::getChild
+===========================
+
+- Defined in :ref:`file_include_hilbert.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::getChild(uint64_t)

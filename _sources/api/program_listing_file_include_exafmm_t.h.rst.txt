@@ -1,0 +1,149 @@
+
+.. _program_listing_file_include_exafmm_t.h:
+
+Program Listing for File exafmm_t.h
+===================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_include_exafmm_t.h>` (``include/exafmm_t.h``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #ifndef exafmm_t_h
+   #define exafmm_t_h
+   #include <algorithm>
+   #include <cassert>
+   #include <cmath>
+   #include <complex>
+   #include <fftw3.h>
+   #include <iostream>
+   #include <omp.h>
+   #include <set>
+   #include <vector>
+   #include "align.h"
+   #include "args.h"
+   #include "vec.h"
+   
+   namespace exafmm_t {
+     const int MEM_ALIGN = 64;
+     const int CACHE_SIZE = 512;
+     const int NCHILD = 8;
+   
+   #if FLOAT
+     typedef float real_t;                       
+     const real_t EPS = 1e-8f;
+     typedef fftwf_complex fft_complex;
+     typedef fftwf_plan fft_plan;
+   #define fft_plan_dft fftwf_plan_dft
+   #define fft_plan_many_dft fftwf_plan_many_dft
+   #define fft_execute_dft fftwf_execute_dft
+   #define fft_plan_dft_r2c fftwf_plan_dft_r2c
+   #define fft_plan_many_dft_r2c fftwf_plan_many_dft_r2c
+   #define fft_plan_many_dft_c2r fftwf_plan_many_dft_c2r
+   #define fft_execute_dft_r2c fftwf_execute_dft_r2c
+   #define fft_execute_dft_c2r fftwf_execute_dft_c2r
+   #define fft_destroy_plan fftwf_destroy_plan
+   #define fft_flops fftwf_flops
+   #else
+     typedef double real_t;                       
+     const real_t EPS = 1e-16;
+     typedef fftw_complex fft_complex;
+     typedef fftw_plan fft_plan;
+   #define fft_plan_dft fftw_plan_dft
+   #define fft_plan_many_dft fftw_plan_many_dft
+   #define fft_execute_dft fftw_execute_dft
+   #define fft_plan_dft_r2c fftw_plan_dft_r2c
+   #define fft_plan_many_dft_r2c fftw_plan_many_dft_r2c
+   #define fft_plan_many_dft_c2r fftw_plan_many_dft_c2r
+   #define fft_execute_dft_r2c fftw_execute_dft_r2c
+   #define fft_execute_dft_c2r fftw_execute_dft_c2r
+   #define fft_destroy_plan fftw_destroy_plan
+   #define fft_flops fftw_flops
+   #endif
+   
+     const real_t PI = M_PI;
+     typedef std::complex<real_t> complex_t;       
+     typedef vec<3,int> ivec3;                     
+     typedef vec<3,real_t> vec3;                   
+     typedef vec<3,complex_t> cvec3;               
+   
+     const int NSIMD = SIMD_BYTES / int(sizeof(real_t));  
+     typedef vec<NSIMD, real_t> simdvec;           
+   
+     typedef std::vector<real_t> RealVec;          
+     typedef std::vector<complex_t> ComplexVec;    
+     typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;   
+     typedef std::vector<real_t, AlignAllocator> AlignedVec;       
+   
+     typedef enum {
+       M2M_Type = 0,
+       L2L_Type = 1,
+       M2L_Helper_Type = 2,
+       M2L_Type = 3,
+       P2P0_Type = 4,
+       P2P1_Type = 5,
+       P2P2_Type = 6,
+       M2P_Type = 7,
+       P2L_Type = 8,
+       Type_Count = 9
+     } Mat_Type;
+   
+     template <typename T>
+     struct Body {
+       int ibody;                             
+       vec3 X;                                
+       T q;                                   
+       T p;                                   
+       vec<3,T> F;                            
+     };
+     template <typename T> using Bodies = std::vector<Body<T>>;     
+   
+     template <typename T>
+     struct Node {
+       size_t idx;                                 
+       size_t idx_M2L;                             
+       bool is_leaf;                               
+       int ntrgs;                                  
+       int nsrcs;                                  
+       vec3 x;                                     
+       real_t r;                                   
+       uint64_t key;                               
+       int level;                                  
+       int octant;                                 
+       Node* parent;                               
+       std::vector<Node*> children;                
+       std::vector<Node*> colleagues;              
+       std::vector<Node*> P2L_list;                
+       std::vector<Node*> M2P_list;                
+       std::vector<Node*> P2P_list;                
+       std::vector<Node*> M2L_list;                
+       std::vector<int> isrcs;                     
+       std::vector<int> itrgs;                     
+       RealVec src_coord;                          
+       RealVec trg_coord;                          
+       std::vector<T> src_value;                   
+       std::vector<T> trg_value;                   
+       std::vector<T> up_equiv;                    
+       std::vector<T> dn_equiv;                    
+     };
+     
+     // alias template
+     template <typename T> using Nodes = std::vector<Node<T>>;        
+     template <typename T> using NodePtrs = std::vector<Node<T>*>;    
+     using Keys = std::vector<std::set<uint64_t>>;                    
+   
+     struct M2LData {
+       std::vector<size_t> fft_offset;   // source's first child's upward_equiv's displacement
+       std::vector<size_t> ifft_offset;  // target's first child's dnward_equiv's displacement
+       RealVec ifft_scale;
+       std::vector<size_t> interaction_offset_f;
+       std::vector<size_t> interaction_count_offset;
+     };
+   
+     // Relative coordinates and interaction lists
+     std::vector<std::vector<ivec3>> REL_COORD;  
+     std::vector<std::vector<int>> HASH_LUT;     
+     std::vector<std::vector<int>> M2L_INDEX_MAP;  
+   }
+   #endif

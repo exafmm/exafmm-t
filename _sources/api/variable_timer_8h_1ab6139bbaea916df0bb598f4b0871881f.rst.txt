@@ -1,0 +1,13 @@
+.. _exhale_variable_timer_8h_1ab6139bbaea916df0bb598f4b0871881f:
+
+Variable exafmm_t::wait
+=======================
+
+- Defined in :ref:`file_include_timer.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: exafmm_t::wait

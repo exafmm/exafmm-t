@@ -1,0 +1,22 @@
+.. _exhale_struct_structAlignedAllocator_1_1rebind:
+
+Template Struct AlignedAllocator::rebind
+========================================
+
+- Defined in :ref:`file_include_align.h`
+
+
+Nested Relationships
+--------------------
+
+This struct is a nested type of :ref:`exhale_struct_structAlignedAllocator`.
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: AlignedAllocator::rebind
+   :members:
+   :protected-members:
+   :undoc-members:

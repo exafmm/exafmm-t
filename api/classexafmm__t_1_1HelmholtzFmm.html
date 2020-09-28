@@ -1,0 +1,299 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Class HelmholtzFmm &mdash; exafmm-t  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class LaplaceFmm" href="classexafmm__t_1_1LaplaceFmm.html" />
+    <link rel="prev" title="Template Class FmmScaleInvariant" href="classexafmm__t_1_1FmmScaleInvariant.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> exafmm-t
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">exafmm-t</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="library_root.html">Library API</a> &raquo;</li>
+        
+      <li>Class HelmholtzFmm</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/classexafmm__t_1_1HelmholtzFmm.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="class-helmholtzfmm">
+<span id="exhale-class-classexafmm-t-1-1helmholtzfmm"></span><h1>Class HelmholtzFmm<a class="headerlink" href="#class-helmholtzfmm" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_include_helmholtz.h.html#file-include-helmholtz-h"><span class="std std-ref">File helmholtz.h</span></a></p></li>
+</ul>
+<div class="section" id="inheritance-relationships">
+<h2>Inheritance Relationships<a class="headerlink" href="#inheritance-relationships" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="base-type">
+<h3>Base Type<a class="headerlink" href="#base-type" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">exafmm_t::Fmm&lt;</span> <span class="pre">complex_t</span> <span class="pre">&gt;</span></code> (<a class="reference internal" href="classexafmm__t_1_1Fmm.html#exhale-class-classexafmm-t-1-1fmm"><span class="std std-ref">Template Class Fmm</span></a>)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N8exafmm_t12HelmholtzFmmE">
+<span id="_CPPv3N8exafmm_t12HelmholtzFmmE"></span><span id="_CPPv2N8exafmm_t12HelmholtzFmmE"></span><span id="exafmm_t::HelmholtzFmm"></span><span class="target" id="classexafmm__t_1_1HelmholtzFmm"></span><em class="property">class </em><code class="sig-prename descclassname">exafmm_t<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">HelmholtzFmm</code> : <em class="property">public</em> exafmm_t::<a class="reference internal" href="classexafmm__t_1_1Fmm.html#_CPPv4I0EN8exafmm_t3FmmE" title="exafmm_t::Fmm">Fmm</a>&lt;<a class="reference internal" href="typedef_exafmm__t_8h_1a320a500e2e4fde262073736f8bc3d64b.html#_CPPv4N8exafmm_t9complex_tE" title="exafmm_t::complex_t">complex_t</a>&gt;<a class="headerlink" href="#_CPPv4N8exafmm_t12HelmholtzFmmE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>A derived FMM class for Helmholtz kernel. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t12HelmholtzFmm12HelmholtzFmmEv">
+<span id="_CPPv3N8exafmm_t12HelmholtzFmm12HelmholtzFmmEv"></span><span id="_CPPv2N8exafmm_t12HelmholtzFmm12HelmholtzFmmEv"></span><span id="exafmm_t::HelmholtzFmm::HelmholtzFmm"></span><span class="target" id="classexafmm__t_1_1HelmholtzFmm_1a76c80b897af3d7db9973e10dc3957b80"></span><code class="sig-name descname">HelmholtzFmm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t12HelmholtzFmm12HelmholtzFmmEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t12HelmholtzFmm12HelmholtzFmmEii9complex_tNSt6stringE">
+<span id="_CPPv3N8exafmm_t12HelmholtzFmm12HelmholtzFmmEii9complex_tNSt6stringE"></span><span id="_CPPv2N8exafmm_t12HelmholtzFmm12HelmholtzFmmEii9complex_tNSt6stringE"></span><span id="exafmm_t::HelmholtzFmm::HelmholtzFmm__i.i.complex_t.ss"></span><span class="target" id="classexafmm__t_1_1HelmholtzFmm_1a74bc681359ae16bdbed1b28021c954fe"></span><code class="sig-name descname">HelmholtzFmm</code><span class="sig-paren">(</span>int <em>p_</em>, int <em>ncrit_</em>, <a class="reference internal" href="typedef_exafmm__t_8h_1a320a500e2e4fde262073736f8bc3d64b.html#_CPPv4N8exafmm_t9complex_tE" title="exafmm_t::complex_t">complex_t</a> <em>wavek_</em>, std::string <em>filename_</em> = std::string()<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t12HelmholtzFmm12HelmholtzFmmEii9complex_tNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t12HelmholtzFmm13potential_P2PER7RealVecR10ComplexVecR7RealVecR10ComplexVec">
+<span id="_CPPv3N8exafmm_t12HelmholtzFmm13potential_P2PER7RealVecR10ComplexVecR7RealVecR10ComplexVec"></span><span id="_CPPv2N8exafmm_t12HelmholtzFmm13potential_P2PER7RealVecR10ComplexVecR7RealVecR10ComplexVec"></span><span id="exafmm_t::HelmholtzFmm::potential_P2P__RealVecR.ComplexVecR.RealVecR.ComplexVecR"></span><span class="target" id="classexafmm__t_1_1HelmholtzFmm_1aefee8c3926b373fbf35ded4ef18ed24e"></span>void <code class="sig-name descname">potential_P2P</code><span class="sig-paren">(</span><a class="reference internal" href="typedef_exafmm__t_8h_1aef82c2f6046b1f367463d328387d3c8f.html#_CPPv4N8exafmm_t7RealVecE" title="exafmm_t::RealVec">RealVec</a> &amp;<em>src_coord</em>, <a class="reference internal" href="typedef_exafmm__t_8h_1af47ea9bbea1f61c4d2ffec5f5f08ead8.html#_CPPv4N8exafmm_t10ComplexVecE" title="exafmm_t::ComplexVec">ComplexVec</a> &amp;<em>src_value</em>, <a class="reference internal" href="typedef_exafmm__t_8h_1aef82c2f6046b1f367463d328387d3c8f.html#_CPPv4N8exafmm_t7RealVecE" title="exafmm_t::RealVec">RealVec</a> &amp;<em>trg_coord</em>, <a class="reference internal" href="typedef_exafmm__t_8h_1af47ea9bbea1f61c4d2ffec5f5f08ead8.html#_CPPv4N8exafmm_t10ComplexVecE" title="exafmm_t::ComplexVec">ComplexVec</a> &amp;<em>trg_value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t12HelmholtzFmm13potential_P2PER7RealVecR10ComplexVecR7RealVecR10ComplexVec" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Compute potentials at targets induced by sources directly. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src_coord</span></code>: Vector of coordinates of sources. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_value</span></code>: Vector of charges of sources. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trg_coord</span></code>: Vector of coordinates of targets. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trg_value</span></code>: Vector of potentials of targets. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t12HelmholtzFmm12gradient_P2PER7RealVecR10ComplexVecR7RealVecR10ComplexVec">
+<span id="_CPPv3N8exafmm_t12HelmholtzFmm12gradient_P2PER7RealVecR10ComplexVecR7RealVecR10ComplexVec"></span><span id="_CPPv2N8exafmm_t12HelmholtzFmm12gradient_P2PER7RealVecR10ComplexVecR7RealVecR10ComplexVec"></span><span id="exafmm_t::HelmholtzFmm::gradient_P2P__RealVecR.ComplexVecR.RealVecR.ComplexVecR"></span><span class="target" id="classexafmm__t_1_1HelmholtzFmm_1a86fe22715f82ab97809a323a2d5ce932"></span>void <code class="sig-name descname">gradient_P2P</code><span class="sig-paren">(</span><a class="reference internal" href="typedef_exafmm__t_8h_1aef82c2f6046b1f367463d328387d3c8f.html#_CPPv4N8exafmm_t7RealVecE" title="exafmm_t::RealVec">RealVec</a> &amp;<em>src_coord</em>, <a class="reference internal" href="typedef_exafmm__t_8h_1af47ea9bbea1f61c4d2ffec5f5f08ead8.html#_CPPv4N8exafmm_t10ComplexVecE" title="exafmm_t::ComplexVec">ComplexVec</a> &amp;<em>src_value</em>, <a class="reference internal" href="typedef_exafmm__t_8h_1aef82c2f6046b1f367463d328387d3c8f.html#_CPPv4N8exafmm_t7RealVecE" title="exafmm_t::RealVec">RealVec</a> &amp;<em>trg_coord</em>, <a class="reference internal" href="typedef_exafmm__t_8h_1af47ea9bbea1f61c4d2ffec5f5f08ead8.html#_CPPv4N8exafmm_t10ComplexVecE" title="exafmm_t::ComplexVec">ComplexVec</a> &amp;<em>trg_value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t12HelmholtzFmm12gradient_P2PER7RealVecR10ComplexVecR7RealVecR10ComplexVec" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Compute potentials and gradients at targets induced by sources directly. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src_coord</span></code>: Vector of coordinates of sources. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_value</span></code>: Vector of charges of sources. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trg_coord</span></code>: Vector of coordinates of targets. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trg_value</span></code>: Vector of potentials of targets. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="cpp var">
+<dt id="_CPPv4N8exafmm_t12HelmholtzFmm5wavekE">
+<span id="_CPPv3N8exafmm_t12HelmholtzFmm5wavekE"></span><span id="_CPPv2N8exafmm_t12HelmholtzFmm5wavekE"></span><span id="exafmm_t::HelmholtzFmm::wavek__complex_t"></span><span class="target" id="classexafmm__t_1_1HelmholtzFmm_1ab0c837af677b30ee5b008842bfcaebc3"></span><a class="reference internal" href="typedef_exafmm__t_8h_1a320a500e2e4fde262073736f8bc3d64b.html#_CPPv4N8exafmm_t9complex_tE" title="exafmm_t::complex_t">complex_t</a> <code class="sig-name descname">wavek</code><a class="headerlink" href="#_CPPv4N8exafmm_t12HelmholtzFmm5wavekE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Wave number k. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="classexafmm__t_1_1LaplaceFmm.html" class="btn btn-neutral float-right" title="Class LaplaceFmm" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="classexafmm__t_1_1FmmScaleInvariant.html" class="btn btn-neutral float-left" title="Template Class FmmScaleInvariant" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2019, exafmm
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

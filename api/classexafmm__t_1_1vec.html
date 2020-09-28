@@ -1,0 +1,516 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Template Class vec &mdash; exafmm-t  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Enum Mat_Type" href="enum_exafmm__t_8h_1a90321ace254beb0e9eacd5517ae3a4b4.html" />
+    <link rel="prev" title="Class ModifiedHelmholtzFmm" href="classexafmm__t_1_1ModifiedHelmholtzFmm.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> exafmm-t
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">exafmm-t</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="library_root.html">Library API</a> &raquo;</li>
+        
+      <li>Template Class vec</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/classexafmm__t_1_1vec.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="template-class-vec">
+<span id="exhale-class-classexafmm-t-1-1vec"></span><h1>Template Class vec<a class="headerlink" href="#template-class-vec" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_include_vec.h.html#file-include-vec-h"><span class="std std-ref">File vec.h</span></a></p></li>
+</ul>
+<div class="section" id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4I_i0EN8exafmm_t3vecE">
+<span id="_CPPv3I_i0EN8exafmm_t3vecE"></span><span id="_CPPv2I_i0EN8exafmm_t3vecE"></span>template&lt;int <code class="sig-name descname">N</code>, typename <code class="sig-name descname">T</code>&gt;<br /><span class="target" id="classexafmm__t_1_1vec"></span><em class="property">class </em><code class="sig-prename descclassname">exafmm_t<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">vec</code><a class="headerlink" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3vecEv">
+<span id="_CPPv3N8exafmm_t3vec3vecEv"></span><span id="_CPPv2N8exafmm_t3vec3vecEv"></span><span id="exafmm_t::vec::vec"></span><span class="target" id="classexafmm__t_1_1vec_1a1dd3a990da53860c6e79f4b682c0aeb1"></span><code class="sig-name descname">vec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3vecEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3vecERK1T">
+<span id="_CPPv3N8exafmm_t3vec3vecERK1T"></span><span id="_CPPv2N8exafmm_t3vec3vecERK1T"></span><span id="exafmm_t::vec::vec__TCR"></span><span class="target" id="classexafmm__t_1_1vec_1a60941924c85102d880afe55fb9e12a63"></span><code class="sig-name descname">vec</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3vecERK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3vecERK3vec">
+<span id="_CPPv3N8exafmm_t3vec3vecERK3vec"></span><span id="_CPPv2N8exafmm_t3vec3vecERK3vec"></span><span id="exafmm_t::vec::vec__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1ac6a38417112a1d2c1cd73474443060a5"></span><code class="sig-name descname">vec</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N8exafmm_t3vec3vecERK3vec" title="exafmm_t::vec::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3vecERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecD0Ev">
+<span id="_CPPv3N8exafmm_t3vecD0Ev"></span><span id="_CPPv2N8exafmm_t3vecD0Ev"></span><span id="exafmm_t::vec::~vec"></span><span class="target" id="classexafmm__t_1_1vec_1a36ac6a9becab2dfb8244e9377a961e52"></span><code class="sig-name descname">~vec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecaSEK1T">
+<span id="_CPPv3N8exafmm_t3vecaSEK1T"></span><span id="_CPPv2N8exafmm_t3vecaSEK1T"></span><span id="exafmm_t::vec::assign-operator__TC"></span><span class="target" id="classexafmm__t_1_1vec_1a38d01473b19eb8be179beab24b871821"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecaSEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecpLEK1T">
+<span id="_CPPv3N8exafmm_t3vecpLEK1T"></span><span id="_CPPv2N8exafmm_t3vecpLEK1T"></span><span id="exafmm_t::vec::add-assign-operator__TC"></span><span class="target" id="classexafmm__t_1_1vec_1a6eba3378311a09bfa70246141b8ffee2"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator+=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecpLEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecmIEK1T">
+<span id="_CPPv3N8exafmm_t3vecmIEK1T"></span><span id="_CPPv2N8exafmm_t3vecmIEK1T"></span><span id="exafmm_t::vec::sub-assign-operator__TC"></span><span class="target" id="classexafmm__t_1_1vec_1a9afb84fdf0c5909f91c803010762c604"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator-=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecmIEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecmLEK1T">
+<span id="_CPPv3N8exafmm_t3vecmLEK1T"></span><span id="_CPPv2N8exafmm_t3vecmLEK1T"></span><span id="exafmm_t::vec::mul-assign-operator__TC"></span><span class="target" id="classexafmm__t_1_1vec_1aa7b2928000ff0514993dbd3040b22179"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator*=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecmLEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecdVEK1T">
+<span id="_CPPv3N8exafmm_t3vecdVEK1T"></span><span id="_CPPv2N8exafmm_t3vecdVEK1T"></span><span id="exafmm_t::vec::div-assign-operator__TC"></span><span class="target" id="classexafmm__t_1_1vec_1a87b39d16f67d097ad7be3c05759b00a3"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator/=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecdVEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecgeEK1T">
+<span id="_CPPv3N8exafmm_t3vecgeEK1T"></span><span id="_CPPv2N8exafmm_t3vecgeEK1T"></span><span id="exafmm_t::vec::gte-operator__TC"></span><span class="target" id="classexafmm__t_1_1vec_1a69eb65c77b3b4fa58012b3e208dae794"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator&gt;=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecgeEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecleEK1T">
+<span id="_CPPv3N8exafmm_t3vecleEK1T"></span><span id="_CPPv2N8exafmm_t3vecleEK1T"></span><span id="exafmm_t::vec::lte-operator__TC"></span><span class="target" id="classexafmm__t_1_1vec_1a4610373314dbaf7b019c8b2faf1fea7d"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator&lt;=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecleEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecaNEK1T">
+<span id="_CPPv3N8exafmm_t3vecaNEK1T"></span><span id="_CPPv2N8exafmm_t3vecaNEK1T"></span><span id="exafmm_t::vec::and-assign-operator__TC"></span><span class="target" id="classexafmm__t_1_1vec_1a9c3c5818e9ffc17142b4b23c061ec0af"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator&amp;=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecaNEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecoREK1T">
+<span id="_CPPv3N8exafmm_t3vecoREK1T"></span><span id="_CPPv2N8exafmm_t3vecoREK1T"></span><span id="exafmm_t::vec::or-assign-operator__TC"></span><span class="target" id="classexafmm__t_1_1vec_1a90e89ab782bec1c573fa4d88ff4330e2"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator|=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecoREK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecaSERK3vec">
+<span id="_CPPv3N8exafmm_t3vecaSERK3vec"></span><span id="_CPPv2N8exafmm_t3vecaSERK3vec"></span><span id="exafmm_t::vec::assign-operator__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a4ef479d0b670c8f7edab1e5dd488b110"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecaSERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecpLERK3vec">
+<span id="_CPPv3N8exafmm_t3vecpLERK3vec"></span><span id="_CPPv2N8exafmm_t3vecpLERK3vec"></span><span id="exafmm_t::vec::add-assign-operator__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a563e161afc9c526402ac3dc6bed169b3"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator+=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecpLERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecmIERK3vec">
+<span id="_CPPv3N8exafmm_t3vecmIERK3vec"></span><span id="_CPPv2N8exafmm_t3vecmIERK3vec"></span><span id="exafmm_t::vec::sub-assign-operator__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1ad7d4a87c7e873f98a5f17eece5239951"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator-=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecmIERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecmLERK3vec">
+<span id="_CPPv3N8exafmm_t3vecmLERK3vec"></span><span id="_CPPv2N8exafmm_t3vecmLERK3vec"></span><span id="exafmm_t::vec::mul-assign-operator__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1ad8772fcd849cb303e81772296346a0fb"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator*=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecmLERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecdVERK3vec">
+<span id="_CPPv3N8exafmm_t3vecdVERK3vec"></span><span id="_CPPv2N8exafmm_t3vecdVERK3vec"></span><span id="exafmm_t::vec::div-assign-operator__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1aa20f8491c35c569ae2f6eb700306532b"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator/=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecdVERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecgeERK3vec">
+<span id="_CPPv3N8exafmm_t3vecgeERK3vec"></span><span id="_CPPv2N8exafmm_t3vecgeERK3vec"></span><span id="exafmm_t::vec::gte-operator__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a45c00c24d0ca63a9ec78fcf13a3333e0"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator&gt;=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecgeERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecleERK3vec">
+<span id="_CPPv3N8exafmm_t3vecleERK3vec"></span><span id="_CPPv2N8exafmm_t3vecleERK3vec"></span><span id="exafmm_t::vec::lte-operator__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a1279105125ac0a51e7352fef6631a0d7"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator&lt;=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecleERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecaNERK3vec">
+<span id="_CPPv3N8exafmm_t3vecaNERK3vec"></span><span id="_CPPv2N8exafmm_t3vecaNERK3vec"></span><span id="exafmm_t::vec::and-assign-operator__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a3da5f0495480b2f8638f1110fc272b51"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator&amp;=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecaNERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecoRERK3vec">
+<span id="_CPPv3N8exafmm_t3vecoRERK3vec"></span><span id="_CPPv2N8exafmm_t3vecoRERK3vec"></span><span id="exafmm_t::vec::or-assign-operator__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a95a54b587281032d171e47c5e20c84ab"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<code class="sig-name descname">operator|=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecoRERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecplEK1T">
+<span id="_CPPv3NK8exafmm_t3vecplEK1T"></span><span id="_CPPv2NK8exafmm_t3vecplEK1T"></span><span id="exafmm_t::vec::add-operator__TCC"></span><span class="target" id="classexafmm__t_1_1vec_1a3c09b2e390f5f61c59aba8742cb421a0"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator+</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecplEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecmiEK1T">
+<span id="_CPPv3NK8exafmm_t3vecmiEK1T"></span><span id="_CPPv2NK8exafmm_t3vecmiEK1T"></span><span id="exafmm_t::vec::sub-operator__TCC"></span><span class="target" id="classexafmm__t_1_1vec_1a37ea8c13408ee00d3883be12ffbaad1a"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator-</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecmiEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecmlEK1T">
+<span id="_CPPv3NK8exafmm_t3vecmlEK1T"></span><span id="_CPPv2NK8exafmm_t3vecmlEK1T"></span><span id="exafmm_t::vec::mul-operator__TCC"></span><span class="target" id="classexafmm__t_1_1vec_1a305e423e27b7b7b81e09ea8bfb2e494f"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator*</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecmlEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecdvEK1T">
+<span id="_CPPv3NK8exafmm_t3vecdvEK1T"></span><span id="_CPPv2NK8exafmm_t3vecdvEK1T"></span><span id="exafmm_t::vec::div-operator__TCC"></span><span class="target" id="classexafmm__t_1_1vec_1a68265fd8ca896e87a0c3d96a5e70924c"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator/</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecdvEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecgtEK1T">
+<span id="_CPPv3NK8exafmm_t3vecgtEK1T"></span><span id="_CPPv2NK8exafmm_t3vecgtEK1T"></span><span id="exafmm_t::vec::gt-operator__TCC"></span><span class="target" id="classexafmm__t_1_1vec_1a2559e15e0ae2c8b214c5ba9c2dac9c07"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator&gt;</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecgtEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecltEK1T">
+<span id="_CPPv3NK8exafmm_t3vecltEK1T"></span><span id="_CPPv2NK8exafmm_t3vecltEK1T"></span><span id="exafmm_t::vec::lt-operator__TCC"></span><span class="target" id="classexafmm__t_1_1vec_1a94a0b58cbda1614b9299d3cca5e8adfd"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator&lt;</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecltEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecanEK1T">
+<span id="_CPPv3NK8exafmm_t3vecanEK1T"></span><span id="_CPPv2NK8exafmm_t3vecanEK1T"></span><span id="exafmm_t::vec::and-operator__TCC"></span><span class="target" id="classexafmm__t_1_1vec_1a8ec7f113e48fed83d3ead1b3c23dce2d"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator&amp;</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecanEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecorEK1T">
+<span id="_CPPv3NK8exafmm_t3vecorEK1T"></span><span id="_CPPv2NK8exafmm_t3vecorEK1T"></span><span id="exafmm_t::vec::or-operator__TCC"></span><span class="target" id="classexafmm__t_1_1vec_1ac9f6612d3d3172a0a9a3d16f3b3d4ef7"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator|</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecorEK1T" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecplERK3vec">
+<span id="_CPPv3NK8exafmm_t3vecplERK3vec"></span><span id="_CPPv2NK8exafmm_t3vecplERK3vec"></span><span id="exafmm_t::vec::add-operator__vecCRC"></span><span class="target" id="classexafmm__t_1_1vec_1aee5baecfa9956ee8dd53be8fbc5794e3"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator+</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecplERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecmiERK3vec">
+<span id="_CPPv3NK8exafmm_t3vecmiERK3vec"></span><span id="_CPPv2NK8exafmm_t3vecmiERK3vec"></span><span id="exafmm_t::vec::sub-operator__vecCRC"></span><span class="target" id="classexafmm__t_1_1vec_1a6cee98f81df0a44c4c724567fb7149ab"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator-</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecmiERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecmlERK3vec">
+<span id="_CPPv3NK8exafmm_t3vecmlERK3vec"></span><span id="_CPPv2NK8exafmm_t3vecmlERK3vec"></span><span id="exafmm_t::vec::mul-operator__vecCRC"></span><span class="target" id="classexafmm__t_1_1vec_1a48b019863352b86e972563b7a9db30b5"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator*</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecmlERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecdvERK3vec">
+<span id="_CPPv3NK8exafmm_t3vecdvERK3vec"></span><span id="_CPPv2NK8exafmm_t3vecdvERK3vec"></span><span id="exafmm_t::vec::div-operator__vecCRC"></span><span class="target" id="classexafmm__t_1_1vec_1ad8db2d88fb36f10634fcb9a8682d6a70"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator/</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecdvERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecgtERK3vec">
+<span id="_CPPv3NK8exafmm_t3vecgtERK3vec"></span><span id="_CPPv2NK8exafmm_t3vecgtERK3vec"></span><span id="exafmm_t::vec::gt-operator__vecCRC"></span><span class="target" id="classexafmm__t_1_1vec_1a09d13dbc80903f00e4ea71861c0d4f89"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator&gt;</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecgtERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecltERK3vec">
+<span id="_CPPv3NK8exafmm_t3vecltERK3vec"></span><span id="_CPPv2NK8exafmm_t3vecltERK3vec"></span><span id="exafmm_t::vec::lt-operator__vecCRC"></span><span class="target" id="classexafmm__t_1_1vec_1a357f21cca17e8a0adb7577a9fd816f17"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator&lt;</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecltERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecanERK3vec">
+<span id="_CPPv3NK8exafmm_t3vecanERK3vec"></span><span id="_CPPv2NK8exafmm_t3vecanERK3vec"></span><span id="exafmm_t::vec::and-operator__vecCRC"></span><span class="target" id="classexafmm__t_1_1vec_1a9279cf2fc0078e6716f52574c84b77fe"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator&amp;</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecanERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecorERK3vec">
+<span id="_CPPv3NK8exafmm_t3vecorERK3vec"></span><span id="_CPPv2NK8exafmm_t3vecorERK3vec"></span><span id="exafmm_t::vec::or-operator__vecCRC"></span><span class="target" id="classexafmm__t_1_1vec_1a27bd8d5b086fe4bc574673f52aff4cdf"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator|</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecorERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecmiEv">
+<span id="_CPPv3NK8exafmm_t3vecmiEv"></span><span id="_CPPv2NK8exafmm_t3vecmiEv"></span><span id="exafmm_t::vec::sub-operatorC"></span><span class="target" id="classexafmm__t_1_1vec_1a8438872e8a05930be0b1acd839185c96"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">operator-</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecmiEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vecixEi">
+<span id="_CPPv3N8exafmm_t3vecixEi"></span><span id="_CPPv2N8exafmm_t3vecixEi"></span><span id="exafmm_t::vec::subscript-operator__i"></span><span class="target" id="classexafmm__t_1_1vec_1a5bd4c6455a749c36aa3824ff4e6227e6"></span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> &amp;<code class="sig-name descname">operator[]</code><span class="sig-paren">(</span>int <em>i</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vecixEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3vecixEi">
+<span id="_CPPv3NK8exafmm_t3vecixEi"></span><span id="_CPPv2NK8exafmm_t3vecixEi"></span><span id="exafmm_t::vec::subscript-operator__iC"></span><span class="target" id="classexafmm__t_1_1vec_1a906e6e61a3f29280ceae99a42e6fc6d2"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> &amp;<code class="sig-name descname">operator[]</code><span class="sig-paren">(</span>int <em>i</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3vecixEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3veccvP1TEv">
+<span id="_CPPv3N8exafmm_t3veccvP1TEv"></span><span id="_CPPv2N8exafmm_t3veccvP1TEv"></span><span id="exafmm_t::vec::castto-TP-operator"></span><span class="target" id="classexafmm__t_1_1vec_1a54091aaad737dd24570529e250aaf581"></span><code class="sig-name descname">operator T*</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3veccvP1TEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK8exafmm_t3veccvPK1TEv">
+<span id="_CPPv3NK8exafmm_t3veccvPK1TEv"></span><span id="_CPPv2NK8exafmm_t3veccvPK1TEv"></span><span id="exafmm_t::vec::castto-TCP-operatorC"></span><span class="target" id="classexafmm__t_1_1vec_1a05819782d0e23066008764129041d8b7"></span><code class="sig-name descname">operator const T*</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK8exafmm_t3veccvPK1TEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Friends</p>
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3veclsERNSt7ostreamERK3vec">
+<span id="_CPPv3N8exafmm_t3veclsERNSt7ostreamERK3vec"></span><span id="_CPPv2N8exafmm_t3veclsERNSt7ostreamERK3vec"></span><span id="exafmm_t::vec::lshift-operator__osR.vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a2736e8e5657f7a61735c9f3d9c963dbc"></span><em class="property">friend</em> std::ostream &amp;<code class="sig-name descname">operator&lt;&lt;</code><span class="sig-paren">(</span>std::ostream &amp;<em>s</em>, <em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3veclsERNSt7ostreamERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3sumERK3vec">
+<span id="_CPPv3N8exafmm_t3vec3sumERK3vec"></span><span id="_CPPv2N8exafmm_t3vec3sumERK3vec"></span><span id="exafmm_t::vec::sum__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a4481d5d987ff406bc2fb0e2b962524f8"></span><em class="property">friend</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <code class="sig-name descname">sum</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3sumERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec4normERK3vec">
+<span id="_CPPv3N8exafmm_t3vec4normERK3vec"></span><span id="_CPPv2N8exafmm_t3vec4normERK3vec"></span><span id="exafmm_t::vec::norm__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a8f546628f389de8361ffec23582eda52"></span><em class="property">friend</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <code class="sig-name descname">norm</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec4normERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3minERK3vecRK3vec">
+<span id="_CPPv3N8exafmm_t3vec3minERK3vecRK3vec"></span><span id="_CPPv2N8exafmm_t3vec3minERK3vecRK3vec"></span><span id="exafmm_t::vec::min__vecCR.vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a470ad1c3e1cc46beb7ed7e8ed08009c1"></span><em class="property">friend</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">min</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em>, <em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>w</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3minERK3vecRK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3maxERK3vecRK3vec">
+<span id="_CPPv3N8exafmm_t3vec3maxERK3vecRK3vec"></span><span id="_CPPv2N8exafmm_t3vec3maxERK3vecRK3vec"></span><span id="exafmm_t::vec::max__vecCR.vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a1f6e1299280b290f87561b23a582e4e1"></span><em class="property">friend</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">max</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em>, <em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>w</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3maxERK3vecRK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3minERK3vec">
+<span id="_CPPv3N8exafmm_t3vec3minERK3vec"></span><span id="_CPPv2N8exafmm_t3vec3minERK3vec"></span><span id="exafmm_t::vec::min__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a331385ec19a6c01a7b42be0daea3a8d1"></span><em class="property">friend</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <code class="sig-name descname">min</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3minERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3maxERK3vec">
+<span id="_CPPv3N8exafmm_t3vec3maxERK3vec"></span><span id="_CPPv2N8exafmm_t3vec3maxERK3vec"></span><span id="exafmm_t::vec::max__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a8afce5573bdcc0a60d448e9bfaffc19b"></span><em class="property">friend</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec::T">T</a> <code class="sig-name descname">max</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3maxERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3sinERK3vec">
+<span id="_CPPv3N8exafmm_t3vec3sinERK3vec"></span><span id="_CPPv2N8exafmm_t3vec3sinERK3vec"></span><span id="exafmm_t::vec::sin__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a9a0c65a690b45abf450f8a29a97bb191"></span><em class="property">friend</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">sin</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3sinERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3cosERK3vec">
+<span id="_CPPv3N8exafmm_t3vec3cosERK3vec"></span><span id="_CPPv2N8exafmm_t3vec3cosERK3vec"></span><span id="exafmm_t::vec::cos__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1adc45d9dbad5cfcc8ca1e9f6e26132882"></span><em class="property">friend</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">cos</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3cosERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec3expERK3vec">
+<span id="_CPPv3N8exafmm_t3vec3expERK3vec"></span><span id="_CPPv2N8exafmm_t3vec3expERK3vec"></span><span id="exafmm_t::vec::exp__vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1abdb5d11c91de3f52dcced8a9d365c197"></span><em class="property">friend</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> <code class="sig-name descname">exp</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec3expERK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec4wrapER3vecRK3vec">
+<span id="_CPPv3N8exafmm_t3vec4wrapER3vecRK3vec"></span><span id="_CPPv2N8exafmm_t3vec4wrapER3vecRK3vec"></span><span id="exafmm_t::vec::wrap__vecR.vecCR"></span><span class="target" id="classexafmm__t_1_1vec_1a8dade75ffdc60515e661eb3c75b16584"></span><em class="property">friend</em> int <code class="sig-name descname">wrap</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em>, <em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>w</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec4wrapER3vecRK3vec" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N8exafmm_t3vec6unwrapER3vecRK3vecRKi">
+<span id="_CPPv3N8exafmm_t3vec6unwrapER3vecRK3vecRKi"></span><span id="_CPPv2N8exafmm_t3vec6unwrapER3vecRK3vecRKi"></span><span id="exafmm_t::vec::unwrap__vecR.vecCR.iCR"></span><span class="target" id="classexafmm__t_1_1vec_1ae8a74e9723c253e3198c59b0f63bf28a"></span><em class="property">friend</em> void <code class="sig-name descname">unwrap</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>v</em>, <em class="property">const</em> <a class="reference internal" href="#_CPPv4I_i0EN8exafmm_t3vecE" title="exafmm_t::vec">vec</a> &amp;<em>w</em>, <em class="property">const</em> int &amp;<em>iw</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t3vec6unwrapER3vecRK3vecRKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="enum_exafmm__t_8h_1a90321ace254beb0e9eacd5517ae3a4b4.html" class="btn btn-neutral float-right" title="Enum Mat_Type" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="classexafmm__t_1_1ModifiedHelmholtzFmm.html" class="btn btn-neutral float-left" title="Class ModifiedHelmholtzFmm" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2019, exafmm
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+
+.. _file_include_math_wrapper.h:
+
+File math_wrapper.h
+===================
+
+|exhale_lsh| :ref:`Parent directory <dir_include>` (``include``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``include/math_wrapper.h``)
+---------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_include_math_wrapper.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``complex``
+
+- ``exafmm_t.h`` (:ref:`file_include_exafmm_t.h`)
+
+- ``timer.h`` (:ref:`file_include_timer.h`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_include_fmm.h`
+
+- :ref:`file_include_fmm_scale_invariant.h`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_exafmm_t`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_math__wrapper_8h_1a3ccbbd8ee5c77b49038408abf8b507f5`
+
+- :ref:`exhale_function_math__wrapper_8h_1a990e45baa279206afb6f3db702ddf3af`
+
+- :ref:`exhale_function_math__wrapper_8h_1ae61bdb8e8448051b6e220bbee459fcf2`
+
+- :ref:`exhale_function_math__wrapper_8h_1a893258e0b2ea9411e7e6a55d0f422db6`
+
+- :ref:`exhale_function_math__wrapper_8h_1a53c7c2159f19abafbec2bc09f2c0cdcc`
+
+- :ref:`exhale_function_math__wrapper_8h_1a3e45f8d4a4bf16793e31a81771f2f69d`
+
+- :ref:`exhale_function_math__wrapper_8h_1ac159c0760835de5ae0b738996fb1ee1b`
+
+- :ref:`exhale_function_math__wrapper_8h_1ad7918998e6c3ca118d036a3937ab34a2`
+
+- :ref:`exhale_function_math__wrapper_8h_1ae89127f219755f35424125f1fda91d48`
+
+- :ref:`exhale_function_math__wrapper_8h_1af2d8718a8fa6737fdc1459b74389d7b7`
+
+- :ref:`exhale_function_math__wrapper_8h_1ade041e7485d2c0f360c6d964374856bf`
+
+- :ref:`exhale_function_math__wrapper_8h_1a9c916295e6289c058a40aa1eb9d9a7e4`
+
+- :ref:`exhale_function_math__wrapper_8h_1ae4384b5b04dc15f99982cdefe16099bb`
+
+- :ref:`exhale_function_math__wrapper_8h_1a3ae2f84d558a7a24f0fe8185daf6aea5`
+
+- :ref:`exhale_function_math__wrapper_8h_1ad55f7b28da054d864de336b61018cc25`
+
+- :ref:`exhale_function_math__wrapper_8h_1af6dbe980fcef3e98da9e587a3a56773b`
+
+- :ref:`exhale_function_math__wrapper_8h_1a23a974884df223866538932a7d17c76d`
+
+- :ref:`exhale_function_math__wrapper_8h_1ace87060f8200eb354b5356b867a0265d`
+
+- :ref:`exhale_function_math__wrapper_8h_1a0d3e5c4e88d999179dc53d7e104958b3`
+
+- :ref:`exhale_function_math__wrapper_8h_1a76eedb0a58f4f44bb7a6dd5780725160`
+
+- :ref:`exhale_function_math__wrapper_8h_1ad46949a9d6b1e9f1fe2e9a02a37c2ed5`
+

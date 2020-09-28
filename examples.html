@@ -1,0 +1,319 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Examples &mdash; exafmm-t  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/collapsible-lists/css/tree_view.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script src="_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Build Documentation" href="documentation.html" />
+    <link rel="prev" title="Installation" href="compile.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> exafmm-t
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="compile.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#c-examples">C++ Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-examples">Python Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Build Documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html">Library API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">exafmm-t</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Examples</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/examples.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="c-examples">
+<h2>C++ Examples<a class="headerlink" href="#c-examples" title="Permalink to this headline">¶</a></h2>
+<p>There are three major classes in exafmm-t:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Body&lt;T&gt;</span></code>: The class for bodies (particles).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Node&lt;T&gt;</span></code>: The class for nodes in the octree.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Fmm</span></code>: The FMM class.</p></li>
+</ul>
+<p>The choice of template parameter <code class="docutils literal notranslate"><span class="pre">T</span></code> depends on the data type of the potential:
+<code class="docutils literal notranslate"><span class="pre">T</span></code> should be set to <code class="docutils literal notranslate"><span class="pre">real_t</span></code> for real-valued kernels (ex. Laplace and modified Helmholtz),
+and set to <code class="docutils literal notranslate"><span class="pre">complex_t</span></code> for complex-valued kernels (ex. Helmholtz).</p>
+<p>exafmm-t uses double precision by default, i.e., <code class="docutils literal notranslate"><span class="pre">real_t</span></code> and <code class="docutils literal notranslate"><span class="pre">complex_t</span></code> are mapped to <code class="docutils literal notranslate"><span class="pre">double</span></code> and <code class="docutils literal notranslate"><span class="pre">std::complex&lt;double&gt;</span></code> respectively.
+If you want to use single precision, you should still use <code class="docutils literal notranslate"><span class="pre">real_t</span></code> and <code class="docutils literal notranslate"><span class="pre">complex_t</span></code> in your code,
+and add <code class="docutils literal notranslate"><span class="pre">-DFLOAT</span></code> to your compiler flags which predefines the macro <code class="docutils literal notranslate"><span class="pre">FLOAT</span></code> as true.</p>
+<p>All exafmm-t’s types, classes and functions are in <code class="docutils literal notranslate"><span class="pre">exafmm_t</span></code> namespace.
+API documentation can be found in the last section.</p>
+<p>Let’s solve a Laplace N-body problem as an example, we first need to create <code class="docutils literal notranslate"><span class="pre">sources</span></code> and <code class="docutils literal notranslate"><span class="pre">targets</span></code>.
+Here we create 100,000 sources and targets that are randomly distributed in a cube from -1 to 1.
+Their type <code class="docutils literal notranslate"><span class="pre">Bodies</span></code> is a STL vector of <code class="docutils literal notranslate"><span class="pre">Body</span></code>.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">exafmm_t</span><span class="o">::</span><span class="n">real_t</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">random_device</span> <span class="n">rd</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">mt19937</span> <span class="n">gen</span><span class="p">(</span><span class="n">rd</span><span class="p">());</span>  <span class="c1">// random number generator</span>
+<span class="n">std</span><span class="o">::</span><span class="n">uniform_real_distribution</span><span class="o">&lt;&gt;</span> <span class="n">dist</span><span class="p">(</span><span class="mf">-1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span>
+<span class="kt">int</span> <span class="n">ntargets</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">nsources</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">;</span>
+
+<span class="n">exafmm_t</span><span class="o">::</span><span class="n">Bodies</span><span class="o">&lt;</span><span class="n">real_t</span><span class="o">&gt;</span> <span class="n">sources</span><span class="p">(</span><span class="n">nsources</span><span class="p">);</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">nsources</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">sources</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">ibody</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+  <span class="n">sources</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">q</span> <span class="o">=</span> <span class="n">dist</span><span class="p">(</span><span class="n">gen</span><span class="p">);</span>        <span class="c1">// charge</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">d</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">d</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="n">d</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">sources</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">X</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="p">(</span><span class="n">gen</span><span class="p">);</span>   <span class="c1">// location</span>
+<span class="p">}</span>
+
+<span class="n">exafmm_t</span><span class="o">::</span><span class="n">Bodies</span><span class="o">&lt;</span><span class="n">real_t</span><span class="o">&gt;</span> <span class="n">targets</span><span class="p">(</span><span class="n">ntargets</span><span class="p">);</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">ntargets</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">targets</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">ibody</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">d</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">d</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="n">d</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">targets</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">X</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="p">(</span><span class="n">gen</span><span class="p">);</span>   <span class="c1">// location</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Next, we need to create an FMM instance <code class="docutils literal notranslate"><span class="pre">fmm</span></code> for Laplace kernel, and set the order of expansion and ncrit.
+We use the former to control the accuracy and the latter to balance the workload between near-field and far-field.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">P</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>         <span class="c1">// expansion order</span>
+<span class="kt">int</span> <span class="n">ncrit</span> <span class="o">=</span> <span class="mi">400</span><span class="p">;</span>   <span class="c1">// max number of bodies per leaf</span>
+<span class="n">exafmm_t</span><span class="o">::</span><span class="n">LaplaceFmm</span> <span class="n">fmm</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">ncrit</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>We can then build and balance the octree. The variable <code class="docutils literal notranslate"><span class="pre">nodes</span></code> represents the tree, whose type is <code class="docutils literal notranslate"><span class="pre">Nodes</span></code>, a STL vector of <code class="docutils literal notranslate"><span class="pre">Node</span></code>.
+To facilitate creating lists and evaluation, we also store a vector of leaf nodes - <code class="docutils literal notranslate"><span class="pre">leafs</span></code> and a vector of non-leaf nodes - <code class="docutils literal notranslate"><span class="pre">nonleafs</span></code>.
+Their type <code class="docutils literal notranslate"><span class="pre">NodePtrs</span></code> is a STL vector of <code class="docutils literal notranslate"><span class="pre">Node*</span></code>.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">exafmm_t</span><span class="o">::</span><span class="n">get_bounds</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">fmm</span><span class="p">.</span><span class="n">x0</span><span class="p">,</span> <span class="n">fmm</span><span class="p">.</span><span class="n">r0</span><span class="p">);</span>
+<span class="n">exafmm_t</span><span class="o">::</span><span class="n">NodePtrs</span><span class="o">&lt;</span><span class="n">real_t</span><span class="o">&gt;</span> <span class="n">leafs</span><span class="p">,</span> <span class="n">nonleafs</span><span class="p">;</span>
+<span class="n">exafmm_t</span><span class="o">::</span><span class="n">Nodes</span><span class="o">&lt;</span><span class="n">real_t</span><span class="o">&gt;</span> <span class="n">nodes</span> <span class="o">=</span> <span class="n">exafmm_t</span><span class="o">::</span><span class="n">build_tree</span><span class="o">&lt;</span><span class="n">real_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">leafs</span><span class="p">,</span> <span class="n">nonleafs</span><span class="p">,</span> <span class="n">fmm</span><span class="p">);</span>
+<span class="n">exafmm_t</span><span class="o">::</span><span class="n">balance_tree</span><span class="o">&lt;</span><span class="n">real_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">leafs</span><span class="p">,</span> <span class="n">nonleafs</span><span class="p">,</span> <span class="n">fmm</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Next, we can build lists and pre-compute invariant matrices.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">exafmm_t</span><span class="o">::</span><span class="n">init_rel_coord</span><span class="p">();</span>        <span class="c1">// compute all possible relative positions of nodes for each FMM operator</span>
+<span class="n">exafmm_t</span><span class="o">::</span><span class="n">set_colleagues</span><span class="p">(</span><span class="n">nodes</span><span class="p">);</span>   <span class="c1">// find colleague nodes</span>
+<span class="n">exafmm_t</span><span class="o">::</span><span class="n">build_list</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">fmm</span><span class="p">);</span>  <span class="c1">// create list for each FMM operator</span>
+<span class="n">fmm</span><span class="p">.</span><span class="n">M2L_setup</span><span class="p">(</span><span class="n">nonleafs</span><span class="p">);</span>           <span class="c1">// an extra setup for M2L operator</span>
+</pre></div>
+</div>
+<p>Finally, we can use FMM to evaluate potentials and gradients</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">fmm</span><span class="p">.</span><span class="n">upward_pass</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">leafs</span><span class="p">);</span>
+<span class="n">fmm</span><span class="p">.</span><span class="n">downward_pass</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">leafs</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>After the downward pass, the calculated potentials and gradients are stored in the leaf nodes of the tree.
+You can compute the error in L2 norm by comparing with direct summation:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">real_t</span><span class="o">&gt;</span> <span class="n">error</span> <span class="o">=</span> <span class="n">fmm</span><span class="p">.</span><span class="n">verify</span><span class="p">(</span><span class="n">leafs</span><span class="p">);</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;potential error: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">error</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+          <span class="o">&lt;&lt;</span> <span class="s">&quot;gradient error:  &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">error</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Other examples can be found in <code class="docutils literal notranslate"><span class="pre">tests</span></code> folder.</p>
+</div>
+<div class="section" id="python-examples">
+<h2>Python Examples<a class="headerlink" href="#python-examples" title="Permalink to this headline">¶</a></h2>
+<p>For simplicity, the name of our Python package is just <code class="docutils literal notranslate"><span class="pre">exafmm</span></code>.
+It has a separate module for each kernel: <code class="docutils literal notranslate"><span class="pre">exafmm.laplace</span></code>, <code class="docutils literal notranslate"><span class="pre">exafmm.helmholtz</span></code> and <code class="docutils literal notranslate"><span class="pre">exafmm.modified_helmholtz</span></code>.</p>
+<p>Compare with C++ interface, exafmm-t’s Python interface only exposes high-level APIs.
+Now, the steps for tree construction, list construction and pre-computation are merged into one function called <code class="docutils literal notranslate"><span class="pre">setup()</span></code>.
+Also, the evaluation now only requires to call one function <code class="docutils literal notranslate"><span class="pre">evalute()</span></code>.
+Below are Python examples on Jupyter notebooks.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://nbviewer.jupyter.org/github/exafmm/exafmm-t/blob/master/examples/laplace_example.ipynb">Laplace</a></p></li>
+<li><p><a class="reference external" href="https://nbviewer.jupyter.org/github/exafmm/exafmm-t/blob/master/examples/helmholtz_example.ipynb">Helmholtz</a></p></li>
+<li><p><a class="reference external" href="https://nbviewer.jupyter.org/github/exafmm/exafmm-t/blob/master/examples/modified_helmholtz_example.ipynb">Modified Helmholtz</a></p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="documentation.html" class="btn btn-neutral float-right" title="Build Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="compile.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2019, exafmm
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

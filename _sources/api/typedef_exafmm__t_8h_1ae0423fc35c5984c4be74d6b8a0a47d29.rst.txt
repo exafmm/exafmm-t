@@ -1,0 +1,13 @@
+.. _exhale_typedef_exafmm__t_8h_1ae0423fc35c5984c4be74d6b8a0a47d29:
+
+Typedef exafmm_t::fft_plan
+==========================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: exafmm_t::fft_plan

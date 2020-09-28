@@ -1,0 +1,408 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Program Listing for File helmholtz.h &mdash; exafmm-t  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> exafmm-t
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">exafmm-t</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Program Listing for File helmholtz.h</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/program_listing_file_include_helmholtz.h.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="program-listing-for-file-helmholtz-h">
+<span id="program-listing-file-include-helmholtz-h"></span><h1>Program Listing for File helmholtz.h<a class="headerlink" href="#program-listing-for-file-helmholtz-h" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="file_include_helmholtz.h.html#file-include-helmholtz-h"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">include/helmholtz.h</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifndef helmholtz_h</span>
+<span class="cp">#define helmholtz_h</span>
+<span class="cp">#include</span> <span class="cpf">&quot;exafmm_t.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;fmm.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;geometry.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;intrinsics.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;timer.h&quot;</span><span class="cp"></span>
+
+<span class="k">namespace</span> <span class="n">exafmm_t</span> <span class="p">{</span>
+  <span class="k">class</span> <span class="nc">HelmholtzFmm</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Fmm</span><span class="o">&lt;</span><span class="n">complex_t</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="k">public</span><span class="o">:</span>
+    <span class="n">complex_t</span> <span class="n">wavek</span><span class="p">;</span>
+
+    <span class="n">HelmholtzFmm</span><span class="p">()</span> <span class="p">{}</span>
+    <span class="n">HelmholtzFmm</span><span class="p">(</span><span class="kt">int</span> <span class="n">p_</span><span class="p">,</span> <span class="kt">int</span> <span class="n">ncrit_</span><span class="p">,</span> <span class="n">complex_t</span> <span class="n">wavek_</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">filename_</span><span class="o">=</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">())</span> <span class="o">:</span>
+      <span class="n">Fmm</span><span class="o">&lt;</span><span class="n">complex_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p_</span><span class="p">,</span> <span class="n">ncrit_</span><span class="p">,</span> <span class="n">filename_</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">wavek</span> <span class="o">=</span> <span class="n">wavek_</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">filename</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
+        <span class="k">this</span><span class="o">-&gt;</span><span class="n">filename</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;helmholtz_&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same</span><span class="o">&lt;</span><span class="n">real_t</span><span class="p">,</span> <span class="kt">float</span><span class="o">&gt;::</span><span class="n">value</span> <span class="o">?</span> <span class="s">&quot;f&quot;</span> <span class="o">:</span> <span class="s">&quot;d&quot;</span><span class="p">)</span>
+                       <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;_p&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;.dat&quot;</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kt">void</span> <span class="n">potential_P2P</span><span class="p">(</span><span class="n">RealVec</span><span class="o">&amp;</span> <span class="n">src_coord</span><span class="p">,</span> <span class="n">ComplexVec</span><span class="o">&amp;</span> <span class="n">src_value</span><span class="p">,</span> <span class="n">RealVec</span><span class="o">&amp;</span> <span class="n">trg_coord</span><span class="p">,</span> <span class="n">ComplexVec</span><span class="o">&amp;</span> <span class="n">trg_value</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">simdvec</span> <span class="nf">zero</span><span class="p">((</span><span class="n">real_t</span><span class="p">)</span><span class="mi">0</span><span class="p">);</span>
+      <span class="n">real_t</span> <span class="n">newton_coef</span> <span class="o">=</span> <span class="mi">16</span><span class="p">;</span>
+      <span class="n">simdvec</span> <span class="nf">coef</span><span class="p">(</span><span class="n">real_t</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">PI</span><span class="o">*</span><span class="n">newton_coef</span><span class="p">)));</span>
+      <span class="n">simdvec</span> <span class="nf">k_real</span><span class="p">(</span><span class="n">wavek</span><span class="p">.</span><span class="n">real</span><span class="p">()</span><span class="o">/</span><span class="n">newton_coef</span><span class="p">);</span>
+      <span class="n">simdvec</span> <span class="nf">k_imag</span><span class="p">(</span><span class="n">wavek</span><span class="p">.</span><span class="n">imag</span><span class="p">()</span><span class="o">/</span><span class="n">newton_coef</span><span class="p">);</span>
+      <span class="kt">int</span> <span class="n">nsrcs</span> <span class="o">=</span> <span class="n">src_coord</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">/</span> <span class="mi">3</span><span class="p">;</span>
+      <span class="kt">int</span> <span class="n">ntrgs</span> <span class="o">=</span> <span class="n">trg_coord</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">/</span> <span class="mi">3</span><span class="p">;</span>
+      <span class="kt">int</span> <span class="n">t</span><span class="p">;</span>
+      <span class="k">const</span> <span class="n">complex_t</span> <span class="n">I</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+      <span class="k">for</span> <span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">t</span><span class="o">+</span><span class="n">NSIMD</span><span class="o">&lt;=</span><span class="n">ntrgs</span><span class="p">;</span> <span class="n">t</span><span class="o">+=</span><span class="n">NSIMD</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">simdvec</span> <span class="nf">tx</span><span class="p">(</span><span class="o">&amp;</span><span class="n">trg_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">],</span> <span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="k">sizeof</span><span class="p">(</span><span class="n">real_t</span><span class="p">));</span>
+        <span class="n">simdvec</span> <span class="nf">ty</span><span class="p">(</span><span class="o">&amp;</span><span class="n">trg_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="k">sizeof</span><span class="p">(</span><span class="n">real_t</span><span class="p">));</span>
+        <span class="n">simdvec</span> <span class="nf">tz</span><span class="p">(</span><span class="o">&amp;</span><span class="n">trg_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span> <span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="k">sizeof</span><span class="p">(</span><span class="n">real_t</span><span class="p">));</span>
+        <span class="n">simdvec</span> <span class="nf">tv_real</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+        <span class="n">simdvec</span> <span class="nf">tv_imag</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">s</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">s</span><span class="o">&lt;</span><span class="n">nsrcs</span><span class="p">;</span> <span class="n">s</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">simdvec</span> <span class="nf">sx</span><span class="p">(</span><span class="n">src_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">s</span><span class="o">+</span><span class="mi">0</span><span class="p">]);</span>
+          <span class="n">sx</span> <span class="o">-=</span> <span class="n">tx</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="nf">sy</span><span class="p">(</span><span class="n">src_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">]);</span>
+          <span class="n">sy</span> <span class="o">-=</span> <span class="n">ty</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="nf">sz</span><span class="p">(</span><span class="n">src_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">s</span><span class="o">+</span><span class="mi">2</span><span class="p">]);</span>
+          <span class="n">sz</span> <span class="o">-=</span> <span class="n">tz</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="nf">sv_real</span><span class="p">(</span><span class="n">src_value</span><span class="p">[</span><span class="n">s</span><span class="p">].</span><span class="n">real</span><span class="p">());</span>
+          <span class="n">simdvec</span> <span class="nf">sv_imag</span><span class="p">(</span><span class="n">src_value</span><span class="p">[</span><span class="n">s</span><span class="p">].</span><span class="n">imag</span><span class="p">());</span>
+          <span class="n">simdvec</span> <span class="nf">r2</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+          <span class="n">r2</span> <span class="o">+=</span> <span class="n">sx</span> <span class="o">*</span> <span class="n">sx</span><span class="p">;</span>
+          <span class="n">r2</span> <span class="o">+=</span> <span class="n">sy</span> <span class="o">*</span> <span class="n">sy</span><span class="p">;</span>
+          <span class="n">r2</span> <span class="o">+=</span> <span class="n">sz</span> <span class="o">*</span> <span class="n">sz</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="n">invr</span> <span class="o">=</span> <span class="n">rsqrt</span><span class="p">(</span><span class="n">r2</span><span class="p">);</span>   <span class="c1">// invr = newton_coef * 1/r</span>
+          <span class="n">invr</span> <span class="o">&amp;=</span> <span class="n">r2</span> <span class="o">&gt;</span> <span class="n">zero</span><span class="p">;</span>
+
+          <span class="n">simdvec</span> <span class="n">r</span> <span class="o">=</span> <span class="n">r2</span> <span class="o">*</span> <span class="n">invr</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="n">kr_real</span> <span class="o">=</span> <span class="n">k_real</span> <span class="o">*</span> <span class="n">r</span><span class="p">;</span>  <span class="c1">// k_real * r</span>
+          <span class="n">simdvec</span> <span class="n">kr_imag</span> <span class="o">=</span> <span class="n">k_imag</span> <span class="o">*</span> <span class="n">r</span><span class="p">;</span>  <span class="c1">// k_imag * r</span>
+          <span class="n">simdvec</span> <span class="n">e_ikr</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">kr_imag</span><span class="p">);</span> <span class="c1">// exp(-k_imag*r)</span>
+          <span class="c1">// simdvec kr = k * r2 * invr;   // newton_coefs in k &amp; invr cancel out</span>
+          <span class="n">simdvec</span> <span class="n">G_real</span> <span class="o">=</span> <span class="n">e_ikr</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">kr_real</span><span class="p">)</span> <span class="o">*</span> <span class="n">invr</span><span class="p">;</span>  <span class="c1">// G = e^(ikr) / r</span>
+          <span class="n">simdvec</span> <span class="n">G_imag</span> <span class="o">=</span> <span class="n">e_ikr</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">kr_real</span><span class="p">)</span> <span class="o">*</span> <span class="n">invr</span><span class="p">;</span>  <span class="c1">// invr carries newton_coef</span>
+          <span class="n">tv_real</span> <span class="o">+=</span> <span class="n">sv_real</span><span class="o">*</span><span class="n">G_real</span> <span class="o">-</span> <span class="n">sv_imag</span><span class="o">*</span><span class="n">G_imag</span><span class="p">;</span>  <span class="c1">// p += G * q</span>
+          <span class="n">tv_imag</span> <span class="o">+=</span> <span class="n">sv_real</span><span class="o">*</span><span class="n">G_imag</span> <span class="o">+</span> <span class="n">sv_imag</span><span class="o">*</span><span class="n">G_real</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="n">tv_real</span> <span class="o">*=</span> <span class="n">coef</span><span class="p">;</span>  <span class="c1">// coef carries 1/(4*PI) and offsets newton_coef in invr</span>
+        <span class="n">tv_imag</span> <span class="o">*=</span> <span class="n">coef</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">m</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">m</span><span class="o">&lt;</span><span class="n">NSIMD</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="n">m</span><span class="p">)</span><span class="o">&lt;</span><span class="n">ntrgs</span><span class="p">;</span> <span class="n">m</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">trg_value</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="n">m</span><span class="p">]</span> <span class="o">+=</span> <span class="n">complex_t</span><span class="p">(</span><span class="n">tv_real</span><span class="p">[</span><span class="n">m</span><span class="p">],</span> <span class="n">tv_imag</span><span class="p">[</span><span class="n">m</span><span class="p">]);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+      <span class="k">for</span> <span class="p">(;</span> <span class="n">t</span><span class="o">&lt;</span><span class="n">ntrgs</span><span class="p">;</span> <span class="n">t</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">complex_t</span> <span class="nf">potential</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">s</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">s</span><span class="o">&lt;</span><span class="n">nsrcs</span><span class="p">;</span> <span class="n">s</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">vec3</span> <span class="n">dx</span><span class="p">;</span>
+          <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">d</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">d</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="n">d</span><span class="o">++</span><span class="p">)</span>
+            <span class="n">dx</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">trg_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="n">d</span><span class="p">]</span> <span class="o">-</span> <span class="n">src_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">s</span><span class="o">+</span><span class="n">d</span><span class="p">];</span>
+          <span class="n">real_t</span> <span class="n">r2</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">dx</span><span class="p">);</span>
+          <span class="k">if</span> <span class="p">(</span><span class="n">r2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">real_t</span> <span class="n">r</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">r2</span><span class="p">);</span>
+            <span class="n">potential</span> <span class="o">+=</span> <span class="n">std</span><span class="o">::</span><span class="n">exp</span><span class="p">(</span><span class="n">I</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="n">wavek</span><span class="p">)</span> <span class="o">*</span> <span class="n">src_value</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">/</span> <span class="n">r</span><span class="p">;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="n">trg_value</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">+=</span> <span class="n">potential</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">PI</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kt">void</span> <span class="n">gradient_P2P</span><span class="p">(</span><span class="n">RealVec</span><span class="o">&amp;</span> <span class="n">src_coord</span><span class="p">,</span> <span class="n">ComplexVec</span><span class="o">&amp;</span> <span class="n">src_value</span><span class="p">,</span> <span class="n">RealVec</span><span class="o">&amp;</span> <span class="n">trg_coord</span><span class="p">,</span> <span class="n">ComplexVec</span><span class="o">&amp;</span> <span class="n">trg_value</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">simdvec</span> <span class="nf">zero</span><span class="p">((</span><span class="n">real_t</span><span class="p">)</span><span class="mi">0</span><span class="p">);</span>
+      <span class="n">simdvec</span> <span class="nf">one</span><span class="p">((</span><span class="n">real_t</span><span class="p">)</span><span class="mi">1</span><span class="p">);</span>
+      <span class="n">real_t</span> <span class="n">newton_coef</span> <span class="o">=</span> <span class="mi">16</span><span class="p">;</span>   <span class="c1">// comes from Newton&#39;s method in simd rsqrt function</span>
+      <span class="n">simdvec</span> <span class="nf">coef</span><span class="p">(</span><span class="n">real_t</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">PI</span><span class="o">*</span><span class="n">newton_coef</span><span class="p">)));</span>
+      <span class="n">simdvec</span> <span class="nf">k_real</span><span class="p">(</span><span class="n">wavek</span><span class="p">.</span><span class="n">real</span><span class="p">()</span><span class="o">/</span><span class="n">newton_coef</span><span class="p">);</span>
+      <span class="n">simdvec</span> <span class="nf">k_imag</span><span class="p">(</span><span class="n">wavek</span><span class="p">.</span><span class="n">imag</span><span class="p">()</span><span class="o">/</span><span class="n">newton_coef</span><span class="p">);</span>
+      <span class="n">simdvec</span> <span class="nf">newton_offset</span><span class="p">(</span><span class="n">real_t</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="n">newton_coef</span><span class="o">*</span><span class="n">newton_coef</span><span class="p">)));</span>   <span class="c1">// offset invr2 term</span>
+      <span class="kt">int</span> <span class="n">nsrcs</span> <span class="o">=</span> <span class="n">src_coord</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">/</span> <span class="mi">3</span><span class="p">;</span>
+      <span class="kt">int</span> <span class="n">ntrgs</span> <span class="o">=</span> <span class="n">trg_coord</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">/</span> <span class="mi">3</span><span class="p">;</span>
+      <span class="kt">int</span> <span class="n">t</span><span class="p">;</span>
+      <span class="k">const</span> <span class="n">complex_t</span> <span class="n">I</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+      <span class="k">for</span> <span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">t</span><span class="o">+</span><span class="n">NSIMD</span><span class="o">&lt;=</span><span class="n">ntrgs</span><span class="p">;</span> <span class="n">t</span><span class="o">+=</span><span class="n">NSIMD</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">simdvec</span> <span class="nf">tx</span><span class="p">(</span><span class="o">&amp;</span><span class="n">trg_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">],</span> <span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="k">sizeof</span><span class="p">(</span><span class="n">real_t</span><span class="p">));</span>
+        <span class="n">simdvec</span> <span class="nf">ty</span><span class="p">(</span><span class="o">&amp;</span><span class="n">trg_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="k">sizeof</span><span class="p">(</span><span class="n">real_t</span><span class="p">));</span>
+        <span class="n">simdvec</span> <span class="nf">tz</span><span class="p">(</span><span class="o">&amp;</span><span class="n">trg_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span> <span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="k">sizeof</span><span class="p">(</span><span class="n">real_t</span><span class="p">));</span>
+        <span class="n">simdvec</span> <span class="nf">tv0_real</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+        <span class="n">simdvec</span> <span class="nf">tv0_imag</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+        <span class="n">simdvec</span> <span class="nf">tv1_real</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+        <span class="n">simdvec</span> <span class="nf">tv1_imag</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+        <span class="n">simdvec</span> <span class="nf">tv2_real</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+        <span class="n">simdvec</span> <span class="nf">tv2_imag</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+        <span class="n">simdvec</span> <span class="nf">tv3_real</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+        <span class="n">simdvec</span> <span class="nf">tv3_imag</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">s</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">s</span><span class="o">&lt;</span><span class="n">nsrcs</span><span class="p">;</span> <span class="n">s</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">simdvec</span> <span class="nf">sx</span><span class="p">(</span><span class="n">src_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">s</span><span class="o">+</span><span class="mi">0</span><span class="p">]);</span>
+          <span class="n">sx</span> <span class="o">-=</span> <span class="n">tx</span><span class="p">;</span>    <span class="c1">// sx is negative dx</span>
+          <span class="n">simdvec</span> <span class="nf">sy</span><span class="p">(</span><span class="n">src_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">]);</span>
+          <span class="n">sy</span> <span class="o">-=</span> <span class="n">ty</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="nf">sz</span><span class="p">(</span><span class="n">src_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">s</span><span class="o">+</span><span class="mi">2</span><span class="p">]);</span>
+          <span class="n">sz</span> <span class="o">-=</span> <span class="n">tz</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="nf">sv_real</span><span class="p">(</span><span class="n">src_value</span><span class="p">[</span><span class="n">s</span><span class="p">].</span><span class="n">real</span><span class="p">());</span>
+          <span class="n">simdvec</span> <span class="nf">sv_imag</span><span class="p">(</span><span class="n">src_value</span><span class="p">[</span><span class="n">s</span><span class="p">].</span><span class="n">imag</span><span class="p">());</span>
+          <span class="n">simdvec</span> <span class="nf">r2</span><span class="p">(</span><span class="n">zero</span><span class="p">);</span>
+          <span class="n">r2</span> <span class="o">+=</span> <span class="n">sx</span> <span class="o">*</span> <span class="n">sx</span><span class="p">;</span>
+          <span class="n">r2</span> <span class="o">+=</span> <span class="n">sy</span> <span class="o">*</span> <span class="n">sy</span><span class="p">;</span>
+          <span class="n">r2</span> <span class="o">+=</span> <span class="n">sz</span> <span class="o">*</span> <span class="n">sz</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="n">invr</span> <span class="o">=</span> <span class="n">rsqrt</span><span class="p">(</span><span class="n">r2</span><span class="p">);</span>
+          <span class="n">invr</span> <span class="o">&amp;=</span> <span class="n">r2</span> <span class="o">&gt;</span> <span class="n">zero</span><span class="p">;</span>
+
+          <span class="n">simdvec</span> <span class="n">r</span> <span class="o">=</span> <span class="n">r2</span> <span class="o">*</span> <span class="n">invr</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="n">kr_real</span> <span class="o">=</span> <span class="n">k_real</span> <span class="o">*</span> <span class="n">r</span><span class="p">;</span>  <span class="c1">// k_real * r</span>
+          <span class="n">simdvec</span> <span class="n">kr_imag</span> <span class="o">=</span> <span class="n">k_imag</span> <span class="o">*</span> <span class="n">r</span><span class="p">;</span>  <span class="c1">// k_imag * r</span>
+          <span class="n">simdvec</span> <span class="n">e_ikr</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">kr_imag</span><span class="p">);</span> <span class="c1">// exp(-k_imag*r)</span>
+          <span class="c1">// simdvec kr = k * r2 * invr;   // newton_coefs in k &amp; invr cancel out</span>
+          <span class="n">simdvec</span> <span class="n">G_real</span> <span class="o">=</span> <span class="n">e_ikr</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">kr_real</span><span class="p">)</span> <span class="o">*</span> <span class="n">invr</span><span class="p">;</span>  <span class="c1">// G = e^(ikr) / r</span>
+          <span class="n">simdvec</span> <span class="n">G_imag</span> <span class="o">=</span> <span class="n">e_ikr</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">kr_real</span><span class="p">)</span> <span class="o">*</span> <span class="n">invr</span><span class="p">;</span>  <span class="c1">// invr carries newton_coef</span>
+          <span class="n">simdvec</span> <span class="n">potential_real</span> <span class="o">=</span> <span class="n">sv_real</span><span class="o">*</span><span class="n">G_real</span> <span class="o">-</span> <span class="n">sv_imag</span><span class="o">*</span><span class="n">G_imag</span><span class="p">;</span>    <span class="c1">// p = G * q</span>
+          <span class="n">simdvec</span> <span class="n">potential_imag</span> <span class="o">=</span> <span class="n">sv_real</span><span class="o">*</span><span class="n">G_imag</span> <span class="o">+</span> <span class="n">sv_imag</span><span class="o">*</span><span class="n">G_real</span><span class="p">;</span>
+          <span class="n">tv0_real</span> <span class="o">+=</span> <span class="n">potential_real</span><span class="p">;</span>
+          <span class="n">tv0_imag</span> <span class="o">+=</span> <span class="n">potential_imag</span><span class="p">;</span>
+
+          <span class="c1">// coefg = (1+k_imag*r)/r2 - k_real/r*I (considering the negative sign in sx)</span>
+          <span class="n">simdvec</span> <span class="n">coefg_real</span> <span class="o">=</span> <span class="p">(</span><span class="n">one</span><span class="o">+</span><span class="n">kr_imag</span><span class="p">)</span> <span class="o">*</span> <span class="n">invr</span> <span class="o">*</span> <span class="n">invr</span> <span class="o">*</span> <span class="n">newton_offset</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="n">coefg_imag</span> <span class="o">=</span> <span class="o">-</span> <span class="n">k_real</span> <span class="o">*</span> <span class="n">invr</span><span class="p">;</span>
+          <span class="c1">// gradient = coefg * potential * dx</span>
+          <span class="n">simdvec</span> <span class="n">gradient_real</span> <span class="o">=</span> <span class="n">coefg_real</span><span class="o">*</span><span class="n">potential_real</span> <span class="o">-</span> <span class="n">coefg_imag</span><span class="o">*</span><span class="n">potential_imag</span><span class="p">;</span>
+          <span class="n">simdvec</span> <span class="n">gradient_imag</span> <span class="o">=</span> <span class="n">coefg_real</span><span class="o">*</span><span class="n">potential_imag</span> <span class="o">+</span> <span class="n">coefg_imag</span><span class="o">*</span><span class="n">potential_real</span><span class="p">;</span>
+          <span class="n">tv1_real</span> <span class="o">+=</span> <span class="n">sx</span> <span class="o">*</span> <span class="n">gradient_real</span><span class="p">;</span>
+          <span class="n">tv1_imag</span> <span class="o">+=</span> <span class="n">sx</span> <span class="o">*</span> <span class="n">gradient_imag</span><span class="p">;</span>
+          <span class="n">tv2_real</span> <span class="o">+=</span> <span class="n">sy</span> <span class="o">*</span> <span class="n">gradient_real</span><span class="p">;</span>
+          <span class="n">tv2_imag</span> <span class="o">+=</span> <span class="n">sy</span> <span class="o">*</span> <span class="n">gradient_imag</span><span class="p">;</span>
+          <span class="n">tv3_real</span> <span class="o">+=</span> <span class="n">sz</span> <span class="o">*</span> <span class="n">gradient_real</span><span class="p">;</span>
+          <span class="n">tv3_imag</span> <span class="o">+=</span> <span class="n">sz</span> <span class="o">*</span> <span class="n">gradient_imag</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="n">tv0_real</span> <span class="o">*=</span> <span class="n">coef</span><span class="p">;</span>
+        <span class="n">tv0_imag</span> <span class="o">*=</span> <span class="n">coef</span><span class="p">;</span>
+        <span class="n">tv1_real</span> <span class="o">*=</span> <span class="n">coef</span><span class="p">;</span>
+        <span class="n">tv1_imag</span> <span class="o">*=</span> <span class="n">coef</span><span class="p">;</span>
+        <span class="n">tv2_real</span> <span class="o">*=</span> <span class="n">coef</span><span class="p">;</span>
+        <span class="n">tv2_imag</span> <span class="o">*=</span> <span class="n">coef</span><span class="p">;</span>
+        <span class="n">tv3_real</span> <span class="o">*=</span> <span class="n">coef</span><span class="p">;</span>
+        <span class="n">tv3_imag</span> <span class="o">*=</span> <span class="n">coef</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">m</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">m</span><span class="o">&lt;</span><span class="n">NSIMD</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="n">m</span><span class="p">)</span><span class="o">&lt;</span><span class="n">ntrgs</span><span class="p">;</span> <span class="n">m</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">trg_value</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="n">m</span><span class="p">)</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">complex_t</span><span class="p">(</span><span class="n">tv0_real</span><span class="p">[</span><span class="n">m</span><span class="p">],</span> <span class="n">tv0_imag</span><span class="p">[</span><span class="n">m</span><span class="p">]);</span>
+          <span class="n">trg_value</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="n">m</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">complex_t</span><span class="p">(</span><span class="n">tv1_real</span><span class="p">[</span><span class="n">m</span><span class="p">],</span> <span class="n">tv1_imag</span><span class="p">[</span><span class="n">m</span><span class="p">]);</span>
+          <span class="n">trg_value</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="n">m</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">complex_t</span><span class="p">(</span><span class="n">tv2_real</span><span class="p">[</span><span class="n">m</span><span class="p">],</span> <span class="n">tv2_imag</span><span class="p">[</span><span class="n">m</span><span class="p">]);</span>
+          <span class="n">trg_value</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="n">m</span><span class="p">)</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span> <span class="o">+=</span> <span class="n">complex_t</span><span class="p">(</span><span class="n">tv3_real</span><span class="p">[</span><span class="n">m</span><span class="p">],</span> <span class="n">tv3_imag</span><span class="p">[</span><span class="n">m</span><span class="p">]);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+      <span class="k">for</span> <span class="p">(;</span> <span class="n">t</span><span class="o">&lt;</span><span class="n">ntrgs</span><span class="p">;</span> <span class="n">t</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">complex_t</span> <span class="nf">potential</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+        <span class="n">cvec3</span> <span class="n">gradient</span> <span class="o">=</span> <span class="n">complex_t</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">);</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">s</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">s</span><span class="o">&lt;</span><span class="n">nsrcs</span><span class="p">;</span> <span class="n">s</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">vec3</span> <span class="n">dx</span><span class="p">;</span>
+          <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">d</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">d</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="n">d</span><span class="o">++</span><span class="p">)</span>
+            <span class="n">dx</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">trg_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="n">d</span><span class="p">]</span> <span class="o">-</span> <span class="n">src_coord</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">s</span><span class="o">+</span><span class="n">d</span><span class="p">];</span>
+          <span class="n">real_t</span> <span class="n">r2</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">dx</span><span class="p">);</span>
+          <span class="k">if</span> <span class="p">(</span><span class="n">r2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">real_t</span> <span class="n">r</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">r2</span><span class="p">);</span>
+            <span class="n">complex_t</span> <span class="n">potential_ij</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">exp</span><span class="p">(</span><span class="n">I</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="n">wavek</span><span class="p">)</span> <span class="o">*</span> <span class="n">src_value</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">/</span> <span class="n">r</span><span class="p">;</span>
+            <span class="n">complex_t</span> <span class="n">coefg</span> <span class="o">=</span> <span class="p">(</span><span class="n">I</span><span class="o">*</span><span class="n">wavek</span><span class="o">/</span><span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="n">r2</span><span class="p">)</span> <span class="o">*</span> <span class="n">potential_ij</span><span class="p">;</span>
+            <span class="n">potential</span> <span class="o">+=</span> <span class="n">potential_ij</span><span class="p">;</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">d</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">d</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="n">d</span><span class="o">++</span><span class="p">)</span>
+              <span class="n">gradient</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">+=</span> <span class="n">coefg</span> <span class="o">*</span> <span class="n">dx</span><span class="p">[</span><span class="n">d</span><span class="p">];</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="n">trg_value</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">potential</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">PI</span><span class="p">);</span>
+        <span class="n">trg_value</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">gradient</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">PI</span><span class="p">);</span>
+        <span class="n">trg_value</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">gradient</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">PI</span><span class="p">);</span>
+        <span class="n">trg_value</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span> <span class="o">+=</span> <span class="n">gradient</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">PI</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+<span class="p">}</span>  <span class="c1">// end namespace exafmm_t</span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2019, exafmm
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

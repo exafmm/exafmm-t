@@ -1,0 +1,35 @@
+.. _exhale_struct_structAlignedAllocator:
+
+Template Struct AlignedAllocator
+================================
+
+- Defined in :ref:`file_include_align.h`
+
+
+Nested Relationships
+--------------------
+
+
+Nested Types
+************
+
+- :ref:`exhale_struct_structAlignedAllocator_1_1rebind`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public std::allocator< T >``
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: AlignedAllocator
+   :members:
+   :protected-members:
+   :undoc-members:

@@ -1,0 +1,13 @@
+.. _exhale_define_exafmm__t_8h_1a23827995db6fe72971b2e4d8d2543819:
+
+Define fft_plan_many_dft_r2c
+============================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: fft_plan_many_dft_r2c

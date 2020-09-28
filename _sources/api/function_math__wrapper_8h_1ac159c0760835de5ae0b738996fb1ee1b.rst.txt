@@ -1,0 +1,13 @@
+.. _exhale_function_math__wrapper_8h_1ac159c0760835de5ae0b738996fb1ee1b:
+
+Function exafmm_t::conjugate_transpose
+======================================
+
+- Defined in :ref:`file_include_math_wrapper.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::conjugate_transpose(ComplexVec&, int, int)

@@ -1,0 +1,16 @@
+.. _exhale_struct_structexafmm__t_1_1M2LData:
+
+Struct M2LData
+==============
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: exafmm_t::M2LData
+   :members:
+   :protected-members:
+   :undoc-members:

@@ -1,0 +1,13 @@
+.. _exhale_function_math__wrapper_8h_1a990e45baa279206afb6f3db702ddf3af:
+
+Function cgemv_
+===============
+
+- Defined in :ref:`file_include_math_wrapper.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: cgemv_(char *, int *, int *, complex<float> *, complex<float> *, int *, complex<float> *, int *, complex<float> *, complex<float> *, int *)

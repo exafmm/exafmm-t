@@ -1,0 +1,25 @@
+.. _exhale_class_classexafmm__t_1_1LaplaceFmm:
+
+Class LaplaceFmm
+================
+
+- Defined in :ref:`file_include_laplace.h`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public exafmm_t::FmmScaleInvariant< real_t >`` (:ref:`exhale_class_classexafmm__t_1_1FmmScaleInvariant`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: exafmm_t::LaplaceFmm
+   :members:
+   :protected-members:
+   :undoc-members:

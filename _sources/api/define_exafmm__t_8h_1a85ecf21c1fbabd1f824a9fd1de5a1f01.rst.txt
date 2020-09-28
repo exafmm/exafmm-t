@@ -1,0 +1,13 @@
+.. _exhale_define_exafmm__t_8h_1a85ecf21c1fbabd1f824a9fd1de5a1f01:
+
+Define fft_flops
+================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: fft_flops

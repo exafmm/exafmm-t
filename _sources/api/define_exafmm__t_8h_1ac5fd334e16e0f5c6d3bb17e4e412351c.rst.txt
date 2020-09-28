@@ -1,0 +1,13 @@
+.. _exhale_define_exafmm__t_8h_1ac5fd334e16e0f5c6d3bb17e4e412351c:
+
+Define fft_destroy_plan
+=======================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: fft_destroy_plan

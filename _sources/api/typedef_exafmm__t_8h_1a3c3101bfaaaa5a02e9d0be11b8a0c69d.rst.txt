@@ -1,0 +1,13 @@
+.. _exhale_typedef_exafmm__t_8h_1a3c3101bfaaaa5a02e9d0be11b8a0c69d:
+
+Typedef exafmm_t::ivec3
+=======================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: exafmm_t::ivec3
