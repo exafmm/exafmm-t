@@ -3,23 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to exafmm-t's documentation!
-====================================
+.. include:: intro.rst
 
 .. toctree::
-   :caption: INTRO
-   :maxdepth: 2
+   :caption: Contents
+   :maxdepth: 3
 
    compile
+   examples
    documentation
 
 .. toctree::
-   :caption: API REFERENCE
+   :caption: API Reference
    :maxdepth: 2
 
-   api/typedefs
-   api/classes
-   api/global
-   api/build_tree
-   api/build_list
-   api/hilbert
+   api/library_root
