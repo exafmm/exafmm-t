@@ -137,9 +137,9 @@ Functions
 
 - :ref:`exhale_function_dataset_8h_1a88d9291236aba33fddb5a587f87c74da`
 
-- :ref:`exhale_function_timer_8h_1a5c22ea008cf4f1525993cafe660f6140`
-
 - :ref:`exhale_function_timer_8h_1a71cc0de723d64168c13de2e2ee41cdb1`
+
+- :ref:`exhale_function_timer_8h_1a5c22ea008cf4f1525993cafe660f6140`
 
 - :ref:`exhale_function_timer_8h_1a90d312d44d375a4859d794b99700eff3`
 
