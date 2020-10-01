@@ -13,6 +13,5 @@ In addition, users can easily add other non-oscillatory kernels under exafmm-t's
 
 The full documentation is available [here](https://exafmm.github.io/exafmm-t).
 
-## Getting Help
-
 Please use [GitHub issues](https://github.com/exafmm/exafmm-t/issues) for tracking bugs and requests.
+To contribute to exafmm-t, please review [CONTRIBUTING](https://github.com/exafmm/exafmm-t/blob/master/CONTRIBUTING.md).
