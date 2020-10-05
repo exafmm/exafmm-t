@@ -95,7 +95,7 @@ You can compute the error in L2 norm by comparing with direct summation:
    std::cout << "potential error: " << error[0] << "\n"
              << "gradient error:  " << error[1] << "\n";
 
-Other examples can be found in ``tests`` folder.
+Other examples can be found in ``examples/cpp`` folder.
 
 Python Examples
 ---------------
@@ -108,6 +108,6 @@ Now, the steps for tree construction, list construction and pre-computation are 
 Also, the evaluation now only requires to call one function ``evalute()``.
 Below are Python examples on Jupyter notebooks.
 
-- `Laplace <https://nbviewer.jupyter.org/github/exafmm/exafmm-t/blob/master/examples/laplace_example.ipynb>`__
-- `Helmholtz <https://nbviewer.jupyter.org/github/exafmm/exafmm-t/blob/master/examples/helmholtz_example.ipynb>`__
-- `Modified Helmholtz <https://nbviewer.jupyter.org/github/exafmm/exafmm-t/blob/master/examples/modified_helmholtz_example.ipynb>`__
+- `Laplace <https://nbviewer.jupyter.org/github/exafmm/exafmm-t/blob/master/examples/python/laplace.ipynb>`__
+- `Helmholtz <https://nbviewer.jupyter.org/github/exafmm/exafmm-t/blob/master/examples/python/helmholtz.ipynb>`__
+- `Modified Helmholtz <https://nbviewer.jupyter.org/github/exafmm/exafmm-t/blob/master/examples/python/modified_helmholtz.ipynb>`__

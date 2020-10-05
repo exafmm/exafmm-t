@@ -31,7 +31,7 @@
 
 PROGRAM=libtool
 PACKAGE=libtool
-VERSION="2.4.6 Debian-2.4.6-0.1"
+VERSION=2.4.6
 package_revision=2.4.6
 
 
@@ -2073,7 +2073,7 @@ include the following information:
        autoconf:       `($AUTOCONF --version) 2>/dev/null |$SED 1q`
 
 Report bugs to <bug-libtool@gnu.org>.
-GNU libtool home page: <http://www.gnu.org/s/libtool/>.
+GNU libtool home page: <http://www.gnu.org/software/libtool/>.
 General help using GNU software: <http://www.gnu.org/gethelp/>."
     exit 0
 }
@@ -7220,6 +7220,11 @@ func_mode_link ()
 	arg=$func_stripname_result
 	;;
 
+      -Wl,--as-needed)
+	deplibs="$deplibs $arg"
+	continue
+	;;
+
       -Wl,*)
 	func_stripname '-Wl,' '' "$arg"
 	args=$func_stripname_result
@@ -7272,13 +7277,10 @@ func_mode_link ()
       # -tp=*                Portland pgcc target processor selection
       # --sysroot=*          for sysroot support
       # -O*, -g*, -flto*, -fwhopr*, -fuse-linker-plugin GCC link-time optimization
-      # -specs=*             GCC specs files
       # -stdlib=*            select c++ std lib with clang
-      # -fsanitize=*         Clang/GCC memory and address sanitizer
       -64|-mips[0-9]|-r[0-9][0-9]*|-xarch=*|-xtarget=*|+DA*|+DD*|-q*|-m*| \
       -t[45]*|-txscale*|-p|-pg|--coverage|-fprofile-*|-F*|@*|-tp=*|--sysroot=*| \
-      -O*|-g*|-flto*|-fwhopr*|-fuse-linker-plugin|-fstack-protector*|-stdlib=*| \
-      -specs=*|-fsanitize=*)
+      -O*|-g*|-flto*|-fwhopr*|-fuse-linker-plugin|-fstack-protector*|-stdlib=*)
         func_quote_for_eval "$arg"
 	arg=$func_quote_for_eval_result
         func_append compile_command " $arg"
@@ -7527,6 +7529,7 @@ func_mode_link ()
 
     case $linkmode in
     lib)
+	as_needed_flag=
 	passes="conv dlpreopen link"
 	for file in $dlfiles $dlprefiles; do
 	  case $file in
@@ -7538,6 +7541,7 @@ func_mode_link ()
 	done
 	;;
     prog)
+	as_needed_flag=
 	compile_deplibs=
 	finalize_deplibs=
 	alldeplibs=false
@@ -7571,10 +7575,7 @@ func_mode_link ()
 	case $pass in
 	dlopen) libs=$dlfiles ;;
 	dlpreopen) libs=$dlprefiles ;;
-	link)
-	  libs="$deplibs %DEPLIBS%"
-	  test "X$link_all_deplibs" != Xno && libs="$libs $dependency_libs"
-	  ;;
+	link) libs="$deplibs %DEPLIBS% $dependency_libs" ;;
 	esac
       fi
       if test lib,dlpreopen = "$linkmode,$pass"; then
@@ -7610,6 +7611,15 @@ func_mode_link ()
 	lib=
 	found=false
 	case $deplib in
+	-Wl,--as-needed)
+	  if test prog,link = "$linkmode,$pass" ||
+	     test lib,link = "$linkmode,$pass"; then
+	    as_needed_flag="$deplib "
+	  else
+	    deplibs="$deplib $deplibs"
+	  fi
+	  continue
+	  ;;
 	-mt|-mthreads|-kthread|-Kthread|-pthread|-pthreads|--thread-safe \
         |-threads|-fopenmp|-openmp|-mp|-xopenmp|-omp|-qsmp=*)
 	  if test prog,link = "$linkmode,$pass"; then
@@ -7893,19 +7903,19 @@ func_mode_link ()
 	    # It is a libtool convenience library, so add in its objects.
 	    func_append convenience " $ladir/$objdir/$old_library"
 	    func_append old_convenience " $ladir/$objdir/$old_library"
-	    tmp_libs=
-	    for deplib in $dependency_libs; do
-	      deplibs="$deplib $deplibs"
-	      if $opt_preserve_dup_deps; then
-		case "$tmp_libs " in
-		*" $deplib "*) func_append specialdeplibs " $deplib" ;;
-		esac
-	      fi
-	      func_append tmp_libs " $deplib"
-	    done
 	  elif test prog != "$linkmode" && test lib != "$linkmode"; then
 	    func_fatal_error "'$lib' is not a convenience library"
 	  fi
+	  tmp_libs=
+	  for deplib in $dependency_libs; do
+	    deplibs="$deplib $deplibs"
+	    if $opt_preserve_dup_deps; then
+	      case "$tmp_libs " in
+	      *" $deplib "*) func_append specialdeplibs " $deplib" ;;
+	      esac
+	    fi
+	    func_append tmp_libs " $deplib"
+	  done
 	  continue
 	fi # $pass = conv
 
@@ -8828,9 +8838,6 @@ func_mode_link ()
 	    age=$number_minor
 	    revision=$number_minor
 	    lt_irix_increment=no
-	    ;;
-	  *)
-	    func_fatal_configuration "$modename: unknown library version type '$version_type'"
 	    ;;
 	  esac
 	  ;;
@@ -10030,6 +10037,13 @@ EOF
 	  test "X$libobjs" = "X " && libobjs=
 	fi
 
+	# A bit hacky. I had wanted to add \$as_needed_flag to archive_cmds instead, but that
+	# comes from libtool.m4 which is part of the project being built. This should put it
+	# in the right place though.
+	if test lib,link = "$linkmode,$pass" && test -n "$as_needed_flag"; then
+	  libobjs=$as_needed_flag$libobjs
+	fi
+
 	save_ifs=$IFS; IFS='~'
 	for cmd in $cmds; do
 	  IFS=$sp$nl
@@ -10262,8 +10276,8 @@ EOF
       compile_deplibs=$new_libs
 
 
-      func_append compile_command " $compile_deplibs"
-      func_append finalize_command " $finalize_deplibs"
+      func_append compile_command " $as_needed_flag $compile_deplibs"
+      func_append finalize_command " $as_needed_flag $finalize_deplibs"
 
       if test -n "$rpath$xrpath"; then
 	# If the user specified any rpath flags, then add them.
