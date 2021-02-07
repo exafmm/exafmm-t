@@ -90,9 +90,9 @@ To avoid naming collisions and keep a clean interface, we chose to create a Pyth
 # Application
 
 We have recently integrated `exafmm-t` with `Bempp-cl`, an open-source boundary element method (BEM) package in Python [@Betcke2021],
-whose predecessor, `BEM++` (@smigajSolvingBoundaryIntegral2015), has enabled many acoustic and electromagnetic applications.
+whose predecessor, `BEM++` [@smigajSolvingBoundaryIntegral2015], has enabled many acoustic and electromagnetic applications.
 In BEM applications, computations are dominated by the dense matrix-vector multiplication (mat-vec) in each iteration.
 `exafmm-t` reduces both time and memory cost of mat-vec to a linear complexity, thus makes `Bempp-cl` feasible to solve large-scale problems.
-
+In an upcoming paper, we demonstrate the capabilities and performance of Bempp-Exafmm on biomolecular electrostatics simulations, including solving problems at the scale of a virus.
 
 # References
