@@ -27,19 +27,19 @@ bibliography: paper.bib
 
 # Summary
 
-ExaFMM-t is an open-source library for fast multipole algorithms, providing high-performance evaluation of N-body problems, with C++ and Python interfaces.
+ExaFMM is an open-source library for fast multipole algorithms, providing high-performance evaluation of N-body problems, with C++ and Python interfaces.
 It is re-written with a new design, after multiple re-implementations of the same algorithm, over a decade of work in the research group.
 Our goal for all these years has been to produce reusable, standard code for what is an intricate and difficult algorithm to implement. 
-The Python binding in this software allows usage from a Jupyter notebook, reducing the barriers for adoption.
+The Python binding in this new version allows usage from a Jupyter notebook, reducing the barriers for adoption.
 It is also easy to extend, and faster or competitive with state-of-the art alternatives.
-
-# Statement of Need
 
 The fast multipole method (FMM) was introduced more than 30 years ago.
 Together with the likes of Krylov iterative methods and the fast Fourier transform, FMM is considered one of the top 10 algorithms of the 20-th century [@BoardSchulten2000].
-It reduces the complexity of N-body problems from $\mathcal{O}(N^2)$ to $\mathcal{O}(N)$ by approximating far-range interactions in a hierarchical way.
-Two variants of hierarchical N-body algorithms existe: treecodes and FMM. 
+It reduces the complexity of N-body problems from $\mathcal{O}(N^2)$ to $\mathcal{O}(N)$ (where $N$ is the problem size) by approximating far-range interactions in a hierarchical way.
+Two variants of hierarchical N-body algorithms exist: treecodes and FMM. 
 Both were originally developed for fast evaluation of the gravitational potential field, but now have found many applications in different fields.
+
+# Statement of Need
 
 Over the past few decades, a plethora of fast N-body implementations have emerged.
 `Bonsai` (@bedorfSparseOctreeGravitational2012) is a gravitational treecode that runs entirely on GPU.
