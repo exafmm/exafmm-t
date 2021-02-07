@@ -165,9 +165,9 @@ Functions
 
 - :ref:`exhale_function_math__wrapper_8h_1ae4384b5b04dc15f99982cdefe16099bb`
 
-- :ref:`exhale_function_math__wrapper_8h_1a3ae2f84d558a7a24f0fe8185daf6aea5`
-
 - :ref:`exhale_function_math__wrapper_8h_1ad55f7b28da054d864de336b61018cc25`
+
+- :ref:`exhale_function_math__wrapper_8h_1a3ae2f84d558a7a24f0fe8185daf6aea5`
 
 
 Typedefs
