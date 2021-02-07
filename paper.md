@@ -1,5 +1,5 @@
 ---
-title: 'ExaFMM-t: a high-performance fast multipole method library with Python interface'
+title: 'ExaFMM: a high-performance fast multipole method library with C++ and Python interfaces'
 tags:
   - C++
   - Python
@@ -27,45 +27,46 @@ bibliography: paper.bib
 
 # Summary
 
-ExaFMM is an open-source library for fast multipole algorithms, providing high-performance evaluation of N-body problems, with C++ and Python interfaces.
+ExaFMM is an open-source library for fast multipole algorithms, providing high-performance evaluation of N-body problems in three dimensions, with C++ and Python interfaces.
 It is re-written with a new design, after multiple re-implementations of the same algorithm, over a decade of work in the research group.
 Our goal for all these years has been to produce reusable, standard code for what is an intricate and difficult algorithm to implement. 
-The Python binding in this new version allows usage from a Jupyter notebook, reducing the barriers for adoption.
+The Python binding in this new version allows calling it from a Jupyter notebook, reducing the barriers for adoption.
 It is also easy to extend, and faster or competitive with state-of-the art alternatives.
 
-The fast multipole method (FMM) was introduced more than 30 years ago.
+The fast multipole method (FMM) was introduced more than 30 years ago [@GreengardRokhlin1987].
 Together with the likes of Krylov iterative methods and the fast Fourier transform, FMM is considered one of the top 10 algorithms of the 20-th century [@BoardSchulten2000].
 It reduces the complexity of N-body problems from $\mathcal{O}(N^2)$ to $\mathcal{O}(N)$ (where $N$ is the problem size) by approximating far-range interactions in a hierarchical way.
 Two variants of hierarchical N-body algorithms exist: treecodes and FMM. 
 Both were originally developed for fast evaluation of the gravitational potential field, but now have found many applications in different fields.
+For example, the integral formulation of problems modeled by elliptic partial differential equations lead to numerical integration, having the same form, computationally, as an N-body interaction.
+In this way, N-body algorithms are applicable to acoustics, electromagenetics, fluid dynamics, and more.
+The present version of ExaFMM implements the so-called kernel-independent variant of the algorithm [@yingKernelindependentAdaptiveFast2004].
+It supports computing both the potential and forces of Laplace, low-frequency Helmholtz and modified Helmholtz (a.k.a. Yukawa) kernels.
+Users can add other non-oscillatory kernels with modest programming effort.
+ExaFMM is a header-only library written in C/C++ and provides a Python API using `pybind11` [@pybind11].
 
 # Statement of Need
 
-Over the past few decades, a plethora of fast N-body implementations have emerged.
-`Bonsai` (@bedorfSparseOctreeGravitational2012) is a gravitational treecode that runs entirely on GPU.
-`ChaNGa` (@jetleyMassivelyParallelCosmological2008) is also a treecode that uses `Charm++` to automate dynamic load balancing.
-In terms of FMM codes, `ScalFMM` (@blanchardScalFMMGenericParallel2015) implements the black-box FMM, a kernel-independent variant based on interpolation.
+Over the past three decades, a plethora of fast N-body implementations have emerged.
+`Bonsai` [@bedorfSparseOctreeGravitational2012] is a gravitational treecode that runs entirely on GPU hardware.
+`ChaNGa` [@jetleyMassivelyParallelCosmological2008] is also a treecode that uses `Charm++` to automate dynamic load balancing.
+In terms of FMM codes, `ScalFMM` [@blanchardScalFMMGenericParallel2015] implements the black-box FMM, a kernel-independent variant based on interpolation.
 It comes with an option to use `StarPU` runtime system to handle heterogeneous task scheduling.
-`PVFMM` (@malhotraPVFMMParallelKernel2015) can compute both particle and volume potentials using kernel-independent FMM (KIFMM).
-`exafmm` (@yokotaFMMBasedDual2013) focuses on low accuracy optimizations via dual tree traversal.
-However, one remaining challenge in the FMM community is to develop a well-established open-source software package, like FFTW for Fast Fourier transform,
-that delivers compelling performance with a standard and easy-to-use interface.
-This motivates us to develop `exafmm-t` to bring the FMM to a broader audience and more scientific applications.
-
-`exafmm-t` is a parallel FMM library for solving N-body problems in 3D.
-It implements the kernel-independent fast multipole method (@yingKernelindependentAdaptiveFast2004) and runs on multicore architectures. 
-Currently, it supports both potential and force calculation of Laplace, low-frequency Helmholtz and modified Helmholtz (Yukawa) kernel; furthermore, users can add other non-oscillatory kernels with only modest effort in `exafmm-t`'s framework.
-It is a header-only library written in C/C++ and also provides Python APIs using pybind11 (@pybind11).
-
+`PVFMM` [@malhotraPVFMMParallelKernel2015] can compute both particle and volume potentials using a kernel-independent FMM, KIFMM [@yingKernelindependentAdaptiveFast2004].
+The first version of `exafmm` [@yokotaFMMBasedDual2013] focused on low-accuracy optimizations via dual tree traversal.
+Despite all these efforts, it has remained a challenge in the FMM community to have a well-established open-source software package, analogous to FFTW for the fast Fourier transform,
+delivering compelling performance with a standard and easy-to-use interface.
+This motivated us to develop this new version of ExaFMM (internally called `exafmm-t`) to bring the FMM to a broader audience and to increased scientific impact.
+With the kernel-independent fast multipole method, we achieve higher performance at high accuracy (higher truncation order $p$).
 `exafmm-t` is designed to be standard and lean.
 First, it only uses C++ STL containers and depends on mature math libraries: BLAS, LAPACK and FFTW3.
 Second, `exafmm-t` is moderately object-oriented, namely, the usage of encapsulation, inheritance and polymorphism is conservative or even minimal in the code.
-As a result, the core library consists of around 6,000 lines of code, which is an order of magnitude shorter than many other FMM packages.
+The core library consists of around 6,000 lines of code, which is an order of magnitude shorter than many other FMM packages.
 
 `exafmm-t` is concise but highly optimized.
 To achieve competitive performance, our work combines techniques and optimizations from several past efforts.
 On top of multi-threading using OpenMP, we further speed up the P2P operator (near-range interactions) using SIMD vectorization with SSE/AVX/AVX-512 compatibility;
-we apply the cache optimization proposed in PVFMM (@malhotraPVFMMParallelKernel2015) to improve the performance of M2L operator (far-range interactions).
+we apply the cache optimization proposed in PVFMM [@malhotraPVFMMParallelKernel2015] to improve the performance of M2L operators (far-range interactions).
 In addition, `exafmm-t` also allows users to pre-compute and store translation operators, which benefits applications that requires FMM evaluations iteratively.
 The single-node performance of `exafmm-t` is on par with the state-of-the-art packages that we mentioned above.
 We ran a benchmark that solves a Laplace N-body problem with 1 million randomly distributed particles on a workstation with a 14-core Intel i9-7940X CPU.
