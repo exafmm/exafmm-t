@@ -55,9 +55,9 @@ Functions
 
 - :ref:`exhale_function_timer_8h_1af7c6e603a0d0b0b4cdbe08d864673c6e`
 
-- :ref:`exhale_function_build__tree_8h_1ac31bd05613d6a0101639798632e655a7`
-
 - :ref:`exhale_function_build__tree_8h_1a3e0bb450a71bdf46d51d841401c64bf9`
+
+- :ref:`exhale_function_build__tree_8h_1ac31bd05613d6a0101639798632e655a7`
 
 - :ref:`exhale_function_build__tree_8h_1a440d0b7e71aa7648bc2dd8933b108681`
 
