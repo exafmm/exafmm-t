@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Template Function exafmm_t::sort_bodies(Node&lt;T&gt; *const, Body&lt;T&gt; *const, Body&lt;T&gt; *const, int, int, std::vector&lt;int&gt;&amp;, std::vector&lt;int&gt;&amp;) &mdash; exafmm-t  documentation</title>
   
@@ -17,7 +17,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -30,7 +33,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
         <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
         <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
     
@@ -54,7 +56,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> exafmm-t
+            <a href="../index.html" class="icon icon-home"> exafmm-t
           
 
           
@@ -134,6 +136,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -147,7 +151,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/api/function_build__tree_8h_1a352c04e2f9ad1f9d382c02e8f4486d56.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -168,16 +172,29 @@
 </ul>
 <div class="section" id="function-documentation">
 <h2>Function Documentation<a class="headerlink" href="#function-documentation" title="Permalink to this headline">¶</a></h2>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>doxygenfunction: Unable to resolve multiple matches for function “exafmm_t::sort_bodies” with arguments (Node&lt;T&gt; *const, Body&lt;T&gt; *const, Body&lt;T&gt; *const, int, int, std::vector&lt;int&gt;&amp;, std::vector&lt;int&gt;&amp;) in doxygen xml output for project “exafmm-t” from directory: ./doxyoutput/xml.
-Potential matches:
+<dl class="cpp function">
+<dt id="_CPPv4I0EN8exafmm_t11sort_bodiesEvPC4NodeI1TEPC4BodyI1TEPC4BodyI1TEiiRNSt6vectorIiEERNSt6vectorIiEE">
+<span id="_CPPv3I0EN8exafmm_t11sort_bodiesEPC4NodeI1TEPC4BodyI1TEPC4BodyI1TEiiRNSt6vectorIiEERNSt6vectorIiEE"></span><span id="_CPPv2I0EN8exafmm_t11sort_bodiesEPC4NodeI1TEPC4BodyI1TEPC4BodyI1TEiiRNSt6vectorIiEERNSt6vectorIiEE"></span>template&lt;typename <code class="sig-name descname">T</code>&gt;<br /><span class="target" id="build__tree_8h_1a352c04e2f9ad1f9d382c02e8f4486d56"></span>void <code class="sig-prename descclassname">exafmm_t<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">sort_bodies</code><span class="sig-paren">(</span><a class="reference internal" href="structexafmm__t_1_1Node.html#_CPPv4I0EN8exafmm_t4NodeE" title="exafmm_t::Node">Node</a>&lt;<a class="reference internal" href="#_CPPv4I0EN8exafmm_t11sort_bodiesEvPC4NodeI1TEPC4BodyI1TEPC4BodyI1TEiiRNSt6vectorIiEERNSt6vectorIiEE" title="exafmm_t::sort_bodies::T">T</a>&gt; *<em class="property">const</em> <em>node</em>, <a class="reference internal" href="structexafmm__t_1_1Body.html#_CPPv4I0EN8exafmm_t4BodyE" title="exafmm_t::Body">Body</a>&lt;<a class="reference internal" href="#_CPPv4I0EN8exafmm_t11sort_bodiesEvPC4NodeI1TEPC4BodyI1TEPC4BodyI1TEiiRNSt6vectorIiEERNSt6vectorIiEE" title="exafmm_t::sort_bodies::T">T</a>&gt; *<em class="property">const</em> <em>bodies</em>, <a class="reference internal" href="structexafmm__t_1_1Body.html#_CPPv4I0EN8exafmm_t4BodyE" title="exafmm_t::Body">Body</a>&lt;<a class="reference internal" href="#_CPPv4I0EN8exafmm_t11sort_bodiesEvPC4NodeI1TEPC4BodyI1TEPC4BodyI1TEiiRNSt6vectorIiEERNSt6vectorIiEE" title="exafmm_t::sort_bodies::T">T</a>&gt; *<em class="property">const</em> <em>buffer</em>, int <em>begin</em>, int <em>end</em>, std::vector&lt;int&gt; &amp;<em>size</em>, std::vector&lt;int&gt; &amp;<em>offsets</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN8exafmm_t11sort_bodiesEvPC4NodeI1TEPC4BodyI1TEPC4BodyI1TEiiRNSt6vectorIiEERNSt6vectorIiEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sort a chunk of bodies in a node according to their octants. </p>
+<p><dl class="simple">
+<dt><strong>Template Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">T</span></code>: Target’s value type (real or complex) </p></li>
+</ul>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">node</span></code>: The node that bodies are in </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bodies</span></code>: The bodies to be sorted </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">buffer</span></code>: The sorted bodies </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">begin</span></code>: Begin index of the chunk </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">end</span></code>: End index of the chunk </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code>: Vector of the counts of bodies in each octant after </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">offsets</span></code>: Vector of the offsets of sorted bodies in each octant </p></li>
+</ul>
+</dd>
+</dl>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">typename</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">void</span> <span class="n">sort_bodies</span><span class="p">(</span><span class="n">Node</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">const</span> <span class="n">node</span><span class="p">,</span> <span class="n">Body</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">const</span> <span class="n">bodies</span><span class="p">,</span> <span class="n">Body</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">const</span> <span class="n">buffer</span><span class="p">,</span> <span class="nb">int</span> <span class="n">begin</span><span class="p">,</span> <span class="nb">int</span> <span class="n">end</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">size</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">offsets</span><span class="p">)</span>
-<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">typename</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">void</span> <span class="n">sort_bodies</span><span class="p">(</span><span class="n">Node</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">const</span> <span class="n">node</span><span class="p">,</span> <span class="n">Body</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">const</span> <span class="n">bodies</span><span class="p">,</span> <span class="nb">int</span> <span class="n">begin</span><span class="p">,</span> <span class="nb">int</span> <span class="n">end</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">size</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">offsets</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
+</dd></dl>
+
 </div>
 </div>
 
@@ -186,37 +203,29 @@ Potential matches:
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="function_dataset_8h_1ab3369b6745a2cddefcfdf32f02619587.html" class="btn btn-neutral float-right" title="Template Function exafmm_t::sphere" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="function_build__non__adaptive__tree_8h_1a71b1b9efc409aed0bb812fe16448a407.html" class="btn btn-neutral float-left" title="Template Function exafmm_t::sort_bodies(Node&lt;T&gt; *const, Body&lt;T&gt; *const, int, int, std::vector&lt;int&gt;&amp;, std::vector&lt;int&gt;&amp;)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="function_dataset_8h_1ab3369b6745a2cddefcfdf32f02619587.html" class="btn btn-neutral float-right" title="Template Function exafmm_t::sphere" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="function_build__non__adaptive__tree_8h_1a71b1b9efc409aed0bb812fe16448a407.html" class="btn btn-neutral float-left" title="Template Function exafmm_t::sort_bodies(Node&lt;T&gt; *const, Body&lt;T&gt; *const, int, int, std::vector&lt;int&gt;&amp;, std::vector&lt;int&gt;&amp;)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2019, exafmm
+        &#169; Copyright 2019, exafmm.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
