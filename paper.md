@@ -95,4 +95,9 @@ In BEM applications, computations are dominated by the dense matrix-vector multi
 `exafmm-t` reduces both time and memory cost of mat-vec to a linear complexity, thus makes `Bempp-cl` feasible to solve large-scale problems.
 In an upcoming paper, we demonstrate the capabilities and performance of Bempp-Exafmm on biomolecular electrostatics simulations, including solving problems at the scale of a virus.
 
+# Acknowledgements
+
+This software builds on efforts over more than a decade. It directly received support from NSF Grants CCF 1747669, and NSF CAREER OAC 1149784 to LB.
+
+
 # References
