@@ -1,5 +1,5 @@
 ---
-title: 'exafmm-t'
+title: 'ExaFMM-t: a high-performance fast multipole method library with Python interface'
 tags:
   - C++
   - Python
@@ -27,11 +27,21 @@ bibliography: paper.bib
 
 # Summary
 
-The fast multipole method (FMM), recognized as one of the top 10 algorithms (@BoardSchulten2000) from the 20-th century in scientific computing,
-is an algorithm that reduces the complexity of N-body problems from $\mathcal{O}(N^2)$ to $\mathcal{O}(N)$ by approximating far-range interactions in a hierarchical way.
-Originally developed for fast evaluation of the gravitational potential field, the FMM and its variants now have found many applications in different fields.
+ExaFMM-t is an open-source library for fast multipole algorithms, providing high-performance evaluation of N-body problems, with C++ and Python interfaces.
+It is re-written with a new design, after multiple re-implementations of the same algorithm, over a decade of work in the research group.
+Our goal for all these years has been to produce reusable, standard code for what is an intricate and difficult algorithm to implement. 
+The Python binding in this software allows usage from a Jupyter notebook, reducing the barriers for adoption.
+It is also easy to extend, and faster or competitive with state-of-the art alternatives.
 
-Over the past few decades, a plethora of highly optimized fast N-body implementations have emerged.
+# Statement of Need
+
+The fast multipole method (FMM) was introduced more than 30 years ago.
+Together with the likes of Krylov iterative methods and the fast Fourier transform, FMM is considered one of the top 10 algorithms of the 20-th century [@BoardSchulten2000].
+It reduces the complexity of N-body problems from $\mathcal{O}(N^2)$ to $\mathcal{O}(N)$ by approximating far-range interactions in a hierarchical way.
+Two variants of hierarchical N-body algorithms existe: treecodes and FMM. 
+Both were originally developed for fast evaluation of the gravitational potential field, but now have found many applications in different fields.
+
+Over the past few decades, a plethora of fast N-body implementations have emerged.
 `Bonsai` (@bedorfSparseOctreeGravitational2012) is a gravitational treecode that runs entirely on GPU.
 `ChaNGa` (@jetleyMassivelyParallelCosmological2008) is also a treecode that uses `Charm++` to automate dynamic load balancing.
 In terms of FMM codes, `ScalFMM` (@blanchardScalFMMGenericParallel2015) implements the black-box FMM, a kernel-independent variant based on interpolation.
