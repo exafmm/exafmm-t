@@ -149,9 +149,9 @@ Functions
 
 - :ref:`exhale_function_build__list_8h_1a99a87ebc089fc38be60f0ba46a256485`
 
-- :ref:`exhale_function_build__non__adaptive__tree_8h_1a71b1b9efc409aed0bb812fe16448a407`
-
 - :ref:`exhale_function_build__tree_8h_1a352c04e2f9ad1f9d382c02e8f4486d56`
+
+- :ref:`exhale_function_build__non__adaptive__tree_8h_1a71b1b9efc409aed0bb812fe16448a407`
 
 - :ref:`exhale_function_dataset_8h_1ab3369b6745a2cddefcfdf32f02619587`
 
