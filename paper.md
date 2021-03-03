@@ -55,15 +55,24 @@ We will mention a few notable ones for context.
 It comes with an option to use `StarPU` runtime system to handle heterogeneous task scheduling.
 `TBFMM` [@bramasTBFMMGenericParallel2020] is a task-based FMM library that features a generic C++ design to support various types of tree structures and kernels, through heavy use of C++ templates.
 `PVFMM` [@malhotraPVFMMParallelKernel2015] can compute both particle and volume potentials using a kernel-independent FMM, KIFMM [@yingKernelindependentAdaptiveFast2004].
-The first version of ExaFMM focused on low-accuracy optimizations and implemented a dual tree traversal [@BarbaYokota2012-figshare,@YokotaBarba2011a,@yokotaFMMBasedDual2013].
+The first version of ExaFMM focused on low-accuracy optimizations and implemented a dual tree traversal [@BarbaYokota2012-figshare; @YokotaBarba2011a; @yokotaFMMBasedDual2013].
 It was GPU-enabled using CUDA, parallel with MPI and exploited multithreading using OpenMP.
 
 Despite all these efforts, it has remained a challenge in the FMM community to have a well-established open-source software package, analogous to FFTW for the fast Fourier transform,
 delivering compelling performance with a standard and easy-to-use interface.
 The "alpha" version of ExaFMM is long and complex, and hard to maintain.
-Its length is partly due to a focus on fast execution, which led to specialized treatment of low-$p$ evaluations.
-This motivated us to develop this new version of ExaFMM (internally called `exafmm-t`) to bring the FMM to a broader audience and to increased scientific impact.
-With the kernel-independent variant of the method, we also achieve higher performance at high accuracy (higher truncation order $p$).
+Its length is partly due to a focus on fast execution, which led to specialized treatment of low-$p$ evaluations and extensive hand-coded optimizations.
+This emphasis on achieving high performance led to poor reusability or maintainability, as is the case with various other codes in this field.
+Already it was the fourth implementation of the algorithm within our research group, and two more came about over the years before the version we present in this paper.
+As a bit of history of this project, it started in 2008 with [`PyFMM`](https://github.com/barbagroup/pyfmm), a 2D serial prototype in Python; then followed `PetFMM` in 2009, a PETSc-based parallel code with heavy templating [@cruz2011petfmm]; the third effort was [`GemsFMM`](https://github.com/barbagroup/gemsfmm) in 2010, a serial code with CUDA kernels for execution on GPUs [@yokota2011gems].
+Another student in the group felt that [`exafmm-alpha`](https://github.com/exafmm/exafmm-alpha) overused class inheritance and was inadequat for his application, so he and a collaborator re-used only the kernels and implemented another tree construction in [`fmmtl`](https://github.com/ccecka/fmmtl).
+The first author of this paper began working with `exafmm-alpha` in 2007, but at this point the mission was clear: simplify and aim for reusability.
+That work led to the sixth implementation of FMM in the group, still called [`exafmm`](https://github.com/exafmm/exafmm), but it is not what we present here and we haven't published about it. 
+With this new version of ExaFMM (called `exafmm-t`), we aim to bring the FMM to a broader audience and to increased scientific impact.
+It uses the kernel-independent variant of the method for higher performance at high accuracy (higher truncation order $p$).
+Keeping focus on maintainability, it stays close to standards, with clean function interfaces, shallow inheritance and conservative use of classes.
+Instead of a fixation with being the faster, we focus on "ballpark" competitive performance.
+Above all, the Python API and ability to call it from Jupyter notebooks should make this software valuable for many applications.
 
 # Features of the software design
 
