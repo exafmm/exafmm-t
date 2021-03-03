@@ -69,13 +69,13 @@ Functions
 
 - :ref:`exhale_function_build__list_8h_1a4c5585ab36a873853bd1037a305174ff`
 
+- :ref:`exhale_function_build__non__adaptive__tree_8h_1ae5d771aab7f5b200a29da6f1bdca073a`
+
 - :ref:`exhale_function_build__non__adaptive__tree_8h_1a845cf95f32c6b703f8b35605eac17646`
 
 - :ref:`exhale_function_build__tree_8h_1aa9bbd6da308c547dd21851abe39449e4`
 
 - :ref:`exhale_function_build__tree_8h_1a960b9cf76e38f5647b229440cd189315`
-
-- :ref:`exhale_function_build__non__adaptive__tree_8h_1ae5d771aab7f5b200a29da6f1bdca073a`
 
 - :ref:`exhale_function_math__wrapper_8h_1ac159c0760835de5ae0b738996fb1ee1b`
 
@@ -145,13 +145,13 @@ Functions
 
 - :ref:`exhale_function_test_8h_1adf72c12fd698ebf283bf02ae94d82ff7`
 
-- :ref:`exhale_function_build__list_8h_1a7e01b7c369f769d9eb64c49d0523bb5e`
-
 - :ref:`exhale_function_build__list_8h_1a99a87ebc089fc38be60f0ba46a256485`
 
-- :ref:`exhale_function_build__tree_8h_1a352c04e2f9ad1f9d382c02e8f4486d56`
+- :ref:`exhale_function_build__list_8h_1a7e01b7c369f769d9eb64c49d0523bb5e`
 
 - :ref:`exhale_function_build__non__adaptive__tree_8h_1a71b1b9efc409aed0bb812fe16448a407`
+
+- :ref:`exhale_function_build__tree_8h_1a352c04e2f9ad1f9d382c02e8f4486d56`
 
 - :ref:`exhale_function_dataset_8h_1ab3369b6745a2cddefcfdf32f02619587`
 
