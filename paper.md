@@ -65,13 +65,13 @@ Its length is partly due to a focus on fast execution, which led to specialized 
 This emphasis on achieving high performance led to poor reusability or maintainability, as is the case with various other codes in this field.
 Already it was the fourth implementation of the algorithm within our research group, and two more came about over the years before the version we present in this paper.
 As a bit of history of this project, it started in 2008 with [`PyFMM`](https://github.com/barbagroup/pyfmm), a 2D serial prototype in Python; then followed `PetFMM` in 2009, a PETSc-based parallel code with heavy templating [@cruz2011petfmm]; the third effort was [`GemsFMM`](https://github.com/barbagroup/gemsfmm) in 2010, a serial code with CUDA kernels for execution on GPUs [@yokota2011gems].
-Another student in the group felt that [`exafmm-alpha`](https://github.com/exafmm/exafmm-alpha) overused class inheritance and was inadequat for his application, so he and a collaborator re-used only the kernels and implemented another tree construction in [`fmmtl`](https://github.com/ccecka/fmmtl).
-The first author of this paper began working with `exafmm-alpha` in 2007, but at this point the mission was clear: simplify and aim for reusability.
+Another student in the group felt that [`exafmm-alpha`](https://github.com/exafmm/exafmm-alpha) overused class inheritance and was inadequate for his application, so he and a collaborator re-used only the kernels and implemented another tree construction in [`fmmtl`](https://github.com/ccecka/fmmtl).
+The first author of this paper began working with `exafmm-alpha` in 2017, but at this point the mission was clear: simplify and aim for reusability.
 That work led to the sixth implementation of FMM in the group, still called [`exafmm`](https://github.com/exafmm/exafmm), but it is not what we present here and we haven't published about it. 
 With this new version of ExaFMM (called `exafmm-t`), we aim to bring the FMM to a broader audience and to increased scientific impact.
 It uses the kernel-independent variant of the method for higher performance at high accuracy (higher truncation order $p$).
 Keeping focus on maintainability, it stays close to standards, with clean function interfaces, shallow inheritance and conservative use of classes.
-Instead of a fixation with being the faster, we focus on "ballpark" competitive performance.
+Instead of a fixation with being the fastest of all, we focus on "ballpark" competitive performance.
 Above all, the Python API and ability to call it from Jupyter notebooks should make this software valuable for many applications.
 
 # Features of the software design
@@ -88,9 +88,9 @@ we apply the cache optimization proposed in PVFMM [@malhotraPVFMMParallelKernel2
 In addition, `exafmm-t` also allows users to pre-compute and store translation operators, which benefits applications that require iterative FMM evaluations.
 The single-node performance of `exafmm-t` is on par with the state-of-the-art packages that we mentioned above.
 We ran a benchmark that solves a Laplace N-body problem with 1 million randomly distributed particles on a workstation with a 14-core Intel i9-7940X CPU.
-It took 0.95 and 1.48 seconds to obtain 7 and 10 digits of accuracy on potential, respectively.
+It took 0.95 and 1.48 seconds to obtain 7 and 10 digits of accuracy on the potential, respectively.
 
-`exafmm-t` is also easy to extend.
+`exafmm-t` is also relatively easy to extend.
 Adding a new kernel only requires users to create a derived `FMM` class and provide the kernel function.
 Last but not least, it offers high-level Python APIs to support Python applications.
 Thanks to `pybind11`, most STL containers can be automatically converted to Python-native data structures.
@@ -103,11 +103,12 @@ We have recently integrated `exafmm-t` with `Bempp-cl`, an open-source boundary 
 whose predecessor, `BEM++` [@smigajSolvingBoundaryIntegral2015], has enabled many acoustic and electromagnetic applications.
 In BEM applications, computations are dominated by the dense matrix-vector multiplication (mat-vec) in each iteration.
 `exafmm-t` reduces both time and memory cost of mat-vec to a linear complexity, thus makes `Bempp-cl` feasible to solve large-scale problems.
-In an upcoming paper, we demonstrate the capabilities and performance of Bempp-Exafmm on biomolecular electrostatics simulations, including solving problems at the scale of a virus.
+In an upcoming paper, we demonstrate the capabilities and performance of Bempp-Exafmm on biomolecular electrostatics simulations, including solving problems at the scale of a virus [@wangETal2021].
+The showcase calculation in that paper (submitted) obtains the surface electrostatic potential of a Zika virus, modeled with 1.6 million atoms, 10 million boundary elements (30M points), at a runtime of 1.5 hours on 1 CPU node.
 
 # Acknowledgements
 
-This software builds on efforts over more than a decade. It directly received support from NSF Grants CCF 1747669, and NSF CAREER OAC 1149784 to LB.
-
+This software builds on efforts over more than a decade. It directly received support from grants to LAB in both the UK and the US, including EPSRC Grant EP/E033083/1, and NSF Grants OCI-0946441, NSF CAREER OAC-1149784, and CCF-1747669.
+Other support includes faculty start-up funds at Boston University and George Washington University, and NVIDIA via hardware donations. 
 
 # References
