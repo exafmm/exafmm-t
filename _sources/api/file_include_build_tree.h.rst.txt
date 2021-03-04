@@ -63,9 +63,9 @@ Functions
 
 - :ref:`exhale_function_build__tree_8h_1a440d0b7e71aa7648bc2dd8933b108681`
 
-- :ref:`exhale_function_build__tree_8h_1a960b9cf76e38f5647b229440cd189315`
-
 - :ref:`exhale_function_build__tree_8h_1aa9bbd6da308c547dd21851abe39449e4`
+
+- :ref:`exhale_function_build__tree_8h_1a960b9cf76e38f5647b229440cd189315`
 
 - :ref:`exhale_function_build__tree_8h_1a0d0dcca9a5f55d709a3d514a4a30bfab`
 
