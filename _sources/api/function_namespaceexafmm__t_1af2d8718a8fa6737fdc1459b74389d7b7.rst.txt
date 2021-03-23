@@ -1,0 +1,13 @@
+.. _exhale_function_namespaceexafmm__t_1af2d8718a8fa6737fdc1459b74389d7b7:
+
+Function exafmm_t::gemv(int, int, real_t \*, real_t \*, real_t \*)
+==================================================================
+
+- Defined in :ref:`file_include_math_wrapper.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::gemv(int, int, real_t *, real_t *, real_t *)

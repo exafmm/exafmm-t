@@ -1,0 +1,13 @@
+.. _exhale_enum_namespaceexafmm__t_1a90321ace254beb0e9eacd5517ae3a4b4:
+
+Enum Mat_Type
+=============
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: exafmm_t::Mat_Type

@@ -1,0 +1,13 @@
+.. _exhale_variable_namespaceexafmm__t_1af622fbda7031cfe0b52ea82a0be3caf1:
+
+Variable exafmm_t::NSIMD
+========================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: exafmm_t::NSIMD

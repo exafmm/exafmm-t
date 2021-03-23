@@ -70,5 +70,5 @@ Variables
 ---------
 
 
-- :ref:`exhale_variable_args_8h_1a13ee1667229a50b1cff16bbcd9df0b91`
+- :ref:`exhale_variable_namespaceexafmm__t_1a13ee1667229a50b1cff16bbcd9df0b91`
 

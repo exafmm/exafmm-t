@@ -55,5 +55,5 @@ Functions
 ---------
 
 
-- :ref:`exhale_function_intrinsics_8h_1a405d6ef265ac5f2250134cc77958a335`
+- :ref:`exhale_function_namespaceexafmm__t_1a405d6ef265ac5f2250134cc77958a335`
 

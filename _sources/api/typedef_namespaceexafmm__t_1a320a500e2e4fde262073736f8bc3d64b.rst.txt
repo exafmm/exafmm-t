@@ -1,0 +1,13 @@
+.. _exhale_typedef_namespaceexafmm__t_1a320a500e2e4fde262073736f8bc3d64b:
+
+Typedef exafmm_t::complex_t
+===========================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: exafmm_t::complex_t

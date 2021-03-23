@@ -1,0 +1,13 @@
+.. _exhale_function_namespaceexafmm__t_1acbacae5aeb367fda7c008f401cb3d9a5:
+
+Function exafmm_t::getCoordinates
+=================================
+
+- Defined in :ref:`file_include_hilbert.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::getCoordinates(ivec3, int, vec3, real_t)

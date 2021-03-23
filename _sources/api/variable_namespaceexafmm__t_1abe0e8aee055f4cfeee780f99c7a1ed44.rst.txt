@@ -1,0 +1,13 @@
+.. _exhale_variable_namespaceexafmm__t_1abe0e8aee055f4cfeee780f99c7a1ed44:
+
+Variable exafmm_t::time
+=======================
+
+- Defined in :ref:`file_include_timer.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: exafmm_t::time

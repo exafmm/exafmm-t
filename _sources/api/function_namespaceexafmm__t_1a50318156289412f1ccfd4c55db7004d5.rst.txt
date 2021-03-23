@@ -1,0 +1,13 @@
+.. _exhale_function_namespaceexafmm__t_1a50318156289412f1ccfd4c55db7004d5:
+
+Template Function exafmm_t::init_targets
+========================================
+
+- Defined in :ref:`file_include_dataset.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::init_targets(int, const char *, int)

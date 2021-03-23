@@ -1,0 +1,13 @@
+.. _exhale_function_namespaceexafmm__t_1ade041e7485d2c0f360c6d964374856bf:
+
+Function exafmm_t::gemv(int, int, complex_t \*, complex_t \*, complex_t \*)
+===========================================================================
+
+- Defined in :ref:`file_include_math_wrapper.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::gemv(int, int, complex_t *, complex_t *, complex_t *)

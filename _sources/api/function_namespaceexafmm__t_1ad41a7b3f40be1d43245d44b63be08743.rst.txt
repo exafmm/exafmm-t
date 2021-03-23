@@ -1,0 +1,13 @@
+.. _exhale_function_namespaceexafmm__t_1ad41a7b3f40be1d43245d44b63be08743:
+
+Function exafmm_t::init_sources(int, const char \*, int)
+========================================================
+
+- Defined in :ref:`file_include_dataset.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::init_sources(int, const char *, int)

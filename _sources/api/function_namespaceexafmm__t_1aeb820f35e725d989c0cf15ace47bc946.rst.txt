@@ -1,0 +1,13 @@
+.. _exhale_function_namespaceexafmm__t_1aeb820f35e725d989c0cf15ace47bc946:
+
+Function exafmm_t::getParent
+============================
+
+- Defined in :ref:`file_include_hilbert.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::getParent(uint64_t)

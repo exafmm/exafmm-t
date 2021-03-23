@@ -1,0 +1,13 @@
+.. _exhale_function_namespaceexafmm__t_1a6a977977e889db8d96ee5bbbb32aaa21:
+
+Function exafmm_t::init_rel_coord()
+===================================
+
+- Defined in :ref:`file_include_geometry.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::init_rel_coord()

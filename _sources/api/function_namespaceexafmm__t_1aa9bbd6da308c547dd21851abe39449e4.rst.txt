@@ -1,0 +1,13 @@
+.. _exhale_function_namespaceexafmm__t_1aa9bbd6da308c547dd21851abe39449e4:
+
+Template Function exafmm_t::build_tree(Body<T> \*, Body<T> \*, int, int, Body<T> \*, Body<T> \*, int, int, Node<T> \*, Nodes<T>&, NodePtrs<T>&, NodePtrs<T>&, const Keys&, FmmBase<T>&, bool)
+=============================================================================================================================================================================================
+
+- Defined in :ref:`file_include_build_tree.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::build_tree(Body<T> *, Body<T> *, int, int, Body<T> *, Body<T> *, int, int, Node<T> *, Nodes<T>&, NodePtrs<T>&, NodePtrs<T>&, const Keys&, FmmBase<T>&, bool)

@@ -1,0 +1,13 @@
+.. _exhale_function_namespaceexafmm__t_1a90d312d44d375a4859d794b99700eff3:
+
+Function exafmm_t::print_divider
+================================
+
+- Defined in :ref:`file_include_timer.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::print_divider(std::string)

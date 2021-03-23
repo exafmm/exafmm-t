@@ -1,0 +1,13 @@
+.. _exhale_function_namespaceexafmm__t_1adf72c12fd698ebf283bf02ae94d82ff7:
+
+Template Function exafmm_t::set_children
+========================================
+
+- Defined in :ref:`file_include_test.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: exafmm_t::set_children(Node<T> *, Node<T> *)

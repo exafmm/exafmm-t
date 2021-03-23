@@ -1,0 +1,13 @@
+.. _exhale_typedef_namespaceexafmm__t_1ab627a33531a8a60a2de40546f847ea42:
+
+Typedef exafmm_t::simdvec
+=========================
+
+- Defined in :ref:`file_include_exafmm_t.h`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: exafmm_t::simdvec
