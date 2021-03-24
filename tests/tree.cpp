@@ -24,9 +24,7 @@ int main(int argc, char** argv) {
   NodePtrs<real_t> leafs, nonleafs;
   get_bounds(sources, targets, fmm.x0, fmm.r0);
   Nodes<real_t> nodes = build_tree(sources, targets, leafs, nonleafs, fmm);
-  std::cout << "nodes size before tree balancing: " << nodes.size() << std::endl;
-  balance_tree(nodes, sources, targets, leafs, nonleafs, fmm);
-  std::cout << "nodes size after tree balancing: " << nodes.size() << std::endl;
+  std::cout << "nodes size: " << nodes.size() << std::endl;
 
   // verify ibody in leafs
   for (auto & leaf : leafs) {

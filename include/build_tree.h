@@ -81,7 +81,7 @@ namespace exafmm_t {
   void build_tree(Body<T>* sources, Body<T>* sources_buffer, int source_begin, int source_end, 
                   Body<T>* targets, Body<T>* targets_buffer, int target_begin, int target_end,
                   Node<T>* node, Nodes<T>& nodes, NodePtrs<T>& leafs, NodePtrs<T>& nonleafs,
-                  const Keys& leafkeys, FmmBase<T>& fmm, bool direction=false) {
+                  FmmBase<T>& fmm, bool direction=false) {
     //! Create a tree node
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
     node->nsrcs = source_end - source_begin;
@@ -92,14 +92,7 @@ namespace exafmm_t {
     node->key = getKey(iX, node->level);
 
     //! If node is a leaf
-    bool is_leaf_key = 1;
-    if (!leafkeys.empty()) {  // when leafkeys is given (when balancing tree) 
-      std::set<uint64_t>::iterator it = leafkeys[node->level].find(node->key);
-      if (it == leafkeys[node->level].end()) {  // if current key is not a leaf key
-        is_leaf_key = 0;
-      }
-    }
-    if (node->nsrcs<=fmm.ncrit && node->ntrgs<=fmm.ncrit && is_leaf_key) {
+    if (node->nsrcs<=fmm.ncrit && node->ntrgs<=fmm.ncrit) {
       node->is_leaf = true;
       node->trg_value.resize(node->ntrgs*4, (T)(0.));   // initialize target result vector
       if (node->nsrcs || node->ntrgs)
@@ -115,23 +108,21 @@ namespace exafmm_t {
           targets_buffer[i].ibody = targets[i].ibody;
         }
       }
-      // Copy sources and targets' coords and values to leaf (only during 2:1 tree balancing)
-      if (!leafkeys.empty()) {
-        Body<T>* first_source = (direction ? sources_buffer : sources) + source_begin;
-        Body<T>* first_target = (direction ? targets_buffer : targets) + target_begin;
-        for (Body<T>* B=first_source; B<first_source+node->nsrcs; ++B) {
-          for (int d=0; d<3; ++d) {
-            node->src_coord.push_back(B->X[d]);
-          }
-          node->isrcs.push_back(B->ibody);
-          node->src_value.push_back(B->q);
+      // Copy sources and targets' coords and values to leaf
+      Body<T>* first_source = (direction ? sources_buffer : sources) + source_begin;
+      Body<T>* first_target = (direction ? targets_buffer : targets) + target_begin;
+      for (Body<T>* B=first_source; B<first_source+node->nsrcs; ++B) {
+        for (int d=0; d<3; ++d) {
+          node->src_coord.push_back(B->X[d]);
         }
-        for (Body<T>* B=first_target; B<first_target+node->ntrgs; ++B) {
-          for (int d=0; d<3; ++d) {
-            node->trg_coord.push_back(B->X[d]);
-          }
-          node->itrgs.push_back(B->ibody);
+        node->isrcs.push_back(B->ibody);
+        node->src_value.push_back(B->q);
+      }
+      for (Body<T>* B=first_target; B<first_target+node->ntrgs; ++B) {
+        for (int d=0; d<3; ++d) {
+          node->trg_coord.push_back(B->X[d]);
         }
+        node->itrgs.push_back(B->ibody);
       }
       return;
     }
@@ -160,8 +151,7 @@ namespace exafmm_t {
       child[c].level = node->level + 1;
       build_tree(sources_buffer, sources, source_offsets[c], source_offsets[c] + source_size[c],
                  targets_buffer, targets, target_offsets[c], target_offsets[c] + target_size[c],
-                 &child[c], nodes, leafs, nonleafs,
-                 leafkeys, fmm, !direction);
+                 &child[c], nodes, leafs, nonleafs, fmm, !direction);
     }
   }
 
@@ -193,169 +183,8 @@ namespace exafmm_t {
     nodes.reserve((sources.size()+targets.size()) * (32/fmm.ncrit+1));
     build_tree(&sources[0], &sources_buffer[0], 0, sources.size(), 
                &targets[0], &targets_buffer[0], 0, targets.size(),
-               &nodes[0], nodes, leafs, nonleafs,
-               leafkeys, fmm);
+               &nodes[0], nodes, leafs, nonleafs, fmm);
     return nodes;
-  }
-
-  /**
-   * @brief Generate the set of Morton keys of nodes at each level using a breadth-first traversal
-   * 
-   * @tparam T Target's value type (real or complex)
-   * @param root Root node pointer
-   * @param key2id A map from Morton key to node index
-   * @return Vector of the set of Morton keys of nodes at each level (before balancing)
-   */
-  template <typename T>
-  Keys breadth_first_traversal(Node<T>* const root, std::unordered_map<uint64_t, size_t>& key2id) {
-    assert(root);
-    Keys keys;
-    std::queue<Node<T>*> buffer;
-    buffer.push(root);
-    int level = 0;
-    std::set<uint64_t> keys_;
-    while (!buffer.empty()) {
-      Node<T>* curr = buffer.front();
-      if (curr->level != level) {
-        keys.push_back(keys_);
-        keys_.clear();
-        level = curr->level;
-      }
-      keys_.insert(curr->key);
-      key2id[curr->key] = curr->idx;
-      buffer.pop();
-      if (!curr->is_leaf) {
-        for (int i=0; i<NCHILD; i++) {
-          buffer.push(curr->children[i]);
-        }
-      }
-    }
-    if (keys_.size())
-      keys.push_back(keys_);
-    return keys;
-  }
-
-  /**
-   * @brief Generate the set of Morton keys of nodes at each level after 2:1 balancing
-   * 
-   * @tparam K Target's value type (real or complex)
-   * @param keys Vector of the set of Morton keys of nodes at each level (before balancing)
-   * @param key2id A map from Morton key to node index
-   * @param nodes Vector of nodes that represents the tree
-   * @return Vector of the set of Morton keys of nodes at each level after 2:1 balancing
-   */
-  template <typename K>
-  Keys balance_tree(const Keys& keys, const std::unordered_map<uint64_t, size_t>& key2id, const Nodes<K>& nodes) {
-    int nlevels = keys.size();
-    int maxlevel = nlevels - 1;
-    Keys bkeys(keys.size());      // balanced Morton keys
-    std::set<uint64_t> S, N;
-    std::set<uint64_t>::iterator it;
-    for (int l=maxlevel; l>0; --l) {
-      // N <- S + nonleafs
-      N.clear();
-      for (it=keys[l].begin(); it!=keys[l].end(); ++it)
-        if (!nodes[key2id.at(*it)].is_leaf) // choose nonleafs
-          N.insert(*it); 
-      N.insert(S.begin(), S.end());       // N = S + nonleafs
-      S.clear();
-      // S <- Parent(Colleagues(N))
-      for (it=N.begin(); it!=N.end(); ++it) {
-        ivec3 iX = get3DIndex(*it);       // find N's colleagues
-        ivec3 ciX;
-        for (int m=-1; m<=1; ++m) {
-          for (int n=-1; n<=1; ++n) {
-            for (int p=-1; p<=1; ++p) {
-              if (m||n||p) {
-                ciX[0] = iX[0] + m;
-                ciX[1] = iX[1] + n;
-                ciX[2] = iX[2] + p;
-                if (ciX[0]>=0 && ciX[0]<pow(2,l) &&  // boundary check
-                    ciX[1]>=0 && ciX[1]<pow(2,l) &&
-                    ciX[2]>=0 && ciX[2]<pow(2,l)) {
-                  uint64_t colleague = getKey(ciX, l);
-                  uint64_t parent = getParent(colleague);
-                  S.insert(parent);          // S: parent of N's colleague
-                }
-              }
-            }
-          }
-        }
-      } 
-      // T <- T + Children(N)
-      if (l!=maxlevel) {
-        std::set<uint64_t>& T = bkeys[l+1];
-        for (it=N.begin(); it!=N.end(); ++it) {
-          uint64_t child = getChild(*it);
-          for (int i=0; i<8; ++i) {
-            T.insert(child+i);
-          }
-        }
-      }
-    }
-    // manually add keys for lvl 0 and 1
-    bkeys[0].insert(0);
-    for(int i=1; i<9; ++i) bkeys[1].insert(i);
-    return bkeys;
-  }
-
-  /**
-   * @brief Find leaf keys at each level
-   * 
-   * @param keys Vector of the set of Morton keys of nodes at each level after 2:1 balancing
-   * @return Vector of leaf keys at each level
-   */
-  Keys find_leaf_keys(const Keys& keys) {
-    std::set<uint64_t>::iterator it;
-    Keys leafkeys(keys.size());
-    for (int l=keys.size()-1; l>=1; --l) {
-      std::set<uint64_t> parentkeys = keys[l-1];
-      // remove nonleaf keys
-      for (it=keys[l].begin(); it!=keys[l].end(); ++it) {
-        uint64_t parentkey = getParent(*it);
-        std::set<uint64_t>::iterator it2 = parentkeys.find(parentkey);
-        if (it2 != parentkeys.end()) parentkeys.erase(it2);
-      }
-      leafkeys[l-1] = parentkeys;
-    }
-    leafkeys[keys.size()-1] = keys.back();
-    return leafkeys;
-  }
-
-  /**
-   * @brief Rebuild the tree by enforcing 2:1 balance constraint.
-   * 
-   * @tparam T Target's value type (real or complex)
-   * @param nodes Vector of nodes that represents the tree (after 2:1 balancing)
-   * @param sources Vector of sources
-   * @param targets Vector of targets
-   * @param leafs Vector of pointers of leaf nodes
-   * @param nonleafs Vector of pointers of non-leaf nodes
-   * @param fmm FMM instance
-   */
-  template <typename T>
-  void balance_tree(Nodes<T>& nodes, Bodies<T>& sources, Bodies<T>& targets,
-                    NodePtrs<T>& leafs, NodePtrs<T>& nonleafs, FmmBase<T>& fmm) {
-    std::unordered_map<uint64_t, size_t> key2id;
-    Keys keys = breadth_first_traversal(&nodes[0], key2id);
-    if (nodes.size() == 1) {
-      nodes.clear();
-      leafs.clear();
-      nonleafs.clear();
-      nodes = build_tree(sources, targets,
-                         leafs, nonleafs,
-                         fmm, keys);
-    } else {
-      Keys balanced_keys = balance_tree(keys, key2id, nodes);
-      Keys leaf_keys = find_leaf_keys(balanced_keys);
-      nodes.clear();
-      leafs.clear();
-      nonleafs.clear();
-      nodes = build_tree(sources, targets,
-                         leafs, nonleafs,
-                         fmm, leaf_keys);
-    }
-    fmm.depth = keys.size() - 1;
   }
 }
 #endif
