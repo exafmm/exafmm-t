@@ -8,6 +8,7 @@
 #include "fmm_base.h"
 
 namespace exafmm_t {
+  using std::max;
   /**
    * @brief Get bounding box of sources and targets.
    *
@@ -184,6 +185,11 @@ namespace exafmm_t {
     build_tree(&sources[0], &sources_buffer[0], 0, sources.size(), 
                &targets[0], &targets_buffer[0], 0, targets.size(),
                &nodes[0], nodes, leafs, nonleafs, fmm);
+    int depth = -1;
+    for (auto leaf : leafs) {
+      depth = max(leaf->level, depth);
+    }
+    fmm.depth = depth;
     return nodes;
   }
 }
