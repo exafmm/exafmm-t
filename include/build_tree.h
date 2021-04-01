@@ -96,7 +96,7 @@ namespace exafmm_t {
     if (node->nsrcs<=fmm.ncrit && node->ntrgs<=fmm.ncrit) {
       node->is_leaf = true;
       node->trg_value.resize(node->ntrgs*4, (T)(0.));   // initialize target result vector
-      if (node->nsrcs || node->ntrgs)
+      if (node->nsrcs || node->ntrgs)     // do not add to leafs if a node is empty
         leafs.push_back(node);
       if (direction) {
         for (int i=source_begin; i<source_end; i++) {
@@ -138,7 +138,7 @@ namespace exafmm_t {
     nonleafs.push_back(node);
     assert(nodes.capacity() >= nodes.size()+NCHILD);
     nodes.resize(nodes.size()+NCHILD);
-    Node<T> * child = &nodes.back() - NCHILD + 1;
+    Node<T>* child = &nodes.back() - NCHILD + 1;
     node->children.resize(8, nullptr);
     for (int c=0; c<8; c++) {
       node->children[c] = &child[c];
@@ -172,7 +172,7 @@ namespace exafmm_t {
   template <typename T>
   Nodes<T> build_tree(Bodies<T>& sources, Bodies<T>& targets,
                       NodePtrs<T>& leafs, NodePtrs<T>& nonleafs,
-                      FmmBase<T>& fmm, const Keys& leafkeys=Keys()) {
+                      FmmBase<T>& fmm) {
     Bodies<T> sources_buffer = sources;
     Bodies<T> targets_buffer = targets;
     Nodes<T> nodes(1);

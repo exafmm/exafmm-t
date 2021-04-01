@@ -24,15 +24,33 @@ int main(int argc, char** argv) {
   NodePtrs<real_t> leafs, nonleafs;
   get_bounds(sources, targets, fmm.x0, fmm.r0);
   Nodes<real_t> nodes = build_tree(sources, targets, leafs, nonleafs, fmm);
-  std::cout << "nodes size: " << nodes.size() << std::endl;
+
+  // verify leafs and nonleafs
+  for (auto& leaf : leafs) {
+    assert(leaf->is_leaf == true);
+  }
+  for (auto& nonleaf : nonleafs) {
+    assert(nonleaf->is_leaf == false);
+  }
+  int empty_leafs_count = 0;
+  for (auto& node : nodes) {
+    if (!(node.ntrgs || node.nsrcs)) {
+      empty_leafs_count++;
+    }
+  }
+  print("nodes size", nodes.size());
+  print("nonempty leafs size", leafs.size());
+  print("empty leafs size", empty_leafs_count);
+  print("nonleafs size", nonleafs.size());
+  print("tree depth", fmm.depth);
 
   // verify ibody in leafs
-  for (auto & leaf : leafs) {
-    for (auto & isrc : leaf->isrcs) {
+  for (auto& leaf : leafs) {
+    for (auto& isrc : leaf->isrcs) {
       int flag = isrcs_set.erase(isrc);
       assert(flag == 1);  // each isrc should be only erased once
     }
-    for (auto & itrg : leaf->itrgs) {
+    for (auto& itrg : leaf->itrgs) {
       int flag = itrgs_set.erase(itrg);
       assert(flag == 1);
     }
