@@ -8,6 +8,8 @@
 #include "test.h"
 
 using namespace exafmm_t;
+using std::cout;
+using std::endl;
 
 int main(int argc, char** argv) {
   Args args(argc, argv);
@@ -19,10 +21,12 @@ int main(int argc, char** argv) {
   NodePtrs<real_t> leafs, nonleafs;
   get_bounds(sources, targets, fmm.x0, fmm.r0);
   Nodes<real_t> nodes = build_tree(sources, targets, leafs, nonleafs, fmm);
-  balance_tree(nodes, sources, targets, leafs, nonleafs, fmm);
+
+  print("nodes size", nodes.size());
+  print("leaf size", leafs.size());
+  print("tree depth", fmm.depth);
 
   init_rel_coord();
-  set_colleagues(nodes);
   build_list(nodes, fmm);
 
   Node<real_t>* root = nodes.data();
@@ -44,5 +48,6 @@ int main(int argc, char** argv) {
       assert(args.numBodies == leaf->trg_value[0]);
   }
   print("assertion passed!");
+
   return 0;
 }

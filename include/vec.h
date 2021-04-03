@@ -87,14 +87,6 @@ namespace exafmm_t {
       for (int i=0; i<N; i++) data[i] /= v[i];
       return *this;
     }
-    const vec &operator>=(const vec & v) {
-      for (int i=0; i<N; i++) data[i] >= v[i];
-      return *this;
-    }
-    const vec &operator<=(const vec & v) {
-      for (int i=0; i<N; i++) data[i] <= v[i];
-      return *this;
-    }
     const vec &operator&=(const vec & v) {
       for (int i=0; i<N; i++) data[i] &= v[i];
       return *this;
@@ -139,11 +131,33 @@ namespace exafmm_t {
     vec operator/(const vec & v) const {
       return vec(*this) /= v;
     }
-    vec operator>(const vec & v) const {
-      return vec(*this) >= v;
+    bool operator<(const vec & v) {
+      bool res = true;
+      for (int i=0; i<N; i++) res = res && (data[i] < v[i]);
+      return res;
     }
-    vec operator<(const vec & v) const {
-      return vec(*this) <= v;
+    bool operator>(const vec & v) {
+      bool res = true;
+      for (int i=0; i<N; i++) res = res && (data[i] > v[i]);
+      return res;
+    }
+    bool operator<=(const vec & v) {
+      bool res = true;
+      for (int i=0; i<N; i++) res = res && (data[i] <= v[i]);
+      return res;
+    }
+    bool operator>=(const vec & v) {
+      bool res = true;
+      for (int i=0; i<N; i++) res = res && (data[i] >= v[i]);
+      return res;
+    }
+    bool operator==(const vec & v) {
+      bool res = true;
+      for (int i=0; i<N; i++) res = res && (data[i] == v[i]);
+      return res;
+    }
+    bool operator!=(const vec & v) {
+      return (!(*this==v));
     }
     vec operator&(const vec & v) const {
       return vec(*this) &= v;

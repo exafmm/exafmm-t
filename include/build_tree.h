@@ -96,8 +96,9 @@ namespace exafmm_t {
     if (node->nsrcs<=fmm.ncrit && node->ntrgs<=fmm.ncrit) {
       node->is_leaf = true;
       node->trg_value.resize(node->ntrgs*4, (T)(0.));   // initialize target result vector
-      if (node->nsrcs || node->ntrgs)     // do not add to leafs if a node is empty
+      if (node->nsrcs || node->ntrgs) {     // do not add to leafs if a node is empty
         leafs.push_back(node);
+      }
       if (direction) {
         for (int i=source_begin; i<source_end; i++) {
           sources_buffer[i].X = sources[i].X;

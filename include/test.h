@@ -1,6 +1,7 @@
 #ifndef test_h
 #define test_h
 #include <cassert>
+#include "build_list.h"
 #include "exafmm_t.h"
 #include "fmm_base.h"
 
@@ -54,14 +55,15 @@ namespace exafmm_t {
     }
 
     //! Dummy M2L operator.
+    /*
     void M2L(NodePtrs<T>& nonleafs) {
 #pragma omp parallel for schedule(dynamic)
-      for(size_t i=0; i<nonleafs.size(); ++i) {
+      for (size_t i=0; i<nonleafs.size(); ++i) {
         Node<T>* trg_parent = nonleafs[i];
         NodePtrs<T>& M2L_list = trg_parent->M2L_list;
-        for(size_t j=0; j<M2L_list.size(); ++j) {
+        for (size_t j=0; j<M2L_list.size(); ++j) {
           Node<T>* src_parent = M2L_list[j];
-          if(src_parent) {
+          if (src_parent) {
             // find src_parent's relative position to trg_parent
             // NodePtrs<T>::iterator
             auto it = std::find(trg_parent->colleagues.begin(),
@@ -87,6 +89,28 @@ namespace exafmm_t {
                   }
                   if(!is_colleague)  // perform M2L if they are not neighbors
                     trg_child->dn_equiv[0] += src_child->up_equiv[0];
+                }
+              }
+            }
+          }
+        }
+      }
+    }*/
+
+    void M2L(NodePtrs<T>& nonleafs) {
+#pragma omp parallel for schedule(dynamic)
+      for (size_t i=0; i<nonleafs.size(); ++i) {
+        Node<T>* trg_parent = nonleafs[i];
+        NodePtrs<T>& M2L_list = trg_parent->M2L_list;
+        for (size_t j=0; j<M2L_list.size(); ++j) {
+          Node<T>* src_parent = M2L_list[j];
+          if (src_parent) {
+            for (int src_octant=0; src_octant<8; ++src_octant) {
+              Node<T>* src_child = src_parent->children[src_octant];
+              for (int trg_octant=0; trg_octant<8; ++trg_octant) {
+                Node<T>* trg_child = trg_parent->children[trg_octant];
+                if (!is_adjacent(src_child->key, trg_child->key)) {
+                  trg_child->dn_equiv[0] += src_child->up_equiv[0];
                 }
               }
             }

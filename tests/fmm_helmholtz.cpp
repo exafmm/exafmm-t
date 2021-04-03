@@ -30,18 +30,12 @@ int main(int argc, char **argv) {
   start("Build Tree");
   get_bounds(sources, targets, fmm.x0, fmm.r0);
   NodePtrs<complex_t> leafs, nonleafs;
-#if NON_ADAPTIVE
   Nodes<complex_t> nodes = build_tree(sources, targets, leafs, nonleafs, fmm);
-#else
-  Nodes<complex_t> nodes = build_tree(sources, targets, leafs, nonleafs, fmm);
-  balance_tree(nodes, sources, targets, leafs, nonleafs, fmm);
-#endif
   stop("Build Tree");
 
   init_rel_coord();
 
   start("Build Lists");
-  set_colleagues(nodes);
   build_list(nodes, fmm);
   stop("Build Lists");
 
