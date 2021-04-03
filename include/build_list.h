@@ -52,15 +52,16 @@ namespace exafmm_t {
   }
 
   /**
-   * @brief Given the integer index of an octant and its depth, return the Hilbert
-   * index of the leaf that contains the octant.
+   * @brief Given the 3D index of an octant and its depth, return the key of
+   * the leaf that contains the octant. If such leaf does not exist, return the
+   * key of the original octant.
    *
    * @param iX Integer index of the octant.
    * @param level The level of the octant.
    *
    * @return Hilbert index with level offset.
    */
-	uint64_t findgnt(const ivec3& iX, int level, const unordered_set<uint64_t>& leaf_keys) {
+	uint64_t find_key(const ivec3& iX, int level, const unordered_set<uint64_t>& leaf_keys) {
     uint64_t orig_key = getKey(iX, level, true);
     uint64_t curr_key = orig_key;
 		while (level>0) {
@@ -101,62 +102,65 @@ namespace exafmm_t {
            (max_diff == sum_radius);
   }
 
+  /**
+   * @brief Build lists for P2P, P2L and M2P operators for a given node.
+   *
+   * @param node Node.
+   * @param nodes Tree.
+   * @param leaf_keys The set of all leaf keys.
+   * @param key2id The mapping from a node's key to its index in the tree.
+   */
   template <typename T>
-  void build_list(Node<T>* node, const unordered_set<uint64_t>& leaf_keys,
-                  const unordered_map<uint64_t, size_t>& key2id, Nodes<T>& nodes) {
-    set<Node<T>*> Uset, Wset, Xset;
+  void build_other_list(Node<T>* node, Nodes<T>& nodes,
+                        const unordered_set<uint64_t>& leaf_keys,
+                        const unordered_map<uint64_t, size_t>& key2id) {
+    set<Node<T>*> P2P_set, M2P_set, P2L_set;
     Node<T>* curr = node;
     if (curr->key != 0) {
       Node<T>* parent = curr->parent;
-      ivec3 minIdx = 0;
-      ivec3 maxIdx = 1 << node->level;
+      ivec3 min_iX = 0;
+      ivec3 max_iX = 1 << node->level;
       ivec3 curr_iX = get3DIndex(curr->key);
       ivec3 parent_iX = get3DIndex(parent->key); 
       // search in every direction
       for (int i=-2; i<4; i++) {
         for (int j=-2; j<4; j++) {
           for (int k=-2; k<4; k++) {
-            // Index3 tryPath( 2*path2Node(parGNodeIdx) + Index3(i,j,k) );
-            ivec3 tryPath;
-            tryPath[0] = i;
-            tryPath[1] = j;
-            tryPath[2] = k;
-            tryPath += parent_iX * 2;
-            if (tryPath >= minIdx && tryPath < maxIdx && tryPath != curr_iX) {	
-              // int resGNodeIdx = findgnt(depth(curGNodeIdx), tryPath);
-              uint64_t res_key = findgnt(tryPath, curr->level, leaf_keys);
+            ivec3 direction;
+            direction[0] = i;
+            direction[1] = j;
+            direction[2] = k;
+            direction += parent_iX * 2;
+            if (direction >= min_iX && direction < max_iX && direction != curr_iX) {	
+              uint64_t res_key = find_key(direction, curr->level, leaf_keys);
               bool adj = is_adjacent(res_key, curr->key);
               Node<T>* res = &nodes[key2id.at(res_key)];
               if (res->level < curr->level) {
                 if (adj) {
                   if (curr->is_leaf) {
-                    Uset.insert(res);
-                  } else {
-                    ;
+                    P2P_set.insert(res);
                   }
                 } else {
-                  Xset.insert(res);
+                  P2L_set.insert(res);
                 }
               }
               if (res->level == curr->level) {
-                if (!adj) {
-                  ;
-                } else {
+                if (adj) {
                   if (curr->is_leaf) {
-                    queue<Node<T>*> rest;
-                    rest.push(res);
-                    while (!rest.empty()) {
-                      auto fnt = rest.front(); rest.pop();
-                      if (!is_adjacent(fnt->key, curr->key)) {
-                        Wset.insert(fnt);
+                    queue<Node<T>*> buffer;
+                    buffer.push(res);
+                    while (!buffer.empty()) {
+                      Node<T>* temp = buffer.front(); buffer.pop();
+                      if (!is_adjacent(temp->key, curr->key)) {
+                        M2P_set.insert(temp);
                       } else {
-                        if (fnt->is_leaf) {
-                          Uset.insert(fnt);
+                        if (temp->is_leaf) {
+                          P2P_set.insert(temp);
                         } else { 
                           for (int i=0; i<8; i++) {
-                            auto child = fnt->children[i];
+                            Node<T>* child = temp->children[i];
                             if (child != nullptr) {
-                              rest.push(child);
+                              buffer.push(child);
                             }
                           }
                         }
@@ -170,28 +174,35 @@ namespace exafmm_t {
         }
       }
     }
-    if(curr->is_leaf)
-      Uset.insert(curr);
-    for(typename set<Node<T>*>::iterator i=Uset.begin(); i!=Uset.end(); i++) {
+    if (curr->is_leaf) {
+      P2P_set.insert(curr);
+    }
+    for (typename set<Node<T>*>::iterator i=P2P_set.begin(); i!=P2P_set.end(); i++) {
       if ((*i) != nullptr) {
         curr->P2P_list.push_back(*i);
       }
     }
-    for(typename set<Node<T>*>::iterator i=Xset.begin(); i!=Xset.end(); i++) {
+    for (typename set<Node<T>*>::iterator i=P2L_set.begin(); i!=P2L_set.end(); i++) {
       if ((*i) != nullptr) {
         curr->P2L_list.push_back(*i);
       }
     }
-    for(typename set<Node<T>*>::iterator i=Wset.begin(); i!=Wset.end(); i++) {
+    for (typename set<Node<T>*>::iterator i=M2P_set.begin(); i!=M2P_set.end(); i++) {
       if ((*i) != nullptr) {
         curr->M2P_list.push_back(*i);
       }
     }
   }
   
-
+  /**
+   * @brief Build M2L interaction list for a given node.
+   *
+   * @param node Node.
+   * @param nodes Tree.
+   * @param key2id The mapping from a node's key to its index in the tree.
+   */
   template <typename T>
-  void build_V(Node<T>* node, Nodes<T>& nodes, const unordered_map<uint64_t, size_t>& key2id) {
+  void build_M2L_list(Node<T>* node, Nodes<T>& nodes, const unordered_map<uint64_t, size_t>& key2id) {
     node->M2L_list.resize(REL_COORD[M2L_Type].size(), nullptr);
     Node<T>* curr = node;
     ivec3 min_iX = 0;
@@ -226,15 +237,20 @@ namespace exafmm_t {
     }
   }
 
+  /**
+   * @brief Build lists for all operators for all nodes in the tree.
+   *
+   * @param nodes Tree.
+   * @param fmm The FMM instance.
+   */
   template <typename T>
   void build_list(Nodes<T>& nodes, const FmmBase<T>& fmm) {
     unordered_map<uint64_t, size_t> key2id = get_key2id(nodes);
     unordered_set<uint64_t> leaf_keys = get_leaf_keys(nodes);
-
-    for(size_t i=0; i<nodes.size(); i++) {
+    for (size_t i=0; i<nodes.size(); i++) {
       Node<T>* node = &nodes[i];
-      build_V(node, nodes, key2id);
-      build_list(node, leaf_keys, key2id, nodes);
+      build_M2L_list(node, nodes, key2id);
+      build_other_list(node, nodes, leaf_keys, key2id);
     }
   }
 }
