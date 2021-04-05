@@ -111,7 +111,7 @@ namespace exafmm_t {
    * @param key2id The mapping from a node's key to its index in the tree.
    */
   template <typename T>
-  void build_other_list(Node<T>* node, Nodes<T>& nodes,
+  void build_other_list(Node<T>* node, Nodes<T>& nodes, const FmmBase<T>& fmm,
                         const unordered_set<uint64_t>& leaf_keys,
                         const unordered_map<uint64_t, size_t>& key2id) {
     set<Node<T>*> P2P_set, M2P_set, P2L_set;
@@ -135,16 +135,20 @@ namespace exafmm_t {
               uint64_t res_key = find_key(direction, curr->level, leaf_keys);
               bool adj = is_adjacent(res_key, curr->key);
               Node<T>* res = &nodes[key2id.at(res_key)];
-              if (res->level < curr->level) {
+              if (res->level < curr->level) {   // when res node is a leaf
                 if (adj) {
                   if (curr->is_leaf) {
                     P2P_set.insert(res);
                   }
                 } else {
-                  P2L_set.insert(res);
+                  if (curr->is_leaf && curr->ntrgs<=fmm.nsurf) {
+                    P2P_set.insert(res);
+                  } else {
+                    P2L_set.insert(res);
+                  }
                 }
               }
-              if (res->level == curr->level) {
+              if (res->level == curr->level) { // when res is a colleague
                 if (adj) {
                   if (curr->is_leaf) {
                     queue<Node<T>*> buffer;
@@ -152,7 +156,11 @@ namespace exafmm_t {
                     while (!buffer.empty()) {
                       Node<T>* temp = buffer.front(); buffer.pop();
                       if (!is_adjacent(temp->key, curr->key)) {
-                        M2P_set.insert(temp);
+                        if (temp->is_leaf && temp->nsrcs<=fmm.nsurf) {
+                          P2P_set.insert(temp);
+                        } else {
+                          M2P_set.insert(temp);
+                        }
                       } else {
                         if (temp->is_leaf) {
                           P2P_set.insert(temp);
@@ -247,10 +255,11 @@ namespace exafmm_t {
   void build_list(Nodes<T>& nodes, const FmmBase<T>& fmm) {
     unordered_map<uint64_t, size_t> key2id = get_key2id(nodes);
     unordered_set<uint64_t> leaf_keys = get_leaf_keys(nodes);
+#pragma omp parallel for schedule(dynamic)
     for (size_t i=0; i<nodes.size(); i++) {
       Node<T>* node = &nodes[i];
       build_M2L_list(node, nodes, key2id);
-      build_other_list(node, nodes, leaf_keys, key2id);
+      build_other_list(node, nodes, fmm, leaf_keys, key2id);
     }
   }
 }

@@ -65,19 +65,14 @@ namespace exafmm_t {
   typedef AlignedAllocator<real_t, MEM_ALIGN> AlignAllocator;   //!< Allocator for memory alignment
   typedef std::vector<real_t, AlignAllocator> AlignedVec;       //!< Aligned vector of real_t types
 
-  //! Interaction Type
+  //! Interaction types that need to be pre-computed.
   typedef enum {
     M2M_Type = 0,
     L2L_Type = 1,
     M2L_Helper_Type = 2,
     M2L_Type = 3,
-    P2P0_Type = 4,
-    P2P1_Type = 5,
-    P2P2_Type = 6,
-    M2P_Type = 7,
-    P2L_Type = 8,
-    Type_Count = 9
-  } Mat_Type;
+    Type_Count = 4
+  } Precompute_Type;
 
   /**
    * @brief Structure of bodies.
@@ -113,7 +108,6 @@ namespace exafmm_t {
     int octant;                                 //!< Octant
     Node* parent;                               //!< Pointer to parent
     std::vector<Node*> children;                //!< Vector of pointers to child nodes
-    std::vector<Node*> colleagues;              //!< Vector of pointers to colleague nodes
     std::vector<Node*> P2L_list;                //!< Vector of pointers to nodes in P2L interaction list
     std::vector<Node*> M2P_list;                //!< Vector of pointers to nodes in M2P interaction list
     std::vector<Node*> P2P_list;                //!< Vector of pointers to nodes in P2P interaction list
