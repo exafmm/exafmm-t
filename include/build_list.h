@@ -26,7 +26,7 @@ namespace exafmm_t {
   template <typename T>
   unordered_map<uint64_t, size_t> get_key2id(const Nodes<T>& nodes) {
     unordered_map<uint64_t, size_t> key2id;
-    for (int i=0; i<nodes.size(); ++i) {
+    for (size_t i=0; i<nodes.size(); ++i) {
       key2id[nodes[i].key] = nodes[i].idx;
     }
     return key2id;
@@ -43,7 +43,7 @@ namespace exafmm_t {
     // we cannot use leafs to generate leaf keys, since it does not include
     // empty leaf nodes where ntrgs and nsrcs are 0.
     unordered_set<uint64_t> leaf_keys;
-    for (int i=0; i<nodes.size(); ++i) {
+    for (size_t i=0; i<nodes.size(); ++i) {
       if (nodes[i].is_leaf) {
         leaf_keys.insert(nodes[i].key);
       }
