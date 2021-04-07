@@ -55,14 +55,12 @@ int main() {
   
   exafmm_t::get_bounds(sources, targets, fmm.x0, fmm.r0);
   nodes = exafmm_t::build_tree(sources, targets, leafs, nonleafs, fmm);
-  exafmm_t::balance_tree(nodes, sources, targets, leafs, nonleafs, fmm);
   stop("Build Tree");
 
   /* step 4: Build lists and pre-compute invariant matrices.
    */
   start("Build Lists");
   exafmm_t::init_rel_coord();
-  exafmm_t::set_colleagues(nodes);
   exafmm_t::build_list(nodes, fmm);
   fmm.M2L_setup(nonleafs);
   stop("Build Lists");
