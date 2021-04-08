@@ -12,6 +12,7 @@
 #include "align.h"
 #include "args.h"
 #include "vec.h"
+#include "mpi_utils.h"
 
 namespace exafmm_t {
   const int MEM_ALIGN = 64;
@@ -20,6 +21,7 @@ namespace exafmm_t {
 
 #if FLOAT
   typedef float real_t;                       //!< Real number type
+  MPI_Datatype MPI_REAL_T = MPI_FLOAT;        //!< Floating point MPI type
   const real_t EPS = 1e-8f;
   typedef fftwf_complex fft_complex;
   typedef fftwf_plan fft_plan;
@@ -35,6 +37,7 @@ namespace exafmm_t {
 #define fft_flops fftwf_flops
 #else
   typedef double real_t;                       //!< Real number type
+  MPI_Datatype MPI_REAL_T = MPI_DOUBLE;        //!< Floating point MPI type
   const real_t EPS = 1e-16;
   typedef fftw_complex fft_complex;
   typedef fftw_plan fft_plan;
@@ -83,6 +86,7 @@ namespace exafmm_t {
   struct Body {
     int ibody;                             //!< Initial body numbering for sorting back
     vec3 X;                                //!< Coordinates
+    uint64_t key;                          //!< Hilbert key
     T q;                                   //!< Charge
     T p;                                   //!< Potential
     vec<3,T> F;                            //!< Gradient
@@ -90,20 +94,27 @@ namespace exafmm_t {
   template <typename T> using Bodies = std::vector<Body<T>>;     //!< Vector of nodes
 
   /**
+   * @brief Base structure of nodes, used for MPI communications.
+   */
+  struct NodeBase {
+    vec3 x;               //!< Coordinates of the center of the node
+    real_t r;             //!< Radius of the node
+    uint64_t key;         //!< Hilbert key
+    bool is_leaf;         //!< Whether the node is leaf
+    int nsrcs;            //!< Number of sources
+  };
+
+  /**
    * @brief Structure of nodes.
    * 
    * @tparam Value type of sources and targets (real or complex).
    */
   template <typename T>
-  struct Node {
+  struct Node : public NodeBase {
     size_t idx;                                 //!< Index in the octree
     size_t idx_M2L;                             //!< Index in global M2L interaction list
-    bool is_leaf;                               //!< Whether the node is leaf
     int ntrgs;                                  //!< Number of targets
     int nsrcs;                                  //!< Number of sources
-    vec3 x;                                     //!< Coordinates of the center of the node
-    real_t r;                                   //!< Radius of the node
-    uint64_t key;                               //!< Morton key
     int level;                                  //!< Level in the octree
     int octant;                                 //!< Octant
     Node* parent;                               //!< Pointer to parent
