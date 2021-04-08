@@ -11,7 +11,7 @@ matrix:
         - sudo apt-get install gfortran
       script:
         - ./bootstrap
-        - ./configure
+        - ./configure --enable-mpi
         - make
     - language: python
       python:
