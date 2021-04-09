@@ -91,9 +91,9 @@ host_triplet = @host@
 noinst_PROGRAMS = p2p_laplace$(EXEEXT) p2p_helmholtz$(EXEEXT) \
 	p2p_modified_helmholtz$(EXEEXT) kernel_laplace$(EXEEXT) \
 	kernel_helmholtz$(EXEEXT) kernel_modified_helmholtz$(EXEEXT) \
-	tree$(EXEEXT) list$(EXEEXT) fmm_laplace$(EXEEXT) \
-	fmm_laplace_non_adaptive$(EXEEXT) fmm_helmholtz$(EXEEXT) \
-	fmm_helmholtz_non_adaptive$(EXEEXT) \
+	partition$(EXEEXT) tree$(EXEEXT) list$(EXEEXT) \
+	fmm_laplace$(EXEEXT) fmm_laplace_non_adaptive$(EXEEXT) \
+	fmm_helmholtz$(EXEEXT) fmm_helmholtz_non_adaptive$(EXEEXT) \
 	fmm_modified_helmholtz$(EXEEXT) \
 	fmm_modified_helmholtz_non_adaptive$(EXEEXT)
 check_PROGRAMS = $(am__EXEEXT_1)
@@ -123,9 +123,9 @@ CONFIG_CLEAN_VPATH_FILES =
 am__EXEEXT_1 = p2p_laplace$(EXEEXT) p2p_helmholtz$(EXEEXT) \
 	p2p_modified_helmholtz$(EXEEXT) kernel_laplace$(EXEEXT) \
 	kernel_helmholtz$(EXEEXT) kernel_modified_helmholtz$(EXEEXT) \
-	tree$(EXEEXT) list$(EXEEXT) fmm_laplace$(EXEEXT) \
-	fmm_laplace_non_adaptive$(EXEEXT) fmm_helmholtz$(EXEEXT) \
-	fmm_helmholtz_non_adaptive$(EXEEXT) \
+	partition$(EXEEXT) tree$(EXEEXT) list$(EXEEXT) \
+	fmm_laplace$(EXEEXT) fmm_laplace_non_adaptive$(EXEEXT) \
+	fmm_helmholtz$(EXEEXT) fmm_helmholtz_non_adaptive$(EXEEXT) \
 	fmm_modified_helmholtz$(EXEEXT) \
 	fmm_modified_helmholtz_non_adaptive$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
@@ -188,6 +188,9 @@ am_p2p_modified_helmholtz_OBJECTS =  \
 	p2p_modified_helmholtz-p2p_modified_helmholtz.$(OBJEXT)
 p2p_modified_helmholtz_OBJECTS = $(am_p2p_modified_helmholtz_OBJECTS)
 p2p_modified_helmholtz_DEPENDENCIES = $(am__DEPENDENCIES_2)
+am_partition_OBJECTS = partition-partition.$(OBJEXT)
+partition_OBJECTS = $(am_partition_OBJECTS)
+partition_DEPENDENCIES = $(am__DEPENDENCIES_2)
 am_tree_OBJECTS = tree-tree.$(OBJEXT)
 tree_OBJECTS = $(am_tree_OBJECTS)
 tree_DEPENDENCIES = $(am__DEPENDENCIES_2)
@@ -233,7 +236,8 @@ SOURCES = $(fmm_helmholtz_SOURCES) \
 	$(kernel_helmholtz_SOURCES) $(kernel_laplace_SOURCES) \
 	$(kernel_modified_helmholtz_SOURCES) $(list_SOURCES) \
 	$(p2p_helmholtz_SOURCES) $(p2p_laplace_SOURCES) \
-	$(p2p_modified_helmholtz_SOURCES) $(tree_SOURCES)
+	$(p2p_modified_helmholtz_SOURCES) $(partition_SOURCES) \
+	$(tree_SOURCES)
 DIST_SOURCES = $(fmm_helmholtz_SOURCES) \
 	$(fmm_helmholtz_non_adaptive_SOURCES) $(fmm_laplace_SOURCES) \
 	$(fmm_laplace_non_adaptive_SOURCES) \
@@ -242,7 +246,8 @@ DIST_SOURCES = $(fmm_helmholtz_SOURCES) \
 	$(kernel_helmholtz_SOURCES) $(kernel_laplace_SOURCES) \
 	$(kernel_modified_helmholtz_SOURCES) $(list_SOURCES) \
 	$(p2p_helmholtz_SOURCES) $(p2p_laplace_SOURCES) \
-	$(p2p_modified_helmholtz_SOURCES) $(tree_SOURCES)
+	$(p2p_modified_helmholtz_SOURCES) $(partition_SOURCES) \
+	$(tree_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -651,6 +656,9 @@ kernel_helmholtz_LDADD = $(LIBS_LDADD)
 kernel_modified_helmholtz_SOURCES = kernel_modified_helmholtz.cpp
 kernel_modified_helmholtz_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 kernel_modified_helmholtz_LDADD = $(LIBS_LDADD)
+partition_SOURCES = partition.cpp
+partition_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+partition_LDADD = $(LIBS_LDADD)
 tree_SOURCES = tree.cpp
 tree_CPPFLAGS = $(AM_CPPFLAGS)
 tree_LDADD = $(LIBS_LDADD)
@@ -780,6 +788,10 @@ p2p_modified_helmholtz$(EXEEXT): $(p2p_modified_helmholtz_OBJECTS) $(p2p_modifie
 	@rm -f p2p_modified_helmholtz$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(p2p_modified_helmholtz_OBJECTS) $(p2p_modified_helmholtz_LDADD) $(LIBS)
 
+partition$(EXEEXT): $(partition_OBJECTS) $(partition_DEPENDENCIES) $(EXTRA_partition_DEPENDENCIES) 
+	@rm -f partition$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(partition_OBJECTS) $(partition_LDADD) $(LIBS)
+
 tree$(EXEEXT): $(tree_OBJECTS) $(tree_DEPENDENCIES) $(EXTRA_tree_DEPENDENCIES) 
 	@rm -f tree$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(tree_OBJECTS) $(tree_LDADD) $(LIBS)
@@ -803,6 +815,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p2p_helmholtz-p2p_helmholtz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p2p_laplace-p2p_laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p2p_modified_helmholtz-p2p_modified_helmholtz.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partition-partition.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tree-tree.Po@am__quote@
 
 .cpp.o:
@@ -1010,6 +1023,20 @@ p2p_modified_helmholtz-p2p_modified_helmholtz.obj: p2p_modified_helmholtz.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='p2p_modified_helmholtz.cpp' object='p2p_modified_helmholtz-p2p_modified_helmholtz.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(p2p_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o p2p_modified_helmholtz-p2p_modified_helmholtz.obj `if test -f 'p2p_modified_helmholtz.cpp'; then $(CYGPATH_W) 'p2p_modified_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/p2p_modified_helmholtz.cpp'; fi`
+
+partition-partition.o: partition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(partition_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT partition-partition.o -MD -MP -MF $(DEPDIR)/partition-partition.Tpo -c -o partition-partition.o `test -f 'partition.cpp' || echo '$(srcdir)/'`partition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partition-partition.Tpo $(DEPDIR)/partition-partition.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='partition.cpp' object='partition-partition.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(partition_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o partition-partition.o `test -f 'partition.cpp' || echo '$(srcdir)/'`partition.cpp
+
+partition-partition.obj: partition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(partition_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT partition-partition.obj -MD -MP -MF $(DEPDIR)/partition-partition.Tpo -c -o partition-partition.obj `if test -f 'partition.cpp'; then $(CYGPATH_W) 'partition.cpp'; else $(CYGPATH_W) '$(srcdir)/partition.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partition-partition.Tpo $(DEPDIR)/partition-partition.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='partition.cpp' object='partition-partition.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(partition_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o partition-partition.obj `if test -f 'partition.cpp'; then $(CYGPATH_W) 'partition.cpp'; else $(CYGPATH_W) '$(srcdir)/partition.cpp'; fi`
 
 tree-tree.o: tree.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tree_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tree-tree.o -MD -MP -MF $(DEPDIR)/tree-tree.Tpo -c -o tree-tree.o `test -f 'tree.cpp' || echo '$(srcdir)/'`tree.cpp
@@ -1262,6 +1289,13 @@ kernel_helmholtz.log: kernel_helmholtz$(EXEEXT)
 kernel_modified_helmholtz.log: kernel_modified_helmholtz$(EXEEXT)
 	@p='kernel_modified_helmholtz$(EXEEXT)'; \
 	b='kernel_modified_helmholtz'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+partition.log: partition$(EXEEXT)
+	@p='partition$(EXEEXT)'; \
+	b='partition'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

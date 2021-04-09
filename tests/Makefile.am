@@ -30,6 +30,12 @@ kernel_modified_helmholtz_SOURCES = kernel_modified_helmholtz.cpp
 kernel_modified_helmholtz_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 kernel_modified_helmholtz_LDADD = $(LIBS_LDADD)
 
+# mpi partition tests
+noinst_PROGRAMS += partition
+partition_SOURCES = partition.cpp
+partition_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+partition_LDADD = $(LIBS_LDADD)
+
 # tree tests
 noinst_PROGRAMS += tree
 tree_SOURCES = tree.cpp
