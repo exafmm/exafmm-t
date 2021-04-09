@@ -1,6 +1,7 @@
 #ifndef alltoall_h
 #define alltoall_h
 #include "exafmm_t.h"
+#include "mpi_utils.h"
 
 namespace exafmm_t {
   //! Use alltoall to get recv count and calculate displacement from it

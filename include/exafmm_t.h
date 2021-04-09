@@ -12,7 +12,6 @@
 #include "align.h"
 #include "args.h"
 #include "vec.h"
-#include "mpi_utils.h"
 
 namespace exafmm_t {
   const int MEM_ALIGN = 64;
@@ -21,7 +20,6 @@ namespace exafmm_t {
 
 #if FLOAT
   typedef float real_t;                       //!< Real number type
-  MPI_Datatype MPI_REAL_T = MPI_FLOAT;        //!< Floating point MPI type
   const real_t EPS = 1e-8f;
   typedef fftwf_complex fft_complex;
   typedef fftwf_plan fft_plan;
@@ -37,7 +35,6 @@ namespace exafmm_t {
 #define fft_flops fftwf_flops
 #else
   typedef double real_t;                       //!< Real number type
-  MPI_Datatype MPI_REAL_T = MPI_DOUBLE;        //!< Floating point MPI type
   const real_t EPS = 1e-16;
   typedef fftw_complex fft_complex;
   typedef fftw_plan fft_plan;

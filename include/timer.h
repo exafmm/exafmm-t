@@ -34,19 +34,6 @@ namespace exafmm_t {
     std::cout << v << std::endl;
   }
 
-  template<typename T>
-  void printMPI(T data) {
-    int size = sizeof(data);
-    std::vector<T> recv(MPISIZE);
-    MPI_Gather(&data, size, MPI_BYTE, &recv[0], size, MPI_BYTE, 0, MPI_COMM_WORLD);
-    if (MPIRANK == 0) {
-      for (int irank=0; irank<MPISIZE; irank++ ) {
-        std::cout << recv[irank] << " ";
-      }
-      std::cout << std::endl;
-    }
-  }
-
   void print_divider(std::string s) {
     s.insert(0, " ");
     s.append(" ");
