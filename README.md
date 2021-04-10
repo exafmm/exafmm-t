@@ -1,6 +1,7 @@
 # exafmm-t 
 
 [![Build Status](https://travis-ci.com/exafmm/exafmm-t.svg?branch=master)](https://travis-ci.com/exafmm/exafmm-t)
+[![status](https://joss.theoj.org/papers/0faabca7e0ef645b42d7dd72cc924ecc/status.svg)](https://joss.theoj.org/papers/0faabca7e0ef645b42d7dd72cc924ecc)
 
 **exafmm-t** is a kernel-independent fast multipole method library for solving N-body problems.
 It provides both C++ and Python APIs.
