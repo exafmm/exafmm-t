@@ -4,7 +4,8 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Template Function exafmm_t::init_targets &mdash; exafmm-t  documentation</title>
@@ -87,13 +88,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents</span></p>
+              <p><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
 </ul>
@@ -165,36 +166,36 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="template-function-exafmm-t-init-targets">
+  <section id="template-function-exafmm-t-init-targets">
 <span id="exhale-function-namespaceexafmm-t-1a50318156289412f1ccfd4c55db7004d5"></span><h1>Template Function exafmm_t::init_targets<a class="headerlink" href="#template-function-exafmm-t-init-targets" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p>Defined in <a class="reference internal" href="file_include_dataset.h.html#file-include-dataset-h"><span class="std std-ref">File dataset.h</span></a></p></li>
 </ul>
-<div class="section" id="function-documentation">
+<section id="function-documentation">
 <h2>Function Documentation<a class="headerlink" href="#function-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp function">
 <dt id="_CPPv4I0EN8exafmm_t12init_targetsE6BodiesI1TEiPKci">
 <span id="_CPPv3I0EN8exafmm_t12init_targetsEiPKci"></span><span id="_CPPv2I0EN8exafmm_t12init_targetsEiPKci"></span><span class="pre">template&lt;</span><span class="pre">typename</span> <code class="sig-name descname"><span class="pre">T</span></code><span class="pre">&gt;</span><br /><span class="target" id="namespaceexafmm__t_1a50318156289412f1ccfd4c55db7004d5"></span><a class="reference internal" href="typedef_namespaceexafmm__t_1a44fbf7b196ac53a9de5e76ee42c6ccd5.html#_CPPv4N8exafmm_t6BodiesE" title="exafmm_t::Bodies"><span class="pre">Bodies</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I0EN8exafmm_t12init_targetsE6BodiesI1TEiPKci" title="exafmm_t::init_targets::T"><span class="pre">T</span></a><span class="pre">&gt;</span> <code class="sig-prename descclassname"><span class="pre">exafmm_t</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">init_targets</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">numBodies</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">char</span> <span class="pre">*</span><em><span class="pre">distribution</span></em>, <span class="pre">int</span> <em><span class="pre">seed</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN8exafmm_t12init_targetsE6BodiesI1TEiPKci" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Generate targets with various distributions. </p>
-<p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>Bodies Vector of targets. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters</dt>
+<dd class="field-odd"><p><strong>T</strong> – Target’s value type (real or complex). </p>
 </dd>
-<dt><strong>Template Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">T</span></code>: Target’s value type (real or complex). </p></li>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>numBodies</strong> – Number of bodies. </p></li>
+<li><p><strong>distribution</strong> – Type of distribution: ‘c’ for cube, ‘s’ for sphere, ‘p’ for plummer. </p></li>
+<li><p><strong>seed</strong> – Seed of pseudorandom number generator. </p></li>
 </ul>
 </dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">numBodies</span></code>: Number of bodies. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">distribution</span></code>: Type of distribution: ‘c’ for cube, ‘s’ for sphere, ‘p’ for plummer. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>: Seed of pseudorandom number generator. </p></li>
-</ul>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Bodies Vector of targets. </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

@@ -4,7 +4,8 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Installation &mdash; exafmm-t  documentation</title>
@@ -87,7 +88,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents</span></p>
+              <p><span class="caption-text">Contents</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
@@ -98,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation.html">Build Documentation</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/library_root.html">Library API</a></li>
 </ul>
@@ -168,9 +169,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="installation">
+  <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="dependencies">
+<section id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>a C++ compiler that supports OpenMP and C++11 standard (or newer).</p></li>
@@ -192,8 +193,8 @@ $ apt-get -y install libopenblas-dev libfftw3-dev gfortran
 </pre></div>
 </div>
 <p>Modify these commands accordingly if you are running other Linux distributions.</p>
-</div>
-<div class="section" id="install-exafmm-t">
+</section>
+<section id="install-exafmm-t">
 <h2>Install exafmm-t<a class="headerlink" href="#install-exafmm-t" title="Permalink to this headline">¶</a></h2>
 <p>This section is only necessary for the users who want to use exafmm-t in C++ applications.
 Python users can skip to next section: <a class="reference internal" href="#install-exafmm-t-s-python-package"><span class="std std-ref">Install exafmm-t’s Python package</span></a>.</p>
@@ -213,8 +214,8 @@ available on the CPU and enable double precision option. Use <code class="docuti
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make install
 </pre></div>
 </div>
-</div>
-<div class="section" id="install-exafmm-t-s-python-package">
+</section>
+<section id="install-exafmm-t-s-python-package">
 <h2>Install exafmm-t’s Python package<a class="headerlink" href="#install-exafmm-t-s-python-package" title="Permalink to this headline">¶</a></h2>
 <p>exafmm-t relies on <a class="reference external" href="https://github.com/pybind/pybind11">pybind11</a> to generate Python bindings.
 It requires Python 2.7 or 3.x. To install the Python package, you need first to install OpenBLAS (as the choice of BLAS library),
@@ -223,8 +224,8 @@ in addition to the aforementioned dependencies.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pip install git+https://github.com/exafmm/exafmm-t.git
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

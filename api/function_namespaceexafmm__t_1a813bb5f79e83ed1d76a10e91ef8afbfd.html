@@ -4,7 +4,8 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Function exafmm_t::get3DIndex(vec3, int, vec3, real_t) &mdash; exafmm-t  documentation</title>
@@ -87,13 +88,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents</span></p>
+              <p><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
 </ul>
@@ -165,33 +166,34 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="function-exafmm-t-get3dindex-vec3-int-vec3-real-t">
+  <section id="function-exafmm-t-get3dindex-vec3-int-vec3-real-t">
 <span id="exhale-function-namespaceexafmm-t-1a813bb5f79e83ed1d76a10e91ef8afbfd"></span><h1>Function exafmm_t::get3DIndex(vec3, int, vec3, real_t)<a class="headerlink" href="#function-exafmm-t-get3dindex-vec3-int-vec3-real-t" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p>Defined in <a class="reference internal" href="file_include_hilbert.h.html#file-include-hilbert-h"><span class="std std-ref">File hilbert.h</span></a></p></li>
 </ul>
-<div class="section" id="function-documentation">
+<section id="function-documentation">
 <h2>Function Documentation<a class="headerlink" href="#function-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp function">
 <dt id="_CPPv4N8exafmm_t10get3DIndexE4vec3i4vec36real_t">
 <span id="_CPPv3N8exafmm_t10get3DIndexE4vec3i4vec36real_t"></span><span id="_CPPv2N8exafmm_t10get3DIndexE4vec3i4vec36real_t"></span><span id="exafmm_t::get3DIndex__vec3.i.vec3.real_t"></span><span class="target" id="namespaceexafmm__t_1a813bb5f79e83ed1d76a10e91ef8afbfd"></span><a class="reference internal" href="typedef_namespaceexafmm__t_1a3c3101bfaaaa5a02e9d0be11b8a0c69d.html#_CPPv4N8exafmm_t5ivec3E" title="exafmm_t::ivec3"><span class="pre">ivec3</span></a> <code class="sig-prename descclassname"><span class="pre">exafmm_t</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">get3DIndex</span></code><span class="sig-paren">(</span><a class="reference internal" href="typedef_namespaceexafmm__t_1ad031a0df672935f79c9e139ce288363b.html#_CPPv4N8exafmm_t4vec3E" title="exafmm_t::vec3"><span class="pre">vec3</span></a> <em><span class="pre">X</span></em>, <span class="pre">int</span> <em><span class="pre">level</span></em>, <a class="reference internal" href="typedef_namespaceexafmm__t_1ad031a0df672935f79c9e139ce288363b.html#_CPPv4N8exafmm_t4vec3E" title="exafmm_t::vec3"><span class="pre">vec3</span></a> <em><span class="pre">x0</span></em>, <a class="reference internal" href="typedef_namespaceexafmm__t_1a2e3829883d8994317a6af622cc67938f.html#_CPPv4N8exafmm_t6real_tE" title="exafmm_t::real_t"><span class="pre">real_t</span></a> <em><span class="pre">r0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8exafmm_t10get3DIndexE4vec3i4vec36real_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Given bounding box and level, get 3D index from 3D coordinates. </p>
-<p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>ivec3 3D index, an integer triplet. </p>
-</dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code>: 3D coordinates. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">x0</span></code>: Coordinates of the center of the bounding box. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">r0</span></code>: Half of the side length of the bounding box. </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – 3D coordinates. </p></li>
+<li><p><strong>level</strong> – Level. </p></li>
+<li><p><strong>x0</strong> – Coordinates of the center of the bounding box. </p></li>
+<li><p><strong>r0</strong> – Half of the side length of the bounding box. </p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>ivec3 3D index, an integer triplet. </p>
+</dd>
 </dl>
-</p>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
