@@ -17,7 +17,6 @@ namespace exafmm_t {
   std::map<std::string, timeval> timer;
 
   void print(std::string s) {
-    // if (!VERBOSE | (MPIRANK != 0)) return;
     s += " ";
     std::cout << "--- " << std::setw(stringLength) << std::left
               << std::setfill('-') << s << std::setw(decimal+1) << "-"

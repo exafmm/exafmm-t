@@ -36,6 +36,12 @@ partition_SOURCES = partition.cpp
 partition_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 partition_LDADD = $(LIBS_LDADD)
 
+# local essential tree tests
+noinst_PROGRAMS += let
+let_SOURCES = let.cpp
+let_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+let_LDADD = $(LIBS_LDADD)
+
 # tree tests
 noinst_PROGRAMS += tree
 tree_SOURCES = tree.cpp

@@ -91,7 +91,7 @@ host_triplet = @host@
 noinst_PROGRAMS = p2p_laplace$(EXEEXT) p2p_helmholtz$(EXEEXT) \
 	p2p_modified_helmholtz$(EXEEXT) kernel_laplace$(EXEEXT) \
 	kernel_helmholtz$(EXEEXT) kernel_modified_helmholtz$(EXEEXT) \
-	partition$(EXEEXT) tree$(EXEEXT) list$(EXEEXT) \
+	partition$(EXEEXT) let$(EXEEXT) tree$(EXEEXT) list$(EXEEXT) \
 	fmm_laplace$(EXEEXT) fmm_laplace_non_adaptive$(EXEEXT) \
 	fmm_helmholtz$(EXEEXT) fmm_helmholtz_non_adaptive$(EXEEXT) \
 	fmm_modified_helmholtz$(EXEEXT) \
@@ -123,7 +123,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__EXEEXT_1 = p2p_laplace$(EXEEXT) p2p_helmholtz$(EXEEXT) \
 	p2p_modified_helmholtz$(EXEEXT) kernel_laplace$(EXEEXT) \
 	kernel_helmholtz$(EXEEXT) kernel_modified_helmholtz$(EXEEXT) \
-	partition$(EXEEXT) tree$(EXEEXT) list$(EXEEXT) \
+	partition$(EXEEXT) let$(EXEEXT) tree$(EXEEXT) list$(EXEEXT) \
 	fmm_laplace$(EXEEXT) fmm_laplace_non_adaptive$(EXEEXT) \
 	fmm_helmholtz$(EXEEXT) fmm_helmholtz_non_adaptive$(EXEEXT) \
 	fmm_modified_helmholtz$(EXEEXT) \
@@ -175,6 +175,9 @@ am_kernel_modified_helmholtz_OBJECTS =  \
 kernel_modified_helmholtz_OBJECTS =  \
 	$(am_kernel_modified_helmholtz_OBJECTS)
 kernel_modified_helmholtz_DEPENDENCIES = $(am__DEPENDENCIES_2)
+am_let_OBJECTS = let-let.$(OBJEXT)
+let_OBJECTS = $(am_let_OBJECTS)
+let_DEPENDENCIES = $(am__DEPENDENCIES_2)
 am_list_OBJECTS = list-list.$(OBJEXT)
 list_OBJECTS = $(am_list_OBJECTS)
 list_LDADD = $(LDADD)
@@ -234,20 +237,20 @@ SOURCES = $(fmm_helmholtz_SOURCES) \
 	$(fmm_modified_helmholtz_SOURCES) \
 	$(fmm_modified_helmholtz_non_adaptive_SOURCES) \
 	$(kernel_helmholtz_SOURCES) $(kernel_laplace_SOURCES) \
-	$(kernel_modified_helmholtz_SOURCES) $(list_SOURCES) \
-	$(p2p_helmholtz_SOURCES) $(p2p_laplace_SOURCES) \
-	$(p2p_modified_helmholtz_SOURCES) $(partition_SOURCES) \
-	$(tree_SOURCES)
+	$(kernel_modified_helmholtz_SOURCES) $(let_SOURCES) \
+	$(list_SOURCES) $(p2p_helmholtz_SOURCES) \
+	$(p2p_laplace_SOURCES) $(p2p_modified_helmholtz_SOURCES) \
+	$(partition_SOURCES) $(tree_SOURCES)
 DIST_SOURCES = $(fmm_helmholtz_SOURCES) \
 	$(fmm_helmholtz_non_adaptive_SOURCES) $(fmm_laplace_SOURCES) \
 	$(fmm_laplace_non_adaptive_SOURCES) \
 	$(fmm_modified_helmholtz_SOURCES) \
 	$(fmm_modified_helmholtz_non_adaptive_SOURCES) \
 	$(kernel_helmholtz_SOURCES) $(kernel_laplace_SOURCES) \
-	$(kernel_modified_helmholtz_SOURCES) $(list_SOURCES) \
-	$(p2p_helmholtz_SOURCES) $(p2p_laplace_SOURCES) \
-	$(p2p_modified_helmholtz_SOURCES) $(partition_SOURCES) \
-	$(tree_SOURCES)
+	$(kernel_modified_helmholtz_SOURCES) $(let_SOURCES) \
+	$(list_SOURCES) $(p2p_helmholtz_SOURCES) \
+	$(p2p_laplace_SOURCES) $(p2p_modified_helmholtz_SOURCES) \
+	$(partition_SOURCES) $(tree_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -659,6 +662,9 @@ kernel_modified_helmholtz_LDADD = $(LIBS_LDADD)
 partition_SOURCES = partition.cpp
 partition_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
 partition_LDADD = $(LIBS_LDADD)
+let_SOURCES = let.cpp
+let_CPPFLAGS = $(PRECISION) $(AM_CPPFLAGS)
+let_LDADD = $(LIBS_LDADD)
 tree_SOURCES = tree.cpp
 tree_CPPFLAGS = $(AM_CPPFLAGS)
 tree_LDADD = $(LIBS_LDADD)
@@ -772,6 +778,10 @@ kernel_modified_helmholtz$(EXEEXT): $(kernel_modified_helmholtz_OBJECTS) $(kerne
 	@rm -f kernel_modified_helmholtz$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(kernel_modified_helmholtz_OBJECTS) $(kernel_modified_helmholtz_LDADD) $(LIBS)
 
+let$(EXEEXT): $(let_OBJECTS) $(let_DEPENDENCIES) $(EXTRA_let_DEPENDENCIES) 
+	@rm -f let$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(let_OBJECTS) $(let_LDADD) $(LIBS)
+
 list$(EXEEXT): $(list_OBJECTS) $(list_DEPENDENCIES) $(EXTRA_list_DEPENDENCIES) 
 	@rm -f list$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(list_OBJECTS) $(list_LDADD) $(LIBS)
@@ -811,6 +821,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kernel_helmholtz-kernel_helmholtz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kernel_laplace-kernel_laplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kernel_modified_helmholtz-kernel_modified_helmholtz.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/let-let.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/list-list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p2p_helmholtz-p2p_helmholtz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p2p_laplace-p2p_laplace.Po@am__quote@
@@ -967,6 +978,20 @@ kernel_modified_helmholtz-kernel_modified_helmholtz.obj: kernel_modified_helmhol
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='kernel_modified_helmholtz.cpp' object='kernel_modified_helmholtz-kernel_modified_helmholtz.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(kernel_modified_helmholtz_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o kernel_modified_helmholtz-kernel_modified_helmholtz.obj `if test -f 'kernel_modified_helmholtz.cpp'; then $(CYGPATH_W) 'kernel_modified_helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/kernel_modified_helmholtz.cpp'; fi`
+
+let-let.o: let.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(let_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT let-let.o -MD -MP -MF $(DEPDIR)/let-let.Tpo -c -o let-let.o `test -f 'let.cpp' || echo '$(srcdir)/'`let.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/let-let.Tpo $(DEPDIR)/let-let.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='let.cpp' object='let-let.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(let_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o let-let.o `test -f 'let.cpp' || echo '$(srcdir)/'`let.cpp
+
+let-let.obj: let.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(let_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT let-let.obj -MD -MP -MF $(DEPDIR)/let-let.Tpo -c -o let-let.obj `if test -f 'let.cpp'; then $(CYGPATH_W) 'let.cpp'; else $(CYGPATH_W) '$(srcdir)/let.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/let-let.Tpo $(DEPDIR)/let-let.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='let.cpp' object='let-let.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(let_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o let-let.obj `if test -f 'let.cpp'; then $(CYGPATH_W) 'let.cpp'; else $(CYGPATH_W) '$(srcdir)/let.cpp'; fi`
 
 list-list.o: list.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(list_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT list-list.o -MD -MP -MF $(DEPDIR)/list-list.Tpo -c -o list-list.o `test -f 'list.cpp' || echo '$(srcdir)/'`list.cpp
@@ -1296,6 +1321,13 @@ kernel_modified_helmholtz.log: kernel_modified_helmholtz$(EXEEXT)
 partition.log: partition$(EXEEXT)
 	@p='partition$(EXEEXT)'; \
 	b='partition'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+let.log: let$(EXEEXT)
+	@p='let$(EXEEXT)'; \
+	b='let'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

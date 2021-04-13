@@ -84,6 +84,7 @@ namespace exafmm_t {
                   Node<T>* node, Nodes<T>& nodes, NodePtrs<T>& leafs, NodePtrs<T>& nonleafs,
                   FmmBase<T>& fmm, bool direction=false) {
     //! Create a tree node
+    node->first_src = (direction ? sources_buffer : sources) + source_begin;
     node->idx = int(node-&nodes[0]);  // current node's index in nodes
     node->nsrcs = source_end - source_begin;
     node->ntrgs = target_end - target_begin;
@@ -187,8 +188,11 @@ namespace exafmm_t {
                &targets[0], &targets_buffer[0], 0, targets.size(),
                &nodes[0], nodes, leafs, nonleafs, fmm);
     int depth = -1;
-    for (auto leaf : leafs) {
+    // copy node.key to body.key and compute tree depth
+    for (auto& leaf : leafs) {
       depth = max(leaf->level, depth);
+      for (int b=0; b<leaf->nsrcs; b++)
+        leaf->first_src[b].key = leaf->key;
     }
     fmm.depth = depth;
     return nodes;

@@ -115,6 +115,7 @@ namespace exafmm_t {
     int level;                                  //!< Level in the octree
     int octant;                                 //!< Octant
     Node* parent;                               //!< Pointer to parent
+    Body<T>* first_src;                         //!< Pointer to first source
     std::vector<Node*> children;                //!< Vector of pointers to child nodes
     std::vector<Node*> P2L_list;                //!< Vector of pointers to nodes in P2L interaction list
     std::vector<Node*> M2P_list;                //!< Vector of pointers to nodes in M2P interaction list

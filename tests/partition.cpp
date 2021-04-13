@@ -18,26 +18,32 @@ int main(int argc, char **argv) {
   real_t r0;
   allreduceBounds(sources, targets, x0, r0);
   std::vector<int> offset;
-  partition(sources, targets, x0, r0, offset, args.maxlevel);
 
   // print partition information
+  printMPI("before partitioning");
   int nsrcs = sources.size();
   int ntrgs = targets.size();
-  if (MPIRANK == 0) std::cout << "number of sources: " << std::endl;
-  printMPI(nsrcs);
-  if (MPIRANK == 0) std::cout << "number of targets: " << std::endl;
-  printMPI(ntrgs);
+  printMPI("num of sources", nsrcs);
+  printMPI("num of targets", ntrgs);
+  partition(sources, targets, x0, r0, offset, args.maxlevel);
 
+  printMPI("after partitioning");
+  nsrcs = sources.size();
+  ntrgs = targets.size();
+  printMPI("num of sources", nsrcs);
+  printMPI("num of targets", ntrgs);
+
+  // verify total number of bodies
   int nsrcs_total, ntrgs_total;
   MPI_Reduce(&nsrcs, &nsrcs_total, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   MPI_Reduce(&ntrgs, &ntrgs_total, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-
+  printMPI("tree");
   if (MPIRANK == 0) {
     assert(nsrcs_total == n * MPISIZE);
     assert(ntrgs_total == n * MPISIZE);
-    std::cout << "assertion passed!" << std::endl;
     std::cout << "r0: " << r0 << std::endl;
     std::cout << "x0: " << x0 << std::endl;
   }
+  printMPI("assertion passed!");
   stopMPI();
 }

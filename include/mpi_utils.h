@@ -1,9 +1,18 @@
 #ifndef mpi_utils_h
 #define mpi_utils_h
+#include <iomanip>
 #include <iostream>
+#include <string>
+#include <vector>
 #include <mpi.h>
+#include "timer.h"
 
 namespace exafmm_t {
+  using std::cout;
+  using std::endl;
+  using std::string;
+  using std::vector;
+
 #if FLOAT
   MPI_Datatype MPI_REAL_T = MPI_FLOAT;        //!< Floating point MPI type
 #else
@@ -25,16 +34,26 @@ namespace exafmm_t {
   }
 
   template<typename T>
-  void printMPI(T data) {
+  void printMPI(string s, T data) {
+    if (MPIRANK == 0) {
+      cout << std::setw(10) << std::left << s << " : ";
+    }
     int size = sizeof(data);
-    std::vector<T> recv(MPISIZE);
+    vector<T> recv(MPISIZE);
     MPI_Gather(&data, size, MPI_BYTE, &recv[0], size, MPI_BYTE, 0, MPI_COMM_WORLD);
     if (MPIRANK == 0) {
       for (int irank=0; irank<MPISIZE; irank++ ) {
-        std::cout << recv[irank] << " ";
+        cout << recv[irank] << " ";
       }
-      std::cout << std::endl;
+      cout << endl;
     }
   }
+
+  void printMPI(string s) {
+    if (MPIRANK == 0) {
+      print_divider(s);
+    }
+  }
+
 }
 #endif
