@@ -1,5 +1,6 @@
 #ifndef mpi_utils_h
 #define mpi_utils_h
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -55,5 +56,29 @@ namespace exafmm_t {
     }
   }
 
+  // Write bodies to file
+  template <typename T>
+  void write_bodies(Bodies<T>& bodies) {
+    std::stringstream name;
+    name << "bodies" << std::setfill('0') << std::setw(4) << MPIRANK << ".dat";
+    std::ofstream file(name.str().c_str());
+    for (size_t b=0; b<bodies.size(); b++) {
+      file << bodies[b].x << std::endl;
+    }
+    file.close();
+  }
+
+  // Write nodes to file
+  template <typename T>
+  void write_nodes(Nodes<T> & nodes) {
+    std::stringstream name;
+    name << "nodes" << std::setfill('0') << std::setw(4) << MPIRANK << ".dat";
+    std::ofstream file(name.str().c_str());
+    for (size_t i=0; i<nodes.size(); i++) {
+      int num_child = nodes[i].is_leaf ? 0 : NCHILD;
+      file << nodes[i].x << nodes[i].r << " " << num_child << std::endl;
+    }
+    file.close();
+  }
 }
 #endif

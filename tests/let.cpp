@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
   printMPI("build tree locally");
   Nodes<real_t> nodes = build_tree(sources, targets, leafs, nonleafs, fmm);
   printMPI("num of nodes", nodes.size());
+  write_nodes(nodes);
 
   // upward pass
   Node<real_t>* root = nodes.data();
