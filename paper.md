@@ -51,7 +51,7 @@ Over the past three decades, a plethora of fast N-body implementations have emer
 We will mention a few notable ones for context.
 `Bonsai` [@bedorfSparseOctreeGravitational2012] is a gravitational treecode that runs entirely on GPU hardware.
 `ChaNGa` [@jetleyMassivelyParallelCosmological2008] is also a treecode that uses `Charm++` to automate dynamic load balancing.
-`ScalFMM` [@blanchardScalFMMGenericParallel2015] implements the black-box FMM, a kernel-independent variant based on interpolation.
+`ScalFMM` [@agullo2014task] implements the black-box FMM, a kernel-independent variant based on interpolation.
 It comes with an option to use `StarPU` runtime system to handle heterogeneous task scheduling.
 `TBFMM` [@bramasTBFMMGenericParallel2020] is a task-based FMM library that features a generic C++ design to support various types of tree structures and kernels, through heavy use of C++ templates.
 `PVFMM` [@malhotraPVFMMParallelKernel2015] can compute both particle and volume potentials using a kernel-independent FMM, KIFMM [@yingKernelindependentAdaptiveFast2004].
