@@ -4,7 +4,7 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
@@ -14,6 +14,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
 
   
@@ -31,6 +33,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -88,13 +91,13 @@
               
             
             
-              <p><span class="caption-text">Contents</span></p>
+              <p class="caption"><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
 </ul>
-<p><span class="caption-text">API Reference</span></p>
+<p class="caption"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
 </ul>
@@ -174,8 +177,8 @@
 <section id="function-documentation">
 <h2>Function Documentation<a class="headerlink" href="#function-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp function">
-<dt id="_CPPv46dgemm_PcPcPiPiPiPdPdPiPdPiPdPdPi">
-<span id="_CPPv36dgemm_PcPcPiPiPiPdPdPiPdPiPdPdPi"></span><span id="_CPPv26dgemm_PcPcPiPiPiPdPdPiPdPiPdPdPi"></span><span id="dgemm___cP.cP.iP.iP.iP.doubleP.doubleP.iP.doubleP.iP.doubleP.doubleP.iP"></span><span class="target" id="math__wrapper_8h_1a893258e0b2ea9411e7e6a55d0f422db6"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">dgemm_</span></code><span class="sig-paren">(</span><span class="pre">char</span> <span class="pre">*</span><em><span class="pre">transa</span></em>, <span class="pre">char</span> <span class="pre">*</span><em><span class="pre">transb</span></em>, <span class="pre">int</span> <span class="pre">*</span><em><span class="pre">m</span></em>, <span class="pre">int</span> <span class="pre">*</span><em><span class="pre">n</span></em>, <span class="pre">int</span> <span class="pre">*</span><em><span class="pre">k</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">alpha</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">a</span></em>, <span class="pre">int</span> <span class="pre">*</span><em><span class="pre">lda</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">b</span></em>, <span class="pre">int</span> <span class="pre">*</span><em><span class="pre">ldb</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">beta</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">c</span></em>, <span class="pre">int</span> <span class="pre">*</span><em><span class="pre">ldc</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv46dgemm_PcPcPiPiPiPdPdPiPdPiPdPdPi" title="Permalink to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv46dgemm_PcPcPiPiPiPdPdPiPdPiPdPdPi">
+<span id="_CPPv36dgemm_PcPcPiPiPiPdPdPiPdPiPdPdPi"></span><span id="_CPPv26dgemm_PcPcPiPiPiPdPdPiPdPiPdPdPi"></span><span id="dgemm___cP.cP.iP.iP.iP.doubleP.doubleP.iP.doubleP.iP.doubleP.doubleP.iP"></span><span class="target" id="math__wrapper_8h_1a893258e0b2ea9411e7e6a55d0f422db6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dgemm_</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">transa</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">transb</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">m</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">n</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">k</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">alpha</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">a</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">lda</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">b</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ldb</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">beta</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">c</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ldc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv46dgemm_PcPcPiPiPiPdPdPiPdPiPdPdPi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </section>

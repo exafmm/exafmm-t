@@ -4,7 +4,7 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
@@ -14,6 +14,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
 
   
@@ -31,6 +33,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -86,13 +89,13 @@
               
             
             
-              <p><span class="caption-text">Contents</span></p>
+              <p class="caption"><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../compile.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../documentation.html">Build Documentation</a></li>
 </ul>
-<p><span class="caption-text">API Reference</span></p>
+<p class="caption"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
 </ul>
@@ -183,7 +186,7 @@
 <span class="cp">#define EXAFMM_RSQRT_APPROX 1</span>
 <span class="cp">#endif</span>
 
-<span class="k">namespace</span> <span class="n">exafmm_t</span> <span class="p">{</span>
+<span class="k">namespace</span> <span class="nn">exafmm_t</span> <span class="p">{</span>
 <span class="cp">#ifndef __CUDACC__</span>
   <span class="k">template</span><span class="o">&lt;</span><span class="kt">int</span> <span class="n">N</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span>
   <span class="k">class</span> <span class="nc">vec</span> <span class="p">{</span>
@@ -271,52 +274,52 @@
       <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">+</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">+=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">+=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">-=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">-=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">*=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">*=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">/</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">/=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">/=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&amp;</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&amp;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&amp;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">|</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">|=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">|=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">+</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">+=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">+=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">-=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">-=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">*=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">*=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">/</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">/=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">/=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&amp;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&amp;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&amp;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">|</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">|=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">|=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
       <span class="n">vec</span> <span class="n">temp</span><span class="p">;</span>
@@ -534,67 +537,67 @@
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">+</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">+=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">+=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">-=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">-=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">*=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">*=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">/</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">/=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">/=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&amp;</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&amp;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&amp;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">|</span><span class="p">(</span><span class="k">const</span> <span class="n">T</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">|=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">|=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">+</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">+=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">+=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">-=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">-=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">*=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">*=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">/</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">/=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">/=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&amp;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&amp;=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">&amp;=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">|</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">|=</span> <span class="n">v</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="o">|=</span> <span class="n">v</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
@@ -636,7 +639,7 @@
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="k">friend</span> <span class="n">T</span> <span class="n">norm</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">sum</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">v</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">sum</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">v</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="n">__host__</span> <span class="n">__device__</span> <span class="n">__forceinline__</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">min</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
@@ -783,25 +786,25 @@
       <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">+</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_add_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_add_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_sub_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_sub_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_mul_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_mul_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">/</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_div_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_div_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">__mmask16</span> <span class="k">operator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">_mm512_cmp_ps_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_MM_CMPINT_GT</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">_mm512_cmp_ps_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_MM_CMPINT_GT</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="n">__mmask16</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">_mm512_cmp_ps_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_MM_CMPINT_LT</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">_mm512_cmp_ps_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_MM_CMPINT_LT</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_sub_ps</span><span class="p">(</span><span class="n">_mm512_setzero_ps</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_sub_ps</span><span class="p">(</span><span class="n">_mm512_setzero_ps</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="kt">float</span> <span class="o">&amp;</span><span class="k">operator</span><span class="p">[](</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">return</span> <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
@@ -814,10 +817,10 @@
       <span class="k">return</span> <span class="n">s</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">min</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_min_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_min_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">max</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_max_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_max_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">rsqrt</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
 <span class="cp">#if EXAFMM_RSQRT_APPROX</span>
@@ -833,18 +836,18 @@
       <span class="k">return</span> <span class="n">temp</span><span class="p">;</span>
 <span class="cp">#else</span>
       <span class="n">vec</span> <span class="n">one</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_div_ps</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm512_sqrt_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_div_ps</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm512_sqrt_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
 <span class="cp">#endif</span>
     <span class="p">}</span>
 <span class="cp">#ifdef __INTEL_COMPILER</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_sin_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_sin_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">cos</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_cos_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_cos_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">exp</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_exp_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_exp_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
 <span class="cp">#else</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
@@ -930,25 +933,25 @@
       <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">+</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_add_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_add_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_sub_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_sub_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_mul_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">/</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_div_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_div_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">__mmask8</span> <span class="k">operator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">_mm512_cmp_pd_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_MM_CMPINT_GT</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">_mm512_cmp_pd_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_MM_CMPINT_GT</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="n">__mmask8</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">_mm512_cmp_pd_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_MM_CMPINT_LT</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">_mm512_cmp_pd_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_MM_CMPINT_LT</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_sub_pd</span><span class="p">(</span><span class="n">_mm512_setzero_pd</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_sub_pd</span><span class="p">(</span><span class="n">_mm512_setzero_pd</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="kt">double</span> <span class="o">&amp;</span><span class="k">operator</span><span class="p">[](</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">return</span> <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
@@ -961,10 +964,10 @@
       <span class="k">return</span> <span class="n">s</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">min</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_min_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_min_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">max</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_max_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_max_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">rsqrt</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
 <span class="cp">#if EXAFMM_RSQRT_APPROX</span>
@@ -980,18 +983,18 @@
       <span class="k">return</span> <span class="n">temp</span><span class="p">;</span>
 <span class="cp">#else</span>
       <span class="n">vec</span> <span class="n">one</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_div_pd</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm512_sqrt_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_div_pd</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm512_sqrt_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
 <span class="cp">#endif</span>
     <span class="p">}</span>
 <span class="cp">#ifdef __INTEL_COMPILER</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_sin_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_sin_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">cos</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_cos_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_cos_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">exp</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm512_exp_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm512_exp_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
 <span class="cp">#else</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
@@ -1075,25 +1078,25 @@
       <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">+</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_add_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_add_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_sub_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_sub_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_mul_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_mul_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">/</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_div_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_div_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_cmp_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_CMP_GT_OQ</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_cmp_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_CMP_GT_OQ</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_cmp_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_CMP_LT_OQ</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_cmp_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_CMP_LT_OQ</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_sub_ps</span><span class="p">(</span><span class="n">_mm256_setzero_ps</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_sub_ps</span><span class="p">(</span><span class="n">_mm256_setzero_ps</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="kt">float</span> <span class="o">&amp;</span><span class="k">operator</span><span class="p">[](</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">return</span> <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
@@ -1129,10 +1132,10 @@
       <span class="k">return</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">min</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_min_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_min_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">max</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_max_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_max_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">rsqrt</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
 <span class="cp">#if EXAFMM_RSQRT_APPROX</span>
@@ -1144,18 +1147,18 @@
       <span class="k">return</span> <span class="n">temp</span><span class="p">;</span>
 <span class="cp">#else</span>
       <span class="n">vec</span> <span class="n">one</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_div_ps</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm256_sqrt_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_div_ps</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm256_sqrt_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
 <span class="cp">#endif</span>
     <span class="p">}</span>
 <span class="cp">#ifdef __INTEL_COMPILER</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_sin_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_sin_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">cos</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_cos_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_cos_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">exp</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_exp_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_exp_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
 <span class="cp">#else</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
@@ -1234,25 +1237,25 @@
       <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">+</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_add_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_sub_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_sub_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_mul_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">/</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_div_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_div_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_cmp_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_CMP_GT_OQ</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_cmp_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_CMP_GT_OQ</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_cmp_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_CMP_LT_OQ</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_cmp_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_CMP_LT_OQ</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_sub_pd</span><span class="p">(</span><span class="n">_mm256_setzero_pd</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_sub_pd</span><span class="p">(</span><span class="n">_mm256_setzero_pd</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="kt">double</span> <span class="o">&amp;</span><span class="k">operator</span><span class="p">[](</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">return</span> <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
@@ -1286,10 +1289,10 @@
       <span class="k">return</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">min</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_min_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_min_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">max</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_max_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_max_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">rsqrt</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
 <span class="cp">#if EXAFMM_RSQRT_APPROX</span>
@@ -1301,18 +1304,18 @@
       <span class="k">return</span> <span class="n">temp</span><span class="p">;</span>
 <span class="cp">#else</span>
       <span class="n">vec</span> <span class="n">one</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_div_pd</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm256_sqrt_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_div_pd</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm256_sqrt_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
 <span class="cp">#endif</span>
     <span class="p">}</span>
 <span class="cp">#ifdef __INTEL_COMPILER</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_sin_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_sin_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">cos</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_cos_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_cos_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">exp</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm256_exp_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm256_exp_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
 <span class="cp">#else</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
@@ -1392,25 +1395,25 @@
       <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">+</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_add_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_add_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_sub_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_sub_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_mul_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">/</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_div_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_div_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_cmpgt_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_cmpgt_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_cmplt_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_cmplt_ps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_sub_ps</span><span class="p">(</span><span class="n">_mm_setzero_ps</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_sub_ps</span><span class="p">(</span><span class="n">_mm_setzero_ps</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="kt">float</span> <span class="o">&amp;</span><span class="k">operator</span><span class="p">[](</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">return</span> <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
@@ -1442,10 +1445,10 @@
       <span class="k">return</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">min</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_min_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_min_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">max</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_max_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_max_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">rsqrt</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
 <span class="cp">#if EXAFMM_RSQRT_APPROX</span>
@@ -1457,18 +1460,18 @@
       <span class="k">return</span> <span class="n">temp</span><span class="p">;</span>
 <span class="cp">#else</span>
       <span class="n">vec</span> <span class="n">one</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_div_ps</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm_sqrt_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_div_ps</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm_sqrt_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
 <span class="cp">#endif</span>
     <span class="p">}</span>
 <span class="cp">#ifdef __INTEL_COMPILER</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_sin_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_sin_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">cos</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_cos_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_cos_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">exp</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_exp_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_exp_ps</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
 <span class="cp">#else</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
@@ -1541,25 +1544,25 @@
       <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">+</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_add_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_add_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_sub_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_sub_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">*</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_mul_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_mul_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">/</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_div_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_div_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_cmpgt_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_cmpgt_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">&lt;</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_cmplt_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_cmplt_pd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="n">vec</span> <span class="k">operator</span><span class="o">-</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_sub_pd</span><span class="p">(</span><span class="n">_mm_setzero_pd</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_sub_pd</span><span class="p">(</span><span class="n">_mm_setzero_pd</span><span class="p">(),</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="kt">double</span> <span class="o">&amp;</span><span class="k">operator</span><span class="p">[](</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">return</span> <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
@@ -1589,10 +1592,10 @@
       <span class="k">return</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">min</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_min_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_min_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">max</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">,</span> <span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">w</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_max_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_max_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">w</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">rsqrt</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
 <span class="cp">#if EXAFMM_RSQRT_APPROX</span>
@@ -1604,18 +1607,18 @@
       <span class="k">return</span> <span class="n">temp</span><span class="p">;</span>
 <span class="cp">#else</span>
       <span class="n">vec</span> <span class="n">one</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_div_pd</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm_sqrt_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_div_pd</span><span class="p">(</span><span class="n">one</span><span class="p">.</span><span class="n">data</span><span class="p">,</span><span class="n">_mm_sqrt_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">)));</span>
 <span class="cp">#endif</span>
     <span class="p">}</span>
 <span class="cp">#ifdef __INTEL_COMPILER</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_sin_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_sin_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">cos</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_cos_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_cos_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">exp</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">vec</span><span class="p">(</span><span class="n">_mm_exp_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">vec</span><span class="p">(</span><span class="n">_mm_exp_pd</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">));</span>
     <span class="p">}</span>
 <span class="cp">#else</span>
     <span class="k">friend</span> <span class="n">vec</span> <span class="n">sin</span><span class="p">(</span><span class="k">const</span> <span class="n">vec</span> <span class="o">&amp;</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
