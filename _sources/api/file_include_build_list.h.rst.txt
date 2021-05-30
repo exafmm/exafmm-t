@@ -59,7 +59,7 @@ Functions
 
 - :ref:`exhale_function_namespaceexafmm__t_1a4c5585ab36a873853bd1037a305174ff`
 
-- :ref:`exhale_function_namespaceexafmm__t_1a99a87ebc089fc38be60f0ba46a256485`
-
 - :ref:`exhale_function_namespaceexafmm__t_1a7e01b7c369f769d9eb64c49d0523bb5e`
+
+- :ref:`exhale_function_namespaceexafmm__t_1a99a87ebc089fc38be60f0ba46a256485`
 
