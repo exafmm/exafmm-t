@@ -55,9 +55,9 @@ We will mention a few notable ones for context.
 It comes with an option to use `StarPU` runtime system to handle heterogeneous task scheduling.
 `TBFMM` [@bramasTBFMMGenericParallel2020] is a task-based FMM library that features a generic C++ design to support various types of tree structures and kernels, through heavy use of C++ templates.
 `PVFMM` [@malhotraPVFMMParallelKernel2015] can compute both particle and volume potentials using a kernel-independent FMM, KIFMM [@yingKernelindependentAdaptiveFast2004].
-The first version of ExaFMM focused on low-accuracy optimizations and implemented a dual tree traversal [@BarbaYokota2012-figshare; @YokotaBarba2011a; @yokotaFMMBasedDual2013].
-It was GPU-enabled using CUDA, parallel with MPI and exploited multithreading using OpenMP.
 
+The first version of ExaFMM focused on low-accuracy optimizations and implemented a dual-tree traversal [@BarbaYokota2012-figshare; @YokotaBarba2011a; @yokotaFMMBasedDual2013].
+It was GPU-enabled using CUDA, parallel with MPI and exploited multithreading using OpenMP.
 Despite all these efforts, it has remained a challenge in the FMM community to have a well-established open-source software package, analogous to FFTW for the fast Fourier transform,
 delivering compelling performance with a standard and easy-to-use interface.
 The "alpha" version of ExaFMM is long and complex, and hard to maintain.
