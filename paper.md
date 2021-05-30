@@ -60,10 +60,10 @@ The first version of ExaFMM focused on low-accuracy optimizations and implemente
 It was GPU-enabled using CUDA, parallel with MPI and exploited multithreading using OpenMP.
 Despite all these efforts, it has remained a challenge in the FMM community to have a well-established open-source software package, analogous to FFTW for the fast Fourier transform,
 delivering compelling performance with a standard and easy-to-use interface.
+
 The "alpha" version of ExaFMM is long and complex, and hard to maintain.
 Its length is partly due to a focus on fast execution, which led to specialized treatment of low-$p$ evaluations and extensive hand-coded optimizations.
-This emphasis on achieving high performance led to poor reusability or maintainability, as is the case with various other codes in this field.
-Already it was the fourth implementation of the algorithm within our research group, and two more came about over the years before the version we present in this paper.
+This emphasis on achieving high performance led to poor reusability and maintainability.
 As a bit of history of this project, it started in 2008 with [`PyFMM`](https://github.com/barbagroup/pyfmm), a 2D serial prototype in Python; then followed `PetFMM` in 2009, a PETSc-based parallel code with heavy templating [@cruz2011petfmm]; the third effort was [`GemsFMM`](https://github.com/barbagroup/gemsfmm) in 2010, a serial code with CUDA kernels for execution on GPUs [@yokota2011gems].
 Another student in the group felt that [`exafmm-alpha`](https://github.com/exafmm/exafmm-alpha) overused class inheritance and was inadequate for his application, so he and a collaborator re-used only the kernels and implemented another tree construction in [`fmmtl`](https://github.com/ccecka/fmmtl).
 The first author of this paper began working with `exafmm-alpha` in 2017, but at this point the mission was clear: simplify and aim for reusability.
