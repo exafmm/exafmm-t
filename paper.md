@@ -36,7 +36,8 @@ The fast multipole method (FMM) was introduced more than 30 years ago [@Greengar
 as a means of reducing 
 the complexity of N-body problems from $\mathcal{O}(N^2)$ to $\mathcal{O}(N)$
 using hierarchical approximations of long-range interactions.
-Two variants of hierarchical N-body algorithms exist: treecodes and FMM. 
+Two major variants of hierarchical N-body algorithms exist: treecodes and FMM.
+(Algebraic analogues also exist, such as H-matrix methods.)
 Both were originally developed for fast evaluation of the gravitational potential field, but now have found many applications in different fields.
 For example, the integral formulation of problems modeled by elliptic partial differential equations lead to numerical integration, having the same form, computationally, as an N-body interaction.
 In this way, N-body algorithms are applicable to acoustics, electromagenetics, fluid dynamics, and more.
