@@ -33,7 +33,6 @@ Our goal for all these years has been to produce reusable, standard code for thi
 The new header-only C/C++ implementation is easier to extend, still competitive with state-of-the-art codes, and includes a `pybind11` Python interface.
 
 The fast multipole method (FMM) was introduced more than 30 years ago [@GreengardRokhlin1987].
-Together with the likes of Krylov iterative methods and the fast Fourier transform, FMM is considered one of the top 10 algorithms of the 20-th century [@BoardSchulten2000].
 It reduces the complexity of N-body problems from $\mathcal{O}(N^2)$ to $\mathcal{O}(N)$ (where $N$ is the problem size) by approximating far-range interactions in a hierarchical way.
 Two variants of hierarchical N-body algorithms exist: treecodes and FMM. 
 Both were originally developed for fast evaluation of the gravitational potential field, but now have found many applications in different fields.
