@@ -49,9 +49,9 @@ Functions
 
 - :ref:`exhale_function_namespaceexafmm__t_1aac1fc3fa459a15049918792ef985b930`
 
-- :ref:`exhale_function_namespaceexafmm__t_1ad0528ffe62eca34477475f058ef3b075`
-
 - :ref:`exhale_function_namespaceexafmm__t_1ad41a7b3f40be1d43245d44b63be08743`
+
+- :ref:`exhale_function_namespaceexafmm__t_1ad0528ffe62eca34477475f058ef3b075`
 
 - :ref:`exhale_function_namespaceexafmm__t_1a50318156289412f1ccfd4c55db7004d5`
 
