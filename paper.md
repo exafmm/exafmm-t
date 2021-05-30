@@ -30,8 +30,7 @@ bibliography: paper.bib
 ExaFMM is an open-source library for fast multipole algorithms, providing high-performance evaluation of N-body problems in three dimensions, with C++ and Python interfaces.
 This new implementation is the most recent of many across a decade of work in our research group.
 Our goal for all these years has been to produce reusable, standard code for this intricate algorithm. 
-The Python binding in this new version allows calling it from a Jupyter notebook, reducing the barriers for adoption.
-It is also easy to extend, and faster or competitive with state-of-the art alternatives.
+The new header-only C/C++ implementation is easier to extend, still competitive with state-of-the-art codes, and includes a `pybind11` Python interface.
 
 The fast multipole method (FMM) was introduced more than 30 years ago [@GreengardRokhlin1987].
 Together with the likes of Krylov iterative methods and the fast Fourier transform, FMM is considered one of the top 10 algorithms of the 20-th century [@BoardSchulten2000].
