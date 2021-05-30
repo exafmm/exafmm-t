@@ -39,7 +39,7 @@ using hierarchical approximations of long-range interactions.
 Two major variants of hierarchical N-body algorithms exist: treecodes and FMM.
 (Algebraic analogues also exist, such as H-matrix methods.)
 Both were originally developed for fast evaluation of the gravitational potential field, but now have found many applications in different fields.
-For example, the integral formulation of problems modeled by elliptic partial differential equations lead to numerical integration, having the same form, computationally, as an N-body interaction.
+For example, the integral formulation of problems modeled by elliptic partial differential equations can be reinterpreted as N-body interactions.
 In this way, N-body algorithms are applicable to acoustics, electromagenetics, fluid dynamics, and more.
 The present version of ExaFMM implements the so-called kernel-independent variant of the algorithm [@yingKernelindependentAdaptiveFast2004].
 It supports computing both the potential and forces of Laplace, low-frequency Helmholtz and modified Helmholtz (a.k.a. Yukawa) kernels.
