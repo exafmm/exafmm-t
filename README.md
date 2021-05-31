@@ -3,6 +3,10 @@
 [![Build Status](https://travis-ci.com/exafmm/exafmm-t.svg?branch=master)](https://travis-ci.com/exafmm/exafmm-t)
 [![status](https://joss.theoj.org/papers/0faabca7e0ef645b42d7dd72cc924ecc/status.svg)](https://joss.theoj.org/papers/0faabca7e0ef645b42d7dd72cc924ecc)
 
+## Cite as
+
+"ExaFMM: a high-performance fast multipole method library with C++ and Python interfaces", Tingyu Wang, Rio Yokota, Lorena A. Barba. The Journal of Open Source Software, 6(61):3145 (2021). doi:10.21105/joss.03145 
+
 **exafmm-t** is a kernel-independent fast multipole method library for solving N-body problems.
 It provides both C++ and Python APIs.
 We use [pybind11](https://github.com/pybind/pybind11) to create Python bindings from C++ code.
