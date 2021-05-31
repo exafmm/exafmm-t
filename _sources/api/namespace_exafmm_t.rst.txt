@@ -156,9 +156,9 @@ Functions
 
 - :ref:`exhale_function_namespaceexafmm__t_1adf72c12fd698ebf283bf02ae94d82ff7`
 
-- :ref:`exhale_function_namespaceexafmm__t_1a7e01b7c369f769d9eb64c49d0523bb5e`
-
 - :ref:`exhale_function_namespaceexafmm__t_1a99a87ebc089fc38be60f0ba46a256485`
+
+- :ref:`exhale_function_namespaceexafmm__t_1a7e01b7c369f769d9eb64c49d0523bb5e`
 
 - :ref:`exhale_function_namespaceexafmm__t_1a71b1b9efc409aed0bb812fe16448a407`
 
