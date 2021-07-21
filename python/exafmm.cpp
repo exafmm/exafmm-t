@@ -130,17 +130,12 @@ template <typename T>
 Tree<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, exafmm_t::FmmBase<T>& fmm) {
   exafmm_t::get_bounds<T>(sources, targets, fmm.x0, fmm.r0);
   Tree<T> tree;
-#if NON_ADAPTIVE
   tree.nodes = exafmm_t::build_tree<T>(sources, targets, tree.leafs, tree.nonleafs, fmm);
-#else
-  tree.nodes = exafmm_t::build_tree<T>(sources, targets, tree.leafs, tree.nonleafs, fmm);
-  exafmm_t::balance_tree(tree.nodes, sources, targets, tree.leafs, tree.nonleafs, fmm);
-#endif
   return tree;
 }
 
 /**
- * @brief Create colleagues list, interaction lists and setup M2L kernel.
+ * @brief Create interaction lists and setup M2L kernel.
  * 
  * @tparam T Value type of sources and targets.
  * @param tree The octree.
@@ -148,7 +143,6 @@ Tree<T> build_tree(Bodies<T>& sources, Bodies<T>& targets, exafmm_t::FmmBase<T>&
  */
 template <typename T>
 void build_list(Tree<T>& tree, exafmm_t::FmmBase<T>& fmm) {
-  exafmm_t::set_colleagues<T>(tree.nodes);
   exafmm_t::build_list<T>(tree.nodes, fmm);
 }
 
@@ -398,7 +392,6 @@ PYBIND11_MODULE(exafmm, m) {
      .def_readwrite("dn_equiv", &Node<real_t>::dn_equiv)
      .def_readwrite("key", &Node<real_t>::key)
      .def_readwrite("parent", &Node<real_t>::parent)
-     .def_readwrite("colleagues", &Node<real_t>::colleagues)
      .def_readwrite("x", &Node<real_t>::x)
      .def_readwrite("r", &Node<real_t>::r)
      .def_readwrite("nsrcs", &Node<real_t>::nsrcs)
@@ -415,7 +408,6 @@ PYBIND11_MODULE(exafmm, m) {
      .def_readwrite("dn_equiv", &Node<complex_t>::dn_equiv)
      .def_readwrite("key", &Node<complex_t>::key)
      .def_readwrite("parent", &Node<complex_t>::parent)
-     .def_readwrite("colleagues", &Node<complex_t>::colleagues)
      .def_readwrite("x", &Node<complex_t>::x)
      .def_readwrite("r", &Node<complex_t>::r)
      .def_readwrite("nsrcs", &Node<complex_t>::nsrcs)

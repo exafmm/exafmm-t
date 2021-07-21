@@ -153,7 +153,7 @@ namespace exafmm_t {
    * @param step Step.
    * @param t Operator type (e.g. M2M, M2L)
    */
-  void init_rel_coord(int max_r, int min_r, int step, Mat_Type t) {
+  void init_rel_coord(int max_r, int min_r, int step, Precompute_Type t) {
     const int max_hash = 2000;
     HASH_LUT[t].resize(max_hash, -1);
     for (int k=-max_r; k<=max_r; k+=step) {
@@ -202,13 +202,8 @@ namespace exafmm_t {
       HASH_LUT.resize(Type_Count);
       init_rel_coord(1, 1, 2, M2M_Type);
       init_rel_coord(1, 1, 2, L2L_Type);
-      init_rel_coord(3, 3, 2, P2P0_Type);
-      init_rel_coord(1, 0, 1, P2P1_Type);
-      init_rel_coord(3, 3, 2, P2P2_Type);
       init_rel_coord(3, 2, 1, M2L_Helper_Type);
       init_rel_coord(1, 1, 1, M2L_Type);
-      init_rel_coord(5, 5, 2, M2P_Type);
-      init_rel_coord(5, 5, 2, P2L_Type);
       generate_M2L_index_map();
       is_initialized = true;
     }
