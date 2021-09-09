@@ -1,12 +1,14 @@
-#include <algorithm>    // std::generate
-#include <type_traits>  // std::is_same
+#include <algorithm>
+#include <random>
+#include <type_traits>
 #include "exafmm_t.h"
 #include "laplace.h"
 #include "timer.h"
 
 using namespace exafmm_t;
 
-void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, RealVec& trg_value) {
+void laplace_kernel(RealVec& src_coord, RealVec& src_value,
+                    RealVec& trg_coord, RealVec& trg_value) {
   int nsrcs = src_coord.size() / 3;
   int ntrgs = trg_coord.size() / 3;
   for (int t=0; t<ntrgs; ++t) {
@@ -37,22 +39,28 @@ void laplace_kernel(RealVec& src_coord, RealVec& src_value, RealVec& trg_coord, 
 
 int main(int argc, char **argv) {
   Args args(argc, argv);
-  int n = 10001;
-  std::srand(0);
+  int n_max = 20001;
+  int n = std::min(args.numBodies, n_max);
   LaplaceFmm fmm;
 
-  int nthreads = args.threads;
-  omp_set_num_threads(nthreads);
-
   // initialize sources and targets
+  print("numBodies", n);
   RealVec src_coord(3*n);
   RealVec trg_coord(3*n);
   RealVec src_value(n);
   RealVec trg_value(4*n, 0);        // non-simd result
   RealVec trg_value_simd(4*n, 0);   // simd result
-  std::generate(src_coord.begin(), src_coord.end(), std::rand);
-  std::generate(trg_coord.begin(), trg_coord.end(), std::rand);
-  std::generate(src_value.begin(), src_value.end(), std::rand);
+  
+  std::random_device rd;
+  std::mt19937 engine(rd());
+  std::uniform_real_distribution<real_t> dist(-1.0, 1.0);
+  auto gen = [&dist, &engine]() {
+    return dist(engine);
+  };
+
+  std::generate(src_coord.begin(), src_coord.end(), gen);
+  std::generate(trg_coord.begin(), trg_coord.end(), gen);
+  std::generate(src_value.begin(), src_value.end(), gen);
 
   // direct summation
   start("non-SIMD P2P Time");
@@ -82,5 +90,6 @@ int main(int argc, char **argv) {
   double threshold = std::is_same<float, real_t>::value ? 1e-6 : 1e-12;
   assert(p_err < threshold);
   assert(g_err < threshold);
+
   return 0;
 }

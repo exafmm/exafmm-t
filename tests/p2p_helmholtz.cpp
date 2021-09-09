@@ -1,12 +1,14 @@
-#include <algorithm>    // std::generate
-#include <type_traits>  // std::is_same
-#include "helmholtz.h"
+#include <algorithm>
+#include <random>
+#include <type_traits>
 #include "exafmm_t.h"
+#include "helmholtz.h"
 #include "timer.h"
 
 using namespace exafmm_t;
 
-void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_coord, ComplexVec& trg_value, complex_t wavek) {
+void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value,
+                      RealVec& trg_coord, ComplexVec& trg_value, complex_t wavek) {
   complex_t I = std::complex<real_t>(0., 1.);
   int nsrcs = src_coord.size() / 3;
   int ntrgs = trg_coord.size() / 3;
@@ -35,31 +37,33 @@ void helmholtz_kernel(RealVec& src_coord, ComplexVec& src_value, RealVec& trg_co
   }
 }
 
-real_t _rand() {
-  return (real_t) std::rand() / RAND_MAX;
-}
-
 int main(int argc, char **argv) {
   Args args(argc, argv);
-  int n = 10001;
-  std::srand(0);
+  int n_max = 20001;
+  int n = std::min(args.numBodies, n_max);
 
   HelmholtzFmm fmm;
   fmm.wavek = complex_t(5.,10.);
-  int nthreads = args.threads;
-  omp_set_num_threads(nthreads);
 
   // initialize sources and targets
+  print("numBodies", n);
   RealVec src_coord(3*n);
   RealVec trg_coord(3*n);
   ComplexVec src_value(n);
   ComplexVec trg_value(4*n, 0);
   ComplexVec trg_value_simd(4*n, 0);
 
-  std::generate(src_coord.begin(), src_coord.end(), _rand);
-  std::generate(trg_coord.begin(), trg_coord.end(), _rand);
-  std::generate(src_value.begin(), src_value.end(), []() {
-                  return complex_t(_rand(), _rand());
+  std::random_device rd;
+  std::mt19937 engine(rd());
+  std::uniform_real_distribution<real_t> dist(-1.0, 1.0);
+  auto gen = [&dist, &engine]() {
+    return dist(engine);
+  };
+
+  std::generate(src_coord.begin(), src_coord.end(), gen);
+  std::generate(trg_coord.begin(), trg_coord.end(), gen);
+  std::generate(src_value.begin(), src_value.end(), [&gen]() {
+                  return complex_t(gen(), gen());
                 });
 
   // direct summation

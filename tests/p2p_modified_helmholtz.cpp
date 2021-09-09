@@ -1,14 +1,14 @@
-#include <algorithm>    // std::generate
-#include <type_traits>  // std::is_same
+#include <algorithm>
+#include <random>
+#include <type_traits>
 #include "exafmm_t.h"
 #include "modified_helmholtz.h"
 #include "timer.h"
 
 using namespace exafmm_t;
-real_t WAVEK;
 
 void modified_helmholtz_kernel(RealVec& src_coord, RealVec& src_value,
-                               RealVec& trg_coord, RealVec& trg_value) {
+                               RealVec& trg_coord, RealVec& trg_value, real_t wavek) {
   int nsrcs = src_coord.size() / 3;
   int ntrgs = trg_coord.size() / 3;
   for (int i=0; i<ntrgs; ++i) {
@@ -22,8 +22,8 @@ void modified_helmholtz_kernel(RealVec& src_coord, RealVec& src_value,
       real_t r2 = norm(dx);
       if (r2>0) {
         real_t r = std::sqrt(r2);
-        real_t kernel = std::exp(-WAVEK*r) / r * src_value[j];
-        real_t dpdr = - kernel * (WAVEK*r+1) / r / r;
+        real_t kernel = std::exp(-wavek*r) / r * src_value[j];
+        real_t dpdr = - kernel * (wavek*r+1) / r / r;
         potential += kernel;
         gradient[0] += dpdr * dx[0];
         gradient[1] += dpdr * dx[1];
@@ -39,27 +39,34 @@ void modified_helmholtz_kernel(RealVec& src_coord, RealVec& src_value,
 
 int main(int argc, char **argv) {
   Args args(argc, argv);
-  int n = 10001;
-  std::srand(0);
+  int n_max = 20001;
+  int n = std::min(args.numBodies, n_max);
 
   ModifiedHelmholtzFmm fmm;
-  WAVEK = fmm.wavek;
-  int nthreads = args.threads;
-  omp_set_num_threads(nthreads);
+  fmm.wavek = 5.;
 
   // initialize sources and targets
+  print("numBodies", n);
   RealVec src_coord(3*n);
   RealVec trg_coord(3*n);
   RealVec src_value(n);
   RealVec trg_value(4*n, 0);        // non-simd result
   RealVec trg_value_simd(4*n, 0);   // simd result
-  std::generate(src_coord.begin(), src_coord.end(), std::rand);
-  std::generate(trg_coord.begin(), trg_coord.end(), std::rand);
-  std::generate(src_value.begin(), src_value.end(), std::rand);
+
+  std::random_device rd;
+  std::mt19937 engine(rd());
+  std::uniform_real_distribution<real_t> dist(-1.0, 1.0);
+  auto gen = [&dist, &engine]() {
+    return dist(engine);
+  };
+
+  std::generate(src_coord.begin(), src_coord.end(), gen);
+  std::generate(trg_coord.begin(), trg_coord.end(), gen);
+  std::generate(src_value.begin(), src_value.end(), gen);
 
   // direct summation
   start("non-SIMD P2P Time");
-  modified_helmholtz_kernel(src_coord, src_value, trg_coord, trg_value);
+  modified_helmholtz_kernel(src_coord, src_value, trg_coord, trg_value, fmm.wavek);
   stop("non-SIMD P2P Time");
 
   start("SIMD P2P Time");
@@ -85,5 +92,6 @@ int main(int argc, char **argv) {
   double threshold = std::is_same<float, real_t>::value ? 1e-6 : 1e-12;
   assert(p_err < threshold);
   assert(g_err < threshold);
+
   return 0;
 }
